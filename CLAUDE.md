@@ -85,6 +85,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   a busca de marcas (busca.inpi.gov.br) e mandar o resultado; se livre, GRU serviço **389** (pedido eletrônico com
   especificação pré-aprovada; com desconto de pessoa física ~R$ 142), depois protocolar no **e-Marcas** com a
   GRU: apresentação nominativa, natureza serviço, classe NCL **35**. Aguardando o resultado da busca.
+- 13/10/2026: busca no INPI por "vaiprocarrinho" (junto) = nenhum resultado. Pedido a ele: buscar também
+  "vai pro carrinho" (separado) e "pro carrinho" com a opção **Radical**, antes de gerar a GRU.
 
 
 ## Próximos passos
