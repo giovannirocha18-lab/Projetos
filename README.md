@@ -12,7 +12,9 @@ Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
 | `_headers` | Pede aos buscadores para não indexar o site enquanto ele está em construção |
 
 ## Lojas
-- **Exemplo**: usada automaticamente enquanto nenhuma API real estiver ligada.
+- **Exemplo**: usada automaticamente enquanto nenhuma loja real estiver ligada.
+- **Curadoria** (`lib/fontes/curadoria.js`): produtos escolhidos à mão, com o link de afiliado
+  gerado no portal da loja. Liga sozinha quando a lista tiver pelo menos um produto.
 - **Shopee** (`lib/fontes/shopee.js`): liga sozinha quando as variáveis `SHOPEE_APP_ID` e
   `SHOPEE_SECRET` forem cadastradas no Cloudflare (projeto > Settings > Variables and Secrets).
 - Para adicionar outra loja: criar `lib/fontes/<loja>.js` e incluir em `functions/api/buscar.js`.

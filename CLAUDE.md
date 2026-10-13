@@ -20,7 +20,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Site estático + **Cloudflare Pages Functions**, sem build. Repositório `giovannirocha18-lab/Gerador-de-Riquezas` (privado).
 - `index.html` = página "Em breve" (pública). `previa.html` = comparador (teste em `/previa`).
 - `functions/api/buscar.js` = busca; junta as fontes de `lib/fontes/`, cache de 1h.
-- `lib/fontes/exemplo.js` = produtos fictícios (usado enquanto não há API real).
+- `lib/fontes/exemplo.js` = produtos fictícios (usado enquanto nenhuma fonte real está ligada).
+- `lib/fontes/curadoria.js` = produtos escolhidos à mão com link de afiliado (lista `PRODUTOS`).
+  Com 1 produto ou mais, o site deixa de mostrar os exemplos. Giovanni manda os links; Claude cadastra.
 - `lib/fontes/shopee.js` = API GraphQL de afiliados da Shopee; liga com as variáveis
   `SHOPEE_APP_ID` e `SHOPEE_SECRET` no Cloudflare. **Escrito pela documentação, nunca testado.**
 - `_headers` + `<meta robots noindex>` escondem o site do Google até o lançamento.
@@ -41,6 +43,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 |---|---|
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
 | Comparador com produtos de exemplo em `/previa` | ✅ |
+| Lista de produtos reais (curadoria) pronta para receber links | ✅ vazia, aguardando links |
 | Página "Em breve" + bloqueio do Google | ✅ |
 | Domínio no Cloudflare | ⏳ "Invalid nameservers / pending", aguardando propagação |
 | Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ⏳ só dá para adicionar depois do domínio ficar **Active** |
@@ -54,7 +57,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 ## Próximos passos
 1. Quando o domínio ficar Active: Workers & Pages > vaiprocarrinho > Custom domains > adicionar os dois domínios.
 2. Giovanni testar `/previa` no celular e dar opinião sobre o visual.
-3. Colocar produtos reais: links de afiliado da Shopee (Oferta > Link personalizado) enquanto a API não sai.
+3. Colocar produtos reais: Giovanni manda links de afiliado da Shopee (Oferta > Link personalizado) com nome e
+   preço; Claude cadastra em `lib/fontes/curadoria.js`. Juntar uns 20–30 antes, porque os exemplos somem.
 4. Quando a API da Shopee sair: cadastrar as chaves no Cloudflare, testar e ajustar `lib/fontes/shopee.js`.
 5. Depois: Mercado Livre (curadoria com gerador de links em lote), AliExpress, Amazon, redes Awin/Lomadee.
 6. Lançamento: ver "Para lançar o site" no README.

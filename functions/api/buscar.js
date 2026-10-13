@@ -4,10 +4,11 @@
 // Roda nos servidores do Cloudflare (Pages Functions). É aqui que ficam as
 // chaves das APIs, sem nunca chegarem ao navegador do visitante.
 import { exemplo } from "../../lib/fontes/exemplo.js";
+import { curadoria } from "../../lib/fontes/curadoria.js";
 import { shopee } from "../../lib/fontes/shopee.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
-const FONTES_REAIS = [shopee];
+const FONTES_REAIS = [curadoria, shopee];
 
 const CACHE_SEGUNDOS = 60 * 60;
 
