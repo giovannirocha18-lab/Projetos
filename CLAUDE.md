@@ -81,6 +81,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   deposita primeiro no INPI (exceção: usuário de boa-fé com 6+ meses de uso, art. 129 §1º LPI); domínio não dá direito
   à marca. Pedido a ele: pesquisar "vai pro carrinho" na busca de marcas do INPI e decidir entre registrar a marca
   (classe 35) ou trocar o nome antes do lançamento. Sugerido falar com advogado de propriedade intelectual.
+- 13/10/2026: Giovanni entrou no sistema de GRU do INPI para pagar o pedido de marca. Orientado: primeiro fazer
+  a busca de marcas (busca.inpi.gov.br) e mandar o resultado; se livre, GRU serviço **389** (pedido eletrônico com
+  especificação pré-aprovada; com desconto de pessoa física ~R$ 142), depois protocolar no **e-Marcas** com a
+  GRU: apresentação nominativa, natureza serviço, classe NCL **35**. Aguardando o resultado da busca.
 
 
 ## Próximos passos
