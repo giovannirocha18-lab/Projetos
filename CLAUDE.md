@@ -52,7 +52,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Cadastro sem senha + carrinho na conta (código testado localmente) | ⏳ falta Giovanni criar o D1, ligar como `DB`, criar conta no Resend e cadastrar `RESEND_API_KEY` |
 | Página "Em breve" + bloqueio do Google | ✅ |
 | Domínio no Cloudflare | ✅ **Active** (13/10/2026) |
-| Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ⏳ adicionados em 13/10/2026, status **Verifying** |
+| Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ✅ site abrindo no domínio (13/10/2026) |
 | Shopee Afiliados: conta | ✅ aprovada |
 | Shopee: dados fiscais | ⏳ em análise |
 | Shopee: conta "Maree" (para receber pagamentos) | ❗ falta ativar (link "Como ativar?" no portal) |
@@ -73,12 +73,14 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - 13/10/2026: os dois Custom domains foram adicionados e estão em **Verifying**. Pedido a ele: esperar
   10–30 min; se continuar, clicar em "Complete DNS setup" e conferir em DNS > Records os CNAME `@` e `www`
   → `vaiprocarrinho.pages.dev` (nuvem laranja). Depois testar https://vaiprocarrinho.com.br.
+- 13/10/2026: site abriu em vaiprocarrinho.com.br. Giovanni não quer aparecer no Google ainda: confirmado
+  que todas as páginas já mandam `noindex` (testado local). Sugerido ele conferir no navegador e buscar
+  `site:vaiprocarrinho.com.br` no Google (deve vir vazio).
 
 
 ## Próximos passos
 0. Ligar o cadastro: D1 + binding `DB` + `RESEND_API_KEY` (passo a passo no README), refazer o deploy e testar
    com o e-mail dele (o Resend sem domínio verificado só entrega para o e-mail dono da conta Resend).
-1. Quando o domínio ficar Active: Workers & Pages > vaiprocarrinho > Custom domains > adicionar os dois domínios.
 2. Giovanni testar `/previa` no celular e dar opinião sobre o visual.
 3. Colocar produtos reais: Giovanni manda links de afiliado da Shopee (Oferta > Link personalizado) com nome e
    preço; Claude cadastra em `lib/fontes/curadoria.js`. Juntar uns 20–30 antes, porque os exemplos somem.
