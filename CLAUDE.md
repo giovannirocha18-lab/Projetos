@@ -76,6 +76,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - 13/10/2026: site abriu em vaiprocarrinho.com.br. Giovanni não quer aparecer no Google ainda: confirmado
   que todas as páginas já mandam `noindex` (testado local). Sugerido ele conferir no navegador e buscar
   `site:vaiprocarrinho.com.br` no Google (deve vir vazio).
+- 13/10/2026: Giovanni achou outros perfis "Vai Pro Carrinho" de achadinhos (Instagram @vaiprocarrinho_oficial e
+  @vaiprocarrinho.shop, TikTok @vai.pro.carrinho, YouTube, Linktree). Risco de marca: no Brasil a marca é de quem
+  deposita primeiro no INPI (exceção: usuário de boa-fé com 6+ meses de uso, art. 129 §1º LPI); domínio não dá direito
+  à marca. Pedido a ele: pesquisar "vai pro carrinho" na busca de marcas do INPI e decidir entre registrar a marca
+  (classe 35) ou trocar o nome antes do lançamento. Sugerido falar com advogado de propriedade intelectual.
 
 
 ## Próximos passos
