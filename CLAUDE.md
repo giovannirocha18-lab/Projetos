@@ -1,7 +1,8 @@
 # Memória do projeto — Vai pro Carrinho
 
 > Lido automaticamente pelo Claude no início de cada conversa.
-> **Atualizar ao final de cada etapa importante** (seções "Situação atual" e "Próximos passos").
+> **Atualizar ao final de cada etapa importante** (seções "Situação atual" e "Próximos passos")
+> e **sempre que pedir uma ação ao Giovanni** (seção "Em andamento"), para não perder o fio se a sessão reiniciar.
 > **Nunca** colocar aqui senhas, Secrets, App IDs, CPF ou dados bancários.
 
 ## Sobre o dono e o jeito de trabalhar
@@ -58,6 +59,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Shopee: Open API | ❗ ele vai pedir depois que o cadastro estiver todo validado |
 | Mercado Livre Afiliados | ❗ não se inscreveu ainda. API de busca dá 403 para muitos devs (Reclame Aqui) |
 | Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
+
+## Em andamento
+- Ligando o cadastro (passo 0 abaixo). Após um reinício da sessão, Giovanni disse "PRONTO, CRIADO"
+  sem dizer o quê (provavelmente o banco D1). Foi enviada a lista completa: D1 → binding `DB` →
+  conta Resend + API key → secret `RESEND_API_KEY` → Retry deployment → testar o login em `/previa`.
+  Aguardando ele dizer em qual passo está.
 
 ## Próximos passos
 0. Ligar o cadastro: D1 + binding `DB` + `RESEND_API_KEY` (passo a passo no README), refazer o deploy e testar
