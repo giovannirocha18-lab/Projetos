@@ -1,0 +1,4 @@
+# Site em construção: pede aos buscadores para não indexar nenhuma página.
+# Apagar esta regra no lançamento.
+/*
+  X-Robots-Tag: noindex, nofollow
