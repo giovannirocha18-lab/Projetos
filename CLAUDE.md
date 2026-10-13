@@ -61,10 +61,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
 
 ## Em andamento
-- Ligando o cadastro (passo 0 abaixo). Após um reinício da sessão, Giovanni disse "PRONTO, CRIADO"
-  sem dizer o quê (provavelmente o banco D1). Foi enviada a lista completa: D1 → binding `DB` →
-  conta Resend + API key → secret `RESEND_API_KEY` → Retry deployment → testar o login em `/previa`.
-  Aguardando ele dizer em qual passo está.
+- Ligando o cadastro (passo 0 abaixo). Giovanni confirmou em 13/10/2026: **banco D1 criado**.
+  Claude não consegue testar (rede bloqueia `*.pages.dev`). Enviados os passos seguintes: binding `DB`
+  → conta Resend + API key → secret `RESEND_API_KEY` → Retry deployment → ele testar o login em `/previa`
+  e mandar print. Aguardando retorno.
 
 ## Próximos passos
 0. Ligar o cadastro: D1 + binding `DB` + `RESEND_API_KEY` (passo a passo no README), refazer o deploy e testar
