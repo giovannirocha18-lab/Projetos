@@ -94,6 +94,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   formato válido de domínio .br; busca na web não achou nada). Nome é popular no nicho de achadinhos. Apresentadas
   2 opções: (a) pedir a marca no INPI logo, aceitando risco de contestação por uso anterior; (b) trocar o nome antes
   do lançamento. Aguardando a decisão dele e a busca "vai pro carrinho" (separado) no INPI.
+- 13/10/2026: Giovanni testou vai.pro.carrinho.br no navegador: NXDOMAIN = domínio não existe (e "carrinho.br" não é
+  categoria válida do .br). Não é concorrente com site. Decisão A/B (manter nome + INPI ou trocar) segue pendente.
 
 
 ## Próximos passos
