@@ -52,7 +52,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Shopee: conta "Maree" (para receber pagamentos) | ❗ falta ativar (link "Como ativar?" no portal) |
 | Shopee: Open API | ❗ ele vai pedir depois que o cadastro estiver todo validado |
 | Mercado Livre Afiliados | ❗ não se inscreveu ainda. API de busca dá 403 para muitos devs (Reclame Aqui) |
-| Segurança: print com senha do Registro.br (`registrobr.jpg`) | Removido do site; **ainda está no histórico da branch**. Pedir autorização para limpar o histórico. Confirmar se ele trocou a senha. |
+| Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
 
 ## Próximos passos
 1. Quando o domínio ficar Active: Workers & Pages > vaiprocarrinho > Custom domains > adicionar os dois domínios.
