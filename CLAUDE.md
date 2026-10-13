@@ -71,7 +71,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   - Busca melhor no Instagram (print 13/10/2026): **12+ perfis** com o nome (vai.pro.carrinho_, vaiprocarrinho.ofertas,
     vaiprocarrinho.promo **verificado**, vaipro_carrinho "Achadinhos Shopee", amigavaiprocarrinho…). Virou bordão do
     nicho de achadinhos → marca fraca/risco de o INPI negar por expressão de uso comum, impossível se destacar.
-    Claude recomendou **fortemente a opção B** e pediu para ele conferir os nomes sugeridos. Opções apresentadas:
+    Claude recomendou **fortemente a opção B** e pediu para ele conferir os nomes sugeridos.
+  - Giovanni perguntou se, sem site e sem INPI de ninguém, haveria problema jurídico. Resposta: risco de processo
+    é baixo; o risco real é o INPI negar (art. 124 VI uso comum / VII expressão de propaganda) e ficar sem
+    exclusividade. Pior caso de manter: perde a GRU (~R$ 142) e segue usando sem exclusividade. A questão é de marketing. Opções apresentadas:
   - **A) Manter o nome**: falta buscar "vai pro carrinho" (separado) no INPI; se livre, GRU serviço **389**
     (~R$ 142 com desconto de pessoa física; se der ~R$ 355, o desconto não entrou) e depois protocolar no
     **e-Marcas**: nominativa, natureza serviço, classe NCL **35** (comparação de preços, publicidade de produtos de
