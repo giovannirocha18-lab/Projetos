@@ -90,6 +90,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - 13/10/2026: busca "pro carrinho" achou só "Maxpro Carrinhos e Ferramentas" (classe 35, registrada; loja de
   ferramentas). Avaliado como risco baixo (marca diferente no conjunto, outro ramo), mas a decisão é do INPI.
   Falta ele confirmar a busca "vai pro carrinho" (separado); se vazia, seguir com GRU 389.
+- 13/10/2026: Giovanni achou mais uma página "vai.pro.carrinho.br" (provavelmente perfil de rede social, não é
+  formato válido de domínio .br; busca na web não achou nada). Nome é popular no nicho de achadinhos. Apresentadas
+  2 opções: (a) pedir a marca no INPI logo, aceitando risco de contestação por uso anterior; (b) trocar o nome antes
+  do lançamento. Aguardando a decisão dele e a busca "vai pro carrinho" (separado) no INPI.
 
 
 ## Próximos passos
