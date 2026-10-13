@@ -70,6 +70,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
     terceiros). Depois comprar `vaiprocarrinho.com` pelo "Buy domain" do Cloudflare e redirecionar.
   - **B) Trocar o nome** antes do lançamento (recomendação do Claude): sugerir nomes, ele confere no INPI e no
     registro.br, registrar `.com.br` + `.com`, e trocar o nome no site todo.
+  - Nomes sugeridos para a opção B (13/10/2026; busca rápida na web não achou uso; INPI/registro.br não
+    conferidos porque a rede do Claude bloqueia): **Cotaly** e **Precinzo** (favoritos), Garimpaí, Achadex,
+    Lupreço, Ofertô. Evitados: "carrinho" (confusão com os perfis), Comparaí (existe Compara.ai), nomes
+    parecidos com Buscapé, Zoom, Promobit, Pelando, JáCotei, Precifica, KuantoKusta. Aguardando ele conferir.
   - Buscas no INPI já feitas: "vaiprocarrinho" = nada; "pro carrinho" = só "Maxpro Carrinhos e Ferramentas"
     (classe 35, registrada; risco baixo na avaliação do Claude, mas quem decide é o INPI).
   - Explicado: no Brasil a marca é de quem deposita primeiro no INPI (exceção: uso de boa-fé há 6+ meses,
