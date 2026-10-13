@@ -52,7 +52,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Cadastro sem senha + carrinho na conta (código testado localmente) | ⏳ falta Giovanni criar o D1, ligar como `DB`, criar conta no Resend e cadastrar `RESEND_API_KEY` |
 | Página "Em breve" + bloqueio do Google | ✅ |
 | Domínio no Cloudflare | ✅ **Active** (13/10/2026) |
-| Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ⏳ só dá para adicionar depois do domínio ficar **Active** |
+| Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ⏳ adicionados em 13/10/2026, status **Verifying** |
 | Shopee Afiliados: conta | ✅ aprovada |
 | Shopee: dados fiscais | ⏳ em análise |
 | Shopee: conta "Maree" (para receber pagamentos) | ❗ falta ativar (link "Como ativar?" no portal) |
@@ -70,6 +70,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   status do domínio no Cloudflare e no Registro.br (pagamento/"Publicado"); usar vaiprocarrinho.pages.dev enquanto isso.
 - 13/10/2026: domínio ficou **Active** no Cloudflare. Pedido a ele: adicionar `vaiprocarrinho.com.br` e
   `www.vaiprocarrinho.com.br` em Workers & Pages > vaiprocarrinho > Custom domains e testar o endereço.
+- 13/10/2026: os dois Custom domains foram adicionados e estão em **Verifying**. Pedido a ele: esperar
+  10–30 min; se continuar, clicar em "Complete DNS setup" e conferir em DNS > Records os CNAME `@` e `www`
+  → `vaiprocarrinho.pages.dev` (nuvem laranja). Depois testar https://vaiprocarrinho.com.br.
 
 
 ## Próximos passos
