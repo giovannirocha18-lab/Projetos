@@ -71,6 +71,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 6. Lançamento: ver "Para lançar o site" no README. Antes: verificar o domínio no Resend (+ `EMAIL_REMETENTE`)
    e criar `contato@vaiprocarrinho.com.br` (Cloudflare Email Routing; exige trocar o MX nulo).
 
+## Decisões do Giovanni
+- **Sem aviso de link de afiliado/comissão visível no site** (pedido dele em 13/10/2026). Os links mantêm
+  `rel="sponsored"` (invisível, exigido pelo Google). Se entrar no programa da Amazon, ela **exige** um aviso
+  ("Como Associado da Amazon…"): avisar o Giovanni e recolocar só o necessário.
+
 ## Planos combinados para o futuro (tudo no Cloudflare, sem VPS)
 - **Robô de preços** (Cron Triggers) + **banco de dados D1**: só via APIs oficiais e feeds de
   afiliados (Shopee, AliExpress, Awin, Lomadee). **Nunca** raspar páginas das lojas (proibido, risco
