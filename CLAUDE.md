@@ -67,7 +67,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   mesmo nicho (achadinhos baratos), logo profissional "VAI PRO CARRINHO .BR", só 4 produtos (#001–#004) = parece
   bem recente. Instagram deles: conta criada em 08/2025, **2 trocas de nome**, posts de produtos desde
   **21/07/2026** → uso com esse nome provavelmente < 6 meses; o prazo de 6 meses fecharia por volta de
-  **21/01/2027**. Se for manter o nome, depositar no INPI bem antes disso (ideal: já). Opções apresentadas:
+  **21/01/2027**. Se for manter o nome, depositar no INPI bem antes disso (ideal: já).
+  - Busca melhor no Instagram (print 13/10/2026): **12+ perfis** com o nome (vai.pro.carrinho_, vaiprocarrinho.ofertas,
+    vaiprocarrinho.promo **verificado**, vaipro_carrinho "Achadinhos Shopee", amigavaiprocarrinho…). Virou bordão do
+    nicho de achadinhos → marca fraca/risco de o INPI negar por expressão de uso comum, impossível se destacar.
+    Claude recomendou **fortemente a opção B** e pediu para ele conferir os nomes sugeridos. Opções apresentadas:
   - **A) Manter o nome**: falta buscar "vai pro carrinho" (separado) no INPI; se livre, GRU serviço **389**
     (~R$ 142 com desconto de pessoa física; se der ~R$ 355, o desconto não entrou) e depois protocolar no
     **e-Marcas**: nominativa, natureza serviço, classe NCL **35** (comparação de preços, publicidade de produtos de
