@@ -63,6 +63,17 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 5. Depois: Mercado Livre (curadoria com gerador de links em lote), AliExpress, Amazon, redes Awin/Lomadee.
 6. Lançamento: ver "Para lançar o site" no README.
 
+## Planos combinados para o futuro (tudo no Cloudflare, sem VPS)
+- **Robô de preços** (Cron Triggers) + **banco de dados D1**: só via APIs oficiais e feeds de
+  afiliados (Shopee, AliExpress, Awin, Lomadee). **Nunca** raspar páginas das lojas (proibido, risco
+  de perder a conta de afiliado). Guardar histórico de preços ("menor preço em 30 dias").
+- **"Meu carrinho"** (renomear Favoritos): lista de itens salvos para compra futura. Sem cadastro
+  fica só no aparelho; com cadastro sincroniza entre aparelhos e junta o que já estava salvo.
+- **Cadastro mínimo**: só nome e e-mail, **sem senha** (código por e-mail e/ou "Entrar com Google").
+  LGPD: pedir o mínimo, ter página de Política de Privacidade, alerta por e-mail só com autorização.
+- Ordem: 1) produtos reais + lançamento; 2) robô + banco quando a API da Shopee sair;
+  3) cadastro + alertas de preço quando houver visitantes.
+
 ## Comando de recomeço
 Texto para colar numa conversa nova:
 
