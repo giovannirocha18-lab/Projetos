@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vai pro Carrinho</title>
+  <meta name="description" content="Produtos recomendados com os melhores preços.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="aviso">
+    Este site participa do Programa de Afiliados do Mercado Livre. Podemos receber uma comissão
+    pelas compras feitas através dos links, <strong>sem nenhum custo extra para você</strong>.
+  </div>
+
+  <header class="topo">
+    <div class="container">
+      <h1 id="site-nome"></h1>
+      <p id="site-slogan"></p>
+      <div class="sociais" id="sociais"></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="ferramentas">
+      <input type="search" id="busca" placeholder="Buscar produto..." aria-label="Buscar produto">
+      <div class="categorias" id="categorias" role="group" aria-label="Filtrar por categoria"></div>
+    </div>
+
+    <p class="vazio" id="vazio" hidden>Nenhum produto encontrado.</p>
+    <section class="grade" id="grade"></section>
+  </main>
+
+  <footer class="rodape">
+    <div class="container">
+      <p>Preços e disponibilidade podem mudar. Confira sempre o valor final na página do Mercado Livre.</p>
+      <p>&copy; <span id="ano"></span> <span id="rodape-nome"></span></p>
+    </div>
+  </footer>
+
+  <script src="produtos.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

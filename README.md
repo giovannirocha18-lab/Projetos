@@ -1,2 +1,2 @@
 # Gerador-de-Riquezas
-Site vaiprocarrinho.com.br
+Site vaiparaocarrinho.com.br
