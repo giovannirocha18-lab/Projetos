@@ -60,47 +60,23 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Mercado Livre Afiliados | ❗ não se inscreveu ainda. API de busca dá 403 para muitos devs (Reclame Aqui) |
 | Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
 
-## Em andamento
-- Ligando o cadastro (passo 0 abaixo). Giovanni confirmou em 13/10/2026: **banco D1 criado**.
-  Claude não consegue testar (rede bloqueia `*.pages.dev`). Enviados os passos seguintes: binding `DB`
-  → conta Resend + API key → secret `RESEND_API_KEY` → Retry deployment → ele testar o login em `/previa`
-  e mandar print. Aguardando retorno.
-- 13/10/2026: Giovanni abriu vaiprocarrinho.com.br e viu DNS_PROBE_FINISHED_NXDOMAIN. Esperado: o domínio
-  ainda não está Active no Cloudflare e os Custom domains não foram adicionados. Pedido a ele: conferir o
-  status do domínio no Cloudflare e no Registro.br (pagamento/"Publicado"); usar vaiprocarrinho.pages.dev enquanto isso.
-- 13/10/2026: domínio ficou **Active** no Cloudflare. Pedido a ele: adicionar `vaiprocarrinho.com.br` e
-  `www.vaiprocarrinho.com.br` em Workers & Pages > vaiprocarrinho > Custom domains e testar o endereço.
-- 13/10/2026: os dois Custom domains foram adicionados e estão em **Verifying**. Pedido a ele: esperar
-  10–30 min; se continuar, clicar em "Complete DNS setup" e conferir em DNS > Records os CNAME `@` e `www`
-  → `vaiprocarrinho.pages.dev` (nuvem laranja). Depois testar https://vaiprocarrinho.com.br.
-- 13/10/2026: site abriu em vaiprocarrinho.com.br. Giovanni não quer aparecer no Google ainda: confirmado
-  que todas as páginas já mandam `noindex` (testado local). Sugerido ele conferir no navegador e buscar
-  `site:vaiprocarrinho.com.br` no Google (deve vir vazio).
-- 13/10/2026: Giovanni achou outros perfis "Vai Pro Carrinho" de achadinhos (Instagram @vaiprocarrinho_oficial e
-  @vaiprocarrinho.shop, TikTok @vai.pro.carrinho, YouTube, Linktree). Risco de marca: no Brasil a marca é de quem
-  deposita primeiro no INPI (exceção: usuário de boa-fé com 6+ meses de uso, art. 129 §1º LPI); domínio não dá direito
-  à marca. Pedido a ele: pesquisar "vai pro carrinho" na busca de marcas do INPI e decidir entre registrar a marca
-  (classe 35) ou trocar o nome antes do lançamento. Sugerido falar com advogado de propriedade intelectual.
-- 13/10/2026: Giovanni entrou no sistema de GRU do INPI para pagar o pedido de marca. Orientado: primeiro fazer
-  a busca de marcas (busca.inpi.gov.br) e mandar o resultado; se livre, GRU serviço **389** (pedido eletrônico com
-  especificação pré-aprovada; com desconto de pessoa física ~R$ 142), depois protocolar no **e-Marcas** com a
-  GRU: apresentação nominativa, natureza serviço, classe NCL **35**. Aguardando o resultado da busca.
-- 13/10/2026: busca no INPI por "vaiprocarrinho" (junto) = nenhum resultado. Pedido a ele: buscar também
-  "vai pro carrinho" (separado) e "pro carrinho" com a opção **Radical**, antes de gerar a GRU.
-- 13/10/2026: busca "pro carrinho" achou só "Maxpro Carrinhos e Ferramentas" (classe 35, registrada; loja de
-  ferramentas). Avaliado como risco baixo (marca diferente no conjunto, outro ramo), mas a decisão é do INPI.
-  Falta ele confirmar a busca "vai pro carrinho" (separado); se vazia, seguir com GRU 389.
-- 13/10/2026: Giovanni achou mais uma página "vai.pro.carrinho.br" (provavelmente perfil de rede social, não é
-  formato válido de domínio .br; busca na web não achou nada). Nome é popular no nicho de achadinhos. Apresentadas
-  2 opções: (a) pedir a marca no INPI logo, aceitando risco de contestação por uso anterior; (b) trocar o nome antes
-  do lançamento. Aguardando a decisão dele e a busca "vai pro carrinho" (separado) no INPI.
-- 13/10/2026: Giovanni testou vai.pro.carrinho.br no navegador: NXDOMAIN = domínio não existe (e "carrinho.br" não é
-  categoria válida do .br). Não é concorrente com site. Decisão A/B (manter nome + INPI ou trocar) segue pendente.
-- 13/10/2026: Giovanni perguntou sobre outros registrarem vaiprocarrinho.com/.net. Explicado: qualquer um pode;
-  proteção = registrar as variações principais (sugerido só `.com`, pelo botão "Buy domain" do Cloudflare, e
-  redirecionar) + marca no INPI (base para retomar domínio de má-fé: SACI-Adm no .br, UDRP no .com).
-  Recomendado decidir A/B (manter nome ou trocar) **antes** de comprar domínios extras.
-
+## Em andamento (resumo em 13/10/2026)
+- **Decisão pendente do Giovanni sobre o nome.** Há vários perfis "Vai Pro Carrinho" de achadinhos nas redes
+  (Instagram @vaiprocarrinho_oficial e @vaiprocarrinho.shop, TikTok @vai.pro.carrinho, YouTube, Linktree).
+  Nenhum tem site (vai.pro.carrinho.br não existe). Opções apresentadas:
+  - **A) Manter o nome**: falta buscar "vai pro carrinho" (separado) no INPI; se livre, GRU serviço **389**
+    (~R$ 142 com desconto de pessoa física; se der ~R$ 355, o desconto não entrou) e depois protocolar no
+    **e-Marcas**: nominativa, natureza serviço, classe NCL **35** (comparação de preços, publicidade de produtos de
+    terceiros). Depois comprar `vaiprocarrinho.com` pelo "Buy domain" do Cloudflare e redirecionar.
+  - **B) Trocar o nome** antes do lançamento (recomendação do Claude): sugerir nomes, ele confere no INPI e no
+    registro.br, registrar `.com.br` + `.com`, e trocar o nome no site todo.
+  - Buscas no INPI já feitas: "vaiprocarrinho" = nada; "pro carrinho" = só "Maxpro Carrinhos e Ferramentas"
+    (classe 35, registrada; risco baixo na avaliação do Claude, mas quem decide é o INPI).
+  - Explicado: no Brasil a marca é de quem deposita primeiro no INPI (exceção: uso de boa-fé há 6+ meses,
+    art. 129 §1º LPI); domínio não dá direito à marca. Sugerido consultar advogado de propriedade intelectual.
+- **Cadastro do site**: banco D1 já criado. Faltam: binding `DB` → conta Resend + API key → secret
+  `RESEND_API_KEY` → Retry deployment → ele testar o login em `/previa` e mandar print.
+- Domínio e site no ar em vaiprocarrinho.com.br (página "Em breve"), fora do Google (noindex conferido).
 
 ## Próximos passos
 0. Ligar o cadastro: D1 + binding `DB` + `RESEND_API_KEY` (passo a passo no README), refazer o deploy e testar
