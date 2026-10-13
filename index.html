@@ -6,27 +6,11 @@
   <!-- Página provisória enquanto o site está em construção. A loja de verdade está em previa.html -->
   <meta name="robots" content="noindex, nofollow">
   <title>Vai pro Carrinho — Em breve</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #f6f7f9;
-      --texto: #1c2430;
-      --suave: #5d6878;
-      --marca: #0f7b5f;
-      --marca-fundo: #e3f4ee;
-      --selo-texto: #fff;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #12161c;
-        --texto: #e8ecf1;
-        --suave: #9aa5b4;
-        --marca: #34c495;
-        --marca-fundo: #173a30;
-        --selo-texto: #0b1f19;
-      }
-    }
-
     * { box-sizing: border-box; }
 
     body {
@@ -35,45 +19,59 @@
       display: grid;
       place-items: center;
       padding: 24px 16px;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--texto);
+      overflow: hidden;
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #5b21b6 0%, #9333ea 48%, #db2777 100%);
+      color: #fff;
       line-height: 1.5;
       text-align: center;
     }
 
-    .carrinho {
-      width: 88px; height: 88px; margin: 0 auto 20px;
-      display: grid; place-items: center;
-      border-radius: 50%;
-      background: var(--marca-fundo);
-      color: var(--marca);
+    body::before, body::after {
+      content: ""; position: fixed; border-radius: 50%; filter: blur(70px);
+      animation: flutuar 12s ease-in-out infinite alternate;
     }
+    body::before { width: 420px; height: 420px; background: #f97316; opacity: .5; top: -160px; left: -120px; }
+    body::after { width: 460px; height: 460px; background: #22d3ee; opacity: .3; bottom: -220px; right: -140px; animation-delay: -6s; }
+    @keyframes flutuar { to { transform: translate(60px, 40px) scale(1.15); } }
 
-    h1 { margin: 0; font-size: clamp(2rem, 7vw, 3rem); letter-spacing: -.02em; }
+    main { position: relative; z-index: 1; }
+
+    .carrinho {
+      width: 96px; height: 96px; margin: 0 auto 22px;
+      display: grid; place-items: center; font-size: 3rem;
+      border-radius: 28px; background: rgba(255, 255, 255, .16);
+      border: 1px solid rgba(255, 255, 255, .3);
+      animation: balancar 2.4s ease-in-out infinite;
+    }
+    @keyframes balancar { 50% { transform: translateY(-8px) rotate(-6deg); } }
+
+    h1 { margin: 0; font-size: clamp(2.4rem, 8vw, 3.8rem); letter-spacing: -.035em; font-weight: 800; line-height: 1.05; }
+    h1 span {
+      background: linear-gradient(90deg, #fde047, #fb923c);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
 
     .selo {
-      display: inline-block; margin-top: 16px;
-      font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
-      padding: 4px 14px; border-radius: 999px;
-      background: var(--marca); color: var(--selo-texto);
+      display: inline-block; margin-top: 20px;
+      font-size: .9rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em;
+      padding: 6px 18px; border-radius: 999px;
+      background: #facc15; color: #3b2a00;
     }
 
-    p { margin: 16px auto 0; max-width: 440px; color: var(--suave); }
+    p { margin: 18px auto 0; max-width: 460px; font-size: 1.08rem; opacity: .92; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; }
+    }
   </style>
 </head>
 <body>
   <main>
-    <div class="carrinho" aria-hidden="true">
-      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="9" cy="20" r="1.5"/>
-        <circle cx="18" cy="20" r="1.5"/>
-        <path d="M2 3h3l2.6 12.4a1.5 1.5 0 0 0 1.5 1.1h8.8a1.5 1.5 0 0 0 1.5-1.1L21 7H6.2"/>
-      </svg>
-    </div>
-    <h1>Vai pro Carrinho</h1>
+    <div class="carrinho" aria-hidden="true">🛒</div>
+    <h1>Vai pro <span>Carrinho</span></h1>
     <span class="selo">Em breve</span>
-    <p>Estamos preparando os melhores achados da Shopee, do Mercado Livre e de outras lojas, tudo num só lugar. Volte logo!</p>
+    <p>Em breve você vai comparar os preços da Shopee, do Mercado Livre, da Amazon e de outras lojas num só lugar. Volte logo!</p>
   </main>
 </body>
 </html>
