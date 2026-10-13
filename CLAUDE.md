@@ -65,6 +65,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Claude não consegue testar (rede bloqueia `*.pages.dev`). Enviados os passos seguintes: binding `DB`
   → conta Resend + API key → secret `RESEND_API_KEY` → Retry deployment → ele testar o login em `/previa`
   e mandar print. Aguardando retorno.
+- 13/10/2026: Giovanni abriu vaiprocarrinho.com.br e viu DNS_PROBE_FINISHED_NXDOMAIN. Esperado: o domínio
+  ainda não está Active no Cloudflare e os Custom domains não foram adicionados. Pedido a ele: conferir o
+  status do domínio no Cloudflare e no Registro.br (pagamento/"Publicado"); usar vaiprocarrinho.pages.dev enquanto isso.
+
 
 ## Próximos passos
 0. Ligar o cadastro: D1 + binding `DB` + `RESEND_API_KEY` (passo a passo no README), refazer o deploy e testar
