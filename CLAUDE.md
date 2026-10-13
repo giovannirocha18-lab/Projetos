@@ -63,7 +63,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 ## Em andamento (resumo em 13/10/2026)
 - **Decisão pendente do Giovanni sobre o nome.** Há vários perfis "Vai Pro Carrinho" de achadinhos nas redes
   (Instagram @vaiprocarrinho_oficial e @vaiprocarrinho.shop, TikTok @vai.pro.carrinho, YouTube, Linktree).
-  Nenhum tem site (vai.pro.carrinho.br não existe). Opções apresentadas:
+  Nenhum tem site (vai.pro.carrinho.br não existe). Linktree `linktr.ee/Vai.Pro.Carrinho.BR` (print 13/10/2026):
+  mesmo nicho (achadinhos baratos), logo profissional "VAI PRO CARRINHO .BR", só 4 produtos (#001–#004) = parece
+  bem recente. Pedido ao Giovanni: ver a data de criação em "Sobre esta conta" no Instagram/TikTok (regra dos 6 meses). Opções apresentadas:
   - **A) Manter o nome**: falta buscar "vai pro carrinho" (separado) no INPI; se livre, GRU serviço **389**
     (~R$ 142 com desconto de pessoa física; se der ~R$ 355, o desconto não entrou) e depois protocolar no
     **e-Marcas**: nominativa, natureza serviço, classe NCL **35** (comparação de preços, publicidade de produtos de
