@@ -87,6 +87,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   GRU: apresentação nominativa, natureza serviço, classe NCL **35**. Aguardando o resultado da busca.
 - 13/10/2026: busca no INPI por "vaiprocarrinho" (junto) = nenhum resultado. Pedido a ele: buscar também
   "vai pro carrinho" (separado) e "pro carrinho" com a opção **Radical**, antes de gerar a GRU.
+- 13/10/2026: busca "pro carrinho" achou só "Maxpro Carrinhos e Ferramentas" (classe 35, registrada; loja de
+  ferramentas). Avaliado como risco baixo (marca diferente no conjunto, outro ramo), mas a decisão é do INPI.
+  Falta ele confirmar a busca "vai pro carrinho" (separado); se vazia, seguir com GRU 389.
 
 
 ## Próximos passos
