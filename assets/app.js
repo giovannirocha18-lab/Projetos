@@ -51,13 +51,16 @@ function el(tag, attrs = {}, ...filhos) {
   return node;
 }
 
-const ICONE_CORACAO = () => {
+const ICONE_CARRINHO = () => {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("width", "20");
   svg.setAttribute("height", "20");
   svg.setAttribute("aria-hidden", "true");
-  svg.innerHTML = '<path d="M12 21s-7.5-4.6-9.5-9.3C1.1 8.3 3.3 4.5 7 4.5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.7 0 5.9 3.8 4.5 7.2C19.5 16.4 12 21 12 21Z" fill="currentColor"/>';
+  svg.innerHTML = '<path d="M2.5 3.5h2.3l2.6 11a1.6 1.6 0 0 0 1.6 1.2h8.4a1.6 1.6 0 0 0 1.5-1.1L21 7.5H6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '<circle cx="9.5" cy="20" r="1.6" fill="currentColor"/><circle cx="17" cy="20" r="1.6" fill="currentColor"/>'
+    + '<path class="icone-mais" d="M13.3 9.4v4.4M11.1 11.6h4.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+    + '<path class="icone-ok" d="m11.2 11.7 1.8 1.8 3.2-3.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
   return svg;
 };
 
@@ -74,7 +77,8 @@ function toast(msg) {
 }
 
 // ---------------------------------------------------------------------
-// Favoritos (ficam salvos só neste navegador)
+// Meu carrinho (no código ainda chamado de "favoritos"). Fica salvo neste
+// navegador e, se a pessoa entrar na conta, também na conta.
 // ---------------------------------------------------------------------
 const CHAVE_FAV = "vpc-favoritos";
 let favoritos = [];
@@ -89,13 +93,14 @@ const ehFavorito = (id) => favoritos.some((f) => f.id === id);
 function alternarFavorito(oferta) {
   if (ehFavorito(oferta.id)) {
     favoritos = favoritos.filter((f) => f.id !== oferta.id);
-    toast("Removido dos favoritos");
+    toast("Removido do carrinho");
   } else {
     const { id, titulo, preco, loja, link, imagem, emoji, categoria } = oferta;
     favoritos.unshift({ id, titulo, preco, loja, link, imagem, emoji, categoria });
-    toast("❤️ Salvo nos favoritos");
+    toast("🛒 Guardado no seu carrinho");
   }
   salvarFavoritos();
+  enviarCarrinho();
   atualizarFavoritos(true);
 }
 
@@ -112,7 +117,7 @@ function desenharFavoritos() {
   const lista = $("#lista-favoritos");
   if (!favoritos.length) {
     lista.replaceChildren(el("div", { class: "fav-vazio" },
-      el("span", {}, "🤍"), el("p", {}, "Toque no coração de uma oferta para guardar aqui.")));
+      el("span", {}, "🛒"), el("p", {}, "Seu carrinho está vazio. Toque no carrinho de uma oferta para guardar e comprar depois.")));
     return;
   }
   lista.replaceChildren(...favoritos.map((f) => {
@@ -132,6 +137,203 @@ function abrirPainel(abrir) {
   $("#painel-favoritos").hidden = !abrir;
   $("#painel-fundo").hidden = !abrir && !$("#filtros").classList.contains("aberto");
   if (abrir) desenharFavoritos();
+}
+
+// ---------------------------------------------------------------------
+// Conta: entrar sem senha (nome + e-mail + código) e carrinho na conta
+// ---------------------------------------------------------------------
+const conta = { ativo: false, usuario: null, etapa: "email", email: "", nome: "", erro: "" };
+
+async function chamarConta(metodo, caminho, corpo) {
+  const resp = await fetch(`/api/conta${caminho}`, {
+    method: metodo,
+    headers: corpo ? { "Content-Type": "application/json" } : {},
+    body: corpo ? JSON.stringify(corpo) : undefined,
+    credentials: "same-origin",
+  });
+  let dados = {};
+  try { dados = await resp.json(); } catch { /* resposta vazia */ }
+  if (!resp.ok) throw new Error(dados.erro || "Algo deu errado. Tente de novo.");
+  return dados;
+}
+
+// Junta o carrinho deste aparelho com o da conta (sem repetir itens)
+function juntarCarrinho(daConta = []) {
+  const ids = new Set(favoritos.map((f) => f.id));
+  const juntos = [...favoritos, ...daConta.filter((f) => !ids.has(f.id))];
+  const mudouConta = juntos.length !== daConta.length;
+  favoritos = juntos;
+  salvarFavoritos();
+  atualizarFavoritos();
+  if (mudouConta) enviarCarrinho();
+}
+
+let timerEnvio;
+function enviarCarrinho() {
+  if (!conta.usuario) return;
+  clearTimeout(timerEnvio);
+  timerEnvio = setTimeout(async () => {
+    try {
+      await chamarConta("PUT", "/carrinho", { itens: favoritos });
+    } catch {
+      // Sessão vencida: volta a guardar só no aparelho
+      await carregarConta();
+    }
+  }, 600);
+}
+
+async function carregarConta() {
+  try {
+    const dados = await chamarConta("GET", "");
+    conta.ativo = dados.ativo;
+    conta.usuario = dados.usuario || null;
+    if (conta.usuario) juntarCarrinho(dados.carrinho);
+  } catch {
+    conta.ativo = false;
+  }
+  desenharContaTopo();
+}
+
+function desenharContaTopo() {
+  const botao = $("#abrir-conta");
+  botao.hidden = !conta.ativo;
+  const caixa = $("#painel-conta");
+  caixa.hidden = !conta.ativo;
+  if (!conta.ativo) return;
+
+  if (conta.usuario) {
+    botao.setAttribute("aria-label", "Minha conta");
+    botao.replaceChildren(el("span", { class: "inicial", "aria-hidden": "true" }, conta.usuario.nome.charAt(0).toUpperCase()));
+    caixa.replaceChildren(
+      el("p", {}, "✅ Carrinho salvo na sua conta. Ele aparece em qualquer aparelho em que você entrar."),
+      el("button", { class: "botao-link", type: "button", onclick: abrirConta }, `Conta de ${conta.usuario.nome.split(" ")[0]}`));
+  } else {
+    botao.setAttribute("aria-label", "Entrar");
+    botao.replaceChildren(botao.dataset.icone ? document.createRange().createContextualFragment(botao.dataset.icone) : "");
+    caixa.replaceChildren(
+      el("p", {}, "💡 Entre com seu e-mail para ver o seu carrinho no celular e no computador."),
+      el("button", { class: "botao-primario", type: "button", style: "margin-top:0", onclick: abrirConta }, "Entrar ou criar conta"));
+  }
+}
+
+function abrirConta() {
+  conta.erro = "";
+  if (!conta.usuario) conta.etapa = "email";
+  desenharConta();
+  const janela = $("#janela-conta");
+  if (!janela.open) janela.showModal();
+  $("input", janela)?.focus();
+}
+
+function desenharConta() {
+  const erro = conta.erro && el("p", { class: "erro-conta", role: "alert" }, conta.erro);
+  let conteudo;
+
+  if (conta.usuario) {
+    conteudo = [
+      el("h2", { id: "conta-titulo" }, `Olá, ${conta.usuario.nome.split(" ")[0]}! 👋`),
+      el("div", { class: "conta-dados" }, el("strong", {}, conta.usuario.nome), el("span", {}, conta.usuario.email)),
+      el("p", {}, `Você tem ${favoritos.length} ${favoritos.length === 1 ? "item" : "itens"} no carrinho, salvos na sua conta.`),
+      erro,
+      el("button", { class: "botao-primario", type: "button", onclick: () => { $("#janela-conta").close(); abrirPainel(true); } }, "🛒 Ver meu carrinho"),
+      el("div", { class: "links-conta" },
+        el("button", { class: "botao-link", type: "button", onclick: sair }, "Sair desta conta"),
+        el("button", { class: "botao-link perigo", type: "button", onclick: excluirConta }, "Excluir minha conta")),
+    ];
+  } else if (conta.etapa === "email") {
+    conteudo = [
+      el("h2", { id: "conta-titulo" }, "Entrar ou criar conta"),
+      el("p", {}, "Sem senha: enviamos um código para o seu e-mail. Assim o seu carrinho fica salvo em qualquer aparelho."),
+      el("form", { onsubmit: pedirCodigo },
+        el("label", {}, "Seu nome", el("input", { name: "nome", required: true, maxlength: "60", autocomplete: "given-name", value: conta.nome })),
+        el("label", {}, "Seu e-mail", el("input", { name: "email", type: "email", required: true, maxlength: "254", autocomplete: "email", inputmode: "email", value: conta.email })),
+        erro,
+        el("button", { class: "botao-primario", type: "submit" }, "Receber código"),
+        el("p", { class: "legal" }, "Guardamos só o seu nome, e-mail e os itens do carrinho. Ao continuar, você concorda com a ",
+          el("a", { href: "privacidade", target: "_blank" }, "Política de Privacidade"), ".")),
+    ];
+  } else {
+    conteudo = [
+      el("h2", { id: "conta-titulo" }, "Confira seu e-mail 📬"),
+      el("p", {}, "Enviamos um código de 6 números para ", el("strong", {}, conta.email), ". Ele vale por 10 minutos. Se não aparecer, olhe também no spam."),
+      el("form", { onsubmit: confirmarCodigo },
+        el("label", {}, "Código",
+          el("input", { name: "codigo", class: "campo-codigo", required: true, inputmode: "numeric", autocomplete: "one-time-code", maxlength: "6", pattern: "[0-9]{6}" })),
+        erro,
+        el("button", { class: "botao-primario", type: "submit" }, "Entrar"),
+        el("div", { class: "links-conta" },
+          el("button", { class: "botao-link", type: "button", onclick: () => { conta.etapa = "email"; conta.erro = ""; desenharConta(); } }, "Usar outro e-mail"),
+          el("button", { class: "botao-link", type: "button", onclick: () => pedirCodigo() }, "Reenviar código"))),
+    ];
+  }
+  $("#conta-conteudo").replaceChildren(...conteudo.filter(Boolean));
+}
+
+async function comEspera(form, acao) {
+  const botao = form && $("button[type=submit]", form);
+  if (botao) { botao.disabled = true; botao.dataset.texto = botao.textContent; botao.textContent = "Aguarde…"; }
+  try {
+    conta.erro = "";
+    await acao();
+  } catch (e) {
+    conta.erro = e.message;
+  }
+  desenharConta();
+  $("#janela-conta input")?.focus();
+}
+
+function pedirCodigo(e) {
+  const form = e?.target;
+  if (e) {
+    e.preventDefault();
+    conta.nome = form.nome.value.trim();
+    conta.email = form.email.value.trim().toLowerCase();
+  }
+  return comEspera(form, async () => {
+    await chamarConta("POST", "/codigo", { nome: conta.nome, email: conta.email });
+    conta.etapa = "codigo";
+    if (!e) toast("📬 Enviamos um novo código");
+  });
+}
+
+function confirmarCodigo(e) {
+  e.preventDefault();
+  const codigo = e.target.codigo.value;
+  return comEspera(e.target, async () => {
+    const dados = await chamarConta("POST", "/entrar", { email: conta.email, codigo });
+    conta.usuario = dados.usuario;
+    juntarCarrinho(dados.carrinho);
+    desenharContaTopo();
+    toast(`🎉 Bem-vindo, ${conta.usuario.nome.split(" ")[0]}!`);
+  });
+}
+
+// Ao sair, o carrinho sai deste aparelho também (pode ser um aparelho compartilhado)
+function esquecerAqui() {
+  conta.usuario = null;
+  conta.etapa = "email";
+  favoritos = [];
+  salvarFavoritos();
+  atualizarFavoritos();
+  desenharContaTopo();
+  $("#janela-conta").close();
+}
+
+function sair() {
+  return comEspera(null, async () => {
+    await chamarConta("POST", "/sair", {});
+    esquecerAqui();
+    toast("Você saiu da sua conta");
+  });
+}
+
+function excluirConta() {
+  if (!confirm("Excluir a sua conta? O seu nome, e-mail e carrinho serão apagados para sempre.")) return;
+  return comEspera(null, async () => {
+    await chamarConta("DELETE", "", {});
+    esquecerAqui();
+    toast("Sua conta foi excluída");
+  });
 }
 
 // ---------------------------------------------------------------------
@@ -164,8 +366,8 @@ function cartaoOferta(o, { melhor = false } = {}) {
         o.desconto && el("span", { class: "selo selo-desconto" }, `-${o.desconto}%`))),
     el("button", {
       class: "favoritar", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
-      "aria-label": "Salvar nos favoritos", onclick: () => alternarFavorito(o),
-    }, ICONE_CORACAO()),
+      "aria-label": "Guardar no carrinho", onclick: () => alternarFavorito(o),
+    }, ICONE_CARRINHO()),
     el("div", { class: "oferta-corpo" },
       el("span", { class: "loja-tag" }, el("span", { class: "loja-ponto" }), loja.nome),
       el("h3", { class: "oferta-titulo", title: o.titulo }, o.titulo),
@@ -447,6 +649,14 @@ $("#abrir-filtros").addEventListener("click", () => abrirFiltros(true));
 document.querySelectorAll("[data-fechar-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(false)));
 $("#abrir-favoritos").addEventListener("click", () => abrirPainel(true));
 $("#fechar-favoritos").addEventListener("click", () => abrirPainel(false));
+$("#abrir-conta").dataset.icone = $("#abrir-conta").innerHTML;
+$("#abrir-conta").addEventListener("click", abrirConta);
+$("#fechar-conta").addEventListener("click", () => $("#janela-conta").close());
+// Clique fora da janela fecha
+$("#janela-conta").addEventListener("click", (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
+});
 $("#painel-fundo").addEventListener("click", () => { abrirPainel(false); abrirFiltros(false); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { abrirPainel(false); abrirFiltros(false); } });
 
@@ -456,3 +666,4 @@ $("#ano").textContent = new Date().getFullYear();
 montarInicio();
 atualizarFavoritos();
 mostrar();
+carregarConta();

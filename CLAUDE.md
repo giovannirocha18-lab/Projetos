@@ -25,6 +25,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Com 1 produto ou mais, o site deixa de mostrar os exemplos. Giovanni manda os links; Claude cadastra.
 - `lib/fontes/shopee.js` = API GraphQL de afiliados da Shopee; liga com as variáveis
   `SHOPEE_APP_ID` e `SHOPEE_SECRET` no Cloudflare. **Escrito pela documentação, nunca testado.**
+- `lib/conta.js` + `functions/api/conta/*` = cadastro sem senha (código por e-mail via Resend), sessão por
+  cookie, "Meu carrinho" salvo na conta (D1, binding `DB`; tabelas criadas sozinhas). Ver README.
+- `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br`, que **ainda não existe**.
 - `_headers` + `<meta robots noindex>` escondem o site do Google até o lançamento.
 - Testar local: `npx wrangler pages dev .` (rodar **de dentro do repositório**) e abrir `/previa`.
 - A rede do ambiente do Claude bloqueia `*.pages.dev`, API e docs do Mercado Livre e DNS externo.
@@ -44,6 +47,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
 | Comparador com produtos de exemplo em `/previa` | ✅ |
 | Lista de produtos reais (curadoria) pronta para receber links | ✅ vazia, aguardando links |
+| Favoritos virou "Meu carrinho" (ícone de carrinho) | ✅ |
+| Cadastro sem senha + carrinho na conta (código testado localmente) | ⏳ falta Giovanni criar o D1, ligar como `DB`, criar conta no Resend e cadastrar `RESEND_API_KEY` |
 | Página "Em breve" + bloqueio do Google | ✅ |
 | Domínio no Cloudflare | ⏳ "Invalid nameservers / pending", aguardando propagação |
 | Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ⏳ só dá para adicionar depois do domínio ficar **Active** |
@@ -55,13 +60,16 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
 
 ## Próximos passos
+0. Ligar o cadastro: D1 + binding `DB` + `RESEND_API_KEY` (passo a passo no README), refazer o deploy e testar
+   com o e-mail dele (o Resend sem domínio verificado só entrega para o e-mail dono da conta Resend).
 1. Quando o domínio ficar Active: Workers & Pages > vaiprocarrinho > Custom domains > adicionar os dois domínios.
 2. Giovanni testar `/previa` no celular e dar opinião sobre o visual.
 3. Colocar produtos reais: Giovanni manda links de afiliado da Shopee (Oferta > Link personalizado) com nome e
    preço; Claude cadastra em `lib/fontes/curadoria.js`. Juntar uns 20–30 antes, porque os exemplos somem.
 4. Quando a API da Shopee sair: cadastrar as chaves no Cloudflare, testar e ajustar `lib/fontes/shopee.js`.
 5. Depois: Mercado Livre (curadoria com gerador de links em lote), AliExpress, Amazon, redes Awin/Lomadee.
-6. Lançamento: ver "Para lançar o site" no README.
+6. Lançamento: ver "Para lançar o site" no README. Antes: verificar o domínio no Resend (+ `EMAIL_REMETENTE`)
+   e criar `contato@vaiprocarrinho.com.br` (Cloudflare Email Routing; exige trocar o MX nulo).
 
 ## Planos combinados para o futuro (tudo no Cloudflare, sem VPS)
 - **Robô de preços** (Cron Triggers) + **banco de dados D1**: só via APIs oficiais e feeds de
