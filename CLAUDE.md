@@ -96,6 +96,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   do lançamento. Aguardando a decisão dele e a busca "vai pro carrinho" (separado) no INPI.
 - 13/10/2026: Giovanni testou vai.pro.carrinho.br no navegador: NXDOMAIN = domínio não existe (e "carrinho.br" não é
   categoria válida do .br). Não é concorrente com site. Decisão A/B (manter nome + INPI ou trocar) segue pendente.
+- 13/10/2026: Giovanni perguntou sobre outros registrarem vaiprocarrinho.com/.net. Explicado: qualquer um pode;
+  proteção = registrar as variações principais (sugerido só `.com`, pelo botão "Buy domain" do Cloudflare, e
+  redirecionar) + marca no INPI (base para retomar domínio de má-fé: SACI-Adm no .br, UDRP no .com).
+  Recomendado decidir A/B (manter nome ou trocar) **antes** de comprar domínios extras.
 
 
 ## Próximos passos
