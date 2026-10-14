@@ -1,0 +1,28 @@
+# Robô de preços: todo dia de madrugada baixa os catálogos das lojas da Awin
+# e atualiza o banco do site. Para rodar na hora: aba Actions > Robô de preços
+# > Run workflow. O resultado aparece no resumo de cada execução.
+name: Robô de preços
+
+on:
+  schedule:
+    - cron: "17 7 * * *" # 04:17 no horário de Brasília
+  workflow_dispatch:
+
+jobs:
+  awin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/inspiring-hamilton-wafagr
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Atualizar ofertas da Awin
+        run: node robo/awin.mjs
+        env:
+          AWIN_FEED_KEY: ${{ secrets.AWIN_FEED_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}

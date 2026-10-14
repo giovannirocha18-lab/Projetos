@@ -11,6 +11,9 @@ const LOJAS = {
   shein: { nome: "Shein", em: "na", cor: "#222222", texto: "#fff" },
 };
 
+// Lojas fora da lista acima (as da Awin, por exemplo) chegam com o nome em lojaNome
+const infoLoja = (o) => LOJAS[o.loja] || { nome: o.lojaNome || o.loja, em: "na", cor: "#6d28d9", texto: "#fff" };
+
 const CATEGORIAS = [
   { nome: "Eletrônicos", emoji: "🎧", fundo: "linear-gradient(135deg,#dbeafe,#e0e7ff)" },
   { nome: "Casa e Cozinha", emoji: "🍳", fundo: "linear-gradient(135deg,#ffedd5,#fef3c7)" },
@@ -95,8 +98,8 @@ function alternarFavorito(oferta) {
     favoritos = favoritos.filter((f) => f.id !== oferta.id);
     toast("Removido do carrinho");
   } else {
-    const { id, titulo, preco, loja, link, imagem, emoji, categoria } = oferta;
-    favoritos.unshift({ id, titulo, preco, loja, link, imagem, emoji, categoria });
+    const { id, titulo, preco, loja, lojaNome, link, imagem, emoji, categoria } = oferta;
+    favoritos.unshift({ id, titulo, preco, loja, lojaNome, link, imagem, emoji, categoria });
     toast("🛒 Guardado no seu carrinho");
   }
   salvarFavoritos();
@@ -121,7 +124,7 @@ function desenharFavoritos() {
     return;
   }
   lista.replaceChildren(...favoritos.map((f) => {
-    const loja = LOJAS[f.loja] || { nome: f.loja };
+    const loja = infoLoja(f);
     return el("div", { class: "fav-item" },
       el("div", { class: "fav-foto", style: `--fundo-cat:${FUNDO_CATEGORIA[f.categoria] || "var(--bg)"}` },
         f.imagem ? el("img", { src: f.imagem, alt: "" }) : f.emoji || "🛍️"),
@@ -439,7 +442,7 @@ function vendidosTexto(n) {
 }
 
 function cartaoOferta(o, { melhor = false } = {}) {
-  const loja = LOJAS[o.loja] || { nome: o.loja, em: "na", cor: "#6d28d9", texto: "#fff" };
+  const loja = infoLoja(o);
   const [inteiro, decimal] = brl(o.preco).split(",");
 
   const abrir = () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`);
@@ -449,7 +452,10 @@ function cartaoOferta(o, { melhor = false } = {}) {
     style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto};--fundo-cat:${FUNDO_CATEGORIA[o.categoria] || "linear-gradient(135deg,#ede9fe,#fce7f3)"}`,
   },
     el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored noopener", tabindex: "-1", "aria-hidden": "true", onclick: abrir },
-      o.imagem ? el("img", { src: o.imagem, alt: "", loading: "lazy" }) : el("span", { class: "foto-emoji" }, o.emoji || "🛍️"),
+      o.imagem
+        // Foto que não carrega (link quebrado da loja) vira o desenho padrão
+        ? el("img", { src: o.imagem, alt: "", loading: "lazy", onerror: (e) => e.target.replaceWith(el("span", { class: "foto-emoji" }, o.emoji || "🛍️")) })
+        : el("span", { class: "foto-emoji" }, o.emoji || "🛍️"),
       el("div", { class: "selos" },
         melhor && el("span", { class: "selo selo-melhor" }, "🏆 Menor preço"),
         o.desconto && el("span", { class: "selo selo-desconto" }, `-${o.desconto}%`))),
@@ -519,7 +525,7 @@ function desenharFiltroLojas() {
   const contagem = {};
   for (const o of estado.ofertas) contagem[o.loja] = (contagem[o.loja] || 0) + 1;
   $("#filtro-lojas").replaceChildren(...Object.keys(contagem).map((id) => {
-    const loja = LOJAS[id] || { nome: id, cor: "#888" };
+    const loja = infoLoja(estado.ofertas.find((o) => o.loja === id));
     return el("label", { class: "opcao", style: `--cor-loja:${loja.cor}` },
       el("input", {
         type: "checkbox", checked: !estado.lojasDesmarcadas.has(id),
@@ -543,7 +549,7 @@ function desenharResumo(lista) {
   const precos = lista.map((o) => o.preco);
   const melhor = lista.reduce((a, b) => (b.preco < a.preco ? b : a));
   const economia = Math.max(...precos) - melhor.preco;
-  const loja = LOJAS[melhor.loja] || { nome: melhor.loja, em: "na" };
+  const loja = infoLoja(melhor);
   $("#resumo").replaceChildren(titulo,
     el("a", { class: "resumo-melhor", href: melhor.link, target: "_blank", rel: "sponsored noopener", onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
       el("span", { style: "font-size:2rem", "aria-hidden": "true" }, "🏆"),

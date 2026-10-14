@@ -6,9 +6,10 @@
 import { exemplo } from "../../lib/fontes/exemplo.js";
 import { curadoria } from "../../lib/fontes/curadoria.js";
 import { shopee } from "../../lib/fontes/shopee.js";
+import { awin } from "../../lib/fontes/awin.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
-const FONTES_REAIS = [curadoria, shopee];
+const FONTES_REAIS = [curadoria, shopee, awin];
 
 const CACHE_SEGUNDOS = 60 * 60;
 
@@ -33,7 +34,8 @@ export async function onRequestGet({ request, env }) {
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
 
-  const reais = FONTES_REAIS.filter((f) => f.ativa(env));
+  const ligadas = await Promise.all(FONTES_REAIS.map((f) => f.ativa(env)));
+  const reais = FONTES_REAIS.filter((_, i) => ligadas[i]);
   // Enquanto nenhuma API estiver ligada, usa os produtos de exemplo
   const fontes = reais.length ? reais : [exemplo];
 

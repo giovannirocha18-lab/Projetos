@@ -1,4 +1,4 @@
-# Gerador-de-Riquezas
+# Projetos
 Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
 
 ## Como está organizado
@@ -9,6 +9,8 @@ Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
 | `assets/` | Visual (`estilo.css`) e funcionamento da página (`app.js`) |
 | `functions/api/buscar.js` | A busca: roda no Cloudflare, consulta as lojas e junta os resultados |
 | `lib/fontes/` | Uma "fonte" por loja. `exemplo.js` tem produtos fictícios para testes |
+| `robo/` | Robô de preços: baixa os catálogos das lojas (Awin) para o banco do site |
+| `marca/` | Logo e ícone do Vai pro Carrinho |
 | `functions/api/conta/` + `lib/conta.js` | Cadastro (Google ou e-mail + senha, com "Esqueci minha senha") e "Meu carrinho" salvo na conta |
 | `privacidade.html` | Política de Privacidade (LGPD) |
 | `_headers` | Pede aos buscadores para não indexar o site enquanto ele está em construção |
@@ -19,6 +21,8 @@ Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
   gerado no portal da loja. Liga sozinha quando a lista tiver pelo menos um produto.
 - **Shopee** (`lib/fontes/shopee.js`): liga sozinha quando as variáveis `SHOPEE_APP_ID` e
   `SHOPEE_SECRET` forem cadastradas no Cloudflare (projeto > Settings > Variables and Secrets).
+- **Awin** (`lib/fontes/awin.js`): lojas como Leveros, Efacil e Beleza na Web. Liga sozinha quando o
+  robô de preços tiver colocado ofertas no banco (veja abaixo).
 - Para adicionar outra loja: criar `lib/fontes/<loja>.js` e incluir em `functions/api/buscar.js`.
 
 ## Cadastro e "Meu carrinho"
@@ -35,6 +39,29 @@ ID do cliente OAuth (Aplicativo da Web), com estes "URIs de redirecionamento aut
 e `https://vaiprocarrinho.pages.dev/api/conta/google/retorno`.
 
 Sem o banco, o botão de entrar some e o carrinho fica só no aparelho.
+
+## Robô de preços (Awin)
+`robo/awin.mjs` roda todo dia às 04:17 pelo GitHub (`.github/workflows/robo-precos.yml`). Ele baixa o
+catálogo de todas as lojas da Awin em que a conta foi aprovada e atualiza a tabela `ofertas` do banco D1:
+produto novo entra, preço que mudou é atualizado (e guardado na tabela `precos`, o histórico), produto
+que saiu da loja é removido. Grava no máximo 20 mil produtos por dia (limite do plano grátis do D1);
+o resto fica para o dia seguinte.
+
+Precisa destes segredos em GitHub > Settings > Secrets and variables > Actions:
+| Segredo | De onde vem |
+|---|---|
+| `AWIN_FEED_KEY` | Awin > Ferramentas > Crie um Feed: o código depois de `/apikey/` no link gerado |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare > My Profile > API Tokens > Create Token, com permissão **Account > D1 > Edit** |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare > Workers & Pages (aparece como "Account ID") |
+| `D1_DATABASE_ID` | Cloudflare > Storage & Databases > D1 > o banco ligado ao site > "Database ID" |
+
+O GitHub só agenda robôs da branch principal (default branch) do repositório.
+Para rodar na hora: aba **Actions > Robô de preços > Run workflow**.
+
+Teste no computador, com um feed de exemplo e um banco local:
+```
+node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite
+```
 
 ## Testar no computador
 ```

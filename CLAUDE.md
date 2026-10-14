@@ -30,6 +30,13 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   `SHOPEE_APP_ID` e `SHOPEE_SECRET` no Cloudflare. **Escrito pela documentação, nunca testado.**
 - `lib/conta.js` + `functions/api/conta/*` = cadastro com "Entrar com Google" ou e-mail + senha ("Esqueci minha senha"
   manda link por e-mail via Resend; login por código foi removido em 14/10/2026), sessão por cookie, "Meu carrinho" salvo na conta (D1, binding `DB`; tabelas criadas sozinhas). Ver README.
+- `lib/fontes/awin.js` = lojas da Awin: busca na tabela `ofertas` do D1 (índice FTS5 `ofertas_fts`). Liga sozinha quando
+  houver ofertas `fonte='awin'` no banco. Ofertas de lojas fora da lista `LOJAS` do `app.js` levam `lojaNome`.
+- `lib/ofertas.js` = criação das tabelas `ofertas`, `ofertas_fts` (com gatilhos) e `precos` (histórico de preço por dia).
+- `robo/awin.mjs` = **robô de preços**: baixa a lista de feeds da Awin (chave `AWIN_FEED_KEY`), pega os das lojas aprovadas
+  (região BR) e atualiza o D1 pela API do Cloudflare (só grava o que mudou; limite 20 mil/dia; não apaga nada se o feed
+  falhar ou encolher mais da metade). Roda pelo GitHub Actions (`.github/workflows/robo-precos.yml`, 04:17 BRT).
+  Teste local: `node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite`. Ver README.
 - `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br`, que **ainda não existe**.
 - `_headers` + `<meta robots noindex>` escondem o site do Google até o lançamento.
 - Testar local: `npx wrangler pages dev .` (rodar **de dentro do repositório**) e abrir `/previa`.
@@ -115,7 +122,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Lego, adidas, Nike, Olympikus, Mizuno, ASICS. Evitar: Brastemp (EPC 0,01), Kipling/Legale (aprovação <50%), Luuna
   (174 dias p/ pagar), lojas estrangeiras/eróticas/VPN. Cookie de 1 dia (Efacil, Central Ar, Kabum, Cobasi, Olympikus,
   Centauro, MAC) rende menos. Ideia sugerida: nicho de lançamento "ar-condicionado e eletrodomésticos".
-  Código ainda não escrito: plano = Worker com Cron baixando o feed para o D1 + `lib/fontes/awin.js`.
+  **Robô de preços da Awin programado e testado localmente (14/10/2026)**, ainda sem dados reais. Falta o Giovanni:
+  (a) trocar a branch padrão do GitHub para `claude/inspiring-hamilton-wafagr` (o GitHub só agenda robôs da branch padrão;
+  também faz conversas novas abrirem com a memória); (b) cadastrar 4 segredos no GitHub: AWIN_FEED_KEY,
+  CLOUDFLARE_API_TOKEN (permissão D1 Edit), CLOUDFLARE_ACCOUNT_ID, D1_DATABASE_ID (passo a passo no README);
+  (c) depois da 1ª loja aprovada, rodar em Actions > Robô de preços > Run workflow e mandar print do resumo.
+  Nomes das colunas da lista de feeds da Awin foram deduzidos da documentação: conferir na 1ª execução real.
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
   roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).
 - **Logo** criada (14/10/2026): ícone (quadrado arredondado com gradiente do site + carrinho branco/amarelo) + texto
