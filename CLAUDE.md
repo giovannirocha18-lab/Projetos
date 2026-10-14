@@ -101,7 +101,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Próximas sugeridas (14/10/2026): **Lomadee** (lomadee.com.br; ~350 lojas; API nova não confirmou busca por palavra,
   conferir com a conta aberta; pesquisado 14/10/2026: cadastro grátis sem CNPJ, Pix, comissão definida por loja ~4–11%,
   validação até 90 dias, regras de canal por loja no painel, reclamações de atraso no Reclame Aqui; site deles bloqueado
-  na rede do Claude) e **Awin** (awin.com/br, como "Publisher"; feeds de produtos por loja). Aguardando ele se cadastrar.
+  na rede do Claude) e **Awin** (awin.com/br, como "Publisher"; feeds de produtos por loja; pesquisado 14/10/2026: depósito de R$ 5
+  devolvido no 1º pagamento; sem busca ao vivo, e sim arquivos de produtos (Create-a-Feed / Product Feed List) para
+  baixar no banco D1 e buscar lá = robô de preços; comparadores são o público principal dos feeds; cada loja aprova;
+  uma página cita taxa de 25% sobre a comissão, conferir no painel. Cuidado: awin.br.com NÃO é o site oficial). Aguardando ele se cadastrar.
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
   roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).
 
