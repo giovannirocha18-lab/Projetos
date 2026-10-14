@@ -54,7 +54,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Lista de produtos reais (curadoria) pronta para receber links | ✅ vazia, aguardando links |
 | Favoritos virou "Meu carrinho" (ícone de carrinho) | ✅ |
 | Cadastro sem senha + carrinho na conta (código testado localmente) | ✅ funcionando (14/10/2026: código chegou no e-mail dele). Sessão dura 90 dias por aparelho |
-| "Entrar com Google" (código pronto, botão só aparece com as chaves) | ⏳ Google Cloud (projeto "My Project 99984"): Branding feito e app publicado (14/10/2026). Falta criar o cliente OAuth + `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` no Cloudflare + Retry deployment + teste |
+| "Entrar com Google" (código pronto, botão só aparece com as chaves) | ⏳ Google Cloud (projeto "My Project 99984"): Branding feito e app publicado (14/10/2026). Cliente OAuth + chaves no Cloudflare + Retry deployment feitos. Falta confirmar o teste |
 | Página "Em breve" + bloqueio do Google | ✅ |
 | Domínio no Cloudflare | ✅ **Active** (13/10/2026) |
 | Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ✅ site abrindo no domínio (13/10/2026) |
