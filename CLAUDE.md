@@ -72,6 +72,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
      exigência do INPI; recomendado 389. A GRU paga define o tipo de formulário no e-Marcas.)
   3. Protocolar no **e-Marcas**: apresentação nominativa, natureza de serviço, classe NCL **35** (comparação de preços;
      publicidade/divulgação de produtos de terceiros). Claude ajuda a escolher a especificação pelo print.
+  - Prazo do INPI explicado (14/10/2026): decisão leva hoje ~14 a 20 meses (TCU: média sem oposição foi de 7 para
+    19 meses); fila grande, 60 dias obrigatórios de oposição, poucos examinadores. A data do depósito já garante a
+    prioridade; o ® só depois do certificado.
   4. Depois: comprar `vaiprocarrinho.com` pelo "Buy domain" do Cloudflare e redirecionar para o `.com.br`.
   - Contexto: 12+ perfis "Vai Pro Carrinho" de achadinhos no Instagram/TikTok (nenhum com site ou marca no INPI).
     Riscos explicados: INPI pode negar por expressão de uso comum (art. 124 VI/VII LPI) e terceiros podem contestar
