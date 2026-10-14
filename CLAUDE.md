@@ -20,7 +20,7 @@ ofertas de várias lojas (Shopee, Mercado Livre, Amazon, AliExpress, Magalu, She
 link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre em curadoria.
 
 ## Estrutura técnica (ver README.md)
-- Site estático + **Cloudflare Pages Functions**, sem build. Repositório `giovannirocha18-lab/Gerador-de-Riquezas` (privado).
+- Site estático + **Cloudflare Pages Functions**, sem build. Repositório `giovannirocha18-lab/Projetos` (privado; renomeado de `Gerador-de-Riquezas` em 14/10/2026).
 - `index.html` = página "Em breve" (pública). `previa.html` = comparador (teste em `/previa`).
 - `functions/api/buscar.js` = busca; junta as fontes de `lib/fontes/`, cache de 1h.
 - `lib/fontes/exemplo.js` = produtos fictícios (usado enquanto nenhuma fonte real está ligada).
@@ -122,6 +122,6 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 ## Comando de recomeço
 Texto para colar numa conversa nova:
 
-> Estamos continuando o projeto do site vaiprocarrinho.com.br. Leia o CLAUDE.md e o README.md do
-> repositório, me diga em poucas linhas onde paramos e quais são os próximos passos, e continue
+> Estamos continuando o projeto do site vaiprocarrinho.com.br. Leia o CLAUDE.md e o README.md da
+> branch claude/inspiring-hamilton-wafagr, me diga em poucas linhas onde paramos e quais são os próximos passos, e continue
 > trabalhando na branch claude/inspiring-hamilton-wafagr.
