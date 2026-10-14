@@ -446,7 +446,6 @@ body.modo-inicio .busca-topo { visibility: hidden; }
   background: var(--bg); color: var(--texto); font: inherit; font-size: 1rem;
 }
 .janela input:focus { outline: none; border-color: var(--roxo); }
-.janela .campo-codigo { text-align: center; font-size: 1.6rem; letter-spacing: .4em; font-weight: 800; }
 .janela .botao-primario { width: 100%; }
 .janela .botao-primario[disabled] { opacity: .6; cursor: wait; }
 .janela .legal { font-size: .8rem; margin: 4px 0 0; }
@@ -458,6 +457,9 @@ body.modo-inicio .busca-topo { visibility: hidden; }
 .janela .botao-google:hover { border-color: var(--roxo); }
 .janela .separador { display: flex; align-items: center; gap: 10px; margin: 14px 0; font-size: .82rem; }
 .janela .separador::before, .janela .separador::after { content: ""; flex: 1; border-top: 1px solid var(--borda); }
+.janela .campo-senha { position: relative; }
+.janela .campo-senha input { width: 100%; padding-right: 84px; }
+.janela .mostrar-senha { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: .82rem; }
 .janela .links-conta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .botao-link { border: 0; background: none; padding: 0; color: var(--roxo); font: inherit; font-weight: 600; font-size: .88rem; cursor: pointer; text-decoration: underline; }
 .botao-link.perigo { color: var(--vermelho); }

@@ -28,8 +28,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Com 1 produto ou mais, o site deixa de mostrar os exemplos. Giovanni manda os links; Claude cadastra.
 - `lib/fontes/shopee.js` = API GraphQL de afiliados da Shopee; liga com as variáveis
   `SHOPEE_APP_ID` e `SHOPEE_SECRET` no Cloudflare. **Escrito pela documentação, nunca testado.**
-- `lib/conta.js` + `functions/api/conta/*` = cadastro sem senha (código por e-mail via Resend), sessão por
-  cookie, "Meu carrinho" salvo na conta (D1, binding `DB`; tabelas criadas sozinhas). Ver README.
+- `lib/conta.js` + `functions/api/conta/*` = cadastro com "Entrar com Google" ou e-mail + senha ("Esqueci minha senha"
+  manda link por e-mail via Resend; login por código foi removido em 14/10/2026), sessão por cookie, "Meu carrinho" salvo na conta (D1, binding `DB`; tabelas criadas sozinhas). Ver README.
 - `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br`, que **ainda não existe**.
 - `_headers` + `<meta robots noindex>` escondem o site do Google até o lançamento.
 - Testar local: `npx wrangler pages dev .` (rodar **de dentro do repositório**) e abrir `/previa`.
@@ -54,7 +54,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Lista de produtos reais (curadoria) pronta para receber links | ✅ vazia, aguardando links |
 | Favoritos virou "Meu carrinho" (ícone de carrinho) | ✅ |
 | Cadastro sem senha + carrinho na conta (código testado localmente) | ✅ funcionando (14/10/2026: código chegou no e-mail dele). Sessão dura 90 dias por aparelho |
-| "Entrar com Google" (código pronto, botão só aparece com as chaves) | ⏳ Google Cloud (projeto "My Project 99984"): Branding feito e app publicado (14/10/2026). Cliente OAuth + chaves no Cloudflare + Retry deployment feitos. Falta confirmar o teste |
+| "Entrar com Google" (código pronto, botão só aparece com as chaves) | ✅ funcionando (14/10/2026). Google Cloud: projeto "My Project 99984", app publicado |
 | Página "Em breve" + bloqueio do Google | ✅ |
 | Domínio no Cloudflare | ✅ **Active** (13/10/2026) |
 | Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ✅ site abrindo no domínio (13/10/2026) |
@@ -88,8 +88,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
     com uso de boa-fé há 6+ meses (art. 129 §1º; o perfil mais ativo posta desde 21/07/2026 → prazo ~21/01/2027).
     Por isso: depositar o quanto antes. Pior caso: perde a GRU e segue usando o nome sem exclusividade.
 - **Cadastro do site**: ✅ testado e funcionando (14/10/2026).
-- **Entrar com Google** (14/10/2026): ele pediu Google ou e-mail+senha; feito Google (senha não recomendada).
-  Aguardando ele criar as credenciais no Google Cloud e cadastrar no Cloudflare.
+- **Entrar com Google** funcionando (14/10/2026). Depois ele pediu para **trocar o código por e-mail por cadastro com
+  e-mail + senha** (com "Esqueci minha senha" por link): feito e testado localmente. Falta ele testar no site.
 - Domínio e site no ar em vaiprocarrinho.com.br (página "Em breve"), fora do Google (noindex conferido).
 
 ## Próximos passos

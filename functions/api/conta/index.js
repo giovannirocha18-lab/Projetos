@@ -25,7 +25,9 @@ export async function onRequestDelete({ request, env }) {
   await db.batch([
     db.prepare("DELETE FROM carrinhos WHERE usuario_id = ?").bind(usuario.id),
     db.prepare("DELETE FROM sessoes WHERE usuario_id = ?").bind(usuario.id),
-    db.prepare("DELETE FROM codigos WHERE email = ?").bind(usuario.email),
+    db.prepare("DELETE FROM senhas WHERE usuario_id = ?").bind(usuario.id),
+    db.prepare("DELETE FROM redefinicoes WHERE usuario_id = ?").bind(usuario.id),
+    db.prepare("DELETE FROM limites WHERE chave LIKE ?").bind(`%:${usuario.email}`),
     db.prepare("DELETE FROM usuarios WHERE id = ?").bind(usuario.id),
   ]);
   return responder({ ok: true }, 200, { "Set-Cookie": cookieApagar() });

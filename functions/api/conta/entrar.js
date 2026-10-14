@@ -1,6 +1,6 @@
-// POST /api/conta/entrar  { email, codigo }  -> confere o código e conecta a pessoa
+// POST /api/conta/entrar  { email, senha }  -> confere a senha e conecta a pessoa
 import {
-  banco, responder, erro, SEM_BANCO, lerJson, validarEmail, sha256, criarSessao, lerCarrinho, CODIGO_TENTATIVAS,
+  banco, erro, SEM_BANCO, lerJson, validarEmail, conferirSenha, dentroDoLimite, ipDe, respostaConectado,
 } from "../../../lib/conta.js";
 
 export async function onRequestPost({ request, env }) {
@@ -9,31 +9,21 @@ export async function onRequestPost({ request, env }) {
   const dados = await lerJson(request);
   if (!dados) return erro("Pedido inválido.");
   const email = validarEmail(dados.email);
-  const codigo = String(dados.codigo || "").replace(/\D/g, "");
-  if (!email || codigo.length !== 6) return erro("Digite o código de 6 números.");
+  if (!email || typeof dados.senha !== "string" || !dados.senha) return erro("Digite o seu e-mail e a sua senha.");
 
-  const pedido = await db.prepare("SELECT * FROM codigos WHERE email = ?").bind(email).first();
-  if (!pedido || pedido.expira_em < Date.now() || pedido.tentativas >= CODIGO_TENTATIVAS) {
-    return erro("Esse código não vale mais. Peça um novo código.", 401);
-  }
-  if (pedido.codigo_hash !== (await sha256(`${email}:${codigo}`))) {
-    await db.prepare("UPDATE codigos SET tentativas = tentativas + 1 WHERE email = ?").bind(email).run();
-    const restam = CODIGO_TENTATIVAS - pedido.tentativas - 1;
-    return erro(restam > 0 ? "Código errado. Confira o e-mail e tente de novo." : "Código errado. Peça um novo código.", 401);
+  // Contra quem tenta adivinhar senhas: no máximo 10 tentativas por hora por e-mail e 30 por aparelho
+  if (!(await dentroDoLimite(db, `entrar:${email}`, 10)) || !(await dentroDoLimite(db, `entrar-ip:${ipDe(request)}`, 30))) {
+    return erro("Muitas tentativas. Tente de novo daqui a uma hora ou clique em \"Esqueci minha senha\".", 429);
   }
 
-  // Código certo: cria a conta na primeira vez (o nome de quem já tem conta não muda)
-  // e apaga o código para ele não ser usado de novo
-  await db.batch([
-    db.prepare("INSERT OR IGNORE INTO usuarios (email, nome, criado_em) VALUES (?, ?, ?)").bind(email, pedido.nome, Date.now()),
-    db.prepare("UPDATE codigos SET expira_em = 0 WHERE email = ?").bind(email),
-  ]);
-  const usuario = await db.prepare("SELECT id, nome, email FROM usuarios WHERE email = ?").bind(email).first();
-  const cookie = await criarSessao(db, usuario.id);
-
-  return responder(
-    { ativo: true, usuario: { nome: usuario.nome, email: usuario.email }, carrinho: await lerCarrinho(db, usuario.id) },
-    200,
-    { "Set-Cookie": cookie },
-  );
+  const usuario = await db.prepare(
+    "SELECT u.id, u.nome, u.email, s.hash FROM usuarios u LEFT JOIN senhas s ON s.usuario_id = u.id WHERE u.email = ?",
+  ).bind(email).first();
+  if (usuario && !usuario.hash) {
+    return erro("Essa conta não tem senha. Entre com o Google ou clique em \"Esqueci minha senha\" para criar uma.", 401);
+  }
+  if (!usuario || !(await conferirSenha(dados.senha.slice(0, 128), usuario.hash))) {
+    return erro("E-mail ou senha incorretos.", 401);
+  }
+  return respostaConectado(db, usuario);
 }

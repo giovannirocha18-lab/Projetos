@@ -55,5 +55,14 @@ export async function onRequestGet({ request, env }) {
   const nome = String(dados.name || dados.given_name || email.split("@")[0]).replace(/\s+/g, " ").trim().slice(0, 60);
   await db.prepare("INSERT OR IGNORE INTO usuarios (email, nome, criado_em) VALUES (?, ?, ?)").bind(email, nome, Date.now()).run();
   const usuario = await db.prepare("SELECT id FROM usuarios WHERE email = ?").bind(email).first();
+  // Se alguém criou conta com senha usando este e-mail sem nunca confirmar que é dono dele,
+  // essa senha deixa de valer e quem estava conectado com ela sai: o dono verdadeiro é quem entrou pelo Google
+  const naoConfirmada = await db.prepare("SELECT 1 FROM senhas WHERE usuario_id = ? AND email_confirmado = 0").bind(usuario.id).first();
+  if (naoConfirmada) {
+    await db.batch([
+      db.prepare("DELETE FROM senhas WHERE usuario_id = ?").bind(usuario.id),
+      db.prepare("DELETE FROM sessoes WHERE usuario_id = ?").bind(usuario.id),
+    ]);
+  }
   return voltar(volta, [apagar, await criarSessao(db, usuario.id)]);
 }

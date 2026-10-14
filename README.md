@@ -9,7 +9,7 @@ Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
 | `assets/` | Visual (`estilo.css`) e funcionamento da página (`app.js`) |
 | `functions/api/buscar.js` | A busca: roda no Cloudflare, consulta as lojas e junta os resultados |
 | `lib/fontes/` | Uma "fonte" por loja. `exemplo.js` tem produtos fictícios para testes |
-| `functions/api/conta/` + `lib/conta.js` | Cadastro sem senha (nome + e-mail + código) e "Meu carrinho" salvo na conta |
+| `functions/api/conta/` + `lib/conta.js` | Cadastro (Google ou e-mail + senha, com "Esqueci minha senha") e "Meu carrinho" salvo na conta |
 | `privacidade.html` | Política de Privacidade (LGPD) |
 | `_headers` | Pede aos buscadores para não indexar o site enquanto ele está em construção |
 
@@ -24,7 +24,7 @@ Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
 ## Cadastro e "Meu carrinho"
 Liga quando o projeto no Cloudflare tiver (Settings):
 - **Bindings** > D1 database com o nome de variável `DB` (as tabelas são criadas sozinhas);
-- **Variables and Secrets** > `RESEND_API_KEY` (tipo Secret), chave do resend.com para enviar o código.
+- **Variables and Secrets** > `RESEND_API_KEY` (tipo Secret), chave do resend.com para enviar o link de "Esqueci minha senha".
 - Opcional: `EMAIL_REMETENTE` (ex.: `Vai pro Carrinho <nao-responda@vaiprocarrinho.com.br>`), só depois
   de verificar o domínio no Resend. Sem isso, o Resend só entrega para o e-mail dono da conta Resend.
 
@@ -40,7 +40,7 @@ Sem o banco, o botão de entrar some e o carrinho fica só no aparelho.
 ```
 npx wrangler pages dev . --d1 DB=teste
 ```
-e abrir http://localhost:8788/previa (no computador, o código de acesso aparece no terminal).
+e abrir http://localhost:8788/previa (no computador, o link de "Esqueci minha senha" aparece no terminal).
 
 ## Para lançar o site
 1. Apagar `index.html` e renomear `previa.html` para `index.html`.

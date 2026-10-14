@@ -140,9 +140,9 @@ function abrirPainel(abrir) {
 }
 
 // ---------------------------------------------------------------------
-// Conta: entrar sem senha (Google, ou nome + e-mail + código) e carrinho na conta
+// Conta: entrar com Google ou com e-mail e senha, e carrinho na conta
 // ---------------------------------------------------------------------
-const conta = { ativo: false, google: false, usuario: null, etapa: "email", email: "", nome: "", erro: "" };
+const conta = { ativo: false, google: false, usuario: null, etapa: "entrar", email: "", nome: "", erro: "", token: "" };
 
 async function chamarConta(metodo, caminho, corpo) {
   const resp = await fetch(`/api/conta${caminho}`, {
@@ -193,14 +193,20 @@ async function carregarConta() {
     conta.ativo = false;
   }
   desenharContaTopo();
-  // Volta do Google com erro: avisa na janela de entrar
-  if (location.hash === "#erro-google") {
-    history.replaceState(null, "", location.pathname + location.search);
-    if (conta.ativo && !conta.usuario) {
-      abrirConta();
-      conta.erro = "Não foi possível entrar com o Google. Tente de novo.";
-      desenharConta();
-    }
+  // Volta do Google com erro, ou link de nova senha do e-mail: abre a janela na etapa certa
+  const hash = location.hash;
+  if (hash !== "#erro-google" && !hash.startsWith("#nova-senha=")) return;
+  history.replaceState(null, "", location.pathname + location.search);
+  if (!conta.ativo) return;
+  if (hash.startsWith("#nova-senha=")) {
+    conta.token = hash.slice("#nova-senha=".length);
+    conta.usuario = null; // a nova senha vale para a conta do link, mesmo se outra estiver aberta aqui
+    conta.etapa = "nova-senha";
+    abrirConta();
+  } else if (!conta.usuario) {
+    abrirConta();
+    conta.erro = "Não foi possível entrar com o Google. Tente de novo.";
+    desenharConta();
   }
 }
 
@@ -225,14 +231,14 @@ function desenharContaTopo() {
     botao.setAttribute("aria-label", "Entrar");
     botao.replaceChildren(botao.dataset.icone ? document.createRange().createContextualFragment(botao.dataset.icone) : "");
     caixa.replaceChildren(
-      el("p", {}, "💡 Entre com seu e-mail para ver o seu carrinho no celular e no computador."),
+      el("p", {}, "💡 Entre na sua conta para ver o seu carrinho no celular e no computador."),
       el("button", { class: "botao-primario", type: "button", style: "margin-top:0", onclick: abrirConta }, "Entrar ou criar conta"));
   }
 }
 
 function abrirConta() {
   conta.erro = "";
-  if (!conta.usuario) conta.etapa = "email";
+  if (!conta.usuario && conta.etapa !== "nova-senha") conta.etapa = "entrar";
   desenharConta();
   const janela = $("#janela-conta");
   if (!janela.open) janela.showModal();
@@ -254,35 +260,49 @@ function desenharConta() {
         el("button", { class: "botao-link", type: "button", onclick: sair }, "Sair desta conta"),
         el("button", { class: "botao-link perigo", type: "button", onclick: excluirConta }, "Excluir minha conta")),
     ];
-  } else if (conta.etapa === "email") {
+  } else if (conta.etapa === "esqueci") {
     conteudo = [
-      el("h2", { id: "conta-titulo" }, "Entrar ou criar conta"),
-      el("p", {}, conta.google
-        ? "Sem senha. Assim o seu carrinho fica salvo em qualquer aparelho."
-        : "Sem senha: enviamos um código para o seu e-mail. Assim o seu carrinho fica salvo em qualquer aparelho."),
-      conta.google && el("button", { class: "botao-google", type: "button", onclick: entrarComGoogle },
-        el("img", { src: "assets/google.svg", alt: "", width: "18", height: "18" }), "Entrar com Google"),
-      conta.google && el("p", { class: "separador" }, "ou receba um código por e-mail"),
-      el("form", { onsubmit: pedirCodigo },
-        el("label", {}, "Seu nome", el("input", { name: "nome", required: true, maxlength: "60", autocomplete: "given-name", value: conta.nome })),
-        el("label", {}, "Seu e-mail", el("input", { name: "email", type: "email", required: true, maxlength: "254", autocomplete: "email", inputmode: "email", value: conta.email })),
+      el("h2", { id: "conta-titulo" }, "Esqueci minha senha"),
+      el("p", {}, "Digite o seu e-mail. Vamos mandar um link para você criar uma nova senha."),
+      el("form", { onsubmit: pedirLink },
+        campoEmail(),
         erro,
-        el("button", { class: "botao-primario", type: "submit" }, "Receber código"),
-        el("p", { class: "legal" }, "Guardamos só o seu nome, e-mail e os itens do carrinho. Ao continuar, você concorda com a ",
-          el("a", { href: "privacidade", target: "_blank" }, "Política de Privacidade"), ".")),
+        el("button", { class: "botao-primario", type: "submit" }, "Receber link"),
+        el("div", { class: "links-conta" }, linkEtapa("entrar", "Voltar"))),
     ];
-  } else {
+  } else if (conta.etapa === "enviado") {
     conteudo = [
       el("h2", { id: "conta-titulo" }, "Confira seu e-mail 📬"),
-      el("p", {}, "Enviamos um código de 6 números para ", el("strong", {}, conta.email), ". Ele vale por 10 minutos. Se não aparecer, olhe também no spam."),
-      el("form", { onsubmit: confirmarCodigo },
-        el("label", {}, "Código",
-          el("input", { name: "codigo", class: "campo-codigo", required: true, inputmode: "numeric", autocomplete: "one-time-code", maxlength: "6", pattern: "[0-9]{6}" })),
+      el("p", {}, "Se ", el("strong", {}, conta.email), " tiver conta, você vai receber um link para criar uma nova senha. Ele vale por 1 hora. Se não aparecer, olhe também no spam."),
+      el("div", { class: "links-conta" }, linkEtapa("entrar", "Voltar para entrar")),
+    ];
+  } else if (conta.etapa === "nova-senha") {
+    conteudo = [
+      el("h2", { id: "conta-titulo" }, "Crie uma nova senha"),
+      el("form", { onsubmit: gravarNovaSenha },
+        campoSenha("new-password"),
         erro,
-        el("button", { class: "botao-primario", type: "submit" }, "Entrar"),
-        el("div", { class: "links-conta" },
-          el("button", { class: "botao-link", type: "button", onclick: () => { conta.etapa = "email"; conta.erro = ""; desenharConta(); } }, "Usar outro e-mail"),
-          el("button", { class: "botao-link", type: "button", onclick: () => pedirCodigo() }, "Reenviar código"))),
+        el("button", { class: "botao-primario", type: "submit" }, "Salvar e entrar")),
+    ];
+  } else {
+    const cadastro = conta.etapa === "cadastrar";
+    conteudo = [
+      el("h2", { id: "conta-titulo" }, cadastro ? "Criar conta" : "Entrar"),
+      el("p", {}, "Assim o seu carrinho fica salvo em qualquer aparelho."),
+      conta.google && el("button", { class: "botao-google", type: "button", onclick: entrarComGoogle },
+        el("img", { src: "assets/google.svg", alt: "", width: "18", height: "18" }), "Entrar com Google"),
+      conta.google && el("p", { class: "separador" }, cadastro ? "ou crie com e-mail e senha" : "ou entre com e-mail e senha"),
+      el("form", { onsubmit: cadastro ? cadastrar : entrar },
+        cadastro && el("label", {}, "Seu nome", el("input", { name: "nome", required: true, maxlength: "60", autocomplete: "given-name", value: conta.nome })),
+        campoEmail(),
+        campoSenha(cadastro ? "new-password" : "current-password"),
+        erro,
+        el("button", { class: "botao-primario", type: "submit" }, cadastro ? "Criar conta" : "Entrar"),
+        el("div", { class: "links-conta" }, cadastro
+          ? [linkEtapa("entrar", "Já tenho conta")]
+          : [linkEtapa("cadastrar", "Criar conta"), linkEtapa("esqueci", "Esqueci minha senha")]),
+        el("p", { class: "legal" }, "Guardamos só o seu nome, e-mail e os itens do carrinho. Ao continuar, você concorda com a ",
+          el("a", { href: "privacidade", target: "_blank" }, "Política de Privacidade"), ".")),
     ];
   }
   $("#conta-conteudo").replaceChildren(...conteudo.filter(Boolean));
@@ -301,36 +321,84 @@ async function comEspera(form, acao) {
   $("#janela-conta input")?.focus();
 }
 
-function pedirCodigo(e) {
-  const form = e?.target;
-  if (e) {
-    e.preventDefault();
-    conta.nome = form.nome.value.trim();
-    conta.email = form.email.value.trim().toLowerCase();
-  }
+function campoEmail() {
+  return el("label", {}, "Seu e-mail",
+    el("input", { name: "email", type: "email", required: true, maxlength: "254", autocomplete: "email", inputmode: "email", value: conta.email }));
+}
+
+function campoSenha(autocomplete) {
+  const novaSenha = autocomplete === "new-password";
+  const campo = el("input", { name: "senha", type: "password", required: true, minlength: novaSenha ? "8" : null, maxlength: "128", autocomplete });
+  const mostrar = el("button", { class: "botao-link mostrar-senha", type: "button", onclick: () => {
+    campo.type = campo.type === "password" ? "text" : "password";
+    mostrar.textContent = campo.type === "password" ? "Mostrar" : "Esconder";
+  } }, "Mostrar");
+  return el("label", {}, novaSenha ? "Senha (mínimo 8 caracteres)" : "Senha", el("div", { class: "campo-senha" }, campo, mostrar));
+}
+
+function linkEtapa(etapa, texto) {
+  return el("button", { class: "botao-link", type: "button", onclick: () => {
+    const email = $("#janela-conta input[name=email]");
+    if (email) conta.email = email.value.trim().toLowerCase();
+    conta.etapa = etapa;
+    conta.erro = "";
+    desenharConta();
+    $("#janela-conta input")?.focus();
+  } }, texto);
+}
+
+function conectou(dados, mensagem) {
+  conta.usuario = dados.usuario;
+  juntarCarrinho(dados.carrinho);
+  desenharContaTopo();
+  toast(mensagem);
+}
+
+function entrar(e) {
+  e.preventDefault();
+  const form = e.target;
+  conta.email = form.email.value.trim().toLowerCase();
   return comEspera(form, async () => {
-    await chamarConta("POST", "/codigo", { nome: conta.nome, email: conta.email });
-    conta.etapa = "codigo";
-    if (!e) toast("📬 Enviamos um novo código");
+    const dados = await chamarConta("POST", "/entrar", { email: conta.email, senha: form.senha.value });
+    conectou(dados, `🎉 Bem-vindo, ${dados.usuario.nome.split(" ")[0]}!`);
   });
 }
 
-function confirmarCodigo(e) {
+function cadastrar(e) {
   e.preventDefault();
-  const codigo = e.target.codigo.value;
-  return comEspera(e.target, async () => {
-    const dados = await chamarConta("POST", "/entrar", { email: conta.email, codigo });
-    conta.usuario = dados.usuario;
-    juntarCarrinho(dados.carrinho);
-    desenharContaTopo();
-    toast(`🎉 Bem-vindo, ${conta.usuario.nome.split(" ")[0]}!`);
+  const form = e.target;
+  conta.nome = form.nome.value.trim();
+  conta.email = form.email.value.trim().toLowerCase();
+  return comEspera(form, async () => {
+    const dados = await chamarConta("POST", "/cadastrar", { nome: conta.nome, email: conta.email, senha: form.senha.value });
+    conectou(dados, `🎉 Conta criada! Bem-vindo, ${dados.usuario.nome.split(" ")[0]}!`);
+  });
+}
+
+function pedirLink(e) {
+  e.preventDefault();
+  const form = e.target;
+  conta.email = form.email.value.trim().toLowerCase();
+  return comEspera(form, async () => {
+    await chamarConta("POST", "/senha/esqueci", { email: conta.email, volta: location.pathname });
+    conta.etapa = "enviado";
+  });
+}
+
+function gravarNovaSenha(e) {
+  e.preventDefault();
+  const form = e.target;
+  return comEspera(form, async () => {
+    const dados = await chamarConta("POST", "/senha/redefinir", { token: conta.token, senha: form.senha.value });
+    conta.token = "";
+    conectou(dados, "🔑 Nova senha salva!");
   });
 }
 
 // Ao sair, o carrinho sai deste aparelho também (pode ser um aparelho compartilhado)
 function esquecerAqui() {
   conta.usuario = null;
-  conta.etapa = "email";
+  conta.etapa = "entrar";
   favoritos = [];
   salvarFavoritos();
   atualizarFavoritos();
