@@ -107,6 +107,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   uma página cita taxa de 25% sobre a comissão, conferir no painel. Cuidado: awin.br.com NÃO é o site oficial). Aguardando ele se cadastrar.
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
   roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).
+- **Logo** criada (14/10/2026): ícone (quadrado arredondado com gradiente do site + carrinho branco/amarelo) + texto
+  "Vai pro Carrinho" em Plus Jakarta Sans 800. Versões em `marca/`: `logo-claro` (fundo branco), `logo-escuro`
+  (fundo escuro/gradiente), `logo-icone` 1024px e `vaiprocarrinho-icone.svg`. PNGs com fundo transparente.
 
 ## Próximos passos
 2. Giovanni testar `/previa` no celular e dar opinião sobre o visual.
