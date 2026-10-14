@@ -6,8 +6,9 @@ export async function onRequestGet({ request, env }) {
   const db = await banco(env);
   // Sem banco ligado, o site simplesmente esconde o botão de entrar
   if (!db) return responder({ ativo: false });
+  const google = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
   const usuario = await usuarioDaSessao(db, request);
-  if (!usuario) return responder({ ativo: true, usuario: null });
+  if (!usuario) return responder({ ativo: true, google, usuario: null });
   return responder({
     ativo: true,
     usuario: { nome: usuario.nome, email: usuario.email },

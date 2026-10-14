@@ -28,6 +28,12 @@ Liga quando o projeto no Cloudflare tiver (Settings):
 - Opcional: `EMAIL_REMETENTE` (ex.: `Vai pro Carrinho <nao-responda@vaiprocarrinho.com.br>`), só depois
   de verificar o domínio no Resend. Sem isso, o Resend só entrega para o e-mail dono da conta Resend.
 
+**Entrar com Google** (opcional): o botão aparece quando existirem `GOOGLE_CLIENT_ID` (variável) e
+`GOOGLE_CLIENT_SECRET` (Secret). Criados em console.cloud.google.com > APIs e serviços > Credenciais >
+ID do cliente OAuth (Aplicativo da Web), com estes "URIs de redirecionamento autorizados":
+`https://vaiprocarrinho.com.br/api/conta/google/retorno`, `https://www.vaiprocarrinho.com.br/api/conta/google/retorno`
+e `https://vaiprocarrinho.pages.dev/api/conta/google/retorno`.
+
 Sem o banco, o botão de entrar some e o carrinho fica só no aparelho.
 
 ## Testar no computador

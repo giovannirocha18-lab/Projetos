@@ -54,6 +54,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Lista de produtos reais (curadoria) pronta para receber links | ✅ vazia, aguardando links |
 | Favoritos virou "Meu carrinho" (ícone de carrinho) | ✅ |
 | Cadastro sem senha + carrinho na conta (código testado localmente) | ✅ funcionando (14/10/2026: código chegou no e-mail dele). Sessão dura 90 dias por aparelho |
+| "Entrar com Google" (código pronto, botão só aparece com as chaves) | ⏳ Giovanni criar ID do cliente OAuth no Google Cloud + `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` no Cloudflare (passo a passo no README) |
 | Página "Em breve" + bloqueio do Google | ✅ |
 | Domínio no Cloudflare | ✅ **Active** (13/10/2026) |
 | Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ✅ site abrindo no domínio (13/10/2026) |
@@ -87,6 +88,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
     com uso de boa-fé há 6+ meses (art. 129 §1º; o perfil mais ativo posta desde 21/07/2026 → prazo ~21/01/2027).
     Por isso: depositar o quanto antes. Pior caso: perde a GRU e segue usando o nome sem exclusividade.
 - **Cadastro do site**: ✅ testado e funcionando (14/10/2026).
+- **Entrar com Google** (14/10/2026): ele pediu Google ou e-mail+senha; feito Google (senha não recomendada).
+  Aguardando ele criar as credenciais no Google Cloud e cadastrar no Cloudflare.
 - Domínio e site no ar em vaiprocarrinho.com.br (página "Em breve"), fora do Google (noindex conferido).
 
 ## Próximos passos

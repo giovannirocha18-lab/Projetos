@@ -140,9 +140,9 @@ function abrirPainel(abrir) {
 }
 
 // ---------------------------------------------------------------------
-// Conta: entrar sem senha (nome + e-mail + código) e carrinho na conta
+// Conta: entrar sem senha (Google, ou nome + e-mail + código) e carrinho na conta
 // ---------------------------------------------------------------------
-const conta = { ativo: false, usuario: null, etapa: "email", email: "", nome: "", erro: "" };
+const conta = { ativo: false, google: false, usuario: null, etapa: "email", email: "", nome: "", erro: "" };
 
 async function chamarConta(metodo, caminho, corpo) {
   const resp = await fetch(`/api/conta${caminho}`, {
@@ -186,12 +186,26 @@ async function carregarConta() {
   try {
     const dados = await chamarConta("GET", "");
     conta.ativo = dados.ativo;
+    conta.google = Boolean(dados.google);
     conta.usuario = dados.usuario || null;
     if (conta.usuario) juntarCarrinho(dados.carrinho);
   } catch {
     conta.ativo = false;
   }
   desenharContaTopo();
+  // Volta do Google com erro: avisa na janela de entrar
+  if (location.hash === "#erro-google") {
+    history.replaceState(null, "", location.pathname + location.search);
+    if (conta.ativo && !conta.usuario) {
+      abrirConta();
+      conta.erro = "Não foi possível entrar com o Google. Tente de novo.";
+      desenharConta();
+    }
+  }
+}
+
+function entrarComGoogle() {
+  location.href = `/api/conta/google?volta=${encodeURIComponent(location.pathname)}`;
 }
 
 function desenharContaTopo() {
@@ -243,7 +257,12 @@ function desenharConta() {
   } else if (conta.etapa === "email") {
     conteudo = [
       el("h2", { id: "conta-titulo" }, "Entrar ou criar conta"),
-      el("p", {}, "Sem senha: enviamos um código para o seu e-mail. Assim o seu carrinho fica salvo em qualquer aparelho."),
+      el("p", {}, conta.google
+        ? "Sem senha. Assim o seu carrinho fica salvo em qualquer aparelho."
+        : "Sem senha: enviamos um código para o seu e-mail. Assim o seu carrinho fica salvo em qualquer aparelho."),
+      conta.google && el("button", { class: "botao-google", type: "button", onclick: entrarComGoogle },
+        el("img", { src: "assets/google.svg", alt: "", width: "18", height: "18" }), "Entrar com Google"),
+      conta.google && el("p", { class: "separador" }, "ou receba um código por e-mail"),
       el("form", { onsubmit: pedirCodigo },
         el("label", {}, "Seu nome", el("input", { name: "nome", required: true, maxlength: "60", autocomplete: "given-name", value: conta.nome })),
         el("label", {}, "Seu e-mail", el("input", { name: "email", type: "email", required: true, maxlength: "254", autocomplete: "email", inputmode: "email", value: conta.email })),
