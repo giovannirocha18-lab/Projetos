@@ -64,8 +64,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **Nome: decidido manter "Vai Pro Carrinho"** (ver "Decisões"). Pedido da marca no INPI em preparação:
   1. Falta a busca "vai pro carrinho" (separado) no INPI. Já feitas: "vaiprocarrinho" = nada; "pro carrinho" = só
      "Maxpro Carrinhos e Ferramentas" (classe 35, risco baixo na avaliação do Claude).
-  2. GRU serviço **389** (pedido eletrônico com especificação pré-aprovada; ~R$ 142 com desconto de pessoa física;
-     se der ~R$ 355 o desconto não entrou) → pagar → guardar o número da GRU.
+  2. GRU serviço **389** (pedido eletrônico com especificação pré-aprovada) → pagar → guardar o número da GRU.
+     **Valores corretos** (tabela oficial INPI de 20/12/2025): 389 = **R$ 440 com desconto** / R$ 880 sem;
+     394 = R$ 860 / R$ 1.720. Os R$ 142 citados antes eram da tabela antiga (erro do Claude, corrigido com ele).
+     A GRU dele saiu R$ 440 = já com o desconto. Ainda haverá a taxa de concessão no deferimento (conferir na tabela).
      (14/10/2026: ele perguntou 389 x 394. Explicado: 394 = especificação escrita à mão, mais cara e com mais risco de
      exigência do INPI; recomendado 389. A GRU paga define o tipo de formulário no e-Marcas.)
   3. Protocolar no **e-Marcas**: apresentação nominativa, natureza de serviço, classe NCL **35** (comparação de preços;
