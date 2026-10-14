@@ -11,6 +11,7 @@ export async function onRequestGet({ request, env }) {
   if (!usuario) return responder({ ativo: true, google, usuario: null });
   return responder({
     ativo: true,
+    google,
     usuario: { nome: usuario.nome, email: usuario.email },
     carrinho: await lerCarrinho(db, usuario.id),
   });
