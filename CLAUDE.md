@@ -66,6 +66,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
      "Maxpro Carrinhos e Ferramentas" (classe 35, risco baixo na avaliação do Claude).
   2. GRU serviço **389** (pedido eletrônico com especificação pré-aprovada; ~R$ 142 com desconto de pessoa física;
      se der ~R$ 355 o desconto não entrou) → pagar → guardar o número da GRU.
+     (14/10/2026: ele perguntou 389 x 394. Explicado: 394 = especificação escrita à mão, mais cara e com mais risco de
+     exigência do INPI; recomendado 389. A GRU paga define o tipo de formulário no e-Marcas.)
   3. Protocolar no **e-Marcas**: apresentação nominativa, natureza de serviço, classe NCL **35** (comparação de preços;
      publicidade/divulgação de produtos de terceiros). Claude ajuda a escolher a especificação pelo print.
   4. Depois: comprar `vaiprocarrinho.com` pelo "Buy domain" do Cloudflare e redirecionar para o `.com.br`.
