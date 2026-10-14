@@ -96,6 +96,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   3º **Awin** (feeds de produtos, aprovação loja por loja); Amazon só depois de **10 vendas em 30 dias** (Creators API).
   **Decidido começar pela AliExpress** (14/10/2026). Links enviados: portals.aliexpress.com (afiliado) e
   openservice.aliexpress.com (API). Aguardando ele se cadastrar e mandar prints.
+- **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
+  roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).
 
 ## Próximos passos
 2. Giovanni testar `/previa` no celular e dar opinião sobre o visual.
