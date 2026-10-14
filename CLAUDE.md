@@ -94,7 +94,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **Outras APIs enquanto a Shopee não libera** (pesquisado em 14/10/2026): 1º **AliExpress** (portals.aliexpress.com +
   Open Platform; cadastro aberto, API de busca + link de afiliado); 2º **Lomadee** (Affiliate API, várias lojas BR);
   3º **Awin** (feeds de produtos, aprovação loja por loja); Amazon só depois de **10 vendas em 30 dias** (Creators API).
-  Sugerido ao Giovanni começar pela AliExpress; aguardando resposta.
+  **Decidido começar pela AliExpress** (14/10/2026). Links enviados: portals.aliexpress.com (afiliado) e
+  openservice.aliexpress.com (API). Aguardando ele se cadastrar e mandar prints.
 
 ## Próximos passos
 2. Giovanni testar `/previa` no celular e dar opinião sobre o visual.
