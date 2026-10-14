@@ -351,6 +351,8 @@ function conectou(dados, mensagem) {
   conta.usuario = dados.usuario;
   juntarCarrinho(dados.carrinho);
   desenharContaTopo();
+  // Depois de entrar, fecha a janela; os dados da conta (sair, excluir) ficam no ícone da conta
+  $("#janela-conta").close();
   toast(mensagem);
 }
 
