@@ -89,6 +89,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
     (classe 35, registrada; risco baixo na avaliação do Claude, mas quem decide é o INPI).
   - Explicado: no Brasil a marca é de quem deposita primeiro no INPI (exceção: uso de boa-fé há 6+ meses,
     art. 129 §1º LPI); domínio não dá direito à marca. Sugerido consultar advogado de propriedade intelectual.
+  - 14/10/2026: pesquisa de padrões de nomes que pegam no Brasil (português, curto, falado = escrito, gíria/afeto,
+    trocadilho, ex.: Pelando, Buscapé, Zé Delivery, Magalu). Busca na web por candidatos: **Baratim** e **Cotaí**
+    sem uso encontrado (novos favoritos, junto com Precinzo/Cotaly); "Pechinch*" descartado (Pechinchou, Pechincha.Ai,
+    AliExpress Pechincha); Garimpaí fraco (feira "Garimpa Aí" em Curitiba, garimpeipromo.com.br). Aguardando ele
+    conferir no INPI, registro.br e Instagram.
 - **Cadastro do site**: banco D1 já criado. Faltam: binding `DB` → conta Resend + API key → secret
   `RESEND_API_KEY` → Retry deployment → ele testar o login em `/previa` e mandar print.
 - Domínio e site no ar em vaiprocarrinho.com.br (página "Em breve"), fora do Google (noindex conferido).
