@@ -8,6 +8,8 @@
 ## Sobre o dono e o jeito de trabalhar
 - Giovanni, não é programador. Responder **sempre em português**, simples, passo a passo, com
   nomes de botões exatamente como aparecem na tela. Ele manda prints das telas.
+- **Respostas curtas**: só o essencial e necessário, sem explicações extras (pedido dele em 14/10/2026,
+  para economizar tokens).
 - Pedir que **nunca** mande senhas ou chaves secretas no chat nem suba no GitHub.
 - Quando ele pedir "gera o comando de recomeço": atualizar este arquivo, fazer commit/push e
   entregar o texto da seção "Comando de recomeço".
