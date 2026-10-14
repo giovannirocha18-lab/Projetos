@@ -46,7 +46,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Cloudflare Pages, projeto **vaiprocarrinho** → `vaiprocarrinho.pages.dev`. Deploy automático.
 - Commits que só mexem no `CLAUDE.md` (memória) levam **`[skip ci]`** na mensagem, para não gastar publicações
   do Cloudflare (limite de 500 por mês no plano grátis).
-- **Production branch = `claude/inspiring-hamilton-wafagr`** (não é a `main`!). Se uma conversa
+- **Production branch = `claude/inspiring-hamilton-wafagr`** (não é a `main`!). Desde 14/10/2026 ela também é a
+  **branch padrão (default) do GitHub**. Se uma conversa
   nova trabalhar em outra branch, as mudanças não vão para o ar: trazer para essa branch, ou
   levar o site para a `main` por PR e trocar em Settings > Builds > Production branch.
 - Domínio registrado no Registro.br; nameservers trocados para o Cloudflare.
@@ -123,8 +124,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (174 dias p/ pagar), lojas estrangeiras/eróticas/VPN. Cookie de 1 dia (Efacil, Central Ar, Kabum, Cobasi, Olympikus,
   Centauro, MAC) rende menos. Ideia sugerida: nicho de lançamento "ar-condicionado e eletrodomésticos".
   **Robô de preços da Awin programado e testado localmente (14/10/2026)**, ainda sem dados reais. Falta o Giovanni:
-  (a) trocar a branch padrão do GitHub para `claude/inspiring-hamilton-wafagr` (o GitHub só agenda robôs da branch padrão;
-  também faz conversas novas abrirem com a memória); (b) cadastrar 4 segredos no GitHub: AWIN_FEED_KEY,
+  (a) ✅ branch padrão do GitHub trocada para `claude/inspiring-hamilton-wafagr` (14/10/2026, conferido); (b) cadastrar 4 segredos no GitHub: AWIN_FEED_KEY,
   CLOUDFLARE_API_TOKEN (permissão D1 Edit), CLOUDFLARE_ACCOUNT_ID, D1_DATABASE_ID (passo a passo no README);
   (c) depois da 1ª loja aprovada, rodar em Actions > Robô de preços > Run workflow e mandar print do resumo.
   Nomes das colunas da lista de feeds da Awin foram deduzidos da documentação: conferir na 1ª execução real.
