@@ -35,6 +35,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 
 ## Hospedagem e domínio
 - Cloudflare Pages, projeto **vaiprocarrinho** → `vaiprocarrinho.pages.dev`. Deploy automático.
+- Commits que só mexem no `CLAUDE.md` (memória) levam **`[skip ci]`** na mensagem, para não gastar publicações
+  do Cloudflare (limite de 500 por mês no plano grátis).
 - **Production branch = `claude/inspiring-hamilton-wafagr`** (não é a `main`!). Se uma conversa
   nova trabalhar em outra branch, as mudanças não vão para o ar: trazer para essa branch, ou
   levar o site para a `main` por PR e trocar em Settings > Builds > Production branch.
