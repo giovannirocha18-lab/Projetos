@@ -56,7 +56,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Shopee Afiliados: conta | ✅ aprovada |
 | Shopee: dados fiscais | ⏳ em análise |
 | Shopee: conta "Maree" (para receber pagamentos) | ❗ falta ativar (link "Como ativar?" no portal) |
-| Shopee: Open API | ❗ ele vai pedir depois que o cadastro estiver todo validado |
+| Shopee: Open API | ❗ sem acesso (14/10/2026: tela "Abrir API" com AppID/Senha vazios e "Aplicar" cinza; pede contato com a Shopee). Pedir depois dos dados fiscais aprovados + Maree ativa. Quando liberar: "Senha" da tela = `SHOPEE_SECRET` |
 | Mercado Livre Afiliados | ❗ não se inscreveu ainda. API de busca dá 403 para muitos devs (Reclame Aqui) |
 | Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
 
