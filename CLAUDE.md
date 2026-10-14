@@ -53,7 +53,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Comparador com produtos de exemplo em `/previa` | ✅ |
 | Lista de produtos reais (curadoria) pronta para receber links | ✅ vazia, aguardando links |
 | Favoritos virou "Meu carrinho" (ícone de carrinho) | ✅ |
-| Cadastro sem senha + carrinho na conta (código testado localmente) | ⏳ D1 ligado como `DB` + conta Resend + `RESEND_API_KEY` no Cloudflare (feitos). Falta confirmar Retry deployment + teste do login |
+| Cadastro sem senha + carrinho na conta (código testado localmente) | ✅ funcionando (14/10/2026: código chegou no e-mail dele). Sessão dura 90 dias por aparelho |
 | Página "Em breve" + bloqueio do Google | ✅ |
 | Domínio no Cloudflare | ✅ **Active** (13/10/2026) |
 | Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ✅ site abrindo no domínio (13/10/2026) |
@@ -86,13 +86,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
     Riscos explicados: INPI pode negar por expressão de uso comum (art. 124 VI/VII LPI) e terceiros podem contestar
     com uso de boa-fé há 6+ meses (art. 129 §1º; o perfil mais ativo posta desde 21/07/2026 → prazo ~21/01/2027).
     Por isso: depositar o quanto antes. Pior caso: perde a GRU e segue usando o nome sem exclusividade.
-- **Cadastro do site**: D1 + binding `DB` + conta Resend + secret `RESEND_API_KEY` feitos (14/10/2026). Falta:
-  confirmar Retry deployment → ele testar o login em `/previa` e mandar print.
+- **Cadastro do site**: ✅ testado e funcionando (14/10/2026).
 - Domínio e site no ar em vaiprocarrinho.com.br (página "Em breve"), fora do Google (noindex conferido).
 
 ## Próximos passos
-0. Cadastro: tudo configurado; falta refazer o deploy (se ainda não fez) e testar
-   com o e-mail dele (o Resend sem domínio verificado só entrega para o e-mail dono da conta Resend).
 2. Giovanni testar `/previa` no celular e dar opinião sobre o visual.
 3. Colocar produtos reais: Giovanni manda links de afiliado da Shopee (Oferta > Link personalizado) com nome e
    preço; Claude cadastra em `lib/fontes/curadoria.js`. Juntar uns 20–30 antes, porque os exemplos somem.
