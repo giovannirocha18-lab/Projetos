@@ -108,7 +108,14 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   **Awin: cadastro concluído e ID de afiliado liberado (14/10/2026).** Tipos marcados: Mecanismo de Comparação +
   Criadores de Conteúdo. Próximo: ele pedir entrada em lojas BR com feed de produtos (menu Anunciantes); depois
   Ferramentas > "Crie um Feed" gera o link de download, que **contém chave secreta** (vai como Secret no Cloudflare,
-  nunca no chat). Código ainda não escrito: plano = Worker com Cron baixando o feed para o D1 + `lib/fontes/awin.js`.
+  nunca no chat). Lista da Awin analisada em 14/10/2026 (71 lojas com feed, 56 BR). Recomendadas: Grupo 1 (eletro/ar,
+  mesmas categorias em várias lojas = comparação real): Leveros, Central Ar, Dufrio, Efacil, Ferreira Costa, Lojas Benoit,
+  Panasonic, Arno, Shark-Ninja, Compra Certa, IBBL, Spicy, Elements, Motorola, Kabum. Grupo 2 (multimarcas): Beleza na
+  Web, Posthaus, Cobasi, Centauro. Grupo 3 (marcas): Animale, Estée Lauder, Calvin Klein, Trussardi, Karsten, Jo Malone,
+  Lego, adidas, Nike, Olympikus, Mizuno, ASICS. Evitar: Brastemp (EPC 0,01), Kipling/Legale (aprovação <50%), Luuna
+  (174 dias p/ pagar), lojas estrangeiras/eróticas/VPN. Cookie de 1 dia (Efacil, Central Ar, Kabum, Cobasi, Olympikus,
+  Centauro, MAC) rende menos. Ideia sugerida: nicho de lançamento "ar-condicionado e eletrodomésticos".
+  Código ainda não escrito: plano = Worker com Cron baixando o feed para o D1 + `lib/fontes/awin.js`.
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
   roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).
 - **Logo** criada (14/10/2026): ícone (quadrado arredondado com gradiente do site + carrinho branco/amarelo) + texto
