@@ -60,40 +60,19 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Mercado Livre Afiliados | ❗ não se inscreveu ainda. API de busca dá 403 para muitos devs (Reclame Aqui) |
 | Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
 
-## Em andamento (resumo em 13/10/2026)
-- **Decisão pendente do Giovanni sobre o nome.** Há vários perfis "Vai Pro Carrinho" de achadinhos nas redes
-  (Instagram @vaiprocarrinho_oficial e @vaiprocarrinho.shop, TikTok @vai.pro.carrinho, YouTube, Linktree).
-  Nenhum tem site (vai.pro.carrinho.br não existe). Linktree `linktr.ee/Vai.Pro.Carrinho.BR` (print 13/10/2026):
-  mesmo nicho (achadinhos baratos), logo profissional "VAI PRO CARRINHO .BR", só 4 produtos (#001–#004) = parece
-  bem recente. Instagram deles: conta criada em 08/2025, **2 trocas de nome**, posts de produtos desde
-  **21/07/2026** → uso com esse nome provavelmente < 6 meses; o prazo de 6 meses fecharia por volta de
-  **21/01/2027**. Se for manter o nome, depositar no INPI bem antes disso (ideal: já).
-  - Busca melhor no Instagram (print 13/10/2026): **12+ perfis** com o nome (vai.pro.carrinho_, vaiprocarrinho.ofertas,
-    vaiprocarrinho.promo **verificado**, vaipro_carrinho "Achadinhos Shopee", amigavaiprocarrinho…). Virou bordão do
-    nicho de achadinhos → marca fraca/risco de o INPI negar por expressão de uso comum, impossível se destacar.
-    Claude recomendou **fortemente a opção B** e pediu para ele conferir os nomes sugeridos.
-  - Giovanni perguntou se, sem site e sem INPI de ninguém, haveria problema jurídico. Resposta: risco de processo
-    é baixo; o risco real é o INPI negar (art. 124 VI uso comum / VII expressão de propaganda) e ficar sem
-    exclusividade. Pior caso de manter: perde a GRU (~R$ 142) e segue usando sem exclusividade. A questão é de marketing. Opções apresentadas:
-  - **A) Manter o nome**: falta buscar "vai pro carrinho" (separado) no INPI; se livre, GRU serviço **389**
-    (~R$ 142 com desconto de pessoa física; se der ~R$ 355, o desconto não entrou) e depois protocolar no
-    **e-Marcas**: nominativa, natureza serviço, classe NCL **35** (comparação de preços, publicidade de produtos de
-    terceiros). Depois comprar `vaiprocarrinho.com` pelo "Buy domain" do Cloudflare e redirecionar.
-  - **B) Trocar o nome** antes do lançamento (recomendação do Claude): sugerir nomes, ele confere no INPI e no
-    registro.br, registrar `.com.br` + `.com`, e trocar o nome no site todo.
-  - Nomes sugeridos para a opção B (13/10/2026; busca rápida na web não achou uso; INPI/registro.br não
-    conferidos porque a rede do Claude bloqueia): **Cotaly** e **Precinzo** (favoritos), Garimpaí, Achadex,
-    Lupreço, Ofertô. Evitados: "carrinho" (confusão com os perfis), Comparaí (existe Compara.ai), nomes
-    parecidos com Buscapé, Zoom, Promobit, Pelando, JáCotei, Precifica, KuantoKusta. Aguardando ele conferir.
-  - Buscas no INPI já feitas: "vaiprocarrinho" = nada; "pro carrinho" = só "Maxpro Carrinhos e Ferramentas"
-    (classe 35, registrada; risco baixo na avaliação do Claude, mas quem decide é o INPI).
-  - Explicado: no Brasil a marca é de quem deposita primeiro no INPI (exceção: uso de boa-fé há 6+ meses,
-    art. 129 §1º LPI); domínio não dá direito à marca. Sugerido consultar advogado de propriedade intelectual.
-  - 14/10/2026: pesquisa de padrões de nomes que pegam no Brasil (português, curto, falado = escrito, gíria/afeto,
-    trocadilho, ex.: Pelando, Buscapé, Zé Delivery, Magalu). Busca na web por candidatos: **Baratim** e **Cotaí**
-    sem uso encontrado (novos favoritos, junto com Precinzo/Cotaly); "Pechinch*" descartado (Pechinchou, Pechincha.Ai,
-    AliExpress Pechincha); Garimpaí fraco (feira "Garimpa Aí" em Curitiba, garimpeipromo.com.br). Aguardando ele
-    conferir no INPI, registro.br e Instagram.
+## Em andamento (resumo em 14/10/2026)
+- **Nome: decidido manter "Vai Pro Carrinho"** (ver "Decisões"). Pedido da marca no INPI em preparação:
+  1. Falta a busca "vai pro carrinho" (separado) no INPI. Já feitas: "vaiprocarrinho" = nada; "pro carrinho" = só
+     "Maxpro Carrinhos e Ferramentas" (classe 35, risco baixo na avaliação do Claude).
+  2. GRU serviço **389** (pedido eletrônico com especificação pré-aprovada; ~R$ 142 com desconto de pessoa física;
+     se der ~R$ 355 o desconto não entrou) → pagar → guardar o número da GRU.
+  3. Protocolar no **e-Marcas**: apresentação nominativa, natureza de serviço, classe NCL **35** (comparação de preços;
+     publicidade/divulgação de produtos de terceiros). Claude ajuda a escolher a especificação pelo print.
+  4. Depois: comprar `vaiprocarrinho.com` pelo "Buy domain" do Cloudflare e redirecionar para o `.com.br`.
+  - Contexto: 12+ perfis "Vai Pro Carrinho" de achadinhos no Instagram/TikTok (nenhum com site ou marca no INPI).
+    Riscos explicados: INPI pode negar por expressão de uso comum (art. 124 VI/VII LPI) e terceiros podem contestar
+    com uso de boa-fé há 6+ meses (art. 129 §1º; o perfil mais ativo posta desde 21/07/2026 → prazo ~21/01/2027).
+    Por isso: depositar o quanto antes. Pior caso: perde a GRU e segue usando o nome sem exclusividade.
 - **Cadastro do site**: banco D1 já criado. Faltam: binding `DB` → conta Resend + API key → secret
   `RESEND_API_KEY` → Retry deployment → ele testar o login em `/previa` e mandar print.
 - Domínio e site no ar em vaiprocarrinho.com.br (página "Em breve"), fora do Google (noindex conferido).
@@ -110,6 +89,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
    e criar `contato@vaiprocarrinho.com.br` (Cloudflare Email Routing; exige trocar o MX nulo).
 
 ## Decisões do Giovanni
+- **Mantém o nome "Vai Pro Carrinho"** (14/10/2026), ciente dos perfis com o mesmo nome e dos riscos de marca.
+  Nomes alternativos pesquisados, caso mude de ideia: Baratim, Cotaí, Precinzo, Cotaly.
 - **Sem aviso de link de afiliado/comissão visível no site** (pedido dele em 13/10/2026). Os links mantêm
   `rel="sponsored"` (invisível, exigido pelo Google). Se entrar no programa da Amazon, ela **exige** um aviso
   ("Como Associado da Amazon…"): avisar o Giovanni e recolocar só o necessário.
