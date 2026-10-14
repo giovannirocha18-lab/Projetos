@@ -98,6 +98,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   openservice.aliexpress.com (API). **Cadastro de afiliado enviado em 14/10/2026: em análise** (1h a 2 dias úteis;
   resposta por e-mail; nova verificação em até 1 semana). Site cadastrado como "Sem rede", Brasil. Depois de aprovado:
   cadastro no openservice.aliexpress.com para pegar App Key/App Secret (vão como Secrets no Cloudflare).
+  Próximas sugeridas (14/10/2026): **Lomadee** (lomadee.com.br; ~350 lojas; API nova não confirmou busca por palavra,
+  conferir com a conta aberta) e **Awin** (awin.com/br, como "Publisher"; feeds de produtos por loja). Aguardando ele se cadastrar.
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
   roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).
 
