@@ -26,8 +26,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - `lib/fontes/exemplo.js` = produtos fictícios (usado enquanto nenhuma fonte real está ligada).
 - `lib/fontes/curadoria.js` = produtos escolhidos à mão com link de afiliado (lista `PRODUTOS`).
   Com 1 produto ou mais, o site deixa de mostrar os exemplos. Giovanni manda os links; Claude cadastra.
-- `lib/fontes/shopee.js` = API GraphQL de afiliados da Shopee; liga com as variáveis
-  `SHOPEE_APP_ID` e `SHOPEE_SECRET` no Cloudflare. **Escrito pela documentação, nunca testado.**
+- `lib/fontes/shopee.js` = API GraphQL de afiliados da Shopee (busca ao vivo, 30 por busca, sortType 1 = relevância;
+  destaques = mais vendidos). Chaves `SHOPEE_APP_ID` e `SHOPEE_SECRET` no Cloudflare. ✅ **Funcionando desde 15/10/2026.**
+  Ofertas da Shopee ainda **não** entram no histórico de preço (só as do robô da Awin).
 - `lib/conta.js` + `functions/api/conta/*` = cadastro com "Entrar com Google" ou e-mail + senha ("Esqueci minha senha"
   manda link por e-mail via Resend; login por código foi removido em 14/10/2026), sessão por cookie, "Meu carrinho" salvo na conta (D1, binding `DB`; tabelas criadas sozinhas). Ver README.
 - `lib/fontes/awin.js` = lojas da Awin: busca na tabela `ofertas` do D1 (índice FTS5 `ofertas_fts`). Liga sozinha quando
@@ -69,7 +70,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Shopee Afiliados: conta | ✅ aprovada |
 | Shopee: dados fiscais | ⏳ em análise |
 | Shopee: conta "Maree" (para receber pagamentos) | ❗ falta ativar (link "Como ativar?" no portal) |
-| Shopee: Open API | ❗ sem acesso (14/10/2026: tela "Abrir API" com AppID/Senha vazios e "Aplicar" cinza; pede contato com a Shopee). **Pedido de acesso feito em 14/10/2026.** 15/10/2026: ✅ **API liberada**, AppID e Senha gerados. Pedido ao Giovanni: cadastrar no Cloudflare (Settings > Variables and Secrets: SHOPEE_APP_ID tipo Text, SHOPEE_SECRET tipo Secret), refazer o deploy (Retry deployment) e testar em /api/buscar?q=fone (resposta mostra lojas.shopee ok/erro). Quando liberar: "Senha" da tela = `SHOPEE_SECRET` |
+| Shopee: Open API | ❗ sem acesso (14/10/2026: tela "Abrir API" com AppID/Senha vazios e "Aplicar" cinza; pede contato com a Shopee). **Pedido de acesso feito em 14/10/2026.** 15/10/2026: ✅ **API liberada e FUNCIONANDO no site** (chaves SHOPEE_APP_ID/SHOPEE_SECRET no Cloudflare; teste /api/buscar?q=fone bluetooth → shopee ok, 30 produtos com link de afiliado s.shopee.com.br, foto, preço, desconto, avaliação, vendidos). Quando liberar: "Senha" da tela = `SHOPEE_SECRET` |
 | Awin (rede de afiliados) | ✅ conta aprovada (ID 3124296). Lojas: só EINSTAR aprovada (EUA); pedidos em lojas BR pendentes |
 | Robô de preços (Awin → D1, GitHub Actions 04:17) | ✅ funcionando. 31 produtos reais (EINSTAR) no site, com preço convertido do dólar |
 | Histórico de preço + produto agrupado por código de barras | ✅ publicado (15/10/2026); ganha dados com o tempo |
@@ -188,7 +189,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 3. Giovanni testar `/previa` no celular (busca "scanner") e opinar sobre o visual; testar cadastro com e-mail + senha.
 4. Quando houver visitantes: alerta de preço por e-mail (item 3 da análise de concorrentes); depois cupons e desconto
    verificado pelo histórico.
-5. Shopee: quando a API sair, cadastrar as chaves no Cloudflare e testar `lib/fontes/shopee.js`.
+5. ✅ Shopee ligada (15/10/2026). Ideia futura: guardar preços da Shopee no histórico (robô consultando os mais buscados).
 6. Lançamento: ver "Para lançar o site" no README (esperar ter várias lojas BR). Antes: verificar o domínio no Resend
    (+ `EMAIL_REMETENTE`) e criar `contato@vaiprocarrinho.com.br` (Cloudflare Email Routing; exige trocar o MX nulo).
 7. Pendências do Giovanni: trocar a senha do Registro.br; INPI (pagar GRU antes de ~21/01/2027).
