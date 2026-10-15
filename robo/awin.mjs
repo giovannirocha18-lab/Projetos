@@ -208,28 +208,61 @@ async function obterFeeds() {
   if (arquivosFeed.length) {
     return arquivosFeed.map((caminho) => ({ nome: caminho, ler: async () => descompactar(readFileSync(caminho)) }));
   }
-  // Aceita só a chave ou o link inteiro do "Crie um Feed" (a chave vem depois de /apikey/)
+  // O segredo pode ser: o link da "Lista de Feed" (Ferramentas > Crie um Feed, caixa
+  // "Download da Lista de Feed"), um link de download de feed, ou só a chave.
   const segredo = (process.env.AWIN_FEED_KEY || "").trim();
-  const chave = (segredo.match(/apikey\/([^/?#\s]+)/i) || [])[1] || segredo;
-  if (!chave) throw new Error("Falta o segredo AWIN_FEED_KEY");
+  if (!segredo) throw new Error("Falta o segredo AWIN_FEED_KEY");
+  const chave = (segredo.match(/apikey\/([^/?#\s]+)/i) || [])[1];
+  const urlLista = /^https?:\/\/.*feedlist/i.test(segredo) ? segredo : LISTA_FEEDS + encodeURIComponent(chave || segredo);
+  const esconder = (url) => url.replace(/[0-9a-f]{24,}/gi, "***");
   let textoLista;
   try {
-    textoLista = await baixarTexto(LISTA_FEEDS + encodeURIComponent(chave), chave);
+    textoLista = await baixarTexto(urlLista, chave || segredo);
   } catch (erro) {
-    throw new Error(`A Awin recusou a lista de feeds (${erro.message}). Confira o segredo AWIN_FEED_KEY: ` +
-      `deve ser só o código depois de /apikey/ no link do "Crie um Feed" (tamanho atual: ${chave.length} caracteres)`);
+    throw new Error(`A Awin recusou a lista de feeds (${esconder(erro.message)}). Confira o segredo AWIN_FEED_KEY: ` +
+      `deve ser o link da caixa "Download da Lista de Feed" (Ferramentas > Crie um Feed)`);
   }
-  const lista = lerCsv(textoLista);
-  if (!lista.length) throw new Error("A lista de feeds da Awin veio vazia (a chave AWIN_FEED_KEY está certa?)");
-  const ativos = lista.filter((f) =>
-    /^(active|joined)/i.test(f.membership_status || "") && f.url
-    && (!f.primary_region || REGIOES.includes(f.primary_region.toUpperCase())));
+  const lista = lerTabela(textoLista);
+  if (!lista.length) throw new Error("A lista de feeds da Awin veio vazia (o segredo AWIN_FEED_KEY está certo?)");
+  // Os nomes das colunas variam entre os formatos da Awin: procura por aproximação
+  const pegar = (f, ...nomes) => {
+    const chaves = Object.keys(f);
+    for (const nome of nomes) {
+      const achada = chaves.find((k) => k.replace(/[^a-z0-9]/gi, "").toLowerCase() === nome);
+      if (achada && f[achada] !== "") return String(f[achada]);
+    }
+    return "";
+  };
+  console.log(`Colunas da lista de feeds: ${Object.keys(lista[0]).join(", ")}`);
+  const situacoes = {};
+  for (const f of lista) {
+    const s = pegar(f, "membershipstatus", "status", "joined") || "(vazio)";
+    situacoes[s] = (situacoes[s] || 0) + 1;
+  }
+  console.log(`Situação das lojas na lista: ${JSON.stringify(situacoes)}`);
+  const ativos = lista.filter((f) => {
+    const situacao = pegar(f, "membershipstatus", "status", "joined");
+    const regiao = pegar(f, "primaryregion", "region", "advertiserregion").toUpperCase();
+    return /^(active|joined|yes|true|1)$/i.test(situacao) && pegar(f, "url", "downloadurl", "feedurl")
+      && (!regiao || REGIOES.includes(regiao));
+  });
   console.log(`Awin: ${lista.length} feeds visíveis, ${ativos.length} de lojas aprovadas (${REGIOES.join(", ")})`);
   return ativos.map((f) => ({
-    nome: `${f.advertiser_name} (feed ${f.feed_id})`,
-    lojaId: f.advertiser_id,
-    ler: () => baixarTexto(f.url),
+    nome: `${pegar(f, "advertisername", "merchantname") || "Loja"} (feed ${pegar(f, "feedid", "id")})`,
+    lojaId: pegar(f, "advertiserid", "merchantid"),
+    ler: () => baixarTexto(pegar(f, "url", "downloadurl", "feedurl"), chave),
   }));
+}
+
+// A lista pode vir em CSV ou em JSON
+function lerTabela(texto) {
+  const t = texto.trim();
+  if (t.startsWith("[") || t.startsWith("{")) {
+    const json = JSON.parse(t);
+    const itens = Array.isArray(json) ? json : Object.values(json).find(Array.isArray) || [];
+    return itens.map((i) => Object.fromEntries(Object.entries(i).map(([k, v]) => [k, v == null ? "" : String(v)])));
+  }
+  return lerCsv(texto);
 }
 
 async function main() {

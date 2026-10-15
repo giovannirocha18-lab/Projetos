@@ -129,6 +129,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   parou só por falta da AWIN_FEED_KEY, como esperado); falta AWIN_FEED_KEY;
   (c) depois da 1ª loja aprovada, rodar em Actions > Robô de preços > Run workflow e mandar print do resumo.
   Nomes das colunas da lista de feeds da Awin foram deduzidos da documentação: conferir na 1ª execução real.
+  15/10/2026: a Awin mostra o link novo da lista em Ferramentas > Crie um Feed > caixa "Download da Lista de Feed"
+  (formato ui.awin.com/productdata-darwin-download/publisher/<id>/<chave>/1/feedList). O segredo AWIN_FEED_KEY deve
+  ser esse link inteiro (o robô aceita link ou chave; 1ª tentativa só com a chave deu HTTP 400). O robô registra no log
+  as colunas e situações da lista para conferência.
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
   roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).
 - **Logo** criada (14/10/2026): ícone (quadrado arredondado com gradiente do site + carrinho branco/amarelo) + texto
