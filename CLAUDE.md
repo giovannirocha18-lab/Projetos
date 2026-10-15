@@ -46,6 +46,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 
 ## Hospedagem e domínio
 - Cloudflare Pages, projeto **vaiprocarrinho** → `vaiprocarrinho.pages.dev`. Deploy automático.
+  Desde 16/10/2026 `vaiprocarrinho.pages.dev` redireciona (301) para `vaiprocarrinho.com.br` (no `_middleware.js`;
+  o Cloudflare não deixa desligar o endereço .pages.dev). Prévias de outras branches continuam abrindo.
 - Commits que só mexem no `CLAUDE.md` (memória) levam **`[skip ci]`** na mensagem, para não gastar publicações
   do Cloudflare (limite de 500 por mês no plano grátis).
 - **Production branch = `claude/inspiring-hamilton-wafagr`** (não é a `main`!). Desde 14/10/2026 ela também é a
