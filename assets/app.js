@@ -728,7 +728,7 @@ function esqueletos(qtd) {
 const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), pedido: 0 };
 
 async function consultarApi(q, pagina = 1) {
-  const resp = await fetch(`/api/buscar?v=3&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}`);
+  const resp = await fetch(`/api/buscar?v=4&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
