@@ -18,7 +18,8 @@ export async function onRequest({ request, next }) {
   // Verificação do site na Awin (método do arquivo). Respondido aqui porque o Cloudflare Pages
   // tiraria o ".html" do endereço com um redirecionamento, e o verificador espera o arquivo direto.
   if (url.pathname === `/${VERIFICACAO_AWIN}.html`) {
-    return new Response(VERIFICACAO_AWIN, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    // Mesmo conteúdo do arquivo baixado da Awin
+    return new Response(`Validation content="${VERIFICACAO_AWIN}"`, { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
   // O comparador ficava em /previa antes do lançamento: leva para a página principal
   if (/^\/previa(\.html)?\/?$/i.test(url.pathname)) {
