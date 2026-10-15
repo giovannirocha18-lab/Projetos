@@ -12,14 +12,14 @@ import { shopee } from "../../lib/fontes/shopee.js";
 import { awin } from "../../lib/fontes/awin.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
-import { categoriaPorNome, termoNaCategoria, daCategoria } from "../../lib/categorias.js";
+import { categoriaPorNome, termoNaCategoria, daCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
 const FONTES_REAIS = [curadoria, shopee, awin];
 
 const CACHE_SEGUNDOS = 60 * 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 9;
+const VERSAO_CACHE = 10;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -60,14 +60,14 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Da 2ª página em diante, só as lojas que têm mais páginas de destaques
   const fontes = (reais.length ? reais : [exemplo]).filter((f) => pagina === 1 || f.porPagina);
 
-  let lojas = {};
+  const lojas = {};
   const consultar = async (termo) => {
-    lojas = {};
     const resultados = await Promise.all(
       fontes.map(async (fonte) => {
         try {
           const ofertas = termo ? await fonte.buscar(termo, env, pagina) : await fonte.destaques(env, pagina);
-          lojas[fonte.nome] = { ok: true, total: ofertas.length };
+          // Na vitrine (várias buscas) a loja vale pela busca que trouxe mais
+          lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(ofertas.length, lojas[fonte.nome]?.total || 0) };
           return ofertas;
         } catch (erro) {
           // Uma loja fora do ar não derruba a busca nas outras
@@ -79,20 +79,28 @@ export async function onRequestGet({ request, env, waitUntil }) {
     return resultados.flat();
   };
 
-  // Dentro de uma categoria: "invictus" em Perfumes pesquisa "invictus perfume".
-  // Se nada aparecer na categoria, mostra a busca em tudo (e o site avisa).
-  let encontradas = await consultar(categoria ? termoNaCategoria(q, categoria) : q);
+  // Categoria com vitrine (ex.: Celulares): várias buscas juntas, só produtos de verdade
+  const vitrine = vitrineDaCategoria(q, categoria);
+  let ofertas;
   let foraDaCategoria = false;
-  if (categoria) {
-    encontradas = daCategoria(encontradas, categoria);
-    if (!encontradas.length && pagina === 1) {
-      encontradas = await consultar(q);
-      foraDaCategoria = encontradas.length > 0;
+  if (vitrine) {
+    const listas = await Promise.all(vitrine.buscas.map(async (termo) => separarAcessorios(await consultar(termo), termo)));
+    ofertas = montarVitrine(listas, vitrine, categoria);
+  } else {
+    // Dentro de uma categoria: "invictus" em Perfumes pesquisa "invictus perfume".
+    // Se nada aparecer na categoria, mostra a busca em tudo (e o site avisa).
+    let encontradas = await consultar(categoria ? termoNaCategoria(q, categoria) : q);
+    if (categoria) {
+      encontradas = daCategoria(encontradas, categoria);
+      if (!encontradas.length && pagina === 1) {
+        for (const k of Object.keys(lojas)) delete lojas[k];
+        encontradas = await consultar(q);
+        foraDaCategoria = encontradas.length > 0;
+      }
     }
+    // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
+    ofertas = q ? separarAcessorios(encontradas, q) : encontradas;
   }
-
-  // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
-  const ofertas = q ? separarAcessorios(encontradas, q) : encontradas;
   const resposta = responder({
     q,
     categoria: categoria && !foraDaCategoria ? categoria.nome : null,

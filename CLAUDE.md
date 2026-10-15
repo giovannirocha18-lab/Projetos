@@ -302,6 +302,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **"Menor preço" respeita a busca (16/10/2026, pedido do Giovanni)**: servidor marca `bate: true` quando o título tem
   todas as palavras buscadas; o card "🏆 Menor preço" e o selo usam só esses, sem acessórios e sem preço fora da curva
   (< 30% ou > 3× a mediana) (`ofertasComparaveis` no `app.js`). `PECAS` ganhou bateria, bit, broca, carvão, mandril, ponteira, soquete.
+- **Vitrine de categoria (16/10/2026, pedido do Giovanni)**: "Celulares" trazia celular de botão para idoso. Categoria pode
+  ter `vitrine` (`lib/categorias.js`): ao abrir a categoria (sem busca dentro), o servidor junta várias buscas
+  (iphone, samsung galaxy, xiaomi, motorola), tira acessórios, preço < R$ 500 e palavras excluídas (idoso, botão, flip…)
+  e intercala as marcas. Só Celulares tem vitrine por enquanto; dá para pôr em outras. Celulares foi para antes de
+  Automotivo ("Moto G" não é moto); Smartwatches ganhou "watch" e "mi band".
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Próximos passos
