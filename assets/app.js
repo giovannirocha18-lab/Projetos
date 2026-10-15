@@ -766,7 +766,7 @@ function desenharFiltroLojas() {
         onchange: (e) => { e.target.checked ? estado.lojasDesmarcadas.delete(id) : estado.lojasDesmarcadas.add(id); desenharResultados(); },
       }),
       el("span", { class: "loja-ponto" }), loja.nome,
-      el("span", { class: "qtd" }, contagem[id]));
+      el("span", { class: "qtd", title: `${contagem[id]} ofertas desta loja na lista` }, contagem[id]));
   }));
 }
 
@@ -913,7 +913,7 @@ function desenharCategorias(lista) {
       const todas = caixa.classList.toggle("todas");
       e.currentTarget.textContent = todas ? "Ver menos ▲" : `Ver todas (${lista.length}) ▼`;
     } }, `Ver todas (${lista.length}) ▼`);
-  caixa.replaceChildren(...botoes, verTodas);
+  caixa.replaceChildren(...botoes, ...(verTodas ? [verTodas] : []));
   marcarCategoria();
 }
 
