@@ -197,7 +197,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   "Links", preencher "Contato" e ver o que é o ícone de escudo ao lado do site (possível verificação).
   O escudo = **site NÃO verificado na Awin** (provável causa do "link inválido"). 16/10/2026: meta tag
   `<meta name="verification" …>` da Awin colocada no `index.html` (manter no lançamento). 1ª tentativa de "Verificar Site": escudo igual. Adicionado também o método do arquivo
-  (`/2e195e3c8c68351f1709348e09eae77d.html`, respondido no `_middleware.js` porque o Pages tira o ".html").
+  (`/2e195e3c8c68351f1709348e09eae77d.html`, respondido no `_middleware.js` porque o Pages tira o ".html"). Arquivo abre no navegador dele, mas a Awin ainda não verifica.
+  Próximo: ver Cloudflare > Security > Events (bloqueios na hora do clique), desligar "Browser Integrity Check" e
+  conferir o conteúdo do arquivo baixado da Awin (se não for só o código, trocar no middleware).
   Hipóteses: recusa avaliada quando ainda era "Em breve"; ou loja checa se o site aparece no Google (noindex esconde).
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
