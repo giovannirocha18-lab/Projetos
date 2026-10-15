@@ -217,6 +217,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   pontos). Cada atalho tem `nome` (o que aparece) e `busca` (o que pesquisa, ex.: "Mesa posta" → "sousplat").
   Pedido do Giovanni (15/10/2026): atalhos não podem repetir os produtos das "Ofertas do dia". Resposta guardada 1h.
 
+- **Janela "Ver detalhes" (15/10/2026, pedido do Giovanni)**: clicar no nome do produto ou em "🔍 Ver detalhes" abre
+  janela com foto grande (galeria se a loja manda várias), nome completo, preço/economia, nota e vendidos, vendedor e
+  selo "✔ Loja oficial" (Shopee, campo `shopType`; se a API recusar o campo, a busca refaz sem ele), descrição (só Awin:
+  robô guarda `descricao` até 600 letras e `imagens` até 5; a API da Shopee não tem descrição), outras lojas, histórico e
+  botão Comprar. Nada é lido das páginas das lojas. Colunas novas só existem no D1 depois que o robô roda (migração).
+
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
    Quando entrar a 1ª loja BR, conferir o log do robô (Actions > Robô de preços) e os produtos no site.
