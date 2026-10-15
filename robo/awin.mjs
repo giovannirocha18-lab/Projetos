@@ -185,6 +185,9 @@ function paraOferta(p, feed = {}) {
   const textoFrete = p.delivery_cost ?? (p.shipping ? p.shipping.split(":").pop() : undefined);
   const frete = numero(textoFrete);
   const marca = p.brand_name || p.brand || "";
+  // Código de barras (GTIN/EAN), sempre com 14 dígitos para comparar entre lojas
+  const codigo = String(p.gtin || p.ean || p.product_gtin || p.upc || p.isbn || "").replace(/\D/g, "");
+  const gtin = codigo.length >= 8 && codigo.length <= 14 && !/^0+$/.test(codigo) ? codigo.padStart(14, "0") : null;
   const dados = {
     id: `awin-${lojaId}-${produtoId}`,
     fonte: "awin",
@@ -201,6 +204,7 @@ function paraOferta(p, feed = {}) {
     frete_gratis: textoFrete !== undefined && textoFrete !== "" && frete === 0 ? 1 : 0,
     internacional: feed.internacional || moeda !== "BRL" ? 1 : 0,
     moeda: moeda === "BRL" ? null : moeda,
+    gtin,
     busca: normalizar(juntarMilhares(`${titulo} ${marca} ${categoria || ""} ${lojaNome}`)),
   };
   // Para moeda estrangeira, a assinatura usa o preço original + a faixa do câmbio
@@ -224,7 +228,7 @@ function sql(v) {
 }
 
 const CAMPOS = ["id", "fonte", "loja", "loja_nome", "titulo", "preco", "preco_antigo", "desconto",
-  "imagem", "categoria", "link", "frete_gratis", "internacional", "moeda", "busca", "assinatura", "atualizado_em"];
+  "imagem", "categoria", "link", "frete_gratis", "internacional", "moeda", "gtin", "busca", "assinatura", "atualizado_em"];
 
 function gravar(o, agora) {
   const valores = CAMPOS.map((c) => sql(c === "atualizado_em" ? agora : o[c])).join(", ");

@@ -164,7 +164,13 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Sugeridas para nós, em ordem: 1) histórico de preço + selo "menor preço em 30 dias" (a tabela `precos` já guarda);
   2) agrupar o mesmo produto de várias lojas pelo código de barras (GTIN/EAN; feeds formato Google trazem `gtin`);
   3) alerta de preço por e-mail (já temos conta + Resend); 4) cupons das lojas (Awin "Minhas Ofertas"); 5) desconto
-  verificado pelo histórico (evita "desconto falso"). Aguardando o Giovanni escolher.
+  verificado pelo histórico (evita "desconto falso"). **Giovanni escolheu 1 e 2; feitos em 15/10/2026:**
+  - Robô guarda `gtin` (código de barras com 14 dígitos; migração + índice `ofertas_gtin`).
+  - `lib/ofertas.js` `comHistorico()`: a busca da Awin junta o resumo do histórico (`historico.menorEm30Dias` só com
+    30+ dias de acompanhamento e preço que variou; `historico.caiu` = % da última queda, se nos últimos 7 dias).
+  - `/api/historico?id=` devolve os pontos; no site, botão "📈 Histórico de preço" abre janela com gráfico em degraus
+    (Hoje/Menor/Maior + dica ao passar o dedo). Selos "📉 Menor em 30 dias" e "📉 Baixou X%".
+  - Site agrupa ofertas com o mesmo `gtin`: um cartão com o menor preço + "+ N lojas com este produto" (lista com preço/link).
 
 ## Próximos passos
 2. Giovanni testar `/previa` no celular e dar opinião sobre o visual.

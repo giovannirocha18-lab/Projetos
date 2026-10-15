@@ -441,6 +441,31 @@ function vendidosTexto(n) {
   return n >= 1000 ? `${(n / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil vendidos` : `${n} vendidos`;
 }
 
+// Selos que vêm do histórico de preço (só ofertas do robô têm histórico)
+function selosHistorico(o) {
+  const h = o.historico;
+  if (!h) return [];
+  return [
+    h.menorEm30Dias && el("span", { class: "selo selo-historico" }, "📉 Menor em 30 dias"),
+    !h.menorEm30Dias && h.caiu >= 3 && el("span", { class: "selo selo-historico" }, `📉 Baixou ${h.caiu}%`),
+  ];
+}
+
+// Mesmo produto (mesmo código de barras) em outras lojas
+function listaOutrasLojas(o) {
+  if (!o.outras?.length) return null;
+  const detalhes = el("details", { class: "outras-lojas" },
+    el("summary", {}, `+ ${o.outras.length} ${o.outras.length === 1 ? "loja" : "lojas"} com este produto`),
+    el("ul", {}, ...o.outras.map((x) => {
+      const loja = infoLoja(x);
+      return el("li", {},
+        el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
+        el("a", { href: x.link, target: "_blank", rel: "sponsored noopener", onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
+          `R$ ${brl(x.preco)}`, el("span", { "aria-hidden": "true" }, " →")));
+    })));
+  return detalhes;
+}
+
 function cartaoOferta(o, { melhor = false } = {}) {
   const loja = infoLoja(o);
   const [inteiro, decimal] = brl(o.preco).split(",");
@@ -458,7 +483,8 @@ function cartaoOferta(o, { melhor = false } = {}) {
         : el("span", { class: "foto-emoji" }, o.emoji || "🛍️"),
       el("div", { class: "selos" },
         melhor && el("span", { class: "selo selo-melhor" }, "🏆 Menor preço"),
-        o.desconto && el("span", { class: "selo selo-desconto" }, `-${o.desconto}%`))),
+        o.desconto && el("span", { class: "selo selo-desconto" }, `-${o.desconto}%`),
+        ...selosHistorico(o))),
     el("button", {
       class: "favoritar", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
       "aria-label": "Guardar no carrinho", onclick: () => alternarFavorito(o),
@@ -478,8 +504,125 @@ function cartaoOferta(o, { melhor = false } = {}) {
         class: "internacional",
         title: `Loja de fora do Brasil.${o.moeda ? ` Preço convertido de ${o.moeda} pela cotação do dia;` : ""} pode haver impostos de importação.`,
       }, o.moeda ? `🌎 Internacional · valor aproximado` : "🌎 Internacional"),
+      o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico de preço"),
+      listaOutrasLojas(o),
       el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
         "Ver oferta", el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
+}
+
+// ---------------------------------------------------------------------
+// Agrupa o mesmo produto (mesmo código de barras) vendido em várias lojas:
+// fica um cartão só, com o menor preço, e a lista das outras lojas.
+// Mantém a ordem da lista (o grupo aparece onde aparecia a primeira oferta).
+// ---------------------------------------------------------------------
+function agrupar(lista) {
+  const grupos = new Map();
+  const saida = [];
+  for (const o of lista) {
+    if (!o.gtin) { saida.push(o); continue; }
+    const grupo = grupos.get(o.gtin);
+    if (grupo) grupo.push(o);
+    else { const novo = [o]; grupos.set(o.gtin, novo); saida.push(novo); }
+  }
+  return saida.map((item) => {
+    if (!Array.isArray(item)) return item;
+    const [principal, ...outras] = [...item].sort((a, b) => a.preco - b.preco);
+    return outras.length ? { ...principal, outras } : principal;
+  });
+}
+
+// ---------------------------------------------------------------------
+// Histórico de preço: janela com gráfico em degraus (o preço só muda nos
+// dias registrados) e passe o dedo/mouse para ver o preço de cada dia.
+// ---------------------------------------------------------------------
+const dataCurta = (dia) => new Date(`${dia}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+
+function graficoHistorico(pontos, precoAtual) {
+  const hoje = new Date().toLocaleDateString("sv-SE");
+  const serie = [...pontos];
+  if (!serie.length || serie.at(-1).dia !== hoje) serie.push({ dia: hoje, preco: precoAtual ?? serie.at(-1)?.preco });
+  const L = 320, A = 150, m = { esq: 8, dir: 8, topo: 14, base: 22 };
+  // Meio dia depois de hoje, para o preço atual aparecer como um trecho e não só um ponto
+  const t0 = Date.parse(serie[0].dia), t1 = Math.max(Date.parse(serie.at(-1).dia), t0 + 864e5) + 432e5;
+  const precos = serie.map((p) => p.preco);
+  let min = Math.min(...precos), max = Math.max(...precos);
+  if (max - min < 1) { min -= 5; max += 5; }
+  const folga = (max - min) * 0.15;
+  const x = (dia) => m.esq + ((Date.parse(dia) - t0) / (t1 - t0)) * (L - m.esq - m.dir);
+  const y = (v) => m.topo + (1 - (v - (min - folga)) / (max - min + 2 * folga)) * (A - m.topo - m.base);
+  // Linha em degraus: o preço segue igual até o próximo registro
+  let d = `M${x(serie[0].dia)},${y(serie[0].preco)}`;
+  for (let i = 1; i < serie.length; i++) d += ` H${x(serie[i].dia)} V${y(serie[i].preco)}`;
+  d += ` H${L - m.dir}`;
+  const area = `${d} V${A - m.base} H${x(serie[0].dia)} Z`;
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = (tag, attrs) => { const n = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); return n; };
+
+  const raiz = svg("svg", { viewBox: `0 0 ${L} ${A}`, class: "grafico", role: "img",
+    "aria-label": `Preço de ${dataCurta(serie[0].dia)} até hoje: entre R$ ${brl(Math.min(...precos))} e R$ ${brl(Math.max(...precos))}` });
+  raiz.append(
+    svg("line", { x1: m.esq, x2: L - m.dir, y1: A - m.base, y2: A - m.base, class: "grafico-base" }),
+    svg("path", { d: area, class: "grafico-area" }),
+    svg("path", { d, class: "grafico-linha" }));
+  for (const p of serie.slice(0, -1)) raiz.append(svg("circle", { cx: x(p.dia), cy: y(p.preco), r: 4, class: "grafico-ponto" }));
+  const legenda = (texto, ancora, xx) => { const t = svg("text", { x: xx, y: A - 6, "text-anchor": ancora, class: "grafico-eixo" }); t.textContent = texto; return t; };
+  raiz.append(legenda(dataCurta(serie[0].dia), "start", m.esq), legenda("hoje", "end", L - m.dir));
+
+  // Dica ao passar o mouse/dedo: preço em vigor naquele dia
+  const guia = svg("line", { y1: m.topo, y2: A - m.base, class: "grafico-guia", visibility: "hidden" });
+  const marca = svg("circle", { r: 5, class: "grafico-marca", visibility: "hidden" });
+  raiz.append(guia, marca);
+  const dica = el("div", { class: "grafico-dica", hidden: true });
+  const caixa = el("div", { class: "grafico-caixa" }, raiz, dica);
+  const mover = (e) => {
+    const r = raiz.getBoundingClientRect();
+    const t = t0 + ((e.clientX - r.left) / r.width * L - m.esq) / (L - m.esq - m.dir) * (t1 - t0);
+    const vigente = [...serie].reverse().find((p) => Date.parse(p.dia) <= t) || serie[0];
+    const xx = Math.min(Math.max((e.clientX - r.left) / r.width * L, m.esq), L - m.dir);
+    for (const n of [guia, marca]) n.setAttribute("visibility", "visible");
+    guia.setAttribute("x1", xx); guia.setAttribute("x2", xx);
+    marca.setAttribute("cx", xx); marca.setAttribute("cy", y(vigente.preco));
+    const diaVisto = new Date(Math.min(Math.max(t, t0), t1)).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+    dica.hidden = false;
+    dica.replaceChildren(el("strong", {}, `R$ ${brl(vigente.preco)}`), el("span", {}, diaVisto));
+    dica.style.left = `${(xx / L) * 100}%`;
+  };
+  raiz.addEventListener("pointermove", mover);
+  raiz.addEventListener("pointerdown", mover);
+  raiz.addEventListener("pointerleave", () => { for (const n of [guia, marca]) n.setAttribute("visibility", "hidden"); dica.hidden = true; });
+  return caixa;
+}
+
+async function abrirHistorico(o) {
+  const janela = $("#janela-historico");
+  const conteudo = $("#historico-conteudo");
+  const loja = infoLoja(o);
+  conteudo.replaceChildren(el("h2", { id: "historico-titulo" }, "Histórico de preço"), el("p", {}, o.titulo), el("p", {}, "Carregando…"));
+  janela.showModal();
+  let dados;
+  try {
+    const resp = await fetch(`/api/historico?id=${encodeURIComponent(o.id)}`);
+    dados = await resp.json();
+  } catch {
+    dados = { pontos: [] };
+  }
+  const pontos = dados.pontos || [];
+  const precos = [...pontos.map((p) => p.preco), o.preco];
+  const diasAcompanhando = pontos.length ? Math.round((Date.now() - Date.parse(`${pontos[0].dia}T00:00:00`)) / 864e5) : 0;
+  conteudo.replaceChildren(
+    el("h2", { id: "historico-titulo" }, "Histórico de preço"),
+    el("p", {}, `${o.titulo} · ${loja.nome}`),
+    el("div", { class: "historico-numeros" },
+      el("div", {}, el("small", {}, "Hoje"), el("strong", {}, `R$ ${brl(o.preco)}`)),
+      el("div", {}, el("small", {}, "Menor"), el("strong", {}, `R$ ${brl(Math.min(...precos))}`)),
+      el("div", {}, el("small", {}, "Maior"), el("strong", {}, `R$ ${brl(Math.max(...precos))}`))),
+    graficoHistorico(pontos, o.preco),
+    el("p", { class: "historico-nota" }, diasAcompanhando < 7
+      ? "Começamos a acompanhar este preço há pouco tempo. O gráfico fica mais completo a cada dia."
+      : `Preço acompanhado há ${diasAcompanhando} dias.${o.moeda ? ` Valores convertidos de ${o.moeda} para reais.` : ""}`),
+    el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener",
+      style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}` },
+      "Ver oferta", el("span", { class: "flecha", "aria-hidden": "true" }, "→")));
 }
 
 function esqueletos(qtd) {
@@ -568,7 +711,7 @@ function desenharResultados() {
   const idMelhor = lista.length > 1 ? lista.reduce((a, b) => (b.preco < a.preco ? b : a)).id : null;
   desenharResumo(lista);
   $("#total").textContent = `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}`;
-  $("#grade").replaceChildren(...lista.map((o, i) => {
+  $("#grade").replaceChildren(...agrupar(lista).map((o, i) => {
     const c = cartaoOferta(o, { melhor: o.id === idMelhor });
     c.style.animationDelay = `${Math.min(i, 12) * 30}ms`;
     return c;
@@ -751,6 +894,11 @@ $("#fechar-favoritos").addEventListener("click", () => abrirPainel(false));
 $("#abrir-conta").dataset.icone = $("#abrir-conta").innerHTML;
 $("#abrir-conta").addEventListener("click", abrirConta);
 $("#fechar-conta").addEventListener("click", () => $("#janela-conta").close());
+$("#fechar-historico").addEventListener("click", () => $("#janela-historico").close());
+$("#janela-historico").addEventListener("click", (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
+});
 // Clique fora da janela fecha
 $("#janela-conta").addEventListener("click", (e) => {
   const r = e.currentTarget.getBoundingClientRect();

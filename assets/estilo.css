@@ -266,7 +266,7 @@ body.modo-inicio .busca-topo { visibility: hidden; }
   background: var(--fundo-cat); transition: transform .3s;
 }
 
-.selos { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.selos { position: absolute; top: 10px; left: 10px; max-width: calc(100% - 64px); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .selo {
   font-size: .74rem; font-weight: 800; padding: 4px 10px; border-radius: 999px;
   color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
@@ -532,3 +532,39 @@ body.modo-inicio .busca-topo { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ============ Histórico de preço e outras lojas ============ */
+.selo-historico { background: #1d4ed8; }
+.ver-historico {
+  align-self: flex-start; background: none; border: 0; padding: 2px 0; cursor: pointer;
+  font: inherit; font-size: .8rem; font-weight: 700; color: var(--roxo);
+}
+.ver-historico:hover { text-decoration: underline; }
+.outras-lojas { font-size: .82rem; border: 1px solid var(--borda); border-radius: 10px; padding: 6px 10px; }
+.outras-lojas summary { cursor: pointer; font-weight: 700; color: var(--roxo); }
+.outras-lojas ul { list-style: none; margin: 8px 0 2px; padding: 0; display: grid; gap: 6px; }
+.outras-lojas li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 8px; }
+.outras-lojas a { font-weight: 800; color: var(--texto); text-decoration: none; white-space: nowrap; }
+.outras-lojas a:hover { color: var(--roxo); }
+.janela-historico { width: min(440px, calc(100vw - 32px)); }
+.janela-historico .botao-oferta { margin-top: 8px; }
+.historico-numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.historico-numeros div { background: var(--bg); border-radius: 10px; padding: 8px; min-width: 0; }
+.historico-numeros small { display: block; color: var(--suave); font-size: .75rem; }
+.historico-numeros strong { font-size: .9rem; white-space: nowrap; }
+.historico-nota { font-size: .8rem !important; margin: 10px 0 0 !important; }
+.grafico-caixa { position: relative; }
+.grafico { width: 100%; height: auto; display: block; touch-action: pan-y; }
+.grafico-base { stroke: var(--borda); stroke-width: 1; }
+.grafico-area { fill: var(--roxo); opacity: .08; }
+.grafico-linha { fill: none; stroke: var(--roxo); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.grafico-ponto { fill: var(--roxo); stroke: var(--card); stroke-width: 2; }
+.grafico-marca { fill: var(--roxo); stroke: var(--card); stroke-width: 2; }
+.grafico-guia { stroke: var(--suave); stroke-width: 1; stroke-dasharray: 3 3; }
+.grafico-eixo { fill: var(--suave); font-size: 10px; }
+.grafico-dica {
+  position: absolute; top: -6px; transform: translateX(-50%); pointer-events: none;
+  background: var(--texto); color: var(--card); border-radius: 8px; padding: 4px 8px;
+  font-size: .75rem; display: flex; gap: 6px; white-space: nowrap;
+}
+.grafico-dica[hidden] { display: none; }
