@@ -199,6 +199,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Depois (pedido dele): faixa da busca ainda menor (título pequeno, busca 48px, chips menores; no celular sem título) e
   **presa logo abaixo do cabeçalho** (`position: sticky`, altura do cabeçalho medida no JS em `--altura-topo`).
   Manchas de luz do hero removidas (cortavam a lista de sugestões).
+- **Cabeçalho no estilo Shopee (15/10/2026, pedido do Giovanni)**: o hero foi removido. Cabeçalho único, **fixo no topo**,
+  com o gradiente do site: faixa fina (slogan à esquerda, "Política de Privacidade" à direita), logo, busca larga branca
+  com botão e os termos "Em alta" logo abaixo (lista `EM_ALTA` no `app.js`), conta e carrinho à direita. No celular: sem
+  faixa fina e sem termos em alta; busca em linha própria. A página inicial começa direto em "⚡ Ofertas do dia".
 
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.

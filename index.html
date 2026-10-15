@@ -20,19 +20,28 @@
   </div>
 
   <header class="topo" id="topo">
+    <div class="topo-faixa">
+      <div class="container topo-faixa-linha">
+        <span>🔥 Compare preços. Pague menos.</span>
+        <nav class="topo-links" aria-label="Links"><a href="/privacidade">Política de Privacidade</a></nav>
+      </div>
+    </div>
     <div class="container topo-linha">
       <a href="?" class="logo" data-inicio>
         <img class="logo-icone" src="/marca/vaiprocarrinho-icone.svg" alt="" width="40" height="40">
         <span class="logo-texto">Vai pro <strong>Carrinho</strong></span>
       </a>
 
-      <form class="busca busca-topo" data-busca role="search">
-        <input type="search" name="q" placeholder="O que você procura hoje?" aria-label="Buscar produto" autocomplete="off">
-        <button type="submit" aria-label="Buscar">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-        </button>
-        <ul class="sugestoes" role="listbox" hidden></ul>
-      </form>
+      <div class="topo-busca">
+        <form class="busca busca-topo" data-busca role="search">
+          <input type="search" name="q" placeholder="Busque e compare preços: air fryer, fone bluetooth, tênis…" aria-label="Buscar produto" autocomplete="off">
+          <button type="submit" aria-label="Comparar preços">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+          </button>
+          <ul class="sugestoes" role="listbox" hidden></ul>
+        </form>
+        <div class="em-alta" aria-label="Buscas em alta"><div class="chips" id="em-alta"></div></div>
+      </div>
 
       <div class="topo-acoes">
         <button class="botao-topo botao-conta" id="abrir-conta" type="button" aria-label="Entrar" hidden>
@@ -48,26 +57,6 @@
 
   <!-- ============ PÁGINA INICIAL ============ -->
   <main id="inicio">
-    <section class="hero">
-      <div class="container hero-conteudo">
-        <h1>Compare preços. <span class="destaque">Pague menos.</span></h1>
-
-        <form class="busca busca-grande" data-busca role="search">
-          <input type="search" name="q" placeholder="O que você procura? Ex.: air fryer, fone bluetooth…" aria-label="Buscar produto" autocomplete="off">
-          <button type="submit">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-            <span>Comparar</span>
-          </button>
-          <ul class="sugestoes" role="listbox" hidden></ul>
-        </form>
-
-        <div class="em-alta">
-          <span>Em alta:</span>
-          <div class="chips" id="em-alta"></div>
-        </div>
-      </div>
-    </section>
-
     <section class="container secao secao-ofertas">
       <div class="secao-titulo">
         <h2>⚡ Ofertas do dia</h2>

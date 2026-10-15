@@ -27,7 +27,7 @@ const CATEGORIAS = [
 ];
 const FUNDO_CATEGORIA = Object.fromEntries(CATEGORIAS.map((c) => [c.nome, c.fundo]));
 
-const EM_ALTA = ["Air fryer", "Fone bluetooth", "Smartwatch", "Tênis de corrida", "Power bank", "Kit maquiagem"];
+const EM_ALTA = ["Air fryer", "Fone bluetooth", "Smartwatch", "Tênis de corrida", "Power bank", "Garrafa térmica", "Robô aspirador", "Kit maquiagem"];
 
 const SUGESTOES = [
   "air fryer", "fone bluetooth", "fone de ouvido", "smartwatch", "relógio inteligente", "tênis de corrida",
@@ -902,9 +902,6 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") { abrirPai
 
 window.addEventListener("popstate", mostrar);
 
-// A faixa de busca da página inicial fica presa logo abaixo do cabeçalho
-const medirTopo = () => document.documentElement.style.setProperty("--altura-topo", `${$("#topo").offsetHeight}px`);
-new ResizeObserver(medirTopo).observe($("#topo"));
 $("#ano").textContent = new Date().getFullYear();
 
 montarInicio();
