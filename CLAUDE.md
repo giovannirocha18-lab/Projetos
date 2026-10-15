@@ -189,7 +189,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   16/10/2026: mais uma loja recusou com "link inválido" (URL informada: https://vaiprocarrinho.com.br/). Claude não
   consegue abrir o domínio da sua rede. Pedido ao Giovanni: testar no celular com 4G (com e sem www), testar em
   httpstatus.io, conferir Cloudflare > Security > Bots ("Bot Fight Mode" pode barrar o robô da Awin) e a URL cadastrada
-  no perfil da Awin; mandar print do motivo da recusa.
+  no perfil da Awin; mandar print do motivo da recusa. Conferido (print): Bot fight mode e AI Labyrinth **desligados** (não é isso).
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
