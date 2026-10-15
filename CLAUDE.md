@@ -143,6 +143,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   **15/10/2026: 1ª aprovação = EINSTAR** (scanner 3D, loja dos EUA, preço em dólar). Execução #4 confirmou: status de loja
   aprovada na lista = "active" (5 feeds da EINSTAR), mas o robô ignora de propósito (região US / moeda USD).
   Nenhuma loja BR aprovada ainda.
+  **15/10/2026: decisão do Giovanni — aceitar lojas de fora do Brasil** (ex.: Shein envia de fora). Robô agora aceita
+  todas as regiões; converte USD/EUR/GBP… para BRL pela AwesomeAPI (regrava só se o câmbio mudar >3%); escolhe 1 feed
+  por loja estrangeira (pt > EUA/inglês > maior); colunas novas `internacional` e `moeda` (migração automática).
+  Site mostra selo "🌎 Internacional · valor aproximado" (dica: pode haver impostos de importação).
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
   roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).
 - **Logo** criada (14/10/2026): ícone (quadrado arredondado com gradiente do site + carrinho branco/amarelo) + texto
@@ -159,6 +163,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
    e criar `contato@vaiprocarrinho.com.br` (Cloudflare Email Routing; exige trocar o MX nulo).
 
 ## Decisões do Giovanni
+- **Aceitar lojas internacionais** (15/10/2026), com preço convertido para reais e selo "Internacional".
 - **Mantém o nome "Vai Pro Carrinho"** (14/10/2026), ciente dos perfis com o mesmo nome e dos riscos de marca.
   Nomes alternativos pesquisados, caso mude de ideia: Baratim, Cotaí, Precinzo, Cotaly.
 - **Sem aviso de link de afiliado/comissão visível no site** (pedido dele em 13/10/2026). Os links mantêm

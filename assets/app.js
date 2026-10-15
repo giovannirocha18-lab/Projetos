@@ -474,6 +474,10 @@ function cartaoOferta(o, { melhor = false } = {}) {
         o.precoAntigo && el("span", { class: "preco-antigo" }, `R$ ${brl(o.precoAntigo)}`),
         el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", {}, `,${decimal}`))),
       o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
+      o.internacional && el("span", {
+        class: "internacional",
+        title: `Loja de fora do Brasil.${o.moeda ? ` Preço convertido de ${o.moeda} pela cotação do dia;` : ""} pode haver impostos de importação.`,
+      }, o.moeda ? `🌎 Internacional · valor aproximado` : "🌎 Internacional"),
       el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
         "Ver oferta", el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
 }

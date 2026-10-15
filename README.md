@@ -47,6 +47,11 @@ produto novo entra, preço que mudou é atualizado (e guardado na tabela `precos
 que saiu da loja é removido. Grava no máximo 20 mil produtos por dia (limite do plano grátis do D1);
 o resto fica para o dia seguinte.
 
+Lojas de fora do Brasil também entram, marcadas como **"🌎 Internacional"** no site. Preços em outra moeda
+são convertidos para reais pela cotação do dia (AwesomeAPI) e regravados quando o câmbio muda mais de ~3%.
+Se a loja tem feed em português, usa esse; senão, um só feed (EUA/inglês primeiro) para não repetir produto.
+Para aceitar só algumas regiões: variável `ROBO_REGIOES` (ex.: `BR`).
+
 Precisa destes segredos em GitHub > Settings > Secrets and variables > Actions:
 | Segredo | De onde vem |
 |---|---|

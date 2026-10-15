@@ -20,10 +20,15 @@ import { createHash } from "node:crypto";
 import { gunzipSync } from "node:zlib";
 import { readFileSync, appendFileSync } from "node:fs";
 import { normalizar } from "../lib/texto.js";
-import { TABELAS_OFERTAS, juntarMilhares } from "../lib/ofertas.js";
+import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, juntarMilhares } from "../lib/ofertas.js";
 
 const LISTA_FEEDS = "https://productdata.awin.com/datafeed/list/apikey/";
-const REGIOES = (process.env.ROBO_REGIOES || "BR").split(",");
+// Regiões aceitas (ex.: "BR" ou "BR,US"). Vazio = todas. Lojas de fora entram marcadas como internacionais.
+const REGIOES = (process.env.ROBO_REGIOES || "").split(",").map((r) => r.trim().toUpperCase()).filter(Boolean);
+// Cotação usada para converter preços em outras moedas (preenchida em main)
+let COTACOES = { BRL: 1 };
+// O preço convertido só é regravado quando o câmbio muda mais de ~3%, para não gastar gravações todo dia
+const faixaCambio = (taxa) => Math.round(Math.log(taxa) / Math.log(1.03));
 // Limite de produtos novos/alterados/removidos por dia. O plano grátis do D1
 // aceita 100 mil linhas gravadas por dia, e cada produto grava mais de uma
 // (tabela + índice de busca + histórico). O que passar fica para o dia seguinte.
@@ -153,18 +158,21 @@ function paraOferta(p, feed = {}) {
   const lojaId = p.merchant_id || feed.lojaId;
   const produtoId = p.aw_product_id || p.id || p.item_id;
   const titulo = (p.product_name || p.title || "").replace(/\s+/g, " ").slice(0, 200);
-  const promocao = numero(p.sale_price);
-  const cheio = numero(p.search_price) || numero(p.store_price) || numero(p.price);
+  const moeda = (p.currency || (String(p.price || p.search_price || "").match(/\b[A-Z]{3}\b/) || [])[0]
+    || feed.moeda || "BRL").toUpperCase();
+  const taxa = COTACOES[moeda];
+  if (!taxa) return null; // moeda sem cotação: fica de fora
+  const converter = (v) => (v > 0 ? Math.round(v * taxa * 100) / 100 : v);
+  const promocao = converter(numero(p.sale_price));
+  const cheio = converter(numero(p.search_price) || numero(p.store_price) || numero(p.price));
   const preco = promocao > 0 ? promocao : cheio;
   const link = lojaId && linkAfiliado(p, lojaId);
   if (!lojaId || !produtoId || !link || !titulo || !(preco > 0)) return null;
-  const moeda = p.currency || (String(p.price || p.search_price || "").match(/\b[A-Z]{3}\b/) || [])[0];
-  if (moeda && moeda.toUpperCase() !== "BRL") return null;
   if (/^(0|no|false|n)$/i.test(p.in_stock || "") || /^(0|no|false|n)$/i.test(p.is_for_sale || "")) return null;
   if (/out.of.stock|esgotado|indispon/i.test(p.availability || p.stock_status || "")) return null;
 
-  const antigo = Math.max(numero(p.rrp_price) || 0, numero(p.product_price_old) || 0, numero(p.base_price) || 0,
-    promocao > 0 ? cheio || 0 : 0);
+  const antigo = Math.max(converter(numero(p.rrp_price)) || 0, converter(numero(p.product_price_old)) || 0,
+    converter(numero(p.base_price)) || 0, promocao > 0 ? cheio || 0 : 0);
   const precoAntigo = antigo > preco * 1.01 ? antigo : null;
   const lojaNome = nomeDaLoja(p.merchant_name || feed.lojaNome) || `Loja ${lojaId}`;
   const tipo = (p.product_type || "").split(">").pop().trim();
@@ -187,9 +195,14 @@ function paraOferta(p, feed = {}) {
     categoria,
     link,
     frete_gratis: textoFrete !== undefined && textoFrete !== "" && frete === 0 ? 1 : 0,
+    internacional: feed.internacional || moeda !== "BRL" ? 1 : 0,
+    moeda: moeda === "BRL" ? null : moeda,
     busca: normalizar(juntarMilhares(`${titulo} ${marca} ${categoria || ""} ${lojaNome}`)),
   };
-  return { ...dados, assinatura: assinar(dados) };
+  // Para moeda estrangeira, a assinatura usa o preço original + a faixa do câmbio
+  const base = moeda === "BRL" ? dados : { ...dados, preco: numero(p.sale_price) || numero(p.search_price)
+    || numero(p.store_price) || numero(p.price), preco_antigo: null, desconto: null, cambio: faixaCambio(taxa) };
+  return { ...dados, assinatura: assinar(base) };
 }
 
 const lojaDoId = (id) => id.split("-")[1];
@@ -207,7 +220,7 @@ function sql(v) {
 }
 
 const CAMPOS = ["id", "fonte", "loja", "loja_nome", "titulo", "preco", "preco_antigo", "desconto",
-  "imagem", "categoria", "link", "frete_gratis", "busca", "assinatura", "atualizado_em"];
+  "imagem", "categoria", "link", "frete_gratis", "internacional", "moeda", "busca", "assinatura", "atualizado_em"];
 
 function gravar(o, agora) {
   const valores = CAMPOS.map((c) => sql(c === "atualizado_em" ? agora : o[c])).join(", ");
@@ -271,19 +284,61 @@ async function obterFeeds() {
     situacoes[s] = (situacoes[s] || 0) + 1;
   }
   console.log(`Situação das lojas na lista: ${JSON.stringify(situacoes)}`);
-  const ativos = lista.filter((f) => {
-    const situacao = pegar(f, "membershipstatus", "status", "joined");
-    const regiao = pegar(f, "primaryregion", "region", "advertiserregion").toUpperCase();
-    return /^(active|joined|yes|true|1)$/i.test(situacao) && pegar(f, "url", "downloadurl", "feedurl")
-      && (!regiao || REGIOES.includes(regiao));
-  });
-  console.log(`Awin: ${lista.length} feeds visíveis, ${ativos.length} de lojas aprovadas (${REGIOES.join(", ")})`);
-  return ativos.map((f) => ({
-    nome: `${pegar(f, "advertisername", "merchantname") || "Loja"} (feed ${pegar(f, "feedid", "id")})`,
+  const regiao = (f) => pegar(f, "primaryregion", "region", "advertiserregion").toUpperCase();
+  const idioma = (f) => pegar(f, "language", "idioma").toLowerCase();
+  const aprovados = lista.filter((f) =>
+    /^(active|joined|yes|true|1)$/i.test(pegar(f, "membershipstatus", "status", "joined"))
+    && pegar(f, "url", "downloadurl", "feedurl")
+    && (!REGIOES.length || !regiao(f) || REGIOES.includes(regiao(f))));
+
+  // Loja de fora costuma ter um feed por país/idioma (o mesmo produto em dólar, euro, libra…).
+  // Para não repetir produto: se a loja tem feed em português, usa os em português;
+  // senão, usa só o melhor (Estados Unidos/inglês primeiro, depois o com mais produtos).
+  const porLoja = new Map();
+  for (const f of aprovados) {
+    const id = pegar(f, "advertiserid", "merchantid");
+    porLoja.set(id, [...(porLoja.get(id) || []), f]);
+  }
+  const escolhidos = [];
+  for (const feedsDaLoja of porLoja.values()) {
+    const emPortugues = feedsDaLoja.filter((f) => idioma(f).startsWith("pt"));
+    if (emPortugues.length) { escolhidos.push(...emPortugues); continue; }
+    const nota = (f) => (regiao(f) === "US" ? 2 : 0) + (idioma(f).startsWith("en") ? 1 : 0);
+    const qtd = (f) => Number(pegar(f, "noofproducts", "products")) || 0;
+    escolhidos.push(feedsDaLoja.sort((a, b) => nota(b) - nota(a) || qtd(b) - qtd(a))[0]);
+  }
+  console.log(`Awin: ${lista.length} feeds visíveis, ${aprovados.length} de lojas aprovadas, ${escolhidos.length} usados` +
+    `${REGIOES.length ? ` (regiões ${REGIOES.join(", ")})` : ""}`);
+  return escolhidos.map((f) => ({
+    nome: `${pegar(f, "advertisername", "merchantname") || "Loja"} (feed ${pegar(f, "feedid", "id")}, ` +
+      `${regiao(f) || "?"}/${idioma(f) || "?"})`,
     lojaId: pegar(f, "advertiserid", "merchantid"),
     lojaNome: pegar(f, "advertisername", "merchantname"),
+    internacional: regiao(f) && regiao(f) !== "BR" ? 1 : 0,
     ler: () => baixarTexto(pegar(f, "url", "downloadurl", "feedurl"), chave),
   }));
+}
+
+// Cotação do dia em reais (ex.: { USD: 5.41, EUR: 5.93 }), da AwesomeAPI (dados do mercado).
+// Para testes sem internet: ROBO_COTACOES='{"USD":5.4}'.
+async function buscarCotacoes() {
+  if (process.env.ROBO_COTACOES) return JSON.parse(process.env.ROBO_COTACOES);
+  const moedas = ["USD", "EUR", "GBP", "CAD", "AUD", "CHF", "CNY", "JPY", "MXN", "ARS", "CLP"];
+  try {
+    const resp = await fetch(`https://economia.awesomeapi.com.br/json/last/${moedas.map((m) => `${m}-BRL`).join(",")}`);
+    const json = await resp.json();
+    const cotacoes = {};
+    for (const m of moedas) {
+      const valor = Number(json[`${m}BRL`]?.bid);
+      if (valor > 0) cotacoes[m] = valor;
+    }
+    console.log(`Cotações: ${Object.entries(cotacoes).map(([m, v]) => `${m} ${v}`).join(", ")}`);
+    return cotacoes;
+  } catch (erro) {
+    // Sem cotação, produtos em moeda estrangeira ficam de fora hoje (e nada deles é apagado)
+    console.log(`⚠️ Não consegui a cotação do dia (${erro.message}); lojas em moeda estrangeira ficam para amanhã`);
+    return {};
+  }
 }
 
 // A lista pode vir em CSV ou em JSON
@@ -301,6 +356,8 @@ async function main() {
   const inicio = Date.now();
   const banco = await abrirBanco();
   for (const comando of TABELAS_OFERTAS) await banco.executar(comando);
+  for (const comando of MIGRACOES_OFERTAS) await banco.executar(comando).catch(() => {}); // coluna já existe
+  COTACOES = { ...COTACOES, ...(await buscarCotacoes()) };
 
   // 1. Baixa os feeds
   const feeds = await obterFeeds();
