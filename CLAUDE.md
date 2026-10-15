@@ -186,6 +186,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   "não trabalha com afiliado pessoa física"** (exigem CNPJ; conta Awin dele é PF). Sugerido: comparador na página principal
   e, no futuro, avaliar abrir MEI (atualizar a conta Awin para PJ) para lojas que exigem CNPJ.
   ✅ Comparador colocado na página principal (15/10/2026). Próximo: Giovanni pedir de novo à Leveros em alguns dias.
+  16/10/2026: mais uma loja recusou com "link inválido" (URL informada: https://vaiprocarrinho.com.br/). Claude não
+  consegue abrir o domínio da sua rede. Pedido ao Giovanni: testar no celular com 4G (com e sem www), testar em
+  httpstatus.io, conferir Cloudflare > Security > Bots ("Bot Fight Mode" pode barrar o robô da Awin) e a URL cadastrada
+  no perfil da Awin; mandar print do motivo da recusa.
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
