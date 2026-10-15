@@ -181,6 +181,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
+- **Layout (15/10/2026, pedido do Giovanni)**: no computador os filtros viraram uma barra em cima dos resultados (lojas
+  como "pílulas"), página mais larga (container 1600px) e até 6 cartões por linha. No celular continua a gaveta de
+  filtros. Logo real (`marca/vaiprocarrinho-icone.svg`) no topo e como ícone da aba em todas as páginas.
+
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
    Quando entrar a 1ª loja BR, conferir o log do robô (Actions > Robô de preços) e os produtos no `/previa`.

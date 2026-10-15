@@ -59,7 +59,7 @@ button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 a { color: inherit; }
 
-.container { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+.container { max-width: 1600px; margin: 0 auto; padding: 0 16px; }
 
 /* ---------- avisos ---------- */
 .aviso-teste {
@@ -79,7 +79,7 @@ a { color: inherit; }
 .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex: none; }
 .logo-icone {
   width: 40px; height: 40px; display: grid; place-items: center;
-  border-radius: 12px; background: var(--gradiente); font-size: 1.25rem;
+  border-radius: 12px;
   box-shadow: 0 6px 16px rgba(147, 51, 234, .35);
   transition: transform .2s;
 }
@@ -400,7 +400,7 @@ body.modo-inicio .busca-topo { visibility: hidden; }
   padding: 9px 14px; border-radius: 10px; border: 1px solid var(--borda); background: var(--card); font-weight: 700;
 }
 
-.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
 
 .vazio { text-align: center; padding: 60px 16px; color: var(--suave); }
 .vazio span { font-size: 3rem; }
@@ -500,7 +500,29 @@ body.modo-inicio .busca-topo { visibility: hidden; }
   .botao-primario.so-celular { display: block; }
 }
 
-@media (min-width: 861px) { .filtros .fechar { display: none; } }
+/* ---------- computador: filtros numa barra em cima dos resultados ---------- */
+@media (min-width: 861px) {
+  .resultados-layout { grid-template-columns: 1fr; gap: 16px; }
+  .filtros {
+    position: static; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px;
+    padding: 12px 18px;
+  }
+  .filtros-cabecalho { display: none; }
+  .filtros fieldset { margin: 0; display: flex; align-items: center; gap: 10px; }
+  .filtros legend { float: left; margin: 0 2px 0 0; font-size: .75rem; }
+  #filtro-lojas { display: flex; flex-wrap: wrap; gap: 6px; }
+  .filtros .opcao {
+    margin: 0; padding: 6px 12px; gap: 8px; border: 1px solid var(--borda); border-radius: 999px;
+    font-size: .88rem; white-space: nowrap;
+  }
+  .filtros .opcao:has(input:checked) { border-color: var(--roxo); background: var(--roxo-claro); }
+  .filtros .opcao input { width: 16px; height: 16px; }
+  .filtros .opcao .qtd { margin-left: 2px; }
+  .faixa-preco { display: flex; gap: 8px; }
+  .faixa-preco label { display: flex; align-items: center; gap: 6px; }
+  .faixa-preco input { width: 96px; margin: 0; padding: 7px 10px; }
+  #limpar-filtros { width: auto; margin: 0 0 0 auto; padding: 8px 16px; }
+}
 
 @media (max-width: 640px) {
   .topo-linha { height: auto; flex-wrap: wrap; padding-top: 10px; padding-bottom: 10px; gap: 10px; }
