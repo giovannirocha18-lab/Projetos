@@ -212,7 +212,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **"Em alta" dinâmico (15/10/2026)**: `lib/buscas.js` conta cada busca que trouxe ofertas reais (tabela `buscas` no D1:
   termo sem acento, dia, total, texto; só isso, nada sobre quem buscou; apaga após 30 dias). `/api/em-alta` devolve os
   8 mais buscados dos últimos 7 dias (mínimo 3 buscas; termos impróprios bloqueados). O site mostra esses primeiro e
-  completa com a lista fixa `EM_ALTA` do `app.js` enquanto há pouca visita.
+  completa com os **mais vendidos da Shopee** no momento (`nomesMaisVendidosShopee` + `termosDosProdutos` transforma o
+  nome do produto em termo curto: "Fone De Ouvido Bluetooth TWS…" → "fone de ouvido"; pula marcas em CAIXA ALTA e
+  palavras genéricas; um termo por tipo de produto). Resposta guardada 1h. A lista fixa `EM_ALTA` só aparece se a
+  Shopee falhar.
 
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
