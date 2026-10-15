@@ -509,9 +509,12 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       "aria-label": "Guardar no carrinho", onclick: () => alternarFavorito(o),
     }, ICONE_CARRINHO()),
     el("div", { class: "oferta-corpo" },
-      el("span", { class: "loja-tag" }, el("span", { class: "loja-ponto" }), loja.nome),
-      el("h3", { class: "oferta-titulo", title: o.titulo },
-        el("button", { class: "titulo-botao", type: "button", onclick: () => abrirDetalhes(o) }, o.titulo)),
+      el("div", { class: "loja-linha" },
+        el("span", { class: "loja-tag" }, el("span", { class: "loja-ponto" }), loja.nome),
+        o.lojaOficial && el("span", { class: "selo-oficial", title: o.vendedor ? `Vendido por ${o.vendedor}` : null }, "✔ Oficial")),
+      el("h3", { class: "oferta-titulo", title: o.titulo }, temDetalhes(o)
+        ? el("button", { class: "titulo-botao", type: "button", onclick: () => abrirDetalhes(o) }, o.titulo)
+        : o.titulo),
       (o.avaliacao || o.vendidos) && el("div", { class: "nota" },
         o.avaliacao && el("span", { class: "estrelas", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
         o.avaliacao && el("span", {}, String(o.avaliacao).replace(".", ",")),
@@ -527,7 +530,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         title: `Loja de fora do Brasil.${o.moeda ? ` Preço convertido de ${o.moeda} pela cotação do dia;` : ""} pode haver impostos de importação.`,
       }, o.moeda ? `🌎 Internacional · valor aproximado` : "🌎 Internacional"),
       el("div", { class: "links-oferta" },
-        el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
+        temDetalhes(o) && el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
         o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico")),
       listaOutrasLojas(o),
       el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
@@ -621,6 +624,11 @@ function graficoHistorico(pontos, precoAtual) {
 // Janela "Ver detalhes": tudo o que a loja informa oficialmente sobre o
 // produto (sem ler a página da loja, o que as regras de afiliado proíbem)
 // ---------------------------------------------------------------------
+// Só vale abrir a janela quando ela mostra algo que o cartão não mostra.
+// A API de afiliados da Shopee manda 1 foto e nenhuma descrição, então
+// a janela aparece hoje só nas lojas da Awin que mandam fotos/descrição.
+const temDetalhes = (o) => Boolean(o.descricao || o.imagens?.length > 1);
+
 function abrirDetalhes(o) {
   const loja = infoLoja(o);
   const fotos = o.imagens?.length ? o.imagens : [o.imagem].filter(Boolean);

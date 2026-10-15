@@ -590,3 +590,5 @@ a { color: inherit; }
 }
 .detalhes-info .precos { margin-top: 4px; }
 .janela-detalhes .janela-fechar { z-index: 2; background: var(--card); box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
+.loja-linha { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.loja-linha .selo-oficial { font-size: .68rem; padding: 1px 6px; }

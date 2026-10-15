@@ -222,6 +222,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   selo "✔ Loja oficial" (Shopee, campo `shopType`; se a API recusar o campo, a busca refaz sem ele), descrição (só Awin:
   robô guarda `descricao` até 600 letras e `imagens` até 5; a API da Shopee não tem descrição), outras lojas, histórico e
   botão Comprar. Nada é lido das páginas das lojas. Colunas novas só existem no D1 depois que o robô roda (migração).
+  Ajuste (pedido dele): na Shopee a janela repetia o cartão (API de afiliados manda só 1 foto e sem descrição), então
+  "Ver detalhes" só aparece quando há descrição ou 2+ fotos (hoje: Awin). Selo "✔ Oficial" foi para o cartão.
 
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
