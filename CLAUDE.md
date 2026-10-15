@@ -158,6 +158,14 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   "Vai pro Carrinho" em Plus Jakarta Sans 800. Versões em `marca/`: `logo-claro` (fundo branco), `logo-escuro`
   (fundo escuro/gradiente), `logo-icone` 1024px e `vaiprocarrinho-icone.svg`. PNGs com fundo transparente.
 
+- **Análise de concorrentes (15/10/2026)**: Zoom/Buscapé (mesmo dono, grupo Mosaico/Banco PAN): página por produto com
+  todas as lojas, histórico de preço (40 dias / 6 meses), alerta de queda por e-mail/WhatsApp, extensão de navegador.
+  Pelando (comunidade vota "temperatura") e Promobit (equipe confere as ofertas, cupons). Google Shopping: cobertura.
+  Sugeridas para nós, em ordem: 1) histórico de preço + selo "menor preço em 30 dias" (a tabela `precos` já guarda);
+  2) agrupar o mesmo produto de várias lojas pelo código de barras (GTIN/EAN; feeds formato Google trazem `gtin`);
+  3) alerta de preço por e-mail (já temos conta + Resend); 4) cupons das lojas (Awin "Minhas Ofertas"); 5) desconto
+  verificado pelo histórico (evita "desconto falso"). Aguardando o Giovanni escolher.
+
 ## Próximos passos
 2. Giovanni testar `/previa` no celular e dar opinião sobre o visual.
 3. Colocar produtos reais: Giovanni manda links de afiliado da Shopee (Oferta > Link personalizado) com nome e
