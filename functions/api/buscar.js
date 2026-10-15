@@ -1,5 +1,6 @@
 // GET /api/buscar?q=air+fryer  -> ofertas de todas as lojas ligadas
 // GET /api/buscar               -> ofertas em destaque
+// GET /api/buscar?pagina=2      -> mais ofertas em destaque (só das lojas que têm páginas, como a Shopee)
 //
 // Roda nos servidores do Cloudflare (Pages Functions). É aqui que ficam as
 // chaves das APIs, sem nunca chegarem ao navegador do visitante.
@@ -27,7 +28,9 @@ function responder(dados, status = 200) {
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const inicio = Date.now();
-  const q = (new URL(request.url).searchParams.get("q") || "").trim().slice(0, 100);
+  const params = new URL(request.url).searchParams;
+  const q = (params.get("q") || "").trim().slice(0, 100);
+  const pagina = q ? 1 : Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), 20);
 
   // Conta a busca para os "em alta" da semana, sem atrasar a resposta
   const contar = (resposta) => {
@@ -39,20 +42,21 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Guarda as respostas por 1 hora para não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/buscar?q=${encodeURIComponent(q.toLowerCase())}`, request.url));
+  const chave = new Request(new URL(`/api/buscar?q=${encodeURIComponent(q.toLowerCase())}${pagina > 1 ? `&pagina=${pagina}` : ""}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return contar(guardada);
 
   const ligadas = await Promise.all(FONTES_REAIS.map((f) => f.ativa(env)));
   const reais = FONTES_REAIS.filter((_, i) => ligadas[i]);
   // Enquanto nenhuma API estiver ligada, usa os produtos de exemplo
-  const fontes = reais.length ? reais : [exemplo];
+  // Da 2ª página em diante, só as lojas que têm mais páginas de destaques
+  const fontes = (reais.length ? reais : [exemplo]).filter((f) => pagina === 1 || f.porPagina);
 
   const lojas = {};
   const resultados = await Promise.all(
     fontes.map(async (fonte) => {
       try {
-        const ofertas = q ? await fonte.buscar(q, env) : await fonte.destaques(env);
+        const ofertas = q ? await fonte.buscar(q, env) : await fonte.destaques(env, pagina);
         lojas[fonte.nome] = { ok: true, total: ofertas.length };
         return ofertas;
       } catch (erro) {
@@ -68,6 +72,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
     q,
     exemplo: !reais.length,
     ofertas,
+    // Destaques: avisa o site se vale mostrar o botão "Ver mais ofertas"
+    temMais: !q && fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina),
     lojas,
     tempoMs: Date.now() - inicio,
   });

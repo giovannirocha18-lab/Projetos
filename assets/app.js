@@ -725,10 +725,10 @@ function esqueletos(qtd) {
 // Busca
 // ---------------------------------------------------------------------
 // A mesma lista de filtros serve para as "Ofertas do dia" (q vazio) e para a busca
-const estado = { q: "", ofertas: [], inicio: null, lojasDesmarcadas: new Set(), pedido: 0 };
+const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), pedido: 0 };
 
-async function consultarApi(q) {
-  const resp = await fetch(`/api/buscar?q=${encodeURIComponent(q)}`);
+async function consultarApi(q, pagina = 1) {
+  const resp = await fetch(`/api/buscar?q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -843,8 +843,39 @@ async function buscar(q) {
 function desenharInicio(lista) {
   const idVendido = idMaisVendido(lista);
   $("#destaques").replaceChildren(...(lista.length
-    ? agrupar(lista).map((o) => cartaoOferta(o, { maisVendido: o.id === idVendido }))
+    ? agrupar(lista).map((o) => {
+      const c = cartaoOferta(o, { maisVendido: o.id === idVendido });
+      // Ao carregar mais, só os cartões novos "surgem"; os que já estavam ficam parados
+      if (estado.vistosInicio.has(o.id)) c.style.animation = "none";
+      estado.vistosInicio.add(o.id);
+      return c;
+    })
     : [el("p", { class: "vazio" }, estado.ofertas.length ? "Nenhuma oferta do dia com esses filtros." : "Nenhuma oferta do dia agora.")]));
+  $("#mais-ofertas").hidden = !estado.temMaisInicio;
+}
+
+// "Ver mais ofertas": traz a próxima página de mais vendidos e junta à lista
+async function carregarMaisOfertas() {
+  const botao = $("#mais-ofertas");
+  botao.disabled = true;
+  botao.textContent = "Carregando…";
+  try {
+    const dados = await consultarApi("", estado.paginaInicio + 1);
+    const ids = new Set(estado.inicio.map((o) => o.id));
+    const novas = dados.ofertas.filter((o) => !ids.has(o.id));
+    estado.paginaInicio += 1;
+    estado.temMaisInicio = Boolean(dados.temMais && novas.length);
+    estado.inicio = [...estado.inicio, ...novas];
+    if (!estado.q) {
+      estado.ofertas = estado.inicio;
+      desenharFiltroLojas();
+      desenharResultados();
+    }
+  } catch {
+    toast("Não foi possível carregar mais ofertas agora");
+  }
+  botao.disabled = false;
+  botao.textContent = "Ver mais ofertas";
 }
 
 function mostrarInicio() {
@@ -867,6 +898,7 @@ async function carregarDestaques() {
   try {
     const dados = await consultarApi("");
     estado.inicio = dados.ofertas;
+    estado.temMaisInicio = Boolean(dados.temMais);
     if (pedido !== estado.pedido) return; // a pessoa já foi para uma busca
     $("#aviso-teste").hidden = !dados.exemplo;
     mostrarInicio();
@@ -1039,6 +1071,7 @@ $("#limpar-filtros").addEventListener("click", () => {
   desenharResultados();
 });
 
+$("#mais-ofertas").addEventListener("click", carregarMaisOfertas);
 document.querySelectorAll("[data-abrir-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(true)));
 document.querySelectorAll("[data-fechar-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(false)));
 $("#abrir-favoritos").addEventListener("click", () => abrirPainel(true));

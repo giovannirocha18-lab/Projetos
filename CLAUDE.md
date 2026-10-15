@@ -256,6 +256,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   a lista de nomes de categorias, então a lista é nossa e a ordem acompanha as vendas), "Lojas parceiras" (lojas da lista atual, com quantidade), Preço e Mais opções. Na página inicial os filtros
   valem para as "Ofertas do dia". No celular vira gaveta pelo botão "☰ Categorias e filtros".
 
+- **Mais ofertas na página inicial (16/10/2026, pedido do Giovanni)**: "Ofertas do dia" = 48 mais vendidos da Shopee
+  (`shopee.porPagina`) + Awin com desconto; botão "Ver mais ofertas" pede `/api/buscar?pagina=N` (só fontes com
+  `porPagina`, até 20 páginas; resposta traz `temMais`) e junta à lista; filtros e ordem valem para tudo que já carregou.
+
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
    Quando entrar a 1ª loja BR, conferir o log do robô (Actions > Robô de preços) e os produtos no site.
