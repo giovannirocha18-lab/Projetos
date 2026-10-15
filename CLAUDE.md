@@ -213,6 +213,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   **Causa real achada pelo suporte: o site estava BLOQUEADO na Awin.** Pediram o desbloqueio (pronto em até 2h, 16/10/2026).
   Próximo: Giovanni pedir de novo às lojas que recusaram (ex.: Leveros) dizendo que o site estava bloqueado e foi corrigido.
   Hipóteses: recusa avaliada quando ainda era "Em breve"; ou loja checa se o site aparece no Google (noindex esconde).
+- **E-mail contato@ (15/10/2026)**: passos do Cloudflare Email Routing entregues ao Giovanni (encaminhar para o e-mail
+  pessoal dele; apagar antes o MX nulo e o TXT `v=spf1 -all`). Só recebe; responder como contato@ exige configurar
+  "Enviar e-mail como" no Gmail com SMTP (ex.: Resend). Aguardando ele fazer e mandar print.
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
