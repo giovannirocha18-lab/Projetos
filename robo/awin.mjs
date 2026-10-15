@@ -188,6 +188,15 @@ function paraOferta(p, feed = {}) {
   // Código de barras (GTIN/EAN), sempre com 14 dígitos para comparar entre lojas
   const codigo = String(p.gtin || p.ean || p.product_gtin || p.upc || p.isbn || "").replace(/\D/g, "");
   const gtin = codigo.length >= 8 && codigo.length <= 14 && !/^0+$/.test(codigo) ? codigo.padStart(14, "0") : null;
+  // Descrição sem HTML, curta, e até 5 fotos (a principal + as extras do feed)
+  const descricao = String(p.description || p.product_short_description || "")
+    .replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim().slice(0, 600) || null;
+  const extras = [p.additional_image_link, p.alternate_image, p.alternate_image_two, p.alternate_image_three]
+    .flatMap((v) => String(v || "").split(","))
+    .map((v) => v.trim());
+  const imagem = httpsOuNada(p.merchant_image_url) || httpsOuNada(p.large_image) || httpsOuNada(p.image_link)
+    || httpsOuNada(p.aw_image_url);
+  const imagens = [...new Set([imagem, ...extras.map(httpsOuNada)].filter(Boolean))].slice(0, 5);
   const dados = {
     id: `awin-${lojaId}-${produtoId}`,
     fonte: "awin",
@@ -197,14 +206,15 @@ function paraOferta(p, feed = {}) {
     preco,
     preco_antigo: precoAntigo,
     desconto: precoAntigo ? Math.round((1 - preco / precoAntigo) * 100) : null,
-    imagem: httpsOuNada(p.merchant_image_url) || httpsOuNada(p.large_image) || httpsOuNada(p.image_link)
-      || httpsOuNada(p.aw_image_url),
+    imagem,
     categoria,
     link,
     frete_gratis: textoFrete !== undefined && textoFrete !== "" && frete === 0 ? 1 : 0,
     internacional: feed.internacional || moeda !== "BRL" ? 1 : 0,
     moeda: moeda === "BRL" ? null : moeda,
     gtin,
+    descricao,
+    imagens: imagens.length > 1 ? JSON.stringify(imagens) : null,
     busca: normalizar(juntarMilhares(`${titulo} ${marca} ${categoria || ""} ${lojaNome}`)),
   };
   // Para moeda estrangeira, a assinatura usa o preço original + a faixa do câmbio
@@ -228,7 +238,7 @@ function sql(v) {
 }
 
 const CAMPOS = ["id", "fonte", "loja", "loja_nome", "titulo", "preco", "preco_antigo", "desconto",
-  "imagem", "categoria", "link", "frete_gratis", "internacional", "moeda", "gtin", "busca", "assinatura", "atualizado_em"];
+  "imagem", "categoria", "link", "frete_gratis", "internacional", "moeda", "gtin", "descricao", "imagens", "busca", "assinatura", "atualizado_em"];
 
 function gravar(o, agora) {
   const valores = CAMPOS.map((c) => sql(c === "atualizado_em" ? agora : o[c])).join(", ");

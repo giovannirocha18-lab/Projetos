@@ -510,7 +510,8 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
     }, ICONE_CARRINHO()),
     el("div", { class: "oferta-corpo" },
       el("span", { class: "loja-tag" }, el("span", { class: "loja-ponto" }), loja.nome),
-      el("h3", { class: "oferta-titulo", title: o.titulo }, o.titulo),
+      el("h3", { class: "oferta-titulo", title: o.titulo },
+        el("button", { class: "titulo-botao", type: "button", onclick: () => abrirDetalhes(o) }, o.titulo)),
       (o.avaliacao || o.vendidos) && el("div", { class: "nota" },
         o.avaliacao && el("span", { class: "estrelas", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
         o.avaliacao && el("span", {}, String(o.avaliacao).replace(".", ",")),
@@ -525,7 +526,9 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         class: "internacional",
         title: `Loja de fora do Brasil.${o.moeda ? ` Preço convertido de ${o.moeda} pela cotação do dia;` : ""} pode haver impostos de importação.`,
       }, o.moeda ? `🌎 Internacional · valor aproximado` : "🌎 Internacional"),
-      o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico de preço"),
+      el("div", { class: "links-oferta" },
+        el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
+        o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico")),
       listaOutrasLojas(o),
       el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
         ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
@@ -612,6 +615,60 @@ function graficoHistorico(pontos, precoAtual) {
   raiz.addEventListener("pointerdown", mover);
   raiz.addEventListener("pointerleave", () => { for (const n of [guia, marca]) n.setAttribute("visibility", "hidden"); dica.hidden = true; });
   return caixa;
+}
+
+// ---------------------------------------------------------------------
+// Janela "Ver detalhes": tudo o que a loja informa oficialmente sobre o
+// produto (sem ler a página da loja, o que as regras de afiliado proíbem)
+// ---------------------------------------------------------------------
+function abrirDetalhes(o) {
+  const loja = infoLoja(o);
+  const fotos = o.imagens?.length ? o.imagens : [o.imagem].filter(Boolean);
+  const fotoGrande = fotos.length
+    ? el("img", { src: fotos[0], alt: o.titulo, onload: (e) => { e.target.style.visibility = ""; },
+      onerror: (e) => { e.target.style.visibility = "hidden"; } }) // foto quebrada: some, sem travar a galeria
+    : el("span", { class: "foto-emoji" }, o.emoji || "🛍️");
+  const galeria = el("div", { class: "detalhes-galeria", style: `--fundo-cat:${FUNDO_CATEGORIA[o.categoria] || "linear-gradient(135deg,#ede9fe,#fce7f3)"}` },
+    el("div", { class: "detalhes-foto" }, fotoGrande),
+    fotos.length > 1 && el("div", { class: "detalhes-miniaturas" }, ...fotos.map((f, i) =>
+      el("button", { type: "button", class: i === 0 ? "ativa" : null, "aria-label": `Foto ${i + 1}`, onclick: (e) => {
+        fotoGrande.src = f;
+        e.currentTarget.parentElement.querySelectorAll("button").forEach((b) => b.classList.toggle("ativa", b === e.currentTarget));
+      } }, el("img", { src: f, alt: "", loading: "lazy", onerror: (e) => e.target.parentElement.remove() })))));
+
+  const [inteiro, decimal] = brl(o.preco).split(",");
+  const info = el("div", { class: "detalhes-info" },
+    el("div", { class: "detalhes-loja" },
+      el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
+      o.lojaOficial && el("span", { class: "selo-oficial" }, "✔ Loja oficial"),
+      o.vendedor && el("span", { class: "detalhes-vendedor" }, `Vendido por ${o.vendedor}`)),
+    el("h2", { id: "detalhes-titulo" }, o.titulo),
+    (o.avaliacao || o.vendidos) && el("div", { class: "nota" },
+      o.avaliacao && el("span", { class: "estrelas", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
+      o.avaliacao && el("span", {}, String(o.avaliacao).replace(".", ",")),
+      o.vendidos && el("span", { class: o.vendidos >= 1000 ? "vendidos-muitos" : null },
+        `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`)),
+    el("div", { class: "precos" },
+      o.precoAntigo && el("span", { class: "preco-antigo" }, `R$ ${brl(o.precoAntigo)}`, o.desconto && ` (-${o.desconto}%)`),
+      el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", {}, `,${decimal}`)),
+      o.precoAntigo > o.preco + 1 && el("span", { class: "economia-tag" }, `Você economiza R$ ${brl(o.precoAntigo - o.preco)}`)),
+    el("div", { class: "detalhes-selos" },
+      o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
+      o.internacional && el("span", { class: "internacional" },
+        o.moeda ? `🌎 Internacional · valor convertido de ${o.moeda}` : "🌎 Internacional")),
+    o.descricao && el("div", { class: "detalhes-descricao" }, el("h3", {}, "Descrição"), el("p", {}, o.descricao)),
+    listaOutrasLojas(o),
+    o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => { $("#janela-detalhes").close(); abrirHistorico(o); } },
+      "📈 Ver histórico de preço"),
+    el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener",
+      style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}`, onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
+      `Comprar ${loja.em} ${loja.nome.length <= 16 ? loja.nome : "loja"}`, el("span", { class: "flecha", "aria-hidden": "true" }, "→")),
+    el("p", { class: "detalhes-nota" }, o.descricao
+      ? "Preço e estoque podem mudar. Confira na loja antes de finalizar."
+      : "Cores, tamanhos e a descrição completa aparecem na página da loja."));
+
+  $("#detalhes-conteudo").replaceChildren(el("div", { class: "detalhes" }, galeria, info));
+  $("#janela-detalhes").showModal();
 }
 
 async function abrirHistorico(o) {
@@ -929,6 +986,11 @@ $("#abrir-conta").dataset.icone = $("#abrir-conta").innerHTML;
 $("#abrir-conta").addEventListener("click", abrirConta);
 $("#fechar-conta").addEventListener("click", () => $("#janela-conta").close());
 $("#fechar-historico").addEventListener("click", () => $("#janela-historico").close());
+$("#fechar-detalhes").addEventListener("click", () => $("#janela-detalhes").close());
+$("#janela-detalhes").addEventListener("click", (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
+});
 $("#janela-historico").addEventListener("click", (e) => {
   const r = e.currentTarget.getBoundingClientRect();
   if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
