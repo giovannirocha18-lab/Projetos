@@ -31,7 +31,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - `lib/fontes/exemplo.js` = produtos fictícios (usado enquanto nenhuma fonte real está ligada).
 - `lib/fontes/curadoria.js` = produtos escolhidos à mão com link de afiliado (lista `PRODUTOS`).
   Com 1 produto ou mais, o site deixa de mostrar os exemplos. Giovanni manda os links; Claude cadastra.
-- `lib/fontes/shopee.js` = API GraphQL de afiliados da Shopee (busca ao vivo, 30 por busca, sortType 1 = relevância;
+- `lib/fontes/shopee.js` = API GraphQL de afiliados da Shopee (busca ao vivo, 48 por página, sortType 1 = relevância; botão "Ver mais resultados" pede a próxima página;
   destaques = mais vendidos). Chaves `SHOPEE_APP_ID` e `SHOPEE_SECRET` no Cloudflare. ✅ **Funcionando desde 15/10/2026.**
   Ofertas da Shopee ainda **não** entram no histórico de preço (só as do robô da Awin).
 - `lib/conta.js` + `functions/api/conta/*` = cadastro com "Entrar com Google" ou e-mail + senha ("Esqueci minha senha"
@@ -278,6 +278,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   `lib/buscas.js` tira termos ruins já contados. `/api/em-alta` também tem versão no cache (`?v=`).
 - **Ordem das categorias (15/10/2026, pedido do Giovanni)**: botões "Mais vendidos | A–Z" acima da lista na barra
   lateral; escolha guardada no aparelho (localStorage `ordemCategorias`).
+- **"Ver mais resultados" na busca (15/10/2026, pedido do Giovanni)**: `/api/buscar?q=…&pagina=N` (só fontes com
+  `porPagina`, hoje Shopee; Awin vem toda na 1ª). Só a página 1 conta para "em alta". Novos itens entram antes dos acessórios.
 - **Mais ofertas na página inicial (16/10/2026, pedido do Giovanni)**: "Ofertas do dia" = 48 mais vendidos da Shopee
   (`shopee.porPagina`) + Awin com desconto; botão "Ver mais ofertas" pede `/api/buscar?pagina=N` (só fontes com
   `porPagina`, até 20 páginas; resposta traz `temMais`) e junta à lista; filtros e ordem valem para tudo que já carregou.

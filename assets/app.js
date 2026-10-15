@@ -737,7 +737,7 @@ const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInici
 async function consultarApi(q, pagina = 1) {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
-  const resp = await fetch(`/api/buscar?v=5&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=6&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -818,6 +818,7 @@ function desenharResultados() {
     return c;
   }));
   $("#vazio").hidden = lista.length > 0;
+  $("#mais-resultados").hidden = !estado.temMaisBusca;
   const acessorios = estado.ofertas.filter((o) => o.acessorio).length;
   const botao = $("#ver-acessorios");
   botao.hidden = !acessorios || $("#com-acessorios").checked || acessorios === estado.ofertas.length;
@@ -837,12 +838,16 @@ async function buscar(q) {
   $("#filtro-lojas").replaceChildren();
   $("#vazio").hidden = true;
   $("#grade").replaceChildren(...esqueletos(8));
+  estado.temMaisBusca = false;
+  $("#mais-resultados").hidden = true;
 
   try {
     const dados = await consultarApi(q);
     if (pedido !== estado.pedido) return; // chegou resposta de uma busca antiga
     $("#aviso-teste").hidden = !dados.exemplo;
     estado.ofertas = dados.ofertas;
+    estado.paginaBusca = 1;
+    estado.temMaisBusca = Boolean(dados.temMais);
     desenharFiltroLojas();
     desenharResultados();
   } catch (erro) {
@@ -893,6 +898,32 @@ async function carregarMaisOfertas() {
   }
   botao.disabled = false;
   botao.textContent = "Ver mais ofertas";
+}
+
+// "Ver mais resultados": traz a próxima página da busca (Shopee) e junta à lista
+async function carregarMaisResultados() {
+  const botao = $("#mais-resultados");
+  const pedido = estado.pedido;
+  botao.disabled = true;
+  botao.textContent = "Carregando…";
+  try {
+    const dados = await consultarApi(estado.q, estado.paginaBusca + 1);
+    if (pedido !== estado.pedido) return; // o visitante já fez outra busca
+    const ids = new Set(estado.ofertas.map((o) => o.id));
+    const novas = dados.ofertas.filter((o) => !ids.has(o.id));
+    estado.paginaBusca += 1;
+    estado.temMaisBusca = Boolean(dados.temMais && novas.length);
+    // Produtos antes, acessórios (escondidos) no fim
+    const todas = [...estado.ofertas, ...novas];
+    estado.ofertas = [...todas.filter((o) => !o.acessorio), ...todas.filter((o) => o.acessorio)];
+    desenharFiltroLojas();
+    desenharResultados();
+  } catch {
+    toast("Não foi possível carregar mais resultados agora");
+  } finally {
+    botao.disabled = false;
+    botao.textContent = "Ver mais resultados";
+  }
 }
 
 function mostrarInicio() {
@@ -1109,6 +1140,7 @@ $("#limpar-filtros").addEventListener("click", () => {
 });
 
 $("#mais-ofertas").addEventListener("click", carregarMaisOfertas);
+$("#mais-resultados").addEventListener("click", carregarMaisResultados);
 document.querySelectorAll("[data-abrir-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(true)));
 document.querySelectorAll("[data-fechar-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(false)));
 $("#abrir-favoritos").addEventListener("click", () => abrirPainel(true));

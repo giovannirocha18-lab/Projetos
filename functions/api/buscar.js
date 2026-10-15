@@ -1,6 +1,7 @@
 // GET /api/buscar?q=air+fryer  -> ofertas de todas as lojas ligadas
 // GET /api/buscar               -> ofertas em destaque
 // GET /api/buscar?pagina=2      -> mais ofertas em destaque (só das lojas que têm páginas, como a Shopee)
+// GET /api/buscar?q=...&pagina=2 -> mais resultados da busca (idem)
 //
 // Roda nos servidores do Cloudflare (Pages Functions). É aqui que ficam as
 // chaves das APIs, sem nunca chegarem ao navegador do visitante.
@@ -16,7 +17,7 @@ const FONTES_REAIS = [curadoria, shopee, awin];
 
 const CACHE_SEGUNDOS = 60 * 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 5;
+const VERSAO_CACHE = 6;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -33,12 +34,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const inicio = Date.now();
   const params = new URL(request.url).searchParams;
   const q = (params.get("q") || "").trim().slice(0, 100);
-  const pagina = q ? 1 : Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), 20);
+  const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), 20);
 
   // Conta a busca para os "em alta" da semana, sem atrasar a resposta.
   // Clique num atalho não conta: senão o atalho se manteria em alta sozinho.
   const contar = (resposta) => {
-    if (q && !params.has("atalho") && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
+    if (q && pagina === 1 && !params.has("atalho") && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
       waitUntil(registrarBusca(env, q).catch(() => {}));
     }
     return resposta;
@@ -60,7 +61,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const resultados = await Promise.all(
     fontes.map(async (fonte) => {
       try {
-        const ofertas = q ? await fonte.buscar(q, env) : await fonte.destaques(env, pagina);
+        const ofertas = q ? await fonte.buscar(q, env, pagina) : await fonte.destaques(env, pagina);
         lojas[fonte.nome] = { ok: true, total: ofertas.length };
         return ofertas;
       } catch (erro) {
@@ -77,8 +78,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
     q,
     exemplo: !reais.length,
     ofertas,
-    // Destaques: avisa o site se vale mostrar o botão "Ver mais ofertas"
-    temMais: !q && fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina),
+    // Avisa o site se vale mostrar o botão "Ver mais ofertas" / "Ver mais resultados"
+    temMais: fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina),
     lojas,
     tempoMs: Date.now() - inicio,
   });
