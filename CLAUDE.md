@@ -54,7 +54,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Cloudflare criou registros "sem e-mail" (MX nulo, SPF -all, DMARC reject). Trocar se um dia
   quiser e-mail no domínio.
 
-## Situação atual (atualizado em 13/10/2026)
+## Situação atual (atualizado em 15/10/2026)
 | Item | Situação |
 |---|---|
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
@@ -70,6 +70,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Shopee: dados fiscais | ⏳ em análise |
 | Shopee: conta "Maree" (para receber pagamentos) | ❗ falta ativar (link "Como ativar?" no portal) |
 | Shopee: Open API | ❗ sem acesso (14/10/2026: tela "Abrir API" com AppID/Senha vazios e "Aplicar" cinza; pede contato com a Shopee). **Pedido de acesso feito em 14/10/2026, aguardando resposta.** Quando liberar: "Senha" da tela = `SHOPEE_SECRET` |
+| Awin (rede de afiliados) | ✅ conta aprovada (ID 3124296). Lojas: só EINSTAR aprovada (EUA); pedidos em lojas BR pendentes |
+| Robô de preços (Awin → D1, GitHub Actions 04:17) | ✅ funcionando. 31 produtos reais (EINSTAR) no site, com preço convertido do dólar |
+| Histórico de preço + produto agrupado por código de barras | ✅ publicado (15/10/2026); ganha dados com o tempo |
+| AliExpress Afiliados | ⏳ cadastro em análise (14/10/2026); depois pegar chaves da API |
+| Logo e imagens do Instagram | ✅ em `marca/` |
 | Mercado Livre Afiliados | ❗ não se inscreveu ainda. API de busca dá 403 para muitos devs (Reclame Aqui) |
 | Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
 
@@ -176,13 +181,17 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
 ## Próximos passos
-2. Giovanni testar `/previa` no celular e dar opinião sobre o visual.
-3. Colocar produtos reais: Giovanni manda links de afiliado da Shopee (Oferta > Link personalizado) com nome e
-   preço; Claude cadastra em `lib/fontes/curadoria.js`. Juntar uns 20–30 antes, porque os exemplos somem.
-4. Quando a API da Shopee sair: cadastrar as chaves no Cloudflare, testar e ajustar `lib/fontes/shopee.js`.
-5. Depois: Mercado Livre (curadoria com gerador de links em lote), AliExpress, Amazon, redes Awin/Lomadee.
-6. Lançamento: ver "Para lançar o site" no README. Antes: verificar o domínio no Resend (+ `EMAIL_REMETENTE`)
-   e criar `contato@vaiprocarrinho.com.br` (Cloudflare Email Routing; exige trocar o MX nulo).
+1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
+   Quando entrar a 1ª loja BR, conferir o log do robô (Actions > Robô de preços) e os produtos no `/previa`.
+2. AliExpress: quando aprovar, cadastro no openservice.aliexpress.com, chaves como Secrets no Cloudflare, Claude escreve
+   `lib/fontes/aliexpress.js`.
+3. Giovanni testar `/previa` no celular (busca "scanner") e opinar sobre o visual; testar cadastro com e-mail + senha.
+4. Quando houver visitantes: alerta de preço por e-mail (item 3 da análise de concorrentes); depois cupons e desconto
+   verificado pelo histórico.
+5. Shopee: quando a API sair, cadastrar as chaves no Cloudflare e testar `lib/fontes/shopee.js`.
+6. Lançamento: ver "Para lançar o site" no README (esperar ter várias lojas BR). Antes: verificar o domínio no Resend
+   (+ `EMAIL_REMETENTE`) e criar `contato@vaiprocarrinho.com.br` (Cloudflare Email Routing; exige trocar o MX nulo).
+7. Pendências do Giovanni: trocar a senha do Registro.br; INPI (pagar GRU antes de ~21/01/2027).
 
 ## Decisões do Giovanni
 - **Aceitar lojas internacionais** (15/10/2026), com preço convertido para reais e selo "Internacional".
