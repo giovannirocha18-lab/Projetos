@@ -125,7 +125,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Centauro, MAC) rende menos. Ideia sugerida: nicho de lançamento "ar-condicionado e eletrodomésticos".
   **Robô de preços da Awin programado e testado localmente (14/10/2026)**, ainda sem dados reais. Falta o Giovanni:
   (a) ✅ branch padrão do GitHub trocada para `claude/inspiring-hamilton-wafagr` (14/10/2026, conferido); (b) segredos no GitHub: ✅ CLOUDFLARE_ACCOUNT_ID, ✅ D1_DATABASE_ID (banco "vaiprocarrinho"),
-  ✅ CLOUDFLARE_API_TOKEN (token "robo-precos", D1 Edit) cadastrados em 15/10/2026; falta AWIN_FEED_KEY;
+  ✅ CLOUDFLARE_API_TOKEN (token "robo-precos", D1 Edit) cadastrados em 15/10/2026 e testados (1ª execução manual criou as tabelas no D1;
+  parou só por falta da AWIN_FEED_KEY, como esperado); falta AWIN_FEED_KEY;
   (c) depois da 1ª loja aprovada, rodar em Actions > Robô de preços > Run workflow e mandar print do resumo.
   Nomes das colunas da lista de feeds da Awin foram deduzidos da documentação: conferir na 1ª execução real.
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
