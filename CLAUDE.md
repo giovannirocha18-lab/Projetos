@@ -263,6 +263,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   a lista de nomes de categorias, então a lista é nossa e a ordem acompanha as vendas), "Lojas parceiras" (lojas da lista atual, com quantidade), Preço e Mais opções. Na página inicial os filtros
   valem para as "Ofertas do dia". No celular vira gaveta pelo botão "☰ Categorias e filtros".
 
+- **Busca sem acessórios (15/10/2026, pedido do Giovanni)**: `lib/relevancia.js` marca `acessorio: true` nas ofertas cujo
+  título tem palavra de acessório antes do termo buscado ("Tapete air fryer"), "para/for/compatível + termo" ou palavra
+  de acessório logo depois em inglês ("Air Fryer Liners"); não marca nada se a própria busca tiver palavra de acessório
+  ("capa iphone"). O site esconde os acessórios (botão "Ver também N acessórios e peças" e opção "Mostrar acessórios e
+  peças" em Mais opções); se só houver acessórios, mostra todos. Shopee passou a trazer 48 por busca (era 30).
 - **Mais ofertas na página inicial (16/10/2026, pedido do Giovanni)**: "Ofertas do dia" = 48 mais vendidos da Shopee
   (`shopee.porPagina`) + Awin com desconto; botão "Ver mais ofertas" pede `/api/buscar?pagina=N` (só fontes com
   `porPagina`, até 20 páginas; resposta traz `temMais`) e junta à lista; filtros e ordem valem para tudo que já carregou.

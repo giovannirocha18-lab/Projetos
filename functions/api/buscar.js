@@ -9,6 +9,7 @@ import { curadoria } from "../../lib/fontes/curadoria.js";
 import { shopee } from "../../lib/fontes/shopee.js";
 import { awin } from "../../lib/fontes/awin.js";
 import { registrarBusca } from "../../lib/buscas.js";
+import { separarAcessorios } from "../../lib/relevancia.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
 const FONTES_REAIS = [curadoria, shopee, awin];
@@ -67,7 +68,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
     }),
   );
 
-  const ofertas = resultados.flat();
+  // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
+  const ofertas = q ? separarAcessorios(resultados.flat(), q) : resultados.flat();
   const resposta = responder({
     q,
     exemplo: !reais.length,

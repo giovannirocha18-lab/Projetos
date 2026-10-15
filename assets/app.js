@@ -738,8 +738,11 @@ function filtrar() {
   const max = parseFloat($("#preco-max").value);
   const frete = $("#so-frete").checked;
   const desconto = $("#so-desconto").checked;
+  // Acessórios só aparecem se pedidos (ou se a busca só achou acessórios)
+  const semAcessorios = !$("#com-acessorios").checked && estado.ofertas.some((o) => !o.acessorio);
   const lista = estado.ofertas.filter((o) =>
     !estado.lojasDesmarcadas.has(o.loja)
+    && !(semAcessorios && o.acessorio)
     && !(min >= 0 && o.preco < min)
     && !(max >= 0 && o.preco > max)
     && (!frete || o.freteGratis)
@@ -806,12 +809,17 @@ function desenharResultados() {
     return c;
   }));
   $("#vazio").hidden = lista.length > 0;
+  const acessorios = estado.ofertas.filter((o) => o.acessorio).length;
+  const botao = $("#ver-acessorios");
+  botao.hidden = !acessorios || $("#com-acessorios").checked || acessorios === estado.ofertas.length;
+  botao.textContent = `Ver também ${acessorios} ${acessorios === 1 ? "acessório ou peça" : "acessórios e peças"} para “${estado.q}”`;
 }
 
 async function buscar(q) {
   const pedido = ++estado.pedido;
   estado.q = q;
   estado.lojasDesmarcadas.clear();
+  $("#com-acessorios").checked = false;
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = q; });
   document.title = `${q} — Vai pro Carrinho`;
 
@@ -1059,13 +1067,15 @@ let timerPreco;
   clearTimeout(timerPreco);
   timerPreco = setTimeout(desenharResultados, 300);
 }));
-["#so-frete", "#so-desconto"].forEach((s) => $(s).addEventListener("change", desenharResultados));
+["#so-frete", "#so-desconto", "#com-acessorios"].forEach((s) => $(s).addEventListener("change", desenharResultados));
+$("#ver-acessorios").addEventListener("click", () => { $("#com-acessorios").checked = true; desenharResultados(); });
 document.querySelectorAll("input[name=ordem]").forEach((r) => r.addEventListener("change", desenharResultados));
 $("#limpar-filtros").addEventListener("click", () => {
   $("#preco-min").value = "";
   $("#preco-max").value = "";
   $("#so-frete").checked = false;
   $("#so-desconto").checked = false;
+  $("#com-acessorios").checked = false;
   estado.lojasDesmarcadas.clear();
   desenharFiltroLojas();
   desenharResultados();
