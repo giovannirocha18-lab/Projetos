@@ -161,15 +161,19 @@ function paraOferta(p, feed = {}) {
   const moeda = (p.currency || (String(p.price || p.search_price || "").match(/\b[A-Z]{3}\b/) || [])[0]
     || feed.moeda || "BRL").toUpperCase();
   const taxa = COTACOES[moeda];
-  if (!taxa) return null; // moeda sem cotação: fica de fora
+  if (!taxa) return `sem cotação para ${moeda}`;
   const converter = (v) => (v > 0 ? Math.round(v * taxa * 100) / 100 : v);
   const promocao = converter(numero(p.sale_price));
   const cheio = converter(numero(p.search_price) || numero(p.store_price) || numero(p.price));
   const preco = promocao > 0 ? promocao : cheio;
   const link = lojaId && linkAfiliado(p, lojaId);
-  if (!lojaId || !produtoId || !link || !titulo || !(preco > 0)) return null;
-  if (/^(0|no|false|n)$/i.test(p.in_stock || "") || /^(0|no|false|n)$/i.test(p.is_for_sale || "")) return null;
-  if (/out.of.stock|esgotado|indispon/i.test(p.availability || p.stock_status || "")) return null;
+  if (!lojaId) return "sem loja";
+  if (!produtoId) return "sem código do produto";
+  if (!titulo) return "sem nome";
+  if (!(preco > 0)) return "sem preço";
+  if (!link) return "sem link de afiliado";
+  if (/^(0|no|false|n)$/i.test(p.in_stock || "") || /^(0|no|false|n)$/i.test(p.is_for_sale || "")) return "fora de estoque";
+  if (/out.of.stock|esgotado|indispon/i.test(p.availability || p.stock_status || "")) return "fora de estoque";
 
   const antigo = Math.max(converter(numero(p.rrp_price)) || 0, converter(numero(p.product_price_old)) || 0,
     converter(numero(p.base_price)) || 0, promocao > 0 ? cheio || 0 : 0);
@@ -324,21 +328,37 @@ async function obterFeeds() {
 async function buscarCotacoes() {
   if (process.env.ROBO_COTACOES) return JSON.parse(process.env.ROBO_COTACOES);
   const moedas = ["USD", "EUR", "GBP", "CAD", "AUD", "CHF", "CNY", "JPY", "MXN", "ARS", "CLP"];
-  try {
-    const resp = await fetch(`https://economia.awesomeapi.com.br/json/last/${moedas.map((m) => `${m}-BRL`).join(",")}`);
-    const json = await resp.json();
-    const cotacoes = {};
-    for (const m of moedas) {
-      const valor = Number(json[`${m}BRL`]?.bid);
-      if (valor > 0) cotacoes[m] = valor;
+  // Tenta várias fontes gratuitas, na ordem; usa a primeira que responder
+  const fontes = [
+    ["AwesomeAPI", async () => {
+      const json = await (await fetch(`https://economia.awesomeapi.com.br/json/last/${moedas.map((m) => `${m}-BRL`).join(",")}`)).json();
+      return Object.fromEntries(moedas.map((m) => [m, Number(json[`${m}BRL`]?.bid)]));
+    }],
+    ["ExchangeRate-API", async () => {
+      const json = await (await fetch("https://open.er-api.com/v6/latest/BRL")).json();
+      return Object.fromEntries(moedas.map((m) => [m, 1 / Number(json.rates?.[m])]));
+    }],
+    ["Frankfurter (BCE)", async () => {
+      const json = await (await fetch("https://api.frankfurter.app/latest?from=BRL")).json();
+      return Object.fromEntries(moedas.map((m) => [m, 1 / Number(json.rates?.[m])]));
+    }],
+  ];
+  for (const [nome, buscar] of fontes) {
+    try {
+      const cotacoes = Object.fromEntries(Object.entries(await buscar())
+        .filter(([, v]) => Number.isFinite(v) && v > 0).map(([m, v]) => [m, Math.round(v * 10000) / 10000]));
+      if (cotacoes.USD) {
+        console.log(`Cotações (${nome}): ${Object.entries(cotacoes).map(([m, v]) => `${m} ${v}`).join(", ")}`);
+        return cotacoes;
+      }
+      console.log(`Cotação: ${nome} não trouxe o dólar; tentando a próxima fonte`);
+    } catch (erro) {
+      console.log(`Cotação: ${nome} falhou (${erro.message}); tentando a próxima fonte`);
     }
-    console.log(`Cotações: ${Object.entries(cotacoes).map(([m, v]) => `${m} ${v}`).join(", ")}`);
-    return cotacoes;
-  } catch (erro) {
-    // Sem cotação, produtos em moeda estrangeira ficam de fora hoje (e nada deles é apagado)
-    console.log(`⚠️ Não consegui a cotação do dia (${erro.message}); lojas em moeda estrangeira ficam para amanhã`);
-    return {};
   }
+  // Sem cotação, produtos em moeda estrangeira ficam de fora hoje (e nada deles é apagado)
+  console.log("⚠️ Não consegui a cotação do dia; lojas em moeda estrangeira ficam para amanhã");
+  return {};
 }
 
 // A lista pode vir em CSV ou em JSON
@@ -374,15 +394,21 @@ async function main() {
     try {
       const produtos = lerCsv(await feed.ler());
       let aceitos = 0;
+      const recusas = {};
       for (const p of produtos) {
         const o = paraOferta(p, feed);
-        if (!o) continue;
+        // paraOferta devolve o motivo (texto) quando o produto fica de fora
+        if (typeof o === "string") { recusas[o] = (recusas[o] || 0) + 1; continue; }
         novas.set(o.id, o);
         lojasBaixadas.add(lojaDoId(o.id));
         lojasAtivas.add(lojaDoId(o.id));
         aceitos++;
       }
-      relatorio.push(`✅ ${feed.nome}: ${aceitos} de ${produtos.length} produtos aceitos`);
+      const motivos = Object.entries(recusas).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${m}: ${n}`).join(", ");
+      relatorio.push(`✅ ${feed.nome}: ${aceitos} de ${produtos.length} produtos aceitos${motivos ? ` (fora: ${motivos})` : ""}`);
+      if (produtos.length && aceitos < produtos.length / 2) {
+        console.log(`Colunas do feed ${feed.nome}: ${Object.keys(produtos[0]).join(", ")}`);
+      }
     } catch (erro) {
       relatorio.push(`❌ ${feed.nome}: ${erro.message}`);
     }
