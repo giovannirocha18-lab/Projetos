@@ -195,6 +195,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Perfil Awin (Conta > Informações do Site): URL do Site Primário = https://vaiprocarrinho.com.br (certo); "Nome do Site"
   estava com a URL → sugerido trocar para "Vai pro Carrinho". Guia "Espaços Promocionais" conferida: site certo, descrição e setores ok. Sugerido: pôr o Instagram em
   "Links", preencher "Contato" e ver o que é o ícone de escudo ao lado do site (possível verificação).
+  O escudo = **site NÃO verificado na Awin** (provável causa do "link inválido"). 16/10/2026: meta tag
+  `<meta name="verification" …>` da Awin colocada no `index.html` (manter no lançamento). Falta ele clicar em "Verificar Site".
   Hipóteses: recusa avaliada quando ainda era "Em breve"; ou loja checa se o site aparece no Google (noindex esconde).
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
