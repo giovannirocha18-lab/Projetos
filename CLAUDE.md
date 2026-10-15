@@ -11,9 +11,10 @@
 - **Respostas curtas**: só o essencial e necessário, sem explicações extras (pedido dele em 14/10/2026,
   para economizar tokens).
 - Pedir que **nunca** mande senhas ou chaves secretas no chat nem suba no GitHub.
-- **Contexto da conversa** (pedido dele em 16/10/2026): `.claude/settings.json` tem `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=20`
-  (resume a conversa sozinho quando chega a 20% do contexto; vale a partir da próxima sessão). Por isso manter este
-  arquivo sempre atualizado: é ele que segura o fio depois do resumo.
+- **Contexto da conversa** (pedido dele em 16/10/2026): **não** resumir/compactar (gasta tokens). Quando a conversa
+  ficar longa (~20% do contexto usado; Claude estima, não há medidor exato), Claude por conta própria: atualiza este
+  arquivo, faz commit/push com `[skip ci]` e avisa: "Abra uma conversa nova e cole o comando de recomeço" (texto no fim
+  deste arquivo). O resumo automático configurado antes foi retirado.
 - Quando ele pedir "gera o comando de recomeço": atualizar este arquivo, fazer commit/push e
   entregar o texto da seção "Comando de recomeço".
 
