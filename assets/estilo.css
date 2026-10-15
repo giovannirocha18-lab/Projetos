@@ -284,6 +284,12 @@ a { color: inherit; }
 .resumo h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 2rem); letter-spacing: -.02em; }
 .resumo h1 span { opacity: .8; font-weight: 600; }
 .resumo p { margin: 4px 0 0; opacity: .9; }
+.resumo .resumo-categoria { margin-top: 8px; font-weight: 600; opacity: 1; }
+.resumo-categoria button {
+  font: inherit; font-size: .85rem; color: #fff; cursor: pointer;
+  padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35);
+}
+.resumo-categoria button:hover { background: rgba(255, 255, 255, .3); }
 .resumo-melhor {
   display: flex; align-items: center; gap: 14px;
   padding: 12px 18px; border-radius: 14px; background: rgba(255, 255, 255, .15);

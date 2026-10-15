@@ -2,6 +2,7 @@
 // GET /api/buscar               -> ofertas em destaque
 // GET /api/buscar?pagina=2      -> mais ofertas em destaque (só das lojas que têm páginas, como a Shopee)
 // GET /api/buscar?q=...&pagina=2 -> mais resultados da busca (idem)
+// GET /api/buscar?q=invictus&cat=Perfumes -> busca dentro da categoria escolhida no menu
 //
 // Roda nos servidores do Cloudflare (Pages Functions). É aqui que ficam as
 // chaves das APIs, sem nunca chegarem ao navegador do visitante.
@@ -11,13 +12,14 @@ import { shopee } from "../../lib/fontes/shopee.js";
 import { awin } from "../../lib/fontes/awin.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
+import { categoriaPorNome, termoNaCategoria, daCategoria } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
 const FONTES_REAIS = [curadoria, shopee, awin];
 
 const CACHE_SEGUNDOS = 60 * 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 7;
+const VERSAO_CACHE = 8;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -35,6 +37,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const params = new URL(request.url).searchParams;
   const q = (params.get("q") || "").trim().slice(0, 100);
   const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), 20);
+  const categoria = q ? categoriaPorNome(params.get("cat")) : null;
 
   // Conta a busca para os "em alta" da semana, sem atrasar a resposta.
   // Clique num atalho não conta: senão o atalho se manteria em alta sozinho.
@@ -47,7 +50,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Guarda as respostas por 1 hora para não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${pagina > 1 ? `&pagina=${pagina}` : ""}`, request.url));
+  const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return contar(guardada);
 
@@ -57,25 +60,43 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Da 2ª página em diante, só as lojas que têm mais páginas de destaques
   const fontes = (reais.length ? reais : [exemplo]).filter((f) => pagina === 1 || f.porPagina);
 
-  const lojas = {};
-  const resultados = await Promise.all(
-    fontes.map(async (fonte) => {
-      try {
-        const ofertas = q ? await fonte.buscar(q, env, pagina) : await fonte.destaques(env, pagina);
-        lojas[fonte.nome] = { ok: true, total: ofertas.length };
-        return ofertas;
-      } catch (erro) {
-        // Uma loja fora do ar não derruba a busca nas outras
-        lojas[fonte.nome] = { ok: false, erro: String(erro.message || erro) };
-        return [];
-      }
-    }),
-  );
+  let lojas = {};
+  const consultar = async (termo) => {
+    lojas = {};
+    const resultados = await Promise.all(
+      fontes.map(async (fonte) => {
+        try {
+          const ofertas = termo ? await fonte.buscar(termo, env, pagina) : await fonte.destaques(env, pagina);
+          lojas[fonte.nome] = { ok: true, total: ofertas.length };
+          return ofertas;
+        } catch (erro) {
+          // Uma loja fora do ar não derruba a busca nas outras
+          lojas[fonte.nome] = { ok: false, erro: String(erro.message || erro) };
+          return [];
+        }
+      }),
+    );
+    return resultados.flat();
+  };
+
+  // Dentro de uma categoria: "invictus" em Perfumes pesquisa "invictus perfume".
+  // Se nada aparecer na categoria, mostra a busca em tudo (e o site avisa).
+  let encontradas = await consultar(categoria ? termoNaCategoria(q, categoria) : q);
+  let foraDaCategoria = false;
+  if (categoria) {
+    encontradas = daCategoria(encontradas, categoria);
+    if (!encontradas.length && pagina === 1) {
+      encontradas = await consultar(q);
+      foraDaCategoria = encontradas.length > 0;
+    }
+  }
 
   // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
-  const ofertas = q ? separarAcessorios(resultados.flat(), q) : resultados.flat();
+  const ofertas = q ? separarAcessorios(encontradas, q) : encontradas;
   const resposta = responder({
     q,
+    categoria: categoria && !foraDaCategoria ? categoria.nome : null,
+    foraDaCategoria,
     exemplo: !reais.length,
     ofertas,
     // Avisa o site se vale mostrar o botão "Ver mais ofertas" / "Ver mais resultados"

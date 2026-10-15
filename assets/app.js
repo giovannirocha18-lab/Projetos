@@ -737,7 +737,8 @@ const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInici
 async function consultarApi(q, pagina = 1) {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
-  const resp = await fetch(`/api/buscar?v=7&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
+  const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
+  const resp = await fetch(`/api/buscar?v=8&q=${encodeURIComponent(q)}${cat}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -782,13 +783,27 @@ function desenharFiltroLojas() {
   }));
 }
 
+// "invictus" buscado dentro de Perfumes: mostra a categoria e um jeito de buscar em tudo
+function avisoCategoria() {
+  const sair = () => irPara(estado.q);
+  if (estado.foraDaCategoria) {
+    return el("p", { class: "resumo-categoria" }, `Nada encontrado em ${estado.foraDaCategoria}; mostrando todas as categorias.`);
+  }
+  if (!estado.cat) return null;
+  const c = categoriaPeloNome(estado.cat);
+  if (c && normalizar(estado.q).includes(normalizar(c.busca || c.nome))) return null; // é a própria categoria
+  return el("p", { class: "resumo-categoria" }, `Na categoria ${c?.emoji || ""} ${estado.cat} · `,
+    el("button", { type: "button", onclick: sair }, "Buscar em todas as categorias ✕"));
+}
+
 function desenharResumo(lista) {
   const qtdLojas = new Set(lista.map((o) => o.loja)).size;
   const titulo = el("div", {},
     el("h1", {}, el("span", {}, "Resultados para "), `“${estado.q}”`),
     el("p", {}, lista.length
       ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"} em ${qtdLojas} ${qtdLojas === 1 ? "loja" : "lojas"}`
-      : "Nenhuma oferta com esses filtros"));
+      : "Nenhuma oferta com esses filtros"),
+    avisoCategoria());
 
   if (lista.length < 2) return $("#resumo").replaceChildren(titulo);
 
@@ -828,6 +843,7 @@ function desenharResultados() {
 async function buscar(q) {
   const pedido = ++estado.pedido;
   estado.q = q;
+  estado.foraDaCategoria = null;
   estado.lojasDesmarcadas.clear();
   $("#com-acessorios").checked = false;
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = q; });
@@ -846,6 +862,8 @@ async function buscar(q) {
     if (pedido !== estado.pedido) return; // chegou resposta de uma busca antiga
     $("#aviso-teste").hidden = !dados.exemplo;
     estado.ofertas = dados.ofertas;
+    // Nada na categoria: o servidor buscou em tudo, e as próximas páginas também são de tudo
+    if (dados.foraDaCategoria) { estado.foraDaCategoria = estado.cat; estado.cat = null; }
     estado.paginaBusca = 1;
     estado.temMaisBusca = Boolean(dados.temMais);
     desenharFiltroLojas();
@@ -990,9 +1008,9 @@ function desenharCategorias(lista = categoriasAtuais) {
   document.querySelectorAll("[data-ordem-cat]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.ordemCat === ordemCategorias)));
   if (ordemCategorias === "az") lista = [...lista].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
   const botoes = lista.map((c, i) =>
-    el("button", { class: "cat-item", type: "button", "data-busca": c.busca || c.nome,
+    el("button", { class: "cat-item", type: "button", "data-nome": c.nome,
       style: `--fundo-cat:${FUNDOS_MENU[i % FUNDOS_MENU.length]}`,
-      onclick: () => { abrirFiltros(false); irPara(c.busca || c.nome, { atalho: true }); } },
+      onclick: () => { abrirFiltros(false); irPara(c.busca || c.nome, { atalho: true, cat: c.nome }); } },
       el("span", { class: "cat-icone", "aria-hidden": "true" }, c.emoji), c.nome));
   const caixa = $("#categorias");
   caixa.classList.remove("todas");
@@ -1005,10 +1023,23 @@ function desenharCategorias(lista = categoriasAtuais) {
   marcarCategoria();
 }
 
-// Destaca no menu a categoria que está sendo vista
+const categoriaPeloNome = (nome) => (nome ? categoriasAtuais.find((c) => c.nome === nome) : null);
+
+// Categoria escolhida no menu: ?cat= no endereço (ou link antigo ?q=perfume, que é a busca da categoria)
+function categoriaAtual() {
+  const params = new URLSearchParams(location.search);
+  const q = normalizar(params.get("q") || "");
+  if (!q) return null;
+  if (params.get("cat")) return params.get("cat");
+  return categoriasAtuais.find((c) => normalizar(c.busca || c.nome) === q)?.nome || null;
+}
+
+// Destaca no menu a categoria que está sendo vista e avisa na caixa de busca
+const PLACEHOLDER_BUSCA = $("[data-busca] input").placeholder;
 function marcarCategoria() {
-  const q = normalizar(new URLSearchParams(location.search).get("q") || "");
-  document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", Boolean(q) && normalizar(b.dataset.busca) === q));
+  const cat = categoriaAtual();
+  document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", b.dataset.nome === cat));
+  document.querySelectorAll("[data-busca] input").forEach((i) => { i.placeholder = cat ? `Buscar em ${cat}…` : PLACEHOLDER_BUSCA; });
 }
 
 document.querySelectorAll("[data-ordem-cat]").forEach((b) => b.addEventListener("click", () => {
@@ -1036,6 +1067,7 @@ function mostrar() {
   $("#inicio").hidden = emBusca;
   $("#resultados").hidden = !emBusca;
   marcarCategoria();
+  estado.cat = categoriaAtual();
   if (emBusca) {
     buscar(q);
   } else {
@@ -1046,10 +1078,11 @@ function mostrar() {
 }
 
 // atalho = clique em "em alta" ou categoria: não conta como busca feita pelo visitante
-function irPara(q, { atalho = false } = {}) {
+// cat = buscar dentro dessa categoria do menu ("invictus" em Perfumes)
+function irPara(q, { atalho = false, cat = null } = {}) {
   q = (q || "").trim();
   estado.atalho = atalho;
-  const url = q ? `?q=${encodeURIComponent(q)}` : location.pathname;
+  const url = q ? `?q=${encodeURIComponent(q)}${cat ? `&cat=${encodeURIComponent(cat)}` : ""}` : location.pathname;
   history.pushState(null, "", url);
   window.scrollTo({ top: 0, behavior: "smooth" });
   mostrar();
@@ -1078,7 +1111,7 @@ function prepararBusca(form) {
       const i = normalizar(s).indexOf(termo);
       return el("li", {
         role: "option",
-        onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s); },
+        onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual() }); },
       }, el("span", {}, s.slice(0, i), el("mark", {}, s.slice(i, i + termo.length)), s.slice(i + termo.length)));
     }));
     ativo = -1;
@@ -1100,7 +1133,7 @@ function prepararBusca(form) {
     fechar();
     if (!input.value.trim()) { input.focus(); return toast("Digite o nome de um produto 😉"); }
     input.blur();
-    irPara(input.value);
+    irPara(input.value, { cat: categoriaAtual() });
   });
 }
 

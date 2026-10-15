@@ -293,6 +293,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (`shopee.porPagina`) + Awin com desconto; botão "Ver mais ofertas" pede `/api/buscar?pagina=N` (só fontes com
   `porPagina`, até 20 páginas; resposta traz `temMais`) e junta à lista; filtros e ordem valem para tudo que já carregou.
 
+- **Busca dentro da categoria (16/10/2026, pedido do Giovanni)**: clicar numa categoria abre `?q=<busca>&cat=<nome>`;
+  buscar algo com a categoria aberta mantém o `cat` ("invictus" em Perfumes). O servidor (`termoNaCategoria`/`daCategoria`
+  em `lib/categorias.js`) pesquisa "invictus perfume" e tira produtos classificados em outra categoria; se nada sobrar,
+  busca em tudo e o site avisa. Resultado mostra "Na categoria 🌸 Perfumes · Buscar em todas as categorias ✕"; a caixa
+  de busca diz "Buscar em Perfumes…". Atalhos "em alta" e o logo saem da categoria.
+
 ## Próximos passos
 1. Giovanni: reenviar pedidos às lojas que recusaram (texto acima) e acompanhar aprovações na Awin; recusar convites
    fora do perfil. A cada loja nova: Claude pode disparar o robô (GitHub MCP `actions_run_trigger`, workflow
