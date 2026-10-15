@@ -298,6 +298,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   em `lib/categorias.js`) pesquisa "invictus perfume" e tira produtos classificados em outra categoria; se nada sobrar,
   busca em tudo e o site avisa. Resultado mostra "Na categoria 🌸 Perfumes · Buscar em todas as categorias ✕"; a caixa
   de busca diz "Buscar em Perfumes…". Atalhos "em alta" e o logo saem da categoria.
+  Ajuste (pedido dele): ao abrir uma categoria a caixa de busca fica vazia e o título é "🩲 Moda íntima" (`navegandoCategoria`).
+- **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Próximos passos
 1. Giovanni: reenviar pedidos às lojas que recusaram (texto acima) e acompanhar aprovações na Awin; recusar convites

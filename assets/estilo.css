@@ -21,24 +21,7 @@
   --sombra-forte: 0 4px 10px rgba(26, 21, 48, .08), 0 18px 40px rgba(109, 40, 217, .18);
   --gradiente: linear-gradient(135deg, #5b21b6 0%, #9333ea 48%, #db2777 100%);
   --raio: 16px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --roxo: #a78bfa;
-    --roxo-forte: #c4b5fd;
-    --roxo-claro: #2a2148;
-    --verde: #4ade80;
-    --verde-fundo: #12321f;
-    --vermelho: #f87171;
-    --bg: #0f0c1a;
-    --card: #1a1628;
-    --texto: #f1eef9;
-    --suave: #a7a2bb;
-    --borda: #2c2742;
-    --sombra: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .3);
-    --sombra-forte: 0 4px 10px rgba(0, 0, 0, .4), 0 18px 40px rgba(147, 51, 234, .25);
-  }
+  color-scheme: light; /* sempre fundo claro, mesmo com o aparelho no tema escuro */
 }
 
 * { box-sizing: border-box; }
@@ -250,7 +233,6 @@ a { color: inherit; }
 .so-curto { display: none; }
 @media (max-width: 640px) { .so-longo { display: none; } .so-curto { display: inline; } }
 .internacional { display: inline-block; align-self: flex-start; font-size: .75rem; font-weight: 700; color: #1d4ed8; background: #dbeafe; padding: 3px 8px; border-radius: 6px; margin-top: 4px; }
-@media (prefers-color-scheme: dark) { .internacional { color: #93c5fd; background: #172554; } }
 
 .botao-oferta {
   display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px;

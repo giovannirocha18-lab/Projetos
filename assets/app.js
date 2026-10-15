@@ -798,8 +798,9 @@ function avisoCategoria() {
 
 function desenharResumo(lista) {
   const qtdLojas = new Set(lista.map((o) => o.loja)).size;
+  const cat = navegandoCategoria();
   const titulo = el("div", {},
-    el("h1", {}, el("span", {}, "Resultados para "), `“${estado.q}”`),
+    cat ? el("h1", {}, `${cat.emoji || ""} ${cat.nome}`) : el("h1", {}, el("span", {}, "Resultados para "), `“${estado.q}”`),
     el("p", {}, lista.length
       ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"} em ${qtdLojas} ${qtdLojas === 1 ? "loja" : "lojas"}`
       : "Nenhuma oferta com esses filtros"),
@@ -846,10 +847,10 @@ async function buscar(q) {
   estado.foraDaCategoria = null;
   estado.lojasDesmarcadas.clear();
   $("#com-acessorios").checked = false;
-  document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = q; });
-  document.title = `${q} — Vai pro Carrinho`;
+  preencherBusca();
 
-  $("#resumo").replaceChildren(el("div", {}, el("h1", {}, el("span", {}, "Buscando "), `“${q}”…`), el("p", {}, "Comparando preços nas lojas")));
+  const cat = navegandoCategoria();
+  $("#resumo").replaceChildren(el("div", {}, el("h1", {}, el("span", {}, "Buscando "), cat ? `${cat.nome}…` : `“${q}”…`), el("p", {}, "Comparando preços nas lojas")));
   $("#total").textContent = "";
   $("#filtro-lojas").replaceChildren();
   $("#vazio").hidden = true;
@@ -1021,6 +1022,7 @@ function desenharCategorias(lista = categoriasAtuais) {
     } }, `Ver todas (${lista.length}) ▼`);
   caixa.replaceChildren(...botoes, ...(verTodas ? [verTodas] : []));
   marcarCategoria();
+  if (estado.q && !$("#resultados").hidden) preencherBusca();
 }
 
 const categoriaPeloNome = (nome) => (nome ? categoriasAtuais.find((c) => c.nome === nome) : null);
@@ -1032,6 +1034,19 @@ function categoriaAtual() {
   if (!q) return null;
   if (params.get("cat")) return params.get("cat");
   return categoriasAtuais.find((c) => normalizar(c.busca || c.nome) === q)?.nome || null;
+}
+
+// Visitante clicou numa categoria (e não buscou nada dentro dela): devolve a categoria
+function navegandoCategoria() {
+  const c = categoriaPeloNome(categoriaAtual());
+  return c && estado.q && normalizar(estado.q) === normalizar(c.busca || c.nome) ? c : null;
+}
+
+// Caixa de busca: mostra o que o visitante buscou, mas fica vazia ao abrir uma categoria
+function preencherBusca() {
+  const cat = navegandoCategoria();
+  document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = cat ? "" : estado.q; });
+  document.title = `${cat ? cat.nome : estado.q} — Vai pro Carrinho`;
 }
 
 // Destaca no menu a categoria que está sendo vista e avisa na caixa de busca
