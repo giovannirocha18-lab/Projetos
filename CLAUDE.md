@@ -250,8 +250,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 
 - **Barra lateral (15/10/2026, pedido do Giovanni)**: cabeçalho, página e rodapé usam a tela toda (sem limite de 1600px), barra encostada na esquerda. Substituiu a barra de filtros em cima e a seção "Navegue por
   categoria". Fica à esquerda na página inicial e na busca, presa abaixo do cabeçalho: "Ordenar por" (Mais relevantes,
-  Menor/Maior preço, Maior desconto, Mais vendidos), "Categorias" (as 9 de `CATEGORIAS` no `app.js`; a ativa fica
-  marcada), "Lojas parceiras" (lojas da lista atual, com quantidade), Preço e Mais opções. Na página inicial os filtros
+  Menor/Maior preço, Maior desconto, Mais vendidos), "Categorias" (desde 16/10/2026: as 37 de `lib/categorias.js`,
+  com emoji, vindas de `/api/em-alta` campo `categorias`, ordenadas pelas que mais vendem agora na Shopee; 12 visíveis +
+  "Ver todas"; as 9 antigas do `app.js` só enquanto carrega; a ativa fica marcada. A API de afiliados da Shopee não dá
+  a lista de nomes de categorias, então a lista é nossa e a ordem acompanha as vendas), "Lojas parceiras" (lojas da lista atual, com quantidade), Preço e Mais opções. Na página inicial os filtros
   valem para as "Ofertas do dia". No celular vira gaveta pelo botão "☰ Categorias e filtros".
 
 ## Próximos passos

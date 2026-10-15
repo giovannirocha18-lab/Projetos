@@ -886,23 +886,47 @@ function desenharEmAlta(itens) {
 
 async function carregarEmAlta() {
   try {
-    const { itens = [] } = await (await fetch("/api/em-alta")).json();
+    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
+    if (categorias.length) desenharCategorias(categorias);
   } catch {
-    // Fica a lista padrão
+    // Ficam as listas padrão
   }
+}
+
+// Menu de categorias da barra lateral. Vem de /api/em-alta, com as categorias que
+// mais vendem agora na Shopee em primeiro; as 12 primeiras aparecem, o resto em "Ver todas"
+const CATEGORIAS_VISIVEIS = 12;
+const FUNDOS_MENU = CATEGORIAS.map((c) => c.fundo);
+
+function desenharCategorias(lista) {
+  const botoes = lista.map((c, i) =>
+    el("button", { class: "cat-item", type: "button", "data-busca": c.busca || c.nome,
+      style: `--fundo-cat:${FUNDOS_MENU[i % FUNDOS_MENU.length]}`,
+      onclick: () => { abrirFiltros(false); irPara(c.busca || c.nome); } },
+      el("span", { class: "cat-icone", "aria-hidden": "true" }, c.emoji), c.nome));
+  const caixa = $("#categorias");
+  caixa.classList.remove("todas");
+  const verTodas = lista.length > CATEGORIAS_VISIVEIS && el("button", { class: "cat-ver-todas", type: "button",
+    onclick: (e) => {
+      const todas = caixa.classList.toggle("todas");
+      e.currentTarget.textContent = todas ? "Ver menos ▲" : `Ver todas (${lista.length}) ▼`;
+    } }, `Ver todas (${lista.length}) ▼`);
+  caixa.replaceChildren(...botoes, verTodas);
+  marcarCategoria();
+}
+
+// Destaca no menu a categoria que está sendo vista
+function marcarCategoria() {
+  const q = normalizar(new URLSearchParams(location.search).get("q") || "");
+  document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", Boolean(q) && normalizar(b.dataset.busca) === q));
 }
 
 function montarInicio() {
   desenharEmAlta(EM_ALTA);
+  desenharCategorias(CATEGORIAS);
   carregarEmAlta();
-
-  $("#categorias").replaceChildren(...CATEGORIAS.map((c) =>
-    el("button", { class: "cat-item", type: "button", "data-categoria": c.nome, style: `--fundo-cat:${c.fundo}`,
-      onclick: () => { abrirFiltros(false); irPara(c.nome); } },
-      el("span", { class: "cat-icone", "aria-hidden": "true" }, c.emoji), c.nome)));
-
 }
 
 // ---------------------------------------------------------------------
@@ -915,7 +939,7 @@ function mostrar() {
   document.body.classList.toggle("modo-inicio", !emBusca);
   $("#inicio").hidden = emBusca;
   $("#resultados").hidden = !emBusca;
-  document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", normalizar(b.dataset.categoria) === normalizar(q)));
+  marcarCategoria();
   if (emBusca) {
     buscar(q);
   } else {

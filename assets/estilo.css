@@ -326,6 +326,9 @@ a { color: inherit; }
 }
 .cat-item:hover, .cat-item.ativa { background: var(--roxo-claro); }
 .cat-item.ativa { color: var(--roxo); }
+.cat-lista:not(.todas) .cat-item:nth-child(n + 13) { display: none; }
+.cat-ver-todas { grid-column: 1 / -1; justify-self: start; margin-top: 4px; border: 0; background: none; padding: 4px 0; color: var(--roxo); font-weight: 700; font-size: .88rem; }
+.cat-ver-todas:hover { text-decoration: underline; }
 .cat-icone {
   width: 30px; height: 30px; flex: none; display: grid; place-items: center; font-size: 1.05rem;
   border-radius: 9px; background: var(--fundo-cat);
