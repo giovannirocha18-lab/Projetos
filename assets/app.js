@@ -27,6 +27,8 @@ const CATEGORIAS = [
 ];
 const FUNDO_CATEGORIA = Object.fromEntries(CATEGORIAS.map((c) => [c.nome, c.fundo]));
 
+// Atalhos abaixo da busca: os mais buscados da semana (/api/em-alta). Enquanto há
+// poucos dados, completa com esta lista padrão
 const EM_ALTA = ["Air fryer", "Fone bluetooth", "Smartwatch", "Tênis de corrida", "Power bank", "Garrafa térmica", "Robô aspirador", "Kit maquiagem"];
 
 const SUGESTOES = [
@@ -784,9 +786,29 @@ async function carregarDestaques() {
   }
 }
 
-function montarInicio() {
-  $("#em-alta").replaceChildren(...EM_ALTA.map((t) =>
+function desenharEmAlta(termos) {
+  $("#em-alta").replaceChildren(...termos.map((t) =>
     el("button", { class: "chip-alta", type: "button", onclick: () => irPara(t) }, t)));
+}
+
+async function carregarEmAlta() {
+  try {
+    const { termos = [] } = await (await fetch("/api/em-alta")).json();
+    const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+    const vistos = new Set();
+    // Os quentes da semana primeiro; completa com a lista padrão sem repetir
+    const lista = [...termos.map(maiuscula), ...EM_ALTA]
+      .filter((t) => !vistos.has(t.toLowerCase()) && vistos.add(t.toLowerCase()))
+      .slice(0, EM_ALTA.length);
+    desenharEmAlta(lista);
+  } catch {
+    // Fica a lista padrão
+  }
+}
+
+function montarInicio() {
+  desenharEmAlta(EM_ALTA);
+  carregarEmAlta();
 
   $("#categorias").replaceChildren(...CATEGORIAS.map((c) =>
     el("button", { class: "categoria", type: "button", style: `--fundo-cat:${c.fundo}`, onclick: () => irPara(c.nome) },

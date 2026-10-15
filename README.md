@@ -10,6 +10,7 @@ Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
 | `lib/fontes/` | Uma "fonte" por loja. `exemplo.js` tem produtos fictícios para testes |
 | `robo/` | Robô de preços: baixa os catálogos das lojas (Awin) para o banco do site |
 | `marca/` | Logo e ícone do Vai pro Carrinho |
+| `lib/buscas.js` + `functions/api/em-alta.js` | Conta as buscas e mostra os termos mais buscados da semana abaixo da busca |
 | `functions/api/conta/` + `lib/conta.js` | Cadastro (Google ou e-mail + senha, com "Esqueci minha senha") e "Meu carrinho" salvo na conta |
 | `privacidade.html` | Política de Privacidade (LGPD) |
 | `_headers` | Pede aos buscadores para não indexar o site enquanto ele está em construção |

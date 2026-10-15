@@ -7,6 +7,7 @@ import { exemplo } from "../../lib/fontes/exemplo.js";
 import { curadoria } from "../../lib/fontes/curadoria.js";
 import { shopee } from "../../lib/fontes/shopee.js";
 import { awin } from "../../lib/fontes/awin.js";
+import { registrarBusca } from "../../lib/buscas.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
 const FONTES_REAIS = [curadoria, shopee, awin];
@@ -24,15 +25,23 @@ function responder(dados, status = 200) {
   });
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   const inicio = Date.now();
   const q = (new URL(request.url).searchParams.get("q") || "").trim().slice(0, 100);
+
+  // Conta a busca para os "em alta" da semana, sem atrasar a resposta
+  const contar = (resposta) => {
+    if (q && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
+      waitUntil(registrarBusca(env, q).catch(() => {}));
+    }
+    return resposta;
+  };
 
   // Guarda as respostas por 1 hora para não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const chave = new Request(new URL(`/api/buscar?q=${encodeURIComponent(q.toLowerCase())}`, request.url));
   const guardada = cache && (await cache.match(chave));
-  if (guardada) return guardada;
+  if (guardada) return contar(guardada);
 
   const ligadas = await Promise.all(FONTES_REAIS.map((f) => f.ativa(env)));
   const reais = FONTES_REAIS.filter((_, i) => ligadas[i]);
@@ -54,13 +63,16 @@ export async function onRequestGet({ request, env }) {
     }),
   );
 
+  const ofertas = resultados.flat();
   const resposta = responder({
     q,
     exemplo: !reais.length,
-    ofertas: resultados.flat(),
+    ofertas,
     lojas,
     tempoMs: Date.now() - inicio,
   });
+  // Produtos de exemplo não contam como busca em alta
+  resposta.headers.set("X-Total-Ofertas", reais.length ? String(ofertas.length) : "0");
   if (cache && Object.values(lojas).every((l) => l.ok)) await cache.put(chave, resposta.clone());
-  return resposta;
+  return contar(resposta);
 }

@@ -209,6 +209,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   vendas da lista (mín. 100); "🏆 Menor preço entre N lojas" no produto agrupado por código de barras e "🏆 Menor preço da
   busca" no mais barato; frete grátis em selo verde forte. **Regra combinada: nada de urgência/escassez falsa** (contador,
   "só restam 2", "N pessoas vendo") — CDC proíbe propaganda enganosa e as lojas podem cancelar a afiliação.
+- **"Em alta" dinâmico (15/10/2026)**: `lib/buscas.js` conta cada busca que trouxe ofertas reais (tabela `buscas` no D1:
+  termo sem acento, dia, total, texto; só isso, nada sobre quem buscou; apaga após 30 dias). `/api/em-alta` devolve os
+  8 mais buscados dos últimos 7 dias (mínimo 3 buscas; termos impróprios bloqueados). O site mostra esses primeiro e
+  completa com a lista fixa `EM_ALTA` do `app.js` enquanto há pouca visita.
 
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
