@@ -178,6 +178,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
     (Hoje/Menor/Maior + dica ao passar o dedo). Selos "📉 Menor em 30 dias" e "📉 Baixou X%".
   - Site agrupa ofertas com o mesmo `gtin`: um cartão com o menor preço + "+ N lojas com este produto" (lista com preço/link).
   - Execução #7 do robô gravou o gtin nos 31 produtos da EINSTAR (migração aplicada no D1). Publicado.
+- **15/10/2026: 4 lojas recusaram na Awin.** Causa provável explicada: quem avalia abre vaiprocarrinho.com.br e vê só
+  "Em breve" (sem produtos/visitas), conta nova, sem e-mail de contato. Sugerido: ver o motivo na aba "Recusado",
+  trocar o "Em breve" pelo comparador (já tem Shopee real), criar contato@ e pedir de novo depois. Aguardando decisão.
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
