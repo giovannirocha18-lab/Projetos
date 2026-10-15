@@ -181,6 +181,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **15/10/2026: 4 lojas recusaram na Awin.** Causa provável explicada: quem avalia abre vaiprocarrinho.com.br e vê só
   "Em breve" (sem produtos/visitas), conta nova, sem e-mail de contato. Sugerido: ver o motivo na aba "Recusado",
   trocar o "Em breve" pelo comparador (já tem Shopee real), criar contato@ e pedir de novo depois. Aguardando decisão.
+  Motivos reais (print): **Leveros = "URL inativo, página não encontrada"** (viram o "Em breve"); **Central Ar e Dufrio =
+  "não trabalha com afiliado pessoa física"** (exigem CNPJ; conta Awin dele é PF). Sugerido: comparador na página principal
+  e, no futuro, avaliar abrir MEI (atualizar a conta Awin para PJ) para lojas que exigem CNPJ.
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
