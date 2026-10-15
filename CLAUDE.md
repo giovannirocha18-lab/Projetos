@@ -188,6 +188,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   "Em alta" (no celular, numa linha que desliza). Tirados o selo, o texto e a fileira de lojas (citava lojas que ainda
   não temos). "⚡ Ofertas do dia" virou grade logo abaixo da busca (Shopee: 24 mais vendidos + Awin com desconto);
   categorias vieram para baixo.
+  Depois (pedido dele): faixa da busca ainda menor (título pequeno, busca 48px, chips menores; no celular sem título) e
+  **presa logo abaixo do cabeçalho** (`position: sticky`, altura do cabeçalho medida no JS em `--altura-topo`).
+  Manchas de luz do hero removidas (cortavam a lista de sugestões).
 
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.

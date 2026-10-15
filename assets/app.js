@@ -901,6 +901,10 @@ $("#painel-fundo").addEventListener("click", () => { abrirPainel(false); abrirFi
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { abrirPainel(false); abrirFiltros(false); } });
 
 window.addEventListener("popstate", mostrar);
+
+// A faixa de busca da página inicial fica presa logo abaixo do cabeçalho
+const medirTopo = () => document.documentElement.style.setProperty("--altura-topo", `${$("#topo").offsetHeight}px`);
+new ResizeObserver(medirTopo).observe($("#topo"));
 $("#ano").textContent = new Date().getFullYear();
 
 montarInicio();
