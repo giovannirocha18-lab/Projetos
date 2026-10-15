@@ -441,6 +441,13 @@ function estrelas(nota) {
 // Texto com versão curta para o celular (cartões estreitos)
 const longoCurto = (longo, curto) => [el("span", { class: "so-longo" }, longo), el("span", { class: "so-curto" }, curto)];
 
+// Foto que não carregou: se era a miniatura da Shopee, tenta a original; senão, mostra o emoji
+const fotoQuebrada = (o) => (e) => {
+  const img = e.target;
+  if (/_tn$/.test(img.src)) img.src = img.src.replace(/_tn$/, "");
+  else img.replaceWith(el("span", { class: "foto-emoji" }, o.emoji || "🛍️"));
+};
+
 // Texto do botão: verbo + loja ("Comprar na Shopee"). No celular, só "Comprar"
 const textoComprar = (loja) =>
   longoCurto(loja.nome.length <= 16 ? `Comprar ${loja.em} ${loja.nome}` : "Comprar na loja", "Comprar");
@@ -494,7 +501,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
     el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored noopener", tabindex: "-1", "aria-hidden": "true", onclick: abrir },
       o.imagem
         // Foto que não carrega (link quebrado da loja) vira o desenho padrão
-        ? el("img", { src: o.imagem, alt: "", loading: "lazy", onerror: (e) => e.target.replaceWith(el("span", { class: "foto-emoji" }, o.emoji || "🛍️")) })
+        ? el("img", { src: o.imagem, alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(o) })
         : el("span", { class: "foto-emoji" }, o.emoji || "🛍️"),
       el("div", { class: "selos" },
         // Mesmo produto em várias lojas: o cartão mostra a mais barata delas
@@ -728,7 +735,7 @@ function esqueletos(qtd) {
 const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), pedido: 0 };
 
 async function consultarApi(q, pagina = 1) {
-  const resp = await fetch(`/api/buscar?v=4&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}`);
+  const resp = await fetch(`/api/buscar?v=5&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
