@@ -136,7 +136,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   ainda). Colunas reais: advertiser_id, advertiser_name, primary_region, membership_status, datafeed_format, feed_id,
   feed_name, language, vertical, last_imported, last_checked, no_of_products, url. Robô aceita "Joined"/"active".
   Na 1ª loja aprovada, conferir no log: produtos aceitos e o `datafeed_format` (o robô lê o formato padrão da Awin:
-  aw_product_id, product_name, search_price, aw_deep_link…; se vier formato Google, adaptar `paraOferta`).
+  aw_product_id, product_name, search_price, aw_deep_link… e, desde 15/10/2026, também o formato Google: title, price,
+  sale_price, link, image_link, availability; se o link vier sem rastreio da Awin, monta awin1.com/cread.php com
+  awinaffid = ID de afiliado 3124296, tirado do link da Lista de Feed). A Awin avisou que as lojas estão migrando para o formato Google.
   Roda sozinho todo dia 04:17; quando uma loja aprovar, os produtos entram na madrugada seguinte.
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
   roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).

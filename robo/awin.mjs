@@ -14,6 +14,7 @@
 //
 // Teste no computador, sem internet nem Cloudflare:
 //   node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite
+//   node robo/awin.mjs --feed robo/exemplo-awin-google.csv --loja 105615:Leveros --sqlite /tmp/teste.sqlite
 // =====================================================================
 import { createHash } from "node:crypto";
 import { gunzipSync } from "node:zlib";
@@ -28,6 +29,9 @@ const REGIOES = (process.env.ROBO_REGIOES || "BR").split(",");
 // (tabela + índice de busca + histórico). O que passar fica para o dia seguinte.
 const LIMITE = Number(process.env.ROBO_LIMITE) || 20000;
 const DIAS_HISTORICO = 180;
+// Número de afiliado na Awin (aparece no link da "Lista de Feed": .../publisher/3124296/...)
+const ID_AFILIADO = process.env.AWIN_ID_AFILIADO
+  || ((process.env.AWIN_FEED_KEY || "").match(/publisher\/(\d+)/) || [])[1] || "";
 const TAMANHO_LOTE = 90_000; // bytes de SQL por envio (o D1 aceita até 100 mil)
 
 // ---------------------------------------------------------------------
@@ -134,22 +138,43 @@ const nomeDaLoja = (nome) => String(nome || "").replace(/\s+BR$/i, "").trim();
 const httpsOuNada = (url) => (/^https:\/\//i.test(url || "") ? url : null);
 const assinar = (dados) => createHash("sha1").update(JSON.stringify(dados)).digest("hex").slice(0, 16);
 
-function paraOferta(p) {
-  const lojaId = p.merchant_id;
-  const link = p.aw_deep_link;
-  const titulo = (p.product_name || "").replace(/\s+/g, " ").slice(0, 200);
-  const preco = numero(p.search_price) || numero(p.store_price);
-  if (!lojaId || !p.aw_product_id || !link || !titulo || !(preco > 0)) return null;
-  if (p.currency && p.currency.toUpperCase() !== "BRL") return null;
-  if (/^(0|no|false|n)$/i.test(p.in_stock || "") || /^(0|no|false|n)$/i.test(p.is_for_sale || "")) return null;
+// Link com o código de afiliado. Feeds no formato Google às vezes trazem só o
+// link direto da loja: aí o link de rastreio da Awin é montado aqui.
+function linkAfiliado(p, lojaId) {
+  const link = p.aw_deep_link || p.link || "";
+  if (/awin1\.com|tidd\.ly/i.test(link)) return link;
+  if (!/^https?:\/\//i.test(link) || !ID_AFILIADO) return null;
+  return `https://www.awin1.com/cread.php?awinmid=${lojaId}&awinaffid=${ID_AFILIADO}&ued=${encodeURIComponent(link)}`;
+}
 
-  const antigo = Math.max(numero(p.rrp_price) || 0, numero(p.product_price_old) || 0, numero(p.base_price) || 0);
+// Aceita o formato padrão da Awin e o novo, baseado no Google
+// (title, price "2399.90 BRL", sale_price, image_link, availability…)
+function paraOferta(p, feed = {}) {
+  const lojaId = p.merchant_id || feed.lojaId;
+  const produtoId = p.aw_product_id || p.id || p.item_id;
+  const titulo = (p.product_name || p.title || "").replace(/\s+/g, " ").slice(0, 200);
+  const promocao = numero(p.sale_price);
+  const cheio = numero(p.search_price) || numero(p.store_price) || numero(p.price);
+  const preco = promocao > 0 ? promocao : cheio;
+  const link = lojaId && linkAfiliado(p, lojaId);
+  if (!lojaId || !produtoId || !link || !titulo || !(preco > 0)) return null;
+  const moeda = p.currency || (String(p.price || p.search_price || "").match(/\b[A-Z]{3}\b/) || [])[0];
+  if (moeda && moeda.toUpperCase() !== "BRL") return null;
+  if (/^(0|no|false|n)$/i.test(p.in_stock || "") || /^(0|no|false|n)$/i.test(p.is_for_sale || "")) return null;
+  if (/out.of.stock|esgotado|indispon/i.test(p.availability || p.stock_status || "")) return null;
+
+  const antigo = Math.max(numero(p.rrp_price) || 0, numero(p.product_price_old) || 0, numero(p.base_price) || 0,
+    promocao > 0 ? cheio || 0 : 0);
   const precoAntigo = antigo > preco * 1.01 ? antigo : null;
-  const lojaNome = nomeDaLoja(p.merchant_name) || `Loja ${lojaId}`;
-  const categoria = (p.category_name || p.merchant_category || "").slice(0, 60) || null;
-  const frete = numero(p.delivery_cost);
+  const lojaNome = nomeDaLoja(p.merchant_name || feed.lojaNome) || `Loja ${lojaId}`;
+  const tipo = (p.product_type || "").split(">").pop().trim();
+  const categoria = (p.category_name || p.merchant_category || tipo || "").slice(0, 60) || null;
+  // Frete: delivery_cost (padrão) ou shipping no formato Google ("BR:::0.00 BRL")
+  const textoFrete = p.delivery_cost ?? (p.shipping ? p.shipping.split(":").pop() : undefined);
+  const frete = numero(textoFrete);
+  const marca = p.brand_name || p.brand || "";
   const dados = {
-    id: `awin-${lojaId}-${p.aw_product_id}`,
+    id: `awin-${lojaId}-${produtoId}`,
     fonte: "awin",
     loja: normalizar(lojaNome).replace(/ /g, "-"),
     loja_nome: lojaNome,
@@ -157,11 +182,12 @@ function paraOferta(p) {
     preco,
     preco_antigo: precoAntigo,
     desconto: precoAntigo ? Math.round((1 - preco / precoAntigo) * 100) : null,
-    imagem: httpsOuNada(p.merchant_image_url) || httpsOuNada(p.large_image) || httpsOuNada(p.aw_image_url),
+    imagem: httpsOuNada(p.merchant_image_url) || httpsOuNada(p.large_image) || httpsOuNada(p.image_link)
+      || httpsOuNada(p.aw_image_url),
     categoria,
     link,
-    frete_gratis: p.delivery_cost !== undefined && p.delivery_cost !== "" && frete === 0 ? 1 : 0,
-    busca: normalizar(juntarMilhares(`${titulo} ${p.brand_name || ""} ${categoria || ""} ${lojaNome}`)),
+    frete_gratis: textoFrete !== undefined && textoFrete !== "" && frete === 0 ? 1 : 0,
+    busca: normalizar(juntarMilhares(`${titulo} ${marca} ${categoria || ""} ${lojaNome}`)),
   };
   return { ...dados, assinatura: assinar(dados) };
 }
@@ -206,7 +232,12 @@ async function enviarEmLotes(banco, comandos) {
 // ---------------------------------------------------------------------
 async function obterFeeds() {
   if (arquivosFeed.length) {
-    return arquivosFeed.map((caminho) => ({ nome: caminho, ler: async () => descompactar(readFileSync(caminho)) }));
+    // --loja 105615:Leveros informa a loja de um feed que não traz merchant_id (formato Google)
+    const lojas = arg("--loja");
+    return arquivosFeed.map((caminho, i) => {
+      const [lojaId, lojaNome] = (lojas[i] || "").split(":");
+      return { nome: caminho, lojaId, lojaNome, ler: async () => descompactar(readFileSync(caminho)) };
+    });
   }
   // O segredo pode ser: o link da "Lista de Feed" (Ferramentas > Crie um Feed, caixa
   // "Download da Lista de Feed"), um link de download de feed, ou só a chave.
@@ -250,6 +281,7 @@ async function obterFeeds() {
   return ativos.map((f) => ({
     nome: `${pegar(f, "advertisername", "merchantname") || "Loja"} (feed ${pegar(f, "feedid", "id")})`,
     lojaId: pegar(f, "advertiserid", "merchantid"),
+    lojaNome: pegar(f, "advertisername", "merchantname"),
     ler: () => baixarTexto(pegar(f, "url", "downloadurl", "feedurl"), chave),
   }));
 }
@@ -286,7 +318,7 @@ async function main() {
       const produtos = lerCsv(await feed.ler());
       let aceitos = 0;
       for (const p of produtos) {
-        const o = paraOferta(p);
+        const o = paraOferta(p, feed);
         if (!o) continue;
         novas.set(o.id, o);
         lojasBaixadas.add(lojaDoId(o.id));
