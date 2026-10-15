@@ -204,6 +204,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   com botão e os termos "Em alta" logo abaixo (lista `EM_ALTA` no `app.js`), conta e carrinho à direita. No celular: sem
   faixa fina e sem termos em alta; busca em linha própria. A página inicial começa direto em "⚡ Ofertas do dia".
 
+- **Gatilhos de compra honestos (15/10/2026, pedido do Giovanni)**: botão "Comprar na <loja> →" (no celular só "Comprar");
+  "Você economiza R$ X" sob o preço; "🔥 N mil vendidos" em laranja quando ≥ 1.000; selo "⭐ Mais vendido" no campeão de
+  vendas da lista (mín. 100); "🏆 Menor preço entre N lojas" no produto agrupado por código de barras e "🏆 Menor preço da
+  busca" no mais barato; frete grátis em selo verde forte. **Regra combinada: nada de urgência/escassez falsa** (contador,
+  "só restam 2", "N pessoas vendo") — CDC proíbe propaganda enganosa e as lojas podem cancelar a afiliação.
+
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
    Quando entrar a 1ª loja BR, conferir o log do robô (Actions > Robô de preços) e os produtos no site.

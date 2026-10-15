@@ -436,6 +436,19 @@ function estrelas(nota) {
   return "★".repeat(cheias) + "☆".repeat(5 - cheias);
 }
 
+// Texto com versão curta para o celular (cartões estreitos)
+const longoCurto = (longo, curto) => [el("span", { class: "so-longo" }, longo), el("span", { class: "so-curto" }, curto)];
+
+// Texto do botão: verbo + loja ("Comprar na Shopee"). No celular, só "Comprar"
+const textoComprar = (loja) =>
+  longoCurto(loja.nome.length <= 16 ? `Comprar ${loja.em} ${loja.nome}` : "Comprar na loja", "Comprar");
+
+// Mais vendido da lista (só quando a venda é expressiva, para o selo não perder valor)
+function idMaisVendido(lista) {
+  const campeao = lista.reduce((a, b) => ((b.vendidos || 0) > (a?.vendidos || 0) ? b : a), null);
+  return campeao && campeao.vendidos >= 100 ? campeao.id : null;
+}
+
 function vendidosTexto(n) {
   if (!n) return null;
   return n >= 1000 ? `${(n / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil vendidos` : `${n} vendidos`;
@@ -466,7 +479,7 @@ function listaOutrasLojas(o) {
   return detalhes;
 }
 
-function cartaoOferta(o, { melhor = false } = {}) {
+function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
   const loja = infoLoja(o);
   const [inteiro, decimal] = brl(o.preco).split(",");
 
@@ -482,7 +495,11 @@ function cartaoOferta(o, { melhor = false } = {}) {
         ? el("img", { src: o.imagem, alt: "", loading: "lazy", onerror: (e) => e.target.replaceWith(el("span", { class: "foto-emoji" }, o.emoji || "🛍️")) })
         : el("span", { class: "foto-emoji" }, o.emoji || "🛍️"),
       el("div", { class: "selos" },
-        melhor && el("span", { class: "selo selo-melhor" }, "🏆 Menor preço"),
+        // Mesmo produto em várias lojas: o cartão mostra a mais barata delas
+        o.outras?.length
+          ? el("span", { class: "selo selo-melhor" }, ...longoCurto(`🏆 Menor preço entre ${o.outras.length + 1} lojas`, `🏆 ${o.outras.length + 1} lojas`))
+          : melhor && el("span", { class: "selo selo-melhor" }, ...longoCurto("🏆 Menor preço da busca", "🏆 Menor preço")),
+        maisVendido && el("span", { class: "selo selo-vendido" }, ...longoCurto("⭐ Mais vendido", "⭐ Top")),
         o.desconto && el("span", { class: "selo selo-desconto" }, `-${o.desconto}%`),
         ...selosHistorico(o))),
     el("button", {
@@ -495,10 +512,12 @@ function cartaoOferta(o, { melhor = false } = {}) {
       (o.avaliacao || o.vendidos) && el("div", { class: "nota" },
         o.avaliacao && el("span", { class: "estrelas", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
         o.avaliacao && el("span", {}, String(o.avaliacao).replace(".", ",")),
-        o.vendidos && el("span", {}, vendidosTexto(o.vendidos))),
+        o.vendidos && el("span", { class: o.vendidos >= 1000 ? "vendidos-muitos" : null },
+          `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`)),
       el("div", { class: "precos" },
         o.precoAntigo && el("span", { class: "preco-antigo" }, `R$ ${brl(o.precoAntigo)}`),
-        el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", {}, `,${decimal}`))),
+        el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", {}, `,${decimal}`)),
+        o.precoAntigo > o.preco + 1 && el("span", { class: "economia-tag" }, ...longoCurto(`Você economiza R$ ${brl(o.precoAntigo - o.preco)}`, `Economize R$ ${brl(o.precoAntigo - o.preco)}`))),
       o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
       o.internacional && el("span", {
         class: "internacional",
@@ -507,7 +526,7 @@ function cartaoOferta(o, { melhor = false } = {}) {
       o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico de preço"),
       listaOutrasLojas(o),
       el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
-        "Ver oferta", el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
+        ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
 }
 
 // ---------------------------------------------------------------------
@@ -622,7 +641,7 @@ async function abrirHistorico(o) {
       : `Preço acompanhado há ${diasAcompanhando} dias.${o.moeda ? ` Valores convertidos de ${o.moeda} para reais.` : ""}`),
     el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener",
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}` },
-      "Ver oferta", el("span", { class: "flecha", "aria-hidden": "true" }, "→")));
+      ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→")));
 }
 
 function esqueletos(qtd) {
@@ -711,8 +730,9 @@ function desenharResultados() {
   const idMelhor = lista.length > 1 ? lista.reduce((a, b) => (b.preco < a.preco ? b : a)).id : null;
   desenharResumo(lista);
   $("#total").textContent = `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}`;
+  const idVendido = idMaisVendido(lista);
   $("#grade").replaceChildren(...agrupar(lista).map((o, i) => {
-    const c = cartaoOferta(o, { melhor: o.id === idMelhor });
+    const c = cartaoOferta(o, { melhor: o.id === idMelhor, maisVendido: o.id === idVendido });
     c.style.animationDelay = `${Math.min(i, 12) * 30}ms`;
     return c;
   }));
@@ -757,7 +777,8 @@ async function carregarDestaques() {
   try {
     const dados = await consultarApi("");
     $("#aviso-teste").hidden = !dados.exemplo;
-    grade.replaceChildren(...agrupar(dados.ofertas).map((o) => cartaoOferta(o)));
+    const idVendido = idMaisVendido(dados.ofertas);
+    grade.replaceChildren(...agrupar(dados.ofertas).map((o) => cartaoOferta(o, { maisVendido: o.id === idVendido })));
   } catch {
     grade.replaceChildren(el("p", { class: "vazio" }, "Não foi possível carregar as ofertas agora."));
   }

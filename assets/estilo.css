@@ -267,7 +267,12 @@ a { color: inherit; }
 .preco { display: block; font-size: 1.55rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
 .preco small { font-size: .9rem; font-weight: 700; margin-right: 2px; }
 
-.frete { display: inline-block; align-self: flex-start; font-size: .75rem; font-weight: 700; color: var(--verde); background: var(--verde-fundo); padding: 3px 8px; border-radius: 6px; }
+.frete { display: inline-block; align-self: flex-start; font-size: .82rem; font-weight: 800; color: #fff; background: #16a34a; padding: 4px 10px; border-radius: 8px; }
+.economia-tag { display: block; margin-top: 2px; font-size: .8rem; font-weight: 700; color: var(--verde); }
+.nota .vendidos-muitos { color: #ea580c; font-weight: 700; }
+.selo-vendido { background: #f59e0b; color: #3b2a00; }
+.so-curto { display: none; }
+@media (max-width: 640px) { .so-longo { display: none; } .so-curto { display: inline; } }
 .internacional { display: inline-block; align-self: flex-start; font-size: .75rem; font-weight: 700; color: #1d4ed8; background: #dbeafe; padding: 3px 8px; border-radius: 6px; margin-top: 4px; }
 @media (prefers-color-scheme: dark) { .internacional { color: #93c5fd; background: #172554; } }
 
