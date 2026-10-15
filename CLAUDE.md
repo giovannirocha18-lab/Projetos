@@ -204,6 +204,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Arquivo da Awin contém `Validation content="<código>"` (não só o código): middleware ajustado para responder igual.
   Conferido no navegador dele: arquivo responde igual ao da Awin, mas o escudo continua igual. Próximo: passar o mouse
   no escudo (ver o aviso), esperar algumas horas e, se seguir, abrir chamado em Suporte da Awin (texto entregue a ele).
+  Chat com o suporte da Awin (16/10/2026): **verificação do site NÃO é obrigatória** (estão mudando o processo).
+  Então o escudo não é a causa das recusas. Mantidas a meta tag e o arquivo (não atrapalham).
   Hipóteses: recusa avaliada quando ainda era "Em breve"; ou loja checa se o site aparece no Google (noindex esconde).
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
