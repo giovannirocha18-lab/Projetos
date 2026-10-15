@@ -147,6 +147,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   todas as regiões; converte USD/EUR/GBP… para BRL pela AwesomeAPI (regrava só se o câmbio mudar >3%); escolhe 1 feed
   por loja estrangeira (pt > EUA/inglês > maior); colunas novas `internacional` e `moeda` (migração automática).
   Site mostra selo "🌎 Internacional · valor aproximado" (dica: pode haver impostos de importação).
+  **15/10/2026, execução #6: primeiros produtos reais no banco!** 31 produtos da EINSTAR / SHINING 3D (feed US/inglês,
+  formato Google com aw_deep_link; 100 fora de estoque ignorados). Cotação: AwesomeAPI não trouxe o dólar (talvez exija
+  chave agora); usou ExchangeRate-API (open.er-api.com). Com ofertas reais no banco, o `/previa` deixou de mostrar os
+  produtos de exemplo (só aparecem os 31 scanners até outras lojas aprovarem). Pedido ao Giovanni: conferir no `/previa`
+  buscando "scanner".
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
   roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).
 - **Logo** criada (14/10/2026): ícone (quadrado arredondado com gradiente do site + carrinho branco/amarelo) + texto
