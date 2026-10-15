@@ -202,6 +202,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   conferir o conteúdo do arquivo baixado da Awin (se não for só o código, trocar no middleware). Security > Analytics > Events:
   nenhum bloqueio na hora da verificação (só 4 bloqueios antigos de robôs em 14–15/10). Cloudflare não é a causa.
   Arquivo da Awin contém `Validation content="<código>"` (não só o código): middleware ajustado para responder igual.
+  Conferido no navegador dele: arquivo responde igual ao da Awin, mas o escudo continua igual. Próximo: passar o mouse
+  no escudo (ver o aviso), esperar algumas horas e, se seguir, abrir chamado em Suporte da Awin (texto entregue a ele).
   Hipóteses: recusa avaliada quando ainda era "Em breve"; ou loja checa se o site aparece no Google (noindex esconde).
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
