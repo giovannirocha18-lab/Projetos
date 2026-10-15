@@ -78,8 +78,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Shopee: dados fiscais | ⏳ em análise |
 | Shopee: conta "Maree" (para receber pagamentos) | ❗ falta ativar (link "Como ativar?" no portal) |
 | Shopee: Open API | ❗ sem acesso (14/10/2026: tela "Abrir API" com AppID/Senha vazios e "Aplicar" cinza; pede contato com a Shopee). **Pedido de acesso feito em 14/10/2026.** 15/10/2026: ✅ **API liberada e FUNCIONANDO no site** (chaves SHOPEE_APP_ID/SHOPEE_SECRET no Cloudflare; teste /api/buscar?q=fone bluetooth → shopee ok, 30 produtos com link de afiliado s.shopee.com.br, foto, preço, desconto, avaliação, vendidos). Quando liberar: "Senha" da tela = `SHOPEE_SECRET` |
-| Awin (rede de afiliados) | ✅ conta aprovada (ID 3124296). Lojas: só EINSTAR aprovada (EUA); pedidos em lojas BR pendentes |
-| Robô de preços (Awin → D1, GitHub Actions 04:17) | ✅ funcionando. 31 produtos reais (EINSTAR) no site, com preço convertido do dólar |
+| Awin (rede de afiliados) | ✅ conta aprovada (ID 3124296). Lojas aprovadas: EINSTAR (EUA), **Spicy e Shark-Ninja (BR, 15/10/2026)**; outras BR pendentes |
+| Robô de preços (Awin → D1, GitHub Actions 04:17) | ✅ funcionando. Execução #10 (15/10/2026, disparada pelo Claude): 398 produtos (Spicy 349, Shark-Ninja 18, EINSTAR 31) |
 | Histórico de preço + produto agrupado por código de barras | ✅ publicado (15/10/2026); ganha dados com o tempo |
 | AliExpress Afiliados | ⏳ cadastro em análise (14/10/2026); depois pegar chaves da API |
 | Logo e imagens do Instagram | ✅ em `marca/` |
