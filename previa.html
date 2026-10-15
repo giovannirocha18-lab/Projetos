@@ -50,12 +50,10 @@
   <main id="inicio">
     <section class="hero">
       <div class="container hero-conteudo">
-        <span class="hero-selo">🔥 Os melhores preços da internet num só lugar</span>
-        <h1>Compare preços.<br><span class="destaque">Pague menos.</span></h1>
-        <p class="hero-texto">Busque uma vez e veja as ofertas da Shopee, Mercado Livre, Amazon, AliExpress e outras lojas lado a lado.</p>
+        <h1>Compare preços. <span class="destaque">Pague menos.</span></h1>
 
         <form class="busca busca-grande" data-busca role="search">
-          <input type="search" name="q" placeholder="Ex.: air fryer, fone bluetooth, tênis…" aria-label="Buscar produto" autocomplete="off">
+          <input type="search" name="q" placeholder="O que você procura? Ex.: air fryer, fone bluetooth…" aria-label="Buscar produto" autocomplete="off">
           <button type="submit">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
             <span>Comparar</span>
@@ -67,9 +65,14 @@
           <span>Em alta:</span>
           <div class="chips" id="em-alta"></div>
         </div>
-
-        <ul class="lojas-hero" id="lojas-hero" aria-label="Lojas comparadas"></ul>
       </div>
+    </section>
+
+    <section class="container secao secao-ofertas">
+      <div class="secao-titulo">
+        <h2>⚡ Ofertas do dia</h2>
+      </div>
+      <div class="grade" id="destaques"></div>
     </section>
 
     <section class="container secao">
@@ -77,17 +80,6 @@
         <h2>Navegue por categoria</h2>
       </div>
       <div class="categorias" id="categorias"></div>
-    </section>
-
-    <section class="container secao">
-      <div class="secao-titulo">
-        <h2>⚡ Ofertas do dia</h2>
-        <div class="setas">
-          <button type="button" class="seta" data-rolar="-1" aria-label="Ofertas anteriores">‹</button>
-          <button type="button" class="seta" data-rolar="1" aria-label="Próximas ofertas">›</button>
-        </div>
-      </div>
-      <div class="carrossel" id="destaques"></div>
     </section>
 
     <section class="container secao">

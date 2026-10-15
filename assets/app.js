@@ -752,14 +752,14 @@ async function buscar(q) {
 // Página inicial
 // ---------------------------------------------------------------------
 async function carregarDestaques() {
-  const carrossel = $("#destaques");
-  carrossel.replaceChildren(...esqueletos(6));
+  const grade = $("#destaques");
+  grade.replaceChildren(...esqueletos(12));
   try {
     const dados = await consultarApi("");
     $("#aviso-teste").hidden = !dados.exemplo;
-    carrossel.replaceChildren(...dados.ofertas.map(cartaoOferta));
+    grade.replaceChildren(...agrupar(dados.ofertas).map((o) => cartaoOferta(o)));
   } catch {
-    carrossel.replaceChildren(el("p", { class: "vazio" }, "Não foi possível carregar as ofertas agora."));
+    grade.replaceChildren(el("p", { class: "vazio" }, "Não foi possível carregar as ofertas agora."));
   }
 }
 
@@ -767,17 +767,10 @@ function montarInicio() {
   $("#em-alta").replaceChildren(...EM_ALTA.map((t) =>
     el("button", { class: "chip-alta", type: "button", onclick: () => irPara(t) }, t)));
 
-  $("#lojas-hero").replaceChildren(...Object.values(LOJAS).map((l) =>
-    el("li", { style: `--cor-loja:${l.cor}` }, el("span", { class: "loja-ponto" }), l.nome)));
-
   $("#categorias").replaceChildren(...CATEGORIAS.map((c) =>
     el("button", { class: "categoria", type: "button", style: `--fundo-cat:${c.fundo}`, onclick: () => irPara(c.nome) },
       el("span", { class: "categoria-icone", "aria-hidden": "true" }, c.emoji), c.nome)));
 
-  document.querySelectorAll("[data-rolar]").forEach((b) => b.addEventListener("click", () => {
-    const c = $("#destaques");
-    c.scrollBy({ left: Number(b.dataset.rolar) * c.clientWidth * 0.8, behavior: "smooth" });
-  }));
 }
 
 // ---------------------------------------------------------------------

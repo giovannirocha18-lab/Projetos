@@ -184,6 +184,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **Layout (15/10/2026, pedido do Giovanni)**: no computador os filtros viraram uma barra em cima dos resultados (lojas
   como "pílulas"), página mais larga (container 1600px) e até 6 cartões por linha. No celular continua a gaveta de
   filtros. Logo real (`marca/vaiprocarrinho-icone.svg`) no topo e como ícone da aba em todas as páginas.
+- **Página inicial compacta (15/10/2026, pedido do Giovanni)**: abertura (hero) baixa só com título numa linha + busca +
+  "Em alta" (no celular, numa linha que desliza). Tirados o selo, o texto e a fileira de lojas (citava lojas que ainda
+  não temos). "⚡ Ofertas do dia" virou grade logo abaixo da busca (Shopee: 24 mais vendidos + Awin com desconto);
+  categorias vieram para baixo.
 
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
