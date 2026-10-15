@@ -724,7 +724,8 @@ function esqueletos(qtd) {
 // ---------------------------------------------------------------------
 // Busca
 // ---------------------------------------------------------------------
-const estado = { q: "", ofertas: [], lojasDesmarcadas: new Set(), pedido: 0 };
+// A mesma lista de filtros serve para as "Ofertas do dia" (q vazio) e para a busca
+const estado = { q: "", ofertas: [], inicio: null, lojasDesmarcadas: new Set(), pedido: 0 };
 
 async function consultarApi(q) {
   const resp = await fetch(`/api/buscar?q=${encodeURIComponent(q)}`);
@@ -744,7 +745,7 @@ function filtrar() {
     && (!frete || o.freteGratis)
     && (!desconto || o.desconto));
 
-  const ordem = $("#ordem").value;
+  const ordem = $("input[name=ordem]:checked").value;
   const ordenar = {
     menor: (a, b) => a.preco - b.preco,
     maior: (a, b) => b.preco - a.preco,
@@ -794,6 +795,7 @@ function desenharResumo(lista) {
 
 function desenharResultados() {
   const lista = filtrar();
+  if (!estado.q) return desenharInicio(lista);
   const idMelhor = lista.length > 1 ? lista.reduce((a, b) => (b.preco < a.preco ? b : a)).id : null;
   desenharResumo(lista);
   $("#total").textContent = `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}`;
@@ -838,16 +840,39 @@ async function buscar(q) {
 // ---------------------------------------------------------------------
 // Página inicial
 // ---------------------------------------------------------------------
+function desenharInicio(lista) {
+  const idVendido = idMaisVendido(lista);
+  $("#destaques").replaceChildren(...(lista.length
+    ? agrupar(lista).map((o) => cartaoOferta(o, { maisVendido: o.id === idVendido }))
+    : [el("p", { class: "vazio" }, estado.ofertas.length ? "Nenhuma oferta do dia com esses filtros." : "Nenhuma oferta do dia agora.")]));
+}
+
+function mostrarInicio() {
+  estado.q = "";
+  estado.lojasDesmarcadas.clear();
+  if (estado.inicio) {
+    estado.ofertas = estado.inicio;
+    desenharFiltroLojas();
+    desenharResultados();
+  } else {
+    carregarDestaques();
+  }
+}
+
 async function carregarDestaques() {
-  const grade = $("#destaques");
-  grade.replaceChildren(...esqueletos(12));
+  const pedido = ++estado.pedido;
+  estado.ofertas = [];
+  $("#filtro-lojas").replaceChildren();
+  $("#destaques").replaceChildren(...esqueletos(12));
   try {
     const dados = await consultarApi("");
+    estado.inicio = dados.ofertas;
+    if (pedido !== estado.pedido) return; // a pessoa já foi para uma busca
     $("#aviso-teste").hidden = !dados.exemplo;
-    const idVendido = idMaisVendido(dados.ofertas);
-    grade.replaceChildren(...agrupar(dados.ofertas).map((o) => cartaoOferta(o, { maisVendido: o.id === idVendido })));
+    mostrarInicio();
   } catch {
-    grade.replaceChildren(el("p", { class: "vazio" }, "Não foi possível carregar as ofertas agora."));
+    if (pedido !== estado.pedido) return;
+    $("#destaques").replaceChildren(el("p", { class: "vazio" }, "Não foi possível carregar as ofertas agora."));
   }
 }
 
@@ -874,15 +899,15 @@ function montarInicio() {
   carregarEmAlta();
 
   $("#categorias").replaceChildren(...CATEGORIAS.map((c) =>
-    el("button", { class: "categoria", type: "button", style: `--fundo-cat:${c.fundo}`, onclick: () => irPara(c.nome) },
-      el("span", { class: "categoria-icone", "aria-hidden": "true" }, c.emoji), c.nome)));
+    el("button", { class: "cat-item", type: "button", "data-categoria": c.nome, style: `--fundo-cat:${c.fundo}`,
+      onclick: () => { abrirFiltros(false); irPara(c.nome); } },
+      el("span", { class: "cat-icone", "aria-hidden": "true" }, c.emoji), c.nome)));
 
 }
 
 // ---------------------------------------------------------------------
 // Navegação: ?q=... na barra de endereço (o botão Voltar funciona)
 // ---------------------------------------------------------------------
-let destaquesCarregados = false;
 
 function mostrar() {
   const q = (new URLSearchParams(location.search).get("q") || "").trim();
@@ -890,12 +915,13 @@ function mostrar() {
   document.body.classList.toggle("modo-inicio", !emBusca);
   $("#inicio").hidden = emBusca;
   $("#resultados").hidden = !emBusca;
+  document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", normalizar(b.dataset.categoria) === normalizar(q)));
   if (emBusca) {
     buscar(q);
   } else {
     document.title = "Vai pro Carrinho — Compare preços e economize";
     document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
-    if (!destaquesCarregados) { destaquesCarregados = true; carregarDestaques(); }
+    mostrarInicio();
   }
 }
 
@@ -967,6 +993,8 @@ function abrirFiltros(abrir) {
 // ---------------------------------------------------------------------
 // Início
 // ---------------------------------------------------------------------
+// A barra lateral gruda logo abaixo do cabeçalho (que muda de altura no celular)
+new ResizeObserver(() => document.documentElement.style.setProperty("--altura-topo", `${$("#topo").offsetHeight}px`)).observe($("#topo"));
 document.querySelectorAll("[data-busca]").forEach(prepararBusca);
 document.querySelectorAll("[data-inicio]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); irPara(""); }));
 
@@ -975,7 +1003,8 @@ let timerPreco;
   clearTimeout(timerPreco);
   timerPreco = setTimeout(desenharResultados, 300);
 }));
-["#so-frete", "#so-desconto", "#ordem"].forEach((s) => $(s).addEventListener("change", desenharResultados));
+["#so-frete", "#so-desconto"].forEach((s) => $(s).addEventListener("change", desenharResultados));
+document.querySelectorAll("input[name=ordem]").forEach((r) => r.addEventListener("change", desenharResultados));
 $("#limpar-filtros").addEventListener("click", () => {
   $("#preco-min").value = "";
   $("#preco-max").value = "";
@@ -986,7 +1015,7 @@ $("#limpar-filtros").addEventListener("click", () => {
   desenharResultados();
 });
 
-$("#abrir-filtros").addEventListener("click", () => abrirFiltros(true));
+document.querySelectorAll("[data-abrir-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(true)));
 document.querySelectorAll("[data-fechar-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(false)));
 $("#abrir-favoritos").addEventListener("click", () => abrirPainel(true));
 $("#fechar-favoritos").addEventListener("click", () => abrirPainel(false));

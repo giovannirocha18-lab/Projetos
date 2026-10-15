@@ -225,6 +225,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Ajuste (pedido dele): na Shopee a janela repetia o cartão (API de afiliados manda só 1 foto e sem descrição), então
   "Ver detalhes" só aparece quando há descrição ou 2+ fotos (hoje: Awin). Selo "✔ Oficial" foi para o cartão.
 
+- **Barra lateral (15/10/2026, pedido do Giovanni)**: substituiu a barra de filtros em cima e a seção "Navegue por
+  categoria". Fica à esquerda na página inicial e na busca, presa abaixo do cabeçalho: "Ordenar por" (Mais relevantes,
+  Menor/Maior preço, Maior desconto, Mais vendidos), "Categorias" (as 9 de `CATEGORIAS` no `app.js`; a ativa fica
+  marcada), "Lojas parceiras" (lojas da lista atual, com quantidade), Preço e Mais opções. Na página inicial os filtros
+  valem para as "Ofertas do dia". No celular vira gaveta pelo botão "☰ Categorias e filtros".
+
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
    Quando entrar a 1ª loja BR, conferir o log do robô (Actions > Robô de preços) e os produtos no site.

@@ -55,82 +55,80 @@
     </div>
   </header>
 
-  <!-- ============ PÁGINA INICIAL ============ -->
-  <main id="inicio">
-    <section class="container secao secao-ofertas">
-      <div class="secao-titulo">
-        <h2>⚡ Ofertas do dia</h2>
+  <div class="container pagina">
+    <!-- ============ BARRA LATERAL: ordem, categorias, lojas e filtros (no celular vira gaveta) ============ -->
+    <aside class="filtros" id="filtros" aria-label="Categorias e filtros">
+      <div class="filtros-cabecalho">
+        <h2>Categorias e filtros</h2>
+        <button type="button" class="fechar" data-fechar-filtros aria-label="Fechar filtros">✕</button>
       </div>
-      <div class="grade" id="destaques"></div>
-    </section>
 
-    <section class="container secao">
-      <div class="secao-titulo">
-        <h2>Navegue por categoria</h2>
-      </div>
-      <div class="categorias" id="categorias"></div>
-    </section>
+      <fieldset>
+        <legend>Ordenar por</legend>
+        <label class="opcao"><input type="radio" name="ordem" value="relevancia" checked> Mais relevantes</label>
+        <label class="opcao"><input type="radio" name="ordem" value="menor"> Menor preço</label>
+        <label class="opcao"><input type="radio" name="ordem" value="maior"> Maior preço</label>
+        <label class="opcao"><input type="radio" name="ordem" value="desconto"> Maior desconto</label>
+        <label class="opcao"><input type="radio" name="ordem" value="vendidos"> Mais vendidos</label>
+      </fieldset>
 
-    <section class="container secao">
-      <div class="passos">
-        <div class="passo"><span class="passo-num">1</span><h3>Busque</h3><p>Digite o produto que você quer comprar.</p></div>
-        <div class="passo"><span class="passo-num">2</span><h3>Compare</h3><p>Veja o preço em várias lojas, com frete e desconto.</p></div>
-        <div class="passo"><span class="passo-num">3</span><h3>Economize</h3><p>Clique na melhor oferta e compre direto na loja.</p></div>
-      </div>
-    </section>
-  </main>
+      <fieldset>
+        <legend>Categorias</legend>
+        <div class="cat-lista" id="categorias"></div>
+      </fieldset>
 
-  <!-- ============ RESULTADOS DA BUSCA ============ -->
-  <main id="resultados" class="container" hidden>
-    <div class="resumo" id="resumo"></div>
+      <fieldset>
+        <legend>Lojas parceiras</legend>
+        <div id="filtro-lojas"></div>
+      </fieldset>
 
-    <div class="resultados-layout">
-      <aside class="filtros" id="filtros" aria-label="Filtros">
-        <div class="filtros-cabecalho">
-          <h2>Filtros</h2>
-          <button type="button" class="fechar" data-fechar-filtros aria-label="Fechar filtros">✕</button>
+      <fieldset>
+        <legend>Preço</legend>
+        <div class="faixa-preco">
+          <label>Mín. <input type="number" id="preco-min" min="0" inputmode="numeric" placeholder="R$ 0"></label>
+          <label>Máx. <input type="number" id="preco-max" min="0" inputmode="numeric" placeholder="R$ ∞"></label>
         </div>
+      </fieldset>
 
-        <fieldset>
-          <legend>Lojas</legend>
-          <div id="filtro-lojas"></div>
-        </fieldset>
+      <fieldset>
+        <legend>Mais opções</legend>
+        <label class="opcao"><input type="checkbox" id="so-frete"> Frete grátis</label>
+        <label class="opcao"><input type="checkbox" id="so-desconto"> Com desconto</label>
+      </fieldset>
 
-        <fieldset>
-          <legend>Preço</legend>
-          <div class="faixa-preco">
-            <label>Mín. <input type="number" id="preco-min" min="0" inputmode="numeric" placeholder="R$ 0"></label>
-            <label>Máx. <input type="number" id="preco-max" min="0" inputmode="numeric" placeholder="R$ ∞"></label>
+      <button type="button" class="botao-secundario" id="limpar-filtros">Limpar filtros</button>
+      <button type="button" class="botao-primario so-celular" data-fechar-filtros>Ver ofertas</button>
+    </aside>
+
+    <div class="pagina-conteudo">
+      <!-- ============ PÁGINA INICIAL ============ -->
+      <main id="inicio">
+        <section class="secao secao-ofertas">
+          <div class="secao-titulo">
+            <h2>⚡ Ofertas do dia</h2>
+            <button type="button" class="botao-filtros so-celular" data-abrir-filtros>☰ Categorias e filtros</button>
           </div>
-        </fieldset>
+          <div class="grade" id="destaques"></div>
+        </section>
 
-        <fieldset>
-          <legend>Mais opções</legend>
-          <label class="opcao"><input type="checkbox" id="so-frete"> Frete grátis</label>
-          <label class="opcao"><input type="checkbox" id="so-desconto"> Com desconto</label>
-        </fieldset>
+        <section class="secao">
+          <div class="passos">
+            <div class="passo"><span class="passo-num">1</span><h3>Busque</h3><p>Digite o produto que você quer comprar.</p></div>
+            <div class="passo"><span class="passo-num">2</span><h3>Compare</h3><p>Veja o preço em várias lojas, com frete e desconto.</p></div>
+            <div class="passo"><span class="passo-num">3</span><h3>Economize</h3><p>Clique na melhor oferta e compre direto na loja.</p></div>
+          </div>
+        </section>
+      </main>
 
-        <button type="button" class="botao-secundario" id="limpar-filtros">Limpar filtros</button>
-        <button type="button" class="botao-primario so-celular" data-fechar-filtros>Ver ofertas</button>
-      </aside>
-
-      <section class="lista">
+      <!-- ============ RESULTADOS DA BUSCA ============ -->
+      <main id="resultados" hidden>
+        <div class="resumo" id="resumo"></div>
         <div class="barra-lista">
-          <button type="button" class="botao-filtros so-celular" id="abrir-filtros">
+          <button type="button" class="botao-filtros so-celular" data-abrir-filtros>
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-            Filtros
+            Filtros e ordem
           </button>
           <p class="total" id="total"></p>
-          <label class="ordenar">
-            <span>Ordenar:</span>
-            <select id="ordem">
-              <option value="relevancia">Mais relevantes</option>
-              <option value="menor">Menor preço</option>
-              <option value="maior">Maior preço</option>
-              <option value="desconto">Maior desconto</option>
-              <option value="vendidos">Mais vendidos</option>
-            </select>
-          </label>
         </div>
         <div class="grade" id="grade"></div>
         <div class="vazio" id="vazio" hidden>
@@ -138,9 +136,9 @@
           <h3>Nenhuma oferta encontrada</h3>
           <p>Tente outra palavra ou remova alguns filtros.</p>
         </div>
-      </section>
+      </main>
     </div>
-  </main>
+  </div>
 
   <!-- ============ MEU CARRINHO ============ -->
   <div class="painel-fundo" id="painel-fundo" hidden></div>
