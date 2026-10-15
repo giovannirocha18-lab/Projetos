@@ -62,7 +62,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Cloudflare criou registros "sem e-mail" (MX nulo, SPF -all, DMARC reject). Trocar se um dia
   quiser e-mail no domínio.
 
-## Situação atual (atualizado em 15/10/2026)
+## Situação atual (atualizado em 15/10/2026, fim da sessão)
 | Item | Situação |
 |---|---|
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
@@ -216,6 +216,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **E-mail contato@ (15/10/2026)**: passos do Cloudflare Email Routing entregues ao Giovanni (encaminhar para o e-mail
   pessoal dele; apagar antes o MX nulo e o TXT `v=spf1 -all`). Só recebe; responder como contato@ exige configurar
   "Enviar e-mail como" no Gmail com SMTP (ex.: Resend). Aguardando ele fazer e mandar print.
+- **Pedir de novo às lojas que recusaram (15/10/2026)**: Giovanni vai reenviar. Texto entregue a ele: apresenta o
+  Vai pro Carrinho (comparador; preço, desconto, frete, histórico), diz que a recusa foi porque o site estava bloqueado
+  na Awin por engano (suporte corrigiu) e que o comparador já funciona com produtos reais; promete usar preço/link
+  oficiais, sem cupons falsos nem anúncios pagos com a marca (ele deve conferir se isso é verdade). **Não** reenviar a
+  Central Ar e Dufrio (exigem CNPJ). Próximo: ver respostas na Awin.
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
@@ -289,8 +294,13 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   `porPagina`, até 20 páginas; resposta traz `temMais`) e junta à lista; filtros e ordem valem para tudo que já carregou.
 
 ## Próximos passos
-1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
-   Quando entrar a 1ª loja BR, conferir o log do robô (Actions > Robô de preços) e os produtos no site.
+1. Giovanni: reenviar pedidos às lojas que recusaram (texto acima) e acompanhar aprovações na Awin; recusar convites
+   fora do perfil. A cada loja nova: Claude pode disparar o robô (GitHub MCP `actions_run_trigger`, workflow
+   `robo-precos.yml`, ref `claude/inspiring-hamilton-wafagr`) e ler o log; se o nome da loja vier como empresa,
+   acrescentar em `NOMES_LOJAS` (`lib/ofertas.js`, ex.: SHINING 3D → EINSTAR).
+1b. Giovanni conferir no site (15/10/2026): busca "air fryer oster" sem motor/botão; "ar condicionado" sem fogões da
+   Spicy; botão "Ver mais resultados"; categorias A–Z; atalhos sem "Roupas"; fotos mais rápidas. Pendente: e-mail
+   contato@ (passos já entregues).
 2. AliExpress: quando aprovar, cadastro no openservice.aliexpress.com, chaves como Secrets no Cloudflare, Claude escreve
    `lib/fontes/aliexpress.js`.
 3. Giovanni testar o site no celular e opinar sobre o visual; testar cadastro com e-mail + senha.
