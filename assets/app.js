@@ -737,7 +737,7 @@ const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInici
 async function consultarApi(q, pagina = 1) {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
-  const resp = await fetch(`/api/buscar?v=6&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=7&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
