@@ -41,7 +41,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Teste local: `node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite`. Ver README.
 - `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br`, que **ainda não existe**.
 - `_headers` + `<meta robots noindex>` escondem o site do Google até o lançamento.
-- Testar local: `npx wrangler pages dev .` (rodar **de dentro do repositório**) e abrir `/previa`.
+- Testar local: `npx wrangler pages dev .` (rodar **de dentro do repositório**) e abrir a página principal.
 - A rede do ambiente do Claude bloqueia `*.pages.dev`, API e docs do Mercado Livre e DNS externo.
 
 ## Hospedagem e domínio
@@ -60,7 +60,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Item | Situação |
 |---|---|
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
-| Comparador com produtos de exemplo em `/previa` | ✅ |
+| Comparador com produtos reais (Shopee + Awin) | ✅ |
 | Lista de produtos reais (curadoria) pronta para receber links | ✅ vazia, aguardando links |
 | Favoritos virou "Meu carrinho" (ícone de carrinho) | ✅ |
 | Cadastro sem senha + carrinho na conta (código testado localmente) | ✅ funcionando (14/10/2026: código chegou no e-mail dele). Sessão dura 90 dias por aparelho |
@@ -202,10 +202,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 
 ## Próximos passos
 1. Giovanni: acompanhar aprovações das lojas BR na Awin (aba "Inscrito"); recusar convites fora do perfil.
-   Quando entrar a 1ª loja BR, conferir o log do robô (Actions > Robô de preços) e os produtos no `/previa`.
+   Quando entrar a 1ª loja BR, conferir o log do robô (Actions > Robô de preços) e os produtos no site.
 2. AliExpress: quando aprovar, cadastro no openservice.aliexpress.com, chaves como Secrets no Cloudflare, Claude escreve
    `lib/fontes/aliexpress.js`.
-3. Giovanni testar `/previa` no celular (busca "scanner") e opinar sobre o visual; testar cadastro com e-mail + senha.
+3. Giovanni testar o site no celular e opinar sobre o visual; testar cadastro com e-mail + senha.
 4. Quando houver visitantes: alerta de preço por e-mail (item 3 da análise de concorrentes); depois cupons e desconto
    verificado pelo histórico.
 5. ✅ Shopee ligada (15/10/2026). Ideia futura: guardar preços da Shopee no histórico (robô consultando os mais buscados).
