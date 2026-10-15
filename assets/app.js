@@ -949,7 +949,15 @@ async function carregarEmAlta() {
 const CATEGORIAS_VISIVEIS = 12;
 const FUNDOS_MENU = CATEGORIAS.map((c) => c.fundo);
 
-function desenharCategorias(lista) {
+// Ordem do menu de categorias escolhida pelo visitante: "vendidos" (como vem da API) ou "az"
+let categoriasAtuais = [];
+let ordemCategorias = "vendidos";
+try { if (localStorage.getItem("ordemCategorias") === "az") ordemCategorias = "az"; } catch { /* sem armazenamento */ }
+
+function desenharCategorias(lista = categoriasAtuais) {
+  categoriasAtuais = lista;
+  document.querySelectorAll("[data-ordem-cat]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.ordemCat === ordemCategorias)));
+  if (ordemCategorias === "az") lista = [...lista].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
   const botoes = lista.map((c, i) =>
     el("button", { class: "cat-item", type: "button", "data-busca": c.busca || c.nome,
       style: `--fundo-cat:${FUNDOS_MENU[i % FUNDOS_MENU.length]}`,
@@ -971,6 +979,14 @@ function marcarCategoria() {
   const q = normalizar(new URLSearchParams(location.search).get("q") || "");
   document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", Boolean(q) && normalizar(b.dataset.busca) === q));
 }
+
+document.querySelectorAll("[data-ordem-cat]").forEach((b) => b.addEventListener("click", () => {
+  ordemCategorias = b.dataset.ordemCat;
+  try { localStorage.setItem("ordemCategorias", ordemCategorias); } catch { /* sem armazenamento */ }
+  const todas = $("#categorias").classList.contains("todas");
+  desenharCategorias();
+  if (todas) $(".cat-ver-todas")?.click();
+}));
 
 function montarInicio() {
   desenharEmAlta(EM_ALTA);

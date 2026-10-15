@@ -276,6 +276,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **Atalhos "em alta" (15/10/2026)**: "Roupas" e "Attracione men" vinham das buscas do site (cliques em atalhos antigos
   contavam como busca). Agora clique em atalho/categoria manda `&atalho=1` e não é contado; `FORA_DOS_ATALHOS` em
   `lib/buscas.js` tira termos ruins já contados. `/api/em-alta` também tem versão no cache (`?v=`).
+- **Ordem das categorias (15/10/2026, pedido do Giovanni)**: botões "Mais vendidos | A–Z" acima da lista na barra
+  lateral; escolha guardada no aparelho (localStorage `ordemCategorias`).
 - **Mais ofertas na página inicial (16/10/2026, pedido do Giovanni)**: "Ofertas do dia" = 48 mais vendidos da Shopee
   (`shopee.porPagina`) + Awin com desconto; botão "Ver mais ofertas" pede `/api/buscar?pagina=N` (só fontes com
   `porPagina`, até 20 páginas; resposta traz `temMais`) e junta à lista; filtros e ordem valem para tudo que já carregou.
