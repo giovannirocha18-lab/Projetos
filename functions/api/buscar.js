@@ -15,6 +15,8 @@ import { separarAcessorios } from "../../lib/relevancia.js";
 const FONTES_REAIS = [curadoria, shopee, awin];
 
 const CACHE_SEGUNDOS = 60 * 60;
+// Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
+const VERSAO_CACHE = 2;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -43,7 +45,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Guarda as respostas por 1 hora para não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/buscar?q=${encodeURIComponent(q.toLowerCase())}${pagina > 1 ? `&pagina=${pagina}` : ""}`, request.url));
+  const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${pagina > 1 ? `&pagina=${pagina}` : ""}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return contar(guardada);
 
