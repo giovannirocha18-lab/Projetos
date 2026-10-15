@@ -104,9 +104,13 @@ function lerCsv(texto) {
     .map((l) => Object.fromEntries(chaves.map((k, i) => [k, (l[i] ?? "").trim()])));
 }
 
-async function baixarTexto(url) {
+async function baixarTexto(url, esconder = "") {
   const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  if (!resp.ok) {
+    // Mostra o começo da resposta para ajudar a achar o problema, sem expor a chave
+    const corpo = (await resp.text().catch(() => "")).replaceAll(esconder || "\0", "***").slice(0, 300);
+    throw new Error(`HTTP ${resp.status} ${corpo.replace(/\s+/g, " ").trim()}`);
+  }
   return descompactar(Buffer.from(await resp.arrayBuffer()));
 }
 
@@ -204,9 +208,18 @@ async function obterFeeds() {
   if (arquivosFeed.length) {
     return arquivosFeed.map((caminho) => ({ nome: caminho, ler: async () => descompactar(readFileSync(caminho)) }));
   }
-  const chave = process.env.AWIN_FEED_KEY;
+  // Aceita só a chave ou o link inteiro do "Crie um Feed" (a chave vem depois de /apikey/)
+  const segredo = (process.env.AWIN_FEED_KEY || "").trim();
+  const chave = (segredo.match(/apikey\/([^/?#\s]+)/i) || [])[1] || segredo;
   if (!chave) throw new Error("Falta o segredo AWIN_FEED_KEY");
-  const lista = lerCsv(await baixarTexto(LISTA_FEEDS + encodeURIComponent(chave)));
+  let textoLista;
+  try {
+    textoLista = await baixarTexto(LISTA_FEEDS + encodeURIComponent(chave), chave);
+  } catch (erro) {
+    throw new Error(`A Awin recusou a lista de feeds (${erro.message}). Confira o segredo AWIN_FEED_KEY: ` +
+      `deve ser só o código depois de /apikey/ no link do "Crie um Feed" (tamanho atual: ${chave.length} caracteres)`);
+  }
+  const lista = lerCsv(textoLista);
   if (!lista.length) throw new Error("A lista de feeds da Awin veio vazia (a chave AWIN_FEED_KEY está certa?)");
   const ativos = lista.filter((f) =>
     /^(active|joined)/i.test(f.membership_status || "") && f.url
