@@ -27,8 +27,8 @@ const CATEGORIAS = [
 ];
 const FUNDO_CATEGORIA = Object.fromEntries(CATEGORIAS.map((c) => [c.nome, c.fundo]));
 
-// Atalhos abaixo da busca: os mais buscados da semana (/api/em-alta). Enquanto há
-// poucos dados, completa com esta lista padrão
+// Atalhos abaixo da busca: vêm de /api/em-alta (mais buscados no site + categorias
+// em alta na Shopee). Esta lista só aparece enquanto carrega ou se a API falhar
 const EM_ALTA = ["Air fryer", "Fone bluetooth", "Smartwatch", "Tênis de corrida", "Power bank", "Garrafa térmica", "Robô aspirador", "Kit maquiagem"];
 
 const SUGESTOES = [
@@ -786,21 +786,19 @@ async function carregarDestaques() {
   }
 }
 
-function desenharEmAlta(termos) {
-  $("#em-alta").replaceChildren(...termos.map((t) =>
-    el("button", { class: "chip-alta", type: "button", onclick: () => irPara(t) }, t)));
+// itens: [{ nome: "Moda masculina", busca: "roupa masculina" }] ou textos simples
+function desenharEmAlta(itens) {
+  $("#em-alta").replaceChildren(...itens.map((i) => {
+    const { nome, busca } = typeof i === "string" ? { nome: i, busca: i } : i;
+    return el("button", { class: "chip-alta", type: "button", onclick: () => irPara(busca) }, nome);
+  }));
 }
 
 async function carregarEmAlta() {
   try {
-    const { termos = [] } = await (await fetch("/api/em-alta")).json();
+    const { itens = [] } = await (await fetch("/api/em-alta")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
-    const vistos = new Set();
-    // Os quentes da semana primeiro; completa com a lista padrão sem repetir
-    const lista = [...termos.map(maiuscula), ...EM_ALTA]
-      .filter((t) => !vistos.has(t.toLowerCase()) && vistos.add(t.toLowerCase()))
-      .slice(0, EM_ALTA.length);
-    desenharEmAlta(lista);
+    if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
   } catch {
     // Fica a lista padrão
   }

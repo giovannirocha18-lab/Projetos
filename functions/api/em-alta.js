@@ -1,7 +1,8 @@
-// GET /api/em-alta -> termos para os atalhos abaixo da busca:
-// primeiro os mais buscados no site na semana; completa com os produtos
-// mais vendidos da Shopee no momento
-import { maisBuscados, termosDosProdutos } from "../../lib/buscas.js";
+// GET /api/em-alta -> atalhos abaixo da busca: { itens: [{ nome, busca }] }
+// Primeiro os termos mais buscados no site na semana; completa com as
+// categorias que mais aparecem entre os mais vendidos da Shopee agora
+import { maisBuscados } from "../../lib/buscas.js";
+import { categoriasEmAlta } from "../../lib/categorias.js";
 import { nomesMaisVendidosShopee } from "../../lib/fontes/shopee.js";
 import { normalizar } from "../../lib/texto.js";
 
@@ -25,16 +26,17 @@ export async function onRequestGet({ request, env }) {
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
 
-  const [doSite, vendidos] = await Promise.all([
+  const [doSite, categorias] = await Promise.all([
     maisBuscados(env).catch(() => []),
-    nomesMaisVendidosShopee(env).then((nomes) => termosDosProdutos(nomes, QUANTIDADE)).catch(() => []),
+    nomesMaisVendidosShopee(env).then((nomes) => categoriasEmAlta(nomes.map((nome) => ({ nome })), QUANTIDADE))
+      .catch(() => []),
   ]);
   const vistos = new Set();
-  const termos = [...doSite, ...vendidos]
-    .filter((t) => !vistos.has(normalizar(t)) && vistos.add(normalizar(t)))
+  const itens = [...doSite.map((t) => ({ nome: t, busca: t })), ...categorias]
+    .filter((i) => !vistos.has(normalizar(i.busca)) && vistos.add(normalizar(i.busca)))
     .slice(0, QUANTIDADE);
 
-  const resposta = responder({ termos, doSite: doSite.length });
+  const resposta = responder({ itens, doSite: doSite.length });
   if (cache) await cache.put(chave, resposta.clone());
   return resposta;
 }
