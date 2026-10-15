@@ -68,7 +68,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Comparador na página principal (saiu o "Em breve") | ✅ 15/10/2026, ainda escondido do Google (noindex) |
 | Domínio no Cloudflare | ✅ **Active** (13/10/2026) |
 | Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ✅ site abrindo no domínio (13/10/2026) |
-| Shopee Afiliados: conta | ✅ aprovada |
+| Shopee Afiliados: conta | ✅ aprovada. ID de afiliado **18326001319** (aparece nos links: `utm_source=an_18326001319`, `utm_medium=affiliates`; conferido 15/10/2026) |
 | Shopee: dados fiscais | ⏳ em análise |
 | Shopee: conta "Maree" (para receber pagamentos) | ❗ falta ativar (link "Como ativar?" no portal) |
 | Shopee: Open API | ❗ sem acesso (14/10/2026: tela "Abrir API" com AppID/Senha vazios e "Aplicar" cinza; pede contato com a Shopee). **Pedido de acesso feito em 14/10/2026.** 15/10/2026: ✅ **API liberada e FUNCIONANDO no site** (chaves SHOPEE_APP_ID/SHOPEE_SECRET no Cloudflare; teste /api/buscar?q=fone bluetooth → shopee ok, 30 produtos com link de afiliado s.shopee.com.br, foto, preço, desconto, avaliação, vendidos). Quando liberar: "Senha" da tela = `SHOPEE_SECRET` |
