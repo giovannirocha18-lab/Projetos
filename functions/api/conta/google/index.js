@@ -1,4 +1,4 @@
-// GET /api/conta/google?volta=/previa  -> leva a pessoa para a tela de login do Google
+// GET /api/conta/google?volta=/  -> leva a pessoa para a tela de login do Google
 // Precisa, no Cloudflare: GOOGLE_CLIENT_ID (variável) e GOOGLE_CLIENT_SECRET (Secret).
 import { erro, cookieGoogle, enderecoRetornoGoogle, caminhoSeguro } from "../../../../lib/conta.js";
 

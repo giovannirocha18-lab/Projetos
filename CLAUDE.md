@@ -21,7 +21,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 
 ## Estrutura técnica (ver README.md)
 - Site estático + **Cloudflare Pages Functions**, sem build. Repositório `giovannirocha18-lab/Projetos` (privado; renomeado de `Gerador-de-Riquezas` em 14/10/2026).
-- `index.html` = página "Em breve" (pública). `previa.html` = comparador (teste em `/previa`).
+- `index.html` = **o comparador (página principal) desde 15/10/2026**. A antiga página "Em breve" foi apagada e o
+  endereço `/previa` redireciona (301) para `/` (feito no `functions/_middleware.js`).
 - `functions/api/buscar.js` = busca; junta as fontes de `lib/fontes/`, cache de 1h.
 - `lib/fontes/exemplo.js` = produtos fictícios (usado enquanto nenhuma fonte real está ligada).
 - `lib/fontes/curadoria.js` = produtos escolhidos à mão com link de afiliado (lista `PRODUTOS`).
@@ -64,7 +65,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Favoritos virou "Meu carrinho" (ícone de carrinho) | ✅ |
 | Cadastro sem senha + carrinho na conta (código testado localmente) | ✅ funcionando (14/10/2026: código chegou no e-mail dele). Sessão dura 90 dias por aparelho |
 | "Entrar com Google" (código pronto, botão só aparece com as chaves) | ✅ funcionando (14/10/2026). Google Cloud: projeto "My Project 99984", app publicado |
-| Página "Em breve" + bloqueio do Google | ✅ |
+| Comparador na página principal (saiu o "Em breve") | ✅ 15/10/2026, ainda escondido do Google (noindex) |
 | Domínio no Cloudflare | ✅ **Active** (13/10/2026) |
 | Custom domains no projeto (`vaiprocarrinho.com.br` e `www`) | ✅ site abrindo no domínio (13/10/2026) |
 | Shopee Afiliados: conta | ✅ aprovada |
@@ -184,6 +185,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Motivos reais (print): **Leveros = "URL inativo, página não encontrada"** (viram o "Em breve"); **Central Ar e Dufrio =
   "não trabalha com afiliado pessoa física"** (exigem CNPJ; conta Awin dele é PF). Sugerido: comparador na página principal
   e, no futuro, avaliar abrir MEI (atualizar a conta Awin para PJ) para lojas que exigem CNPJ.
+  ✅ Comparador colocado na página principal (15/10/2026). Próximo: Giovanni pedir de novo à Leveros em alguns dias.
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 

@@ -4,8 +4,7 @@ Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
 ## Como está organizado
 | Caminho | O que é |
 |---|---|
-| `index.html` | Página "Em breve", que é o que o público vê enquanto o site está em construção |
-| `previa.html` | O comparador de verdade. Teste em `vaiprocarrinho.pages.dev/previa` |
+| `index.html` | O comparador (página principal). O antigo endereço `/previa` leva para cá |
 | `assets/` | Visual (`estilo.css`) e funcionamento da página (`app.js`) |
 | `functions/api/buscar.js` | A busca: roda no Cloudflare, consulta as lojas e junta os resultados |
 | `lib/fontes/` | Uma "fonte" por loja. `exemplo.js` tem produtos fictícios para testes |
@@ -72,8 +71,8 @@ node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite
 ```
 npx wrangler pages dev . --d1 DB=teste
 ```
-e abrir http://localhost:8788/previa (no computador, o link de "Esqueci minha senha" aparece no terminal).
+e abrir http://localhost:8788 (no computador, o link de "Esqueci minha senha" aparece no terminal).
 
 ## Para lançar o site
-1. Apagar `index.html` e renomear `previa.html` para `index.html`.
-2. Apagar o arquivo `_headers` e a linha `<meta name="robots" ...>` do novo `index.html`.
+O comparador já é a página principal desde 15/10/2026. Para aparecer no Google, falta:
+apagar o arquivo `_headers` e a linha `<meta name="robots" ...>` do `index.html`.
