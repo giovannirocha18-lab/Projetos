@@ -735,7 +735,9 @@ function esqueletos(qtd) {
 const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), pedido: 0 };
 
 async function consultarApi(q, pagina = 1) {
-  const resp = await fetch(`/api/buscar?v=5&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}`);
+  const atalho = estado.atalho ? "&atalho=1" : "";
+  estado.atalho = false;
+  const resp = await fetch(`/api/buscar?v=5&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -927,13 +929,13 @@ async function carregarDestaques() {
 function desenharEmAlta(itens) {
   $("#em-alta").replaceChildren(...itens.map((i) => {
     const { nome, busca } = typeof i === "string" ? { nome: i, busca: i } : i;
-    return el("button", { class: "chip-alta", type: "button", onclick: () => irPara(busca) }, nome);
+    return el("button", { class: "chip-alta", type: "button", onclick: () => irPara(busca, { atalho: true }) }, nome);
   }));
 }
 
 async function carregarEmAlta() {
   try {
-    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta")).json();
+    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta?v=2")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);
@@ -951,7 +953,7 @@ function desenharCategorias(lista) {
   const botoes = lista.map((c, i) =>
     el("button", { class: "cat-item", type: "button", "data-busca": c.busca || c.nome,
       style: `--fundo-cat:${FUNDOS_MENU[i % FUNDOS_MENU.length]}`,
-      onclick: () => { abrirFiltros(false); irPara(c.busca || c.nome); } },
+      onclick: () => { abrirFiltros(false); irPara(c.busca || c.nome, { atalho: true }); } },
       el("span", { class: "cat-icone", "aria-hidden": "true" }, c.emoji), c.nome));
   const caixa = $("#categorias");
   caixa.classList.remove("todas");
@@ -996,8 +998,10 @@ function mostrar() {
   }
 }
 
-function irPara(q) {
+// atalho = clique em "em alta" ou categoria: não conta como busca feita pelo visitante
+function irPara(q, { atalho = false } = {}) {
   q = (q || "").trim();
+  estado.atalho = atalho;
   const url = q ? `?q=${encodeURIComponent(q)}` : location.pathname;
   history.pushState(null, "", url);
   window.scrollTo({ top: 0, behavior: "smooth" });

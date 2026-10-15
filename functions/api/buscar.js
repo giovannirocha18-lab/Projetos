@@ -35,9 +35,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const q = (params.get("q") || "").trim().slice(0, 100);
   const pagina = q ? 1 : Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), 20);
 
-  // Conta a busca para os "em alta" da semana, sem atrasar a resposta
+  // Conta a busca para os "em alta" da semana, sem atrasar a resposta.
+  // Clique num atalho não conta: senão o atalho se manteria em alta sozinho.
   const contar = (resposta) => {
-    if (q && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
+    if (q && !params.has("atalho") && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
       waitUntil(registrarBusca(env, q).catch(() => {}));
     }
     return resposta;
