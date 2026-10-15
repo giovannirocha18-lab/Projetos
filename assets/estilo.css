@@ -305,6 +305,9 @@ a { color: inherit; }
 .economia { display: inline-block; margin-top: 2px; font-size: .82rem; font-weight: 700; background: var(--amarelo); color: #3b2a00; padding: 2px 8px; border-radius: 6px; }
 
 /* Página: barra lateral (ordem, categorias, lojas, filtros) + conteúdo */
+/* Cabeçalho, página e rodapé usam a tela toda: a barra lateral encosta na esquerda */
+.topo .container, .pagina, .rodape .container { max-width: none; padding-left: 20px; padding-right: 20px; }
+@media (max-width: 640px) { .topo .container, .pagina, .rodape .container { padding-left: 16px; padding-right: 16px; } }
 .pagina { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; align-items: start; }
 .pagina-conteudo { min-width: 0; }
 @media (min-width: 861px) { .filtros .filtros-cabecalho { display: none; } }
