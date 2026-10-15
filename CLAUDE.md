@@ -193,7 +193,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   httpstatus.io, conferir Cloudflare > Security > Bots ("Bot Fight Mode" pode barrar o robô da Awin) e a URL cadastrada
   no perfil da Awin; mandar print do motivo da recusa. Conferido (print): Bot fight mode e AI Labyrinth **desligados** (não é isso). httpstatus.io = 200 (site abre de fora).
   Perfil Awin (Conta > Informações do Site): URL do Site Primário = https://vaiprocarrinho.com.br (certo); "Nome do Site"
-  estava com a URL → sugerido trocar para "Vai pro Carrinho". Falta conferir a guia "Promocional" da Página do Perfil.
+  estava com a URL → sugerido trocar para "Vai pro Carrinho". Guia "Espaços Promocionais" conferida: site certo, descrição e setores ok. Sugerido: pôr o Instagram em
+  "Links", preencher "Contato" e ver o que é o ícone de escudo ao lado do site (possível verificação).
   Hipóteses: recusa avaliada quando ainda era "Em breve"; ou loja checa se o site aparece no Google (noindex esconde).
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
