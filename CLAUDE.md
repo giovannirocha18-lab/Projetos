@@ -140,6 +140,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   sale_price, link, image_link, availability; se o link vier sem rastreio da Awin, monta awin1.com/cread.php com
   awinaffid = ID de afiliado 3124296, tirado do link da Lista de Feed). A Awin avisou que as lojas estão migrando para o formato Google.
   Roda sozinho todo dia 04:17; quando uma loja aprovar, os produtos entram na madrugada seguinte.
+  **15/10/2026: 1ª aprovação = EINSTAR** (scanner 3D, loja dos EUA, preço em dólar). Execução #4 confirmou: status de loja
+  aprovada na lista = "active" (5 feeds da EINSTAR), mas o robô ignora de propósito (região US / moeda USD).
+  Nenhuma loja BR aprovada ainda.
 - **Instagram oficial** sendo criado (14/10/2026). Claude gerou foto de perfil (carrinho branco/amarelo no gradiente
   roxo→rosa do site) e um post "Em breve", 1080x1080. Imagens não ficam no repositório (geradas em HTML + Chromium).
 - **Logo** criada (14/10/2026): ícone (quadrado arredondado com gradiente do site + carrinho branco/amarelo) + texto
