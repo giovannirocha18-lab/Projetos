@@ -1,7 +1,7 @@
 // Roda antes de qualquer página. Esconde do público os arquivos internos do
 // repositório (anotações, código da busca), que o Cloudflare Pages publicaria
 // junto com o site.
-const INTERNOS = /^\/(claude\.md|readme\.md|\.gitignore|_headers|lib\/|functions\/|robo\/|\.github\/)/i;
+const INTERNOS = /^\/(claude\.md|readme\.md|\.gitignore|_headers|lib\/|functions\/|robo\/|\.github\/|\.claude\/)/i;
 
 const VERIFICACAO_AWIN = "2e195e3c8c68351f1709348e09eae77d";
 

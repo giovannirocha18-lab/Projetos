@@ -11,6 +11,9 @@
 - **Respostas curtas**: só o essencial e necessário, sem explicações extras (pedido dele em 14/10/2026,
   para economizar tokens).
 - Pedir que **nunca** mande senhas ou chaves secretas no chat nem suba no GitHub.
+- **Contexto da conversa** (pedido dele em 16/10/2026): `.claude/settings.json` tem `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=20`
+  (resume a conversa sozinho quando chega a 20% do contexto; vale a partir da próxima sessão). Por isso manter este
+  arquivo sempre atualizado: é ele que segura o fio depois do resumo.
 - Quando ele pedir "gera o comando de recomeço": atualizar este arquivo, fazer commit/push e
   entregar o texto da seção "Comando de recomeço".
 
