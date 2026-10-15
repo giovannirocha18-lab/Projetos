@@ -299,6 +299,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   busca em tudo e o site avisa. Resultado mostra "Na categoria 🌸 Perfumes · Buscar em todas as categorias ✕"; a caixa
   de busca diz "Buscar em Perfumes…". Atalhos "em alta" e o logo saem da categoria.
   Ajuste (pedido dele): ao abrir uma categoria a caixa de busca fica vazia e o título é "🩲 Moda íntima" (`navegandoCategoria`).
+- **"Menor preço" respeita a busca (16/10/2026, pedido do Giovanni)**: servidor marca `bate: true` quando o título tem
+  todas as palavras buscadas; o card "🏆 Menor preço" e o selo usam só esses, sem acessórios e sem preço fora da curva
+  (< 30% ou > 3× a mediana) (`ofertasComparaveis` no `app.js`). `PECAS` ganhou bateria, bit, broca, carvão, mandril, ponteira, soquete.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Próximos passos

@@ -738,7 +738,7 @@ async function consultarApi(q, pagina = 1) {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=8&q=${encodeURIComponent(q)}${cat}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=9&q=${encodeURIComponent(q)}${cat}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -796,6 +796,23 @@ function avisoCategoria() {
     el("button", { type: "button", onclick: sair }, "Buscar em todas as categorias ✕"));
 }
 
+// Ofertas que valem para o "Menor preço": o produto buscado (título com todas as palavras),
+// sem acessórios e sem preços fora da curva ("Bit para parafusadeira" a R$ 5 numa lista de R$ 200)
+function ofertasComparaveis(lista) {
+  const produtos = lista.filter((o) => !o.acessorio);
+  const certeiros = produtos.filter((o) => o.bate);
+  const base = certeiros.length ? certeiros : produtos.length ? produtos : lista;
+  const precos = base.map((o) => o.preco).sort((a, b) => a - b);
+  const mediana = precos[Math.floor(precos.length / 2)];
+  const dentro = base.filter((o) => o.preco >= mediana * 0.3 && o.preco <= mediana * 3);
+  return dentro.length ? dentro : base;
+}
+
+function melhorOferta(lista) {
+  const base = ofertasComparaveis(lista);
+  return base.length ? base.reduce((a, b) => (b.preco < a.preco ? b : a)) : null;
+}
+
 function desenharResumo(lista) {
   const qtdLojas = new Set(lista.map((o) => o.loja)).size;
   const cat = navegandoCategoria();
@@ -808,9 +825,9 @@ function desenharResumo(lista) {
 
   if (lista.length < 2) return $("#resumo").replaceChildren(titulo);
 
-  const precos = lista.map((o) => o.preco);
-  const melhor = lista.reduce((a, b) => (b.preco < a.preco ? b : a));
-  const economia = Math.max(...precos) - melhor.preco;
+  const comparaveis = ofertasComparaveis(lista);
+  const melhor = melhorOferta(lista);
+  const economia = Math.max(...comparaveis.map((o) => o.preco)) - melhor.preco;
   const loja = infoLoja(melhor);
   $("#resumo").replaceChildren(titulo,
     el("a", { class: "resumo-melhor", href: melhor.link, target: "_blank", rel: "sponsored noopener", onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
@@ -824,7 +841,7 @@ function desenharResumo(lista) {
 function desenharResultados() {
   const lista = filtrar();
   if (!estado.q) return desenharInicio(lista);
-  const idMelhor = lista.length > 1 ? lista.reduce((a, b) => (b.preco < a.preco ? b : a)).id : null;
+  const idMelhor = lista.length > 1 ? melhorOferta(lista)?.id : null;
   desenharResumo(lista);
   $("#total").textContent = `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}`;
   const idVendido = idMaisVendido(lista);

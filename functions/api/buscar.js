@@ -19,7 +19,7 @@ const FONTES_REAIS = [curadoria, shopee, awin];
 
 const CACHE_SEGUNDOS = 60 * 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 8;
+const VERSAO_CACHE = 9;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
