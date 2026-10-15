@@ -3,6 +3,8 @@
 // junto com o site.
 const INTERNOS = /^\/(claude\.md|readme\.md|\.gitignore|_headers|lib\/|functions\/|robo\/|\.github\/)/i;
 
+const VERIFICACAO_AWIN = "2e195e3c8c68351f1709348e09eae77d";
+
 export async function onRequest({ request, next }) {
   const url = new URL(request.url);
   // O endereço vaiprocarrinho.pages.dev (do Cloudflare) não pode ser desligado: leva para o domínio
@@ -12,6 +14,11 @@ export async function onRequest({ request, next }) {
   }
   if (INTERNOS.test(url.pathname)) {
     return new Response("Página não encontrada", { status: 404 });
+  }
+  // Verificação do site na Awin (método do arquivo). Respondido aqui porque o Cloudflare Pages
+  // tiraria o ".html" do endereço com um redirecionamento, e o verificador espera o arquivo direto.
+  if (url.pathname === `/${VERIFICACAO_AWIN}.html`) {
+    return new Response(VERIFICACAO_AWIN, { headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
   // O comparador ficava em /previa antes do lançamento: leva para a página principal
   if (/^\/previa(\.html)?\/?$/i.test(url.pathname)) {

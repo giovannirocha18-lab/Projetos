@@ -196,7 +196,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   estava com a URL → sugerido trocar para "Vai pro Carrinho". Guia "Espaços Promocionais" conferida: site certo, descrição e setores ok. Sugerido: pôr o Instagram em
   "Links", preencher "Contato" e ver o que é o ícone de escudo ao lado do site (possível verificação).
   O escudo = **site NÃO verificado na Awin** (provável causa do "link inválido"). 16/10/2026: meta tag
-  `<meta name="verification" …>` da Awin colocada no `index.html` (manter no lançamento). Falta ele clicar em "Verificar Site".
+  `<meta name="verification" …>` da Awin colocada no `index.html` (manter no lançamento). 1ª tentativa de "Verificar Site": escudo igual. Adicionado também o método do arquivo
+  (`/2e195e3c8c68351f1709348e09eae77d.html`, respondido no `_middleware.js` porque o Pages tira o ".html").
   Hipóteses: recusa avaliada quando ainda era "Em breve"; ou loja checa se o site aparece no Google (noindex esconde).
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
