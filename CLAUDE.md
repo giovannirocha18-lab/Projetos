@@ -317,6 +317,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   para carro" (lixo). Agora pesquisa o que foi digitado e, só se a categoria tiver `chave` (ex.: Perfumes = "perfume"),
   também "invictus perfume"; junta, tira o que é de outra categoria e põe primeiro o que é da categoria
   (`ordenarNaCategoria`). Perfumes ganhou "eau de"/"toilette".
+- **~100 resultados por busca (16/10/2026, pedido do Giovanni)**: busca digitada pede um "lote" de 3 páginas da Shopee
+  (`PAGINAS_POR_LOTE` em `buscar.js`, 3 x 48 = 144 brutos); "Ver mais resultados" (`pagina=N`) pede o lote seguinte.
+  Vitrine e "Ofertas do dia" continuam 1 página. Teste com Shopee simulada: `fetch` falso + `onRequestGet` direto no Node.
 - **F5 volta ao começo (16/10/2026, pedido do Giovanni)**: atualizar a página tira busca/categoria do endereço, zera filtros e
   ordem e volta ao topo (`performance.getEntriesByType("navigation")[0].type === "reload"`). Link com `?q=` aberto direto continua funcionando.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).

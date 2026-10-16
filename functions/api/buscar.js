@@ -18,8 +18,11 @@ import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, vitrineDaCatego
 const FONTES_REAIS = [curadoria, shopee, awin];
 
 const CACHE_SEGUNDOS = 60 * 60;
+// Na busca digitada, cada "lote" pede várias páginas da loja de uma vez (Shopee: 3 x 48 = 144),
+// para sobrarem uns 100 produtos depois de tirar os acessórios. "Ver mais resultados" pede o próximo lote.
+const PAGINAS_POR_LOTE = 3;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 13;
+const VERSAO_CACHE = 14;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -65,9 +68,18 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const resultados = await Promise.all(
       fontes.map(async (fonte) => {
         try {
-          const ofertas = termo ? await fonte.buscar(termo, env, pagina, opcoes) : await fonte.destaques(env, pagina);
-          // Na vitrine (várias buscas) a loja vale pela busca que trouxe mais
-          lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(ofertas.length, lojas[fonte.nome]?.total || 0) };
+          if (!termo) {
+            const ofertas = await fonte.destaques(env, pagina);
+            lojas[fonte.nome] = { ok: true, total: ofertas.length };
+            return ofertas;
+          }
+          const lote = opcoes?.lote && fonte.porPagina ? PAGINAS_POR_LOTE : 1;
+          const paginas = Array.from({ length: lote }, (_, i) => (pagina - 1) * lote + i + 1);
+          const listas = await Promise.all(paginas.map((p) => fonte.buscar(termo, env, p, opcoes)));
+          const vistos = new Set();
+          const ofertas = listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id));
+          // total = tamanho da última página (cheia = a loja tem mais). Na vitrine (várias buscas) vale a que trouxe mais
+          lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(listas.at(-1).length, lojas[fonte.nome]?.total || 0) };
           return ofertas;
         } catch (erro) {
           // Uma loja fora do ar não derruba a busca nas outras
@@ -90,7 +102,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Dentro de uma categoria: o que foi digitado + (se a categoria tem chave) "invictus perfume";
     // fica só o que não é de outra categoria, o que é dela primeiro. Se nada sobrar, busca em tudo (e o site avisa).
     const extra = termoNaCategoria(q, categoria);
-    const [digitada, comChave] = await Promise.all([consultar(q), extra ? consultar(extra) : []]);
+    const [digitada, comChave] = await Promise.all([consultar(q, { lote: true }), extra ? consultar(extra, { lote: true }) : []]);
     const vistos = new Set();
     const juntas = [...comChave, ...digitada].filter((o) => !vistos.has(o.id) && vistos.add(o.id));
     ofertas = ordenarNaCategoria(separarAcessorios(juntas, q), categoria);
@@ -100,7 +112,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     }
   } else {
     // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
-    ofertas = q ? separarAcessorios(await consultar(q), q) : await consultar(q);
+    ofertas = q ? separarAcessorios(await consultar(q, { lote: true }), q) : await consultar(q);
   }
   const resposta = responder({
     q,
