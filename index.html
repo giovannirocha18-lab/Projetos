@@ -75,6 +75,13 @@
       </fieldset>
 
       <fieldset>
+        <legend>Mais opções</legend>
+        <label class="opcao"><input type="checkbox" id="so-frete"> Frete grátis</label>
+        <label class="opcao"><input type="checkbox" id="so-desconto"> Com desconto</label>
+        <label class="opcao"><input type="checkbox" id="com-acessorios"> Mostrar acessórios e peças</label>
+      </fieldset>
+
+      <fieldset>
         <legend>Categorias</legend>
         <div class="cat-ordem" role="group" aria-label="Ordem das categorias">
           <button type="button" data-ordem-cat="vendidos" aria-pressed="true">Mais vendidos</button>
@@ -94,14 +101,6 @@
           <label>Mín. <input type="number" id="preco-min" min="0" inputmode="numeric" placeholder="R$ 0"></label>
           <label>Máx. <input type="number" id="preco-max" min="0" inputmode="numeric" placeholder="R$ ∞"></label>
         </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Mais opções</legend>
-        <label class="opcao"><input type="checkbox" id="so-frete"> Frete grátis</label>
-        <label class="opcao"><input type="checkbox" id="so-desconto"> Com desconto</label>
-        <!-- Fica escondida: o visitante liga pelo botão no topo dos resultados -->
-        <label class="opcao" hidden><input type="checkbox" id="com-acessorios"> Mostrar acessórios e peças</label>
       </fieldset>
 
       <button type="button" class="botao-secundario" id="limpar-filtros">Limpar filtros</button>

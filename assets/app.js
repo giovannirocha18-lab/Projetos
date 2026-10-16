@@ -810,15 +810,7 @@ function desenharResumo(lista) {
       : "Nenhuma oferta com esses filtros"),
     avisoCategoria());
 
-  // Acessórios e peças: botão sempre à vista no topo (o resumo fica preso abaixo do cabeçalho)
-  const acessorios = estado.ofertas.filter((o) => o.acessorio).length;
-  const mostrando = $("#com-acessorios").checked;
-  const botaoAcessorios = acessorios && acessorios < estado.ofertas.length && el("button", {
-    class: "resumo-acessorios", type: "button", "aria-pressed": String(mostrando),
-    onclick: () => { $("#com-acessorios").checked = !mostrando; desenharResultados(); },
-  }, mostrando ? `🔧 Esconder acessórios e peças` : `🔧 Mostrar acessórios e peças (${acessorios})`);
-
-  $("#resumo").replaceChildren(titulo, ...(botaoAcessorios ? [botaoAcessorios] : []));
+  $("#resumo").replaceChildren(titulo);
 }
 
 // Botão "🚚 Frete grátis" acima da lista (o mesmo filtro de "Mais opções"). A Shopee não informa o frete
