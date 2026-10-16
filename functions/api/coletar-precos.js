@@ -22,7 +22,7 @@ export async function onRequestGet({ request, env }) {
   const parte = Math.max(parseInt(new URL(request.url).searchParams.get("parte"), 10) || 0, 0);
 
   const vitrines = buscasDasVitrines().map((termo) => ({ termo, maisVendidos: true }));
-  const buscados = (await maisBuscados(env).catch(() => [])).map((termo) => ({ termo, maisVendidos: false }));
+  const buscados = (await maisBuscados(env, { ateOntem: true }).catch(() => [])).map((termo) => ({ termo, maisVendidos: false }));
   const todas = [...vitrines, ...buscados];
   const partes = Math.ceil(todas.length / BUSCAS_POR_PARTE);
   const fim = parte + 1 >= partes;
@@ -30,17 +30,26 @@ export async function onRequestGet({ request, env }) {
 
   const hoje = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS coletas (parte INTEGER NOT NULL, dia TEXT NOT NULL, PRIMARY KEY (parte, dia))").run();
-  const feita = await env.DB.prepare("SELECT 1 FROM coletas WHERE parte = ? AND dia = ?").bind(parte, hoje).first();
-  if (feita) return responder({ parte, partes, fim, jaFeita: true, gravados: 0 });
+  // Marca a parte antes de começar: se a mesma parte for chamada 2 vezes ao mesmo tempo, só uma roda
+  const minha = await env.DB.prepare("INSERT OR IGNORE INTO coletas (parte, dia) VALUES (?, ?) RETURNING parte")
+    .bind(parte, hoje).first();
+  if (!minha) return responder({ parte, partes, fim, jaFeita: true, gravados: 0 });
 
   const lote = todas.slice(parte * BUSCAS_POR_PARTE, (parte + 1) * BUSCAS_POR_PARTE);
   const erros = [];
   const listas = await Promise.all(lote.map(({ termo, maisVendidos }) =>
     shopee.buscar(termo, env, 1, { maisVendidos }).catch((e) => { erros.push(`${termo}: ${e.message || e}`); return []; })));
-  const gravados = await (await historicoAoVivo(env.DB, listas.flat())).gravar();
-  // Só marca como feita se a Shopee respondeu; senão, a próxima chamada tenta de novo
-  if (erros.length < lote.length) {
-    await env.DB.prepare("INSERT OR IGNORE INTO coletas (parte, dia) VALUES (?, ?)").bind(parte, hoje).run();
+  // Se a Shopee não respondeu nenhuma, desmarca a parte: a próxima chamada tenta de novo
+  if (erros.length === lote.length) {
+    await env.DB.prepare("DELETE FROM coletas WHERE parte = ? AND dia = ?").bind(parte, hoje).run();
+    return responder({ parte, partes, fim, buscas: lote.length, produtos: 0, gravados: 0, erros });
+  }
+  let gravados;
+  try {
+    gravados = await (await historicoAoVivo(env.DB, listas.flat())).gravar();
+  } catch (erro) {
+    await env.DB.prepare("DELETE FROM coletas WHERE parte = ? AND dia = ?").bind(parte, hoje).run().catch(() => {});
+    throw erro;
   }
   return responder({ parte, partes, fim, buscas: lote.length, produtos: listas.flat().length, gravados, erros });
 }

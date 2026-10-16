@@ -483,7 +483,10 @@ async function main() {
       comandos.push(`INSERT OR REPLACE INTO precos (oferta_id, dia, preco) VALUES (${sql(o.id)}, ${sql(dia)}, ${sql(o.preco)})`);
     }
   }
-  comandos.push(`DELETE FROM precos WHERE dia < ${sql(limiteHistorico)}`);
+  // Apaga o histórico antigo, mas guarda o último preço de cada produto antes do limite: só gravamos quando
+  // o preço muda, então num produto de preço estável esse registro é o preço atual (sem ele, o histórico some)
+  comandos.push(`DELETE FROM precos WHERE dia < ${sql(limiteHistorico)} AND dia < (SELECT MAX(p2.dia) FROM precos p2
+    WHERE p2.oferta_id = precos.oferta_id AND p2.dia < ${sql(limiteHistorico)})`);
   await enviarEmLotes(banco, comandos);
 
   const novos = gravarHoje.filter((o) => !atuais.has(o.id)).length;

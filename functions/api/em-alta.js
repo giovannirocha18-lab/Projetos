@@ -10,11 +10,11 @@ import { normalizar } from "../../lib/texto.js";
 const CACHE_SEGUNDOS = 60 * 60;
 const QUANTIDADE = 8;
 
-function responder(dados) {
+function responder(dados, segundos = CACHE_SEGUNDOS) {
   return new Response(JSON.stringify(dados), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": `public, max-age=${CACHE_SEGUNDOS}`,
+      "Cache-Control": `public, max-age=${segundos}`,
       "X-Robots-Tag": "noindex",
     },
   });
@@ -37,7 +37,9 @@ export async function onRequestGet({ request, env }) {
     .filter((i) => !vistos.has(normalizar(i.busca)) && vistos.add(normalizar(i.busca)))
     .slice(0, QUANTIDADE);
 
-  const resposta = responder({ itens, categorias: todasCategorias(maisVendidos), doSite: doSite.length });
+  // Shopee fora do ar: responde (categorias na ordem padrão), mas guarda só 5 minutos para tentar de novo logo
+  const resposta = responder({ itens, categorias: todasCategorias(maisVendidos), doSite: doSite.length },
+    maisVendidos.length ? CACHE_SEGUNDOS : 5 * 60);
   if (cache) await cache.put(chave, resposta.clone());
   return resposta;
 }
