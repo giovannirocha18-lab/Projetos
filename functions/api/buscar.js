@@ -123,10 +123,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const consultar = async (termo, opcoes) => {
     const resultados = await Promise.all(
       fontes.map(async (fonte) => {
+        const t0 = Date.now();
+        const medir = () => { if (lojas[fonte.nome]) lojas[fonte.nome].ms = Math.max(Date.now() - t0, lojas[fonte.nome].ms || 0); };
         try {
           if (!termo) {
             const ofertas = await comLimite(fonte.destaques(env, pagina), LIMITE_LOJA_MS);
             lojas[fonte.nome] = { ok: true, total: ofertas.length };
+            medir();
             return ofertas;
           }
           const paginas = opcoes?.paginas || [pagina];
@@ -135,6 +138,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
             if (!paginas.includes(1)) return [];
             const ofertas = await comLimite(fonte.buscar(termo, env, 1, opcoes), LIMITE_LOJA_MS);
             lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(ofertas.length, lojas[fonte.nome]?.total || 0) };
+            medir();
             return ofertas;
           }
           const listas = await comLimite(Promise.all(paginas.map((p) => fonte.buscar(termo, env, p, opcoes))), LIMITE_LOJA_MS);
@@ -142,10 +146,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
           const ofertas = listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id));
           // total = tamanho da última página (cheia = a loja tem mais). Na vitrine (várias buscas) vale a que trouxe mais
           lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(listas.at(-1).length, lojas[fonte.nome]?.total || 0) };
+          medir();
           return ofertas;
         } catch (erro) {
           // Uma loja fora do ar não derruba a busca nas outras
           lojas[fonte.nome] = { ok: false, erro: String(erro.message || erro) };
+          medir();
           return [];
         }
       }),
