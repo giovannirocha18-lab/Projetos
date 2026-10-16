@@ -62,7 +62,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Cloudflare criou registros "sem e-mail" (MX nulo, SPF -all, DMARC reject). Trocar se um dia
   quiser e-mail no domínio.
 
-## Situação atual (atualizado em 16/10/2026, fim da sessão)
+## Situação atual (atualizado em 16/10/2026, 2ª sessão)
 | Item | Situação |
 |---|---|
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
@@ -81,7 +81,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Awin (rede de afiliados) | ✅ conta aprovada (ID 3124296). Lojas aprovadas: EINSTAR (EUA), **Spicy e Shark-Ninja (BR, 15/10/2026)**; outras BR pendentes |
 | Robô de preços (Awin → D1, GitHub Actions 04:17) | ✅ funcionando. Execução #10 (15/10/2026, disparada pelo Claude): 398 produtos (Spicy 349, Shark-Ninja 18, EINSTAR 31) |
 | Histórico de preço + produto agrupado por código de barras | ✅ publicado (15/10/2026); ganha dados com o tempo |
-| AliExpress Afiliados | ✅ **aprovado (16/10/2026)**. Cadastro de desenvolvedor no openservice.aliexpress.com ✅ aprovado (16/10/2026; "Affiliates (individual)", Brasil; Conformidade de Dados: Não/Não/Não/Não, local Brasil, Não/Não/Sim = **compromisso: apagar dados da AliExpress se a parceria acabar**). App "Vai pro Carrinho" criado (16/10/2026): categoria Affiliates API, status **Test**, 1000 chamadas/min, "Standard API for Publishers" ativa (Advanced API = hot products, inativa, opcional). Tracking ID `vaiprocarrinho` criado e posto como padrão (é o padrão no código). **`lib/fontes/aliexpress.js` pronto e publicado (16/10/2026)**: busca (até 3 páginas de 50, BRL, entrega BR, selo Internacional), vitrine por mais vendidos, histórico ao vivo como a Shopee, lojas intercaladas na lista; sem "Ofertas do dia" (precisa da Advanced API). Testado só com fetch falso (rede do Claude bloqueia api-sg.aliexpress.com). ✅ **FUNCIONANDO no site (16/10/2026)**: chaves no Cloudflare, teste `/api/buscar?q=mochila notebook` trouxe produtos da AliExpress intercalados com a Shopee (link s.click.aliexpress.com, fotos, preço em R$, vendedor). Vendidos da AliExpress costumam ser baixos (campo lastest_volume). Botão da AliExpress em vinho `#b0002a` (pedido dele: diferente do laranja da Shopee). **"Ofertas do dia" com AliExpress (16/10/2026, pedido dele)**: `destaques()` tenta a Advanced API (hotproduct.query); se recusar, usa 4 buscas das vitrines por página (mudam todo dia, espalhadas pelas categorias), mais vendidos com desconto e sem acessórios, 6 de cada, intercalados (24 por página). Próximo: Giovanni conferir no site; opcional pedir a "Advanced API" |
+| AliExpress Afiliados | ✅ **aprovado (16/10/2026)**. Cadastro de desenvolvedor no openservice.aliexpress.com ✅ aprovado (16/10/2026; "Affiliates (individual)", Brasil; Conformidade de Dados: Não/Não/Não/Não, local Brasil, Não/Não/Sim = **compromisso: apagar dados da AliExpress se a parceria acabar**). App "Vai pro Carrinho" criado (16/10/2026): categoria Affiliates API, status **Test**, 1000 chamadas/min, "Standard API for Publishers" ativa (Advanced API = hot products, inativa, opcional). Tracking ID `vaiprocarrinho` criado e posto como padrão (é o padrão no código). **`lib/fontes/aliexpress.js` pronto e publicado (16/10/2026)**: busca (até 3 páginas de 50, BRL, entrega BR, selo Internacional), vitrine por mais vendidos, histórico ao vivo como a Shopee, lojas intercaladas na lista; sem "Ofertas do dia" (precisa da Advanced API). Testado só com fetch falso (rede do Claude bloqueia api-sg.aliexpress.com). ✅ **FUNCIONANDO no site (16/10/2026)**: chaves no Cloudflare, teste `/api/buscar?q=mochila notebook` trouxe produtos da AliExpress intercalados com a Shopee (link s.click.aliexpress.com, fotos, preço em R$, vendedor). Vendidos da AliExpress costumam ser baixos (campo lastest_volume). Cores dos botões (16/10/2026, pedido dele): **AliExpress roxo-azulado `#6d28d9`**, **Spicy vinho `#b0002a`** (`CORES_POR_NOME` no `app.js`, pelo começo do nome da loja da Awin); outras lojas da Awin roxas. **"Ofertas do dia" com AliExpress (16/10/2026, pedido dele)**: `destaques()` tenta a Advanced API (hotproduct.query); se recusar, usa 4 buscas das vitrines por página (mudam todo dia, espalhadas pelas categorias), mais vendidos com desconto e sem acessórios, 6 de cada, intercalados (24 por página). Próximo: Giovanni conferir no site; opcional pedir a "Advanced API" |
 | Logo e imagens do Instagram | ✅ em `marca/` |
 | Mercado Livre Afiliados | ❗ não se inscreveu ainda. API de busca dá 403 para muitos devs (Reclame Aqui) |
 | Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
@@ -355,10 +355,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 Corrigido na hora: "Ver detalhes" quebrado (`listaOutrasLojas` apagada junto com o agrupamento por gtin).
 **16/10/2026: Giovanni pediu "corrija todos em ordem de gravidade".** ✅ **Segurança da conta: TODOS corrigidos e publicados**
 (exceto PBKDF2: falta Giovanni testar login com e-mail+senha no site). ✅ **Site: TODOS corrigidos e publicados** (teste
-Playwright com 51 verificações). ⏸️ **Servidor/busca: PAUSADO a pedido dele (limite de uso)**: trabalho parcial salvo na
-branch `wip/correcoes-busca-servidor` (NÃO vai para o ar; mexe em buscar.js, buscas.js, categorias.js, ofertas.js,
-relevancia.js). Para retomar: `git checkout wip/correcoes-busca-servidor`, conferir o que já foi feito, terminar os itens
-abaixo, testar (scratch: acess.mjs, mock2/mock3.mjs, teste-hist.mjs, d1.mjs) e trazer para a branch de produção.
+Playwright com 51 verificações). ✅ **Servidor/busca: TODOS corrigidos e publicados (16/10/2026)**, testados com Shopee/AliExpress simuladas e D1 falso
+(`node:sqlite`): classificação/acessórios (28 casos), histórico ao vivo das duas lojas (grava no máx. 60 por busca),
+"em alta" conta 1 vez por pessoa (IP vira código curto de 6 letras, tabela `buscas_marcas`, apagado no dia seguinte;
+citado na Política), robô guarda o último preço antes dos 180 dias, coleta de preços não roda 2x e usa os mais buscados
+até ontem, `/api/em-alta` guarda só 5 min se a Shopee falhar, retry do shopType sem corrida. CPU da busca ~40% menor.
+Branch `wip/correcoes-busca-servidor` já foi juntada (pode ser apagada).
 Lista original (as seções "Segurança" e "Site" já estão resolvidas):
 - **Segurança da conta**: (1) cadastro com e-mail+senha não confirma o e-mail; quem cadastrar o e-mail de outra pessoa
   continua com acesso depois que o dono entra com Google (`cadastrar.js` + `google/retorno.js`; apagar senha não confirmada e
