@@ -62,11 +62,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Cloudflare criou registros "sem e-mail" (MX nulo, SPF -all, DMARC reject). Trocar se um dia
   quiser e-mail no domínio.
 
-## Situação atual (atualizado em 15/10/2026, fim da sessão)
+## Situação atual (atualizado em 16/10/2026, fim da sessão)
 | Item | Situação |
 |---|---|
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
-| Comparador com produtos reais (Shopee + Awin) | ✅ |
+| Comparador com produtos reais (Shopee + Awin + AliExpress) | ✅ (AliExpress desde 16/10/2026; falta Giovanni conferir AliExpress nas "Ofertas do dia" no site) |
 | Lista de produtos reais (curadoria) pronta para receber links | ✅ vazia, aguardando links |
 | Favoritos virou "Meu carrinho" (ícone de carrinho) | ✅ |
 | Cadastro sem senha + carrinho na conta (código testado localmente) | ✅ funcionando (14/10/2026: código chegou no e-mail dele). Sessão dura 90 dias por aparelho |
@@ -81,7 +81,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Awin (rede de afiliados) | ✅ conta aprovada (ID 3124296). Lojas aprovadas: EINSTAR (EUA), **Spicy e Shark-Ninja (BR, 15/10/2026)**; outras BR pendentes |
 | Robô de preços (Awin → D1, GitHub Actions 04:17) | ✅ funcionando. Execução #10 (15/10/2026, disparada pelo Claude): 398 produtos (Spicy 349, Shark-Ninja 18, EINSTAR 31) |
 | Histórico de preço + produto agrupado por código de barras | ✅ publicado (15/10/2026); ganha dados com o tempo |
-| AliExpress Afiliados | ⏳ cadastro em análise (14/10/2026); depois pegar chaves da API |
+| AliExpress Afiliados | ✅ **aprovado (16/10/2026)**. Cadastro de desenvolvedor no openservice.aliexpress.com ✅ aprovado (16/10/2026; "Affiliates (individual)", Brasil; Conformidade de Dados: Não/Não/Não/Não, local Brasil, Não/Não/Sim = **compromisso: apagar dados da AliExpress se a parceria acabar**). App "Vai pro Carrinho" criado (16/10/2026): categoria Affiliates API, status **Test**, 1000 chamadas/min, "Standard API for Publishers" ativa (Advanced API = hot products, inativa, opcional). Tracking ID `vaiprocarrinho` criado e posto como padrão (é o padrão no código). **`lib/fontes/aliexpress.js` pronto e publicado (16/10/2026)**: busca (até 3 páginas de 50, BRL, entrega BR, selo Internacional), vitrine por mais vendidos, histórico ao vivo como a Shopee, lojas intercaladas na lista; sem "Ofertas do dia" (precisa da Advanced API). Testado só com fetch falso (rede do Claude bloqueia api-sg.aliexpress.com). ✅ **FUNCIONANDO no site (16/10/2026)**: chaves no Cloudflare, teste `/api/buscar?q=mochila notebook` trouxe produtos da AliExpress intercalados com a Shopee (link s.click.aliexpress.com, fotos, preço em R$, vendedor). Vendidos da AliExpress costumam ser baixos (campo lastest_volume). Botão da AliExpress em vinho `#b0002a` (pedido dele: diferente do laranja da Shopee). **"Ofertas do dia" com AliExpress (16/10/2026, pedido dele)**: `destaques()` tenta a Advanced API (hotproduct.query); se recusar, usa 4 buscas das vitrines por página (mudam todo dia, espalhadas pelas categorias), mais vendidos com desconto e sem acessórios, 6 de cada, intercalados (24 por página). Próximo: Giovanni conferir no site; opcional pedir a "Advanced API" |
 | Logo e imagens do Instagram | ✅ em `marca/` |
 | Mercado Livre Afiliados | ❗ não se inscreveu ainda. API de busca dá 403 para muitos devs (Reclame Aqui) |
 | Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
@@ -353,7 +353,13 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
 Corrigido na hora: "Ver detalhes" quebrado (`listaOutrasLojas` apagada junto com o agrupamento por gtin).
-Pendentes, por prioridade (Giovanni ainda vai escolher o que corrigir):
+**16/10/2026: Giovanni pediu "corrija todos em ordem de gravidade".** ✅ **Segurança da conta: TODOS corrigidos e publicados**
+(exceto PBKDF2: falta Giovanni testar login com e-mail+senha no site). ✅ **Site: TODOS corrigidos e publicados** (teste
+Playwright com 51 verificações). ⏸️ **Servidor/busca: PAUSADO a pedido dele (limite de uso)**: trabalho parcial salvo na
+branch `wip/correcoes-busca-servidor` (NÃO vai para o ar; mexe em buscar.js, buscas.js, categorias.js, ofertas.js,
+relevancia.js). Para retomar: `git checkout wip/correcoes-busca-servidor`, conferir o que já foi feito, terminar os itens
+abaixo, testar (scratch: acess.mjs, mock2/mock3.mjs, teste-hist.mjs, d1.mjs) e trazer para a branch de produção.
+Lista original (as seções "Segurança" e "Site" já estão resolvidas):
 - **Segurança da conta**: (1) cadastro com e-mail+senha não confirma o e-mail; quem cadastrar o e-mail de outra pessoa
   continua com acesso depois que o dono entra com Google (`cadastrar.js` + `google/retorno.js`; apagar senha não confirmada e
   sessões ao entrar com Google, ou confirmar e-mail no cadastro). (2) `DELETE FROM limites WHERE chave LIKE '%:'||email` em
@@ -387,8 +393,7 @@ Pendentes, por prioridade (Giovanni ainda vai escolher o que corrigir):
 1b. Giovanni conferir no site (15/10/2026): busca "air fryer oster" sem motor/botão; "ar condicionado" sem fogões da
    Spicy; botão "Ver mais resultados"; categorias A–Z; atalhos sem "Roupas"; fotos mais rápidas. Pendente: e-mail
    contato@ (passos já entregues).
-2. AliExpress: quando aprovar, cadastro no openservice.aliexpress.com, chaves como Secrets no Cloudflare, Claude escreve
-   `lib/fontes/aliexpress.js`.
+2. ✅ AliExpress ligada (16/10/2026), inclusive nas "Ofertas do dia". Opcional: pedir "Advanced API" no App Console (lista oficial de produtos em alta).
 3. Giovanni testar o site no celular e opinar sobre o visual; testar cadastro com e-mail + senha.
 4. Quando houver visitantes: alerta de preço por e-mail (item 3 da análise de concorrentes); depois cupons e desconto
    verificado pelo histórico.

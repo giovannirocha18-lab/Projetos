@@ -23,6 +23,10 @@ Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
   `SHOPEE_SECRET` forem cadastradas no Cloudflare (projeto > Settings > Variables and Secrets).
 - **Awin** (`lib/fontes/awin.js`): lojas como Leveros, Efacil e Beleza na Web. Liga sozinha quando o
   robô de preços tiver colocado ofertas no banco (veja abaixo).
+- **AliExpress** (`lib/fontes/aliexpress.js`): liga sozinha quando as variáveis `ALIEXPRESS_APP_KEY` e
+  `ALIEXPRESS_APP_SECRET` forem cadastradas no Cloudflare (App Console do openservice.aliexpress.com).
+  `ALIEXPRESS_TRACKING_ID` é opcional (padrão `vaiprocarrinho`). "Ofertas do dia" da AliExpress dependem da
+  "Advanced API" (ainda não pedida).
 - Para adicionar outra loja: criar `lib/fontes/<loja>.js` e incluir em `functions/api/buscar.js`.
 
 ## Cadastro e "Meu carrinho"

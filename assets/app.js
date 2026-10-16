@@ -6,7 +6,7 @@ const LOJAS = {
   shopee: { nome: "Shopee", em: "na", cor: "#ee4d2d", texto: "#fff" },
   mercadolivre: { nome: "Mercado Livre", em: "no", cor: "#ffe600", texto: "#2d3277" },
   amazon: { nome: "Amazon", em: "na", cor: "#ff9900", texto: "#131921" },
-  aliexpress: { nome: "AliExpress", em: "no", cor: "#e62e04", texto: "#fff" },
+  aliexpress: { nome: "AliExpress", em: "no", cor: "#b0002a", texto: "#fff" },
   magalu: { nome: "Magalu", em: "na", cor: "#0086ff", texto: "#fff" },
   shein: { nome: "Shein", em: "na", cor: "#222222", texto: "#fff" },
 };
