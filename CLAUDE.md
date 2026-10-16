@@ -410,6 +410,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (2) **Resposta em partes**: cada chamada de busca pede só 1 lote (3 páginas de cada loja; vitrine 1 página) e o site pede o
   resto sozinho (`completarSozinho` no `app.js`, até 100 produtos sem acessórios ou 3 pedidos). Loja com mais de 8 s fica de
   fora daquela resposta (`LIMITE_LOJA_MS`). Marcas da Lomadee: páginas em paralelo e guardadas no cache do Cloudflare 6 h. Cache v=32.
+  Lomadee: 1 consulta de 48 por lote (100 passava de 8 s; limite dela 60/min, pausa no 429). Pelo robô do GitHub a Lomadee
+  costuma travar (>25 s; daqui do Claude responde em ~3 s): busca pronta é guardada se a Shopee respondeu (robô espera 10 s
+  por loja). Busca nova medida: ~3 s (antes 12–14 s).
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)

@@ -42,6 +42,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const falhou = Object.entries(dados.lojas || {}).filter(([, l]) => !l.ok).map(([nome, l]) => `${nome}: ${l.erro}`);
   return Response.json({
     parte, partes: lista.length, fim, busca: cat ? `${cat} (${q})` : q,
-    produtos: dados.ofertas?.length || 0, guardada: !falhou.length, falhou, segundos: (Date.now() - inicio) / 1000,
+    produtos: dados.ofertas?.length || 0, guardada: Boolean(dados.lojas?.shopee?.ok && dados.ofertas?.length), falhou,
+    segundos: (Date.now() - inicio) / 1000,
   }, { headers: { "Cache-Control": "no-store" } });
 }

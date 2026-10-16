@@ -33,7 +33,7 @@ const MAX_PAGINAS_VITRINE = 1;
 // Loja que demora mais que isso fica de fora desta resposta (as outras não esperam por ela)
 const LIMITE_LOJA_MS = 8000;
 // Para o robô que prepara as buscas populares ninguém está esperando: as lojas têm mais tempo
-const LIMITE_LOJA_ROBO_MS = 25000;
+const LIMITE_LOJA_ROBO_MS = 10000;
 // Buscas populares preparadas pelo robô da madrugada (/api/preparar-buscas) valem por até 30 horas
 const VALIDADE_PRONTA_MS = 30 * 60 * 60 * 1000;
 // Até onde o "Ver mais" vai (pagina= nas "Ofertas do dia", desde= na busca e na vitrine)
@@ -257,7 +257,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
   resposta.headers.set("X-Total-Ofertas", reais.length ? String(ofertas.length) : "0");
   const todasOk = Object.values(lojas).every((l) => l.ok);
   if (cache && todasOk) await cache.put(chave, resposta.clone());
-  if (preparar && primeira && todasOk && reais.length && env.DB) {
+  // Busca pronta: guarda mesmo que uma loja pequena tenha falhado (vindo do robô do GitHub, a Lomadee às vezes
+  // trava), desde que a Shopee tenha respondido
+  const prontaOk = lojas.shopee?.ok && ofertas.length > 0;
+  if (preparar && primeira && prontaOk && reais.length && env.DB) {
     await criarTabelaProntas(env.DB);
     await env.DB.prepare("INSERT OR REPLACE INTO buscas_prontas (chave, resposta, total, criado) VALUES (?, ?, ?, ?)")
       .bind(chave.url, await resposta.clone().text(), ofertas.length, Date.now()).run();
