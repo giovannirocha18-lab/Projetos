@@ -138,10 +138,33 @@ function desenharFavoritos() {
   }));
 }
 
+// Painel e gaveta funcionam como janelas: o foco entra no botão de fechar e,
+// ao fechar, volta para o botão que abriu (quem usa teclado ou leitor de tela não se perde)
+function focarAoAbrir(painel, botaoFechar) {
+  painel.voltarFoco = document.activeElement;
+  painel.setAttribute("role", "dialog");
+  painel.setAttribute("aria-modal", "true");
+  botaoFechar?.focus({ preventScroll: true });
+}
+
+function devolverFoco(painel) {
+  painel.removeAttribute("role");
+  painel.removeAttribute("aria-modal");
+  const voltar = painel.voltarFoco;
+  painel.voltarFoco = null;
+  // Só devolve se o foco ainda estava no painel (ou se perdeu, ao clicar no fundo escuro)
+  const focoAqui = painel.contains(document.activeElement) || document.activeElement === document.body;
+  if (voltar?.isConnected && focoAqui) voltar.focus({ preventScroll: true });
+}
+
 function abrirPainel(abrir) {
-  $("#painel-favoritos").hidden = !abrir;
+  const painel = $("#painel-favoritos");
+  const estavaAberto = !painel.hidden;
+  painel.hidden = !abrir;
   $("#painel-fundo").hidden = !abrir && !$("#filtros").classList.contains("aberto");
   if (abrir) desenharFavoritos();
+  if (abrir && !estavaAberto) focarAoAbrir(painel, $("#fechar-favoritos"));
+  else if (!abrir && estavaAberto) devolverFoco(painel);
 }
 
 // ---------------------------------------------------------------------
@@ -162,7 +185,8 @@ async function chamarConta(metodo, caminho, corpo) {
   return dados;
 }
 
-// Junta o carrinho deste aparelho com o da conta (sem repetir itens)
+// Junta o carrinho deste aparelho com o da conta (sem repetir itens). Só na hora de
+// entrar na conta: depois disso, a conta manda (senão um item tirado em outro aparelho voltaria)
 function juntarCarrinho(daConta = []) {
   const ids = new Set(favoritos.map((f) => f.id));
   const juntos = [...favoritos, ...daConta.filter((f) => !ids.has(f.id))];
@@ -173,27 +197,50 @@ function juntarCarrinho(daConta = []) {
   if (mudouConta) enviarCarrinho();
 }
 
+// Já entrou na conta antes (aparelho conectado): o carrinho da conta substitui o daqui
+function usarCarrinhoDaConta(daConta = []) {
+  favoritos = daConta;
+  salvarFavoritos();
+  atualizarFavoritos();
+}
+
 let timerEnvio;
-function enviarCarrinho() {
+function enviarCarrinho(tentativa = 0) {
   if (!conta.usuario) return;
   clearTimeout(timerEnvio);
   timerEnvio = setTimeout(async () => {
     try {
       await chamarConta("PUT", "/carrinho", { itens: favoritos });
     } catch {
-      // Sessão vencida: volta a guardar só no aparelho
-      await carregarConta();
+      // Confere só a sessão (sem juntar nem reenviar o carrinho, para não virar um laço).
+      // Sessão vencida: volta a guardar só no aparelho. Sessão boa: tenta de novo uma única vez.
+      try { await lerSessao(); } catch { /* sem internet: fica como está */ }
+      desenharContaTopo();
+      if (!conta.usuario) return;
+      if (tentativa < 1) enviarCarrinho(tentativa + 1);
+      else toast("Não foi possível salvar o carrinho na sua conta agora");
     }
-  }, 600);
+  }, tentativa ? 3000 : 600);
 }
 
+// Lê a sessão no servidor, sem mexer no carrinho
+async function lerSessao() {
+  const dados = await chamarConta("GET", "");
+  conta.ativo = dados.ativo;
+  conta.google = Boolean(dados.google);
+  conta.usuario = dados.usuario || null;
+  return dados;
+}
+
+// Marca "acabou de entrar com o Google" (a página recarrega na volta do Google)
+const CHAVE_JUNTAR = "vpc-juntar-carrinho";
+
 async function carregarConta() {
+  let juntar = false;
+  try { juntar = localStorage.getItem(CHAVE_JUNTAR) === "1"; localStorage.removeItem(CHAVE_JUNTAR); } catch { /* sem armazenamento */ }
   try {
-    const dados = await chamarConta("GET", "");
-    conta.ativo = dados.ativo;
-    conta.google = Boolean(dados.google);
-    conta.usuario = dados.usuario || null;
-    if (conta.usuario) juntarCarrinho(dados.carrinho);
+    const dados = await lerSessao();
+    if (conta.usuario) (juntar ? juntarCarrinho : usarCarrinhoDaConta)(dados.carrinho);
   } catch {
     conta.ativo = false;
   }
@@ -216,6 +263,8 @@ async function carregarConta() {
 }
 
 function entrarComGoogle() {
+  // Na volta, o carrinho deste aparelho é juntado ao da conta (como no login com senha)
+  try { localStorage.setItem(CHAVE_JUNTAR, "1"); } catch { /* sem armazenamento */ }
   location.href = `/api/conta/google?volta=${encodeURIComponent(location.pathname)}`;
 }
 
@@ -644,15 +693,17 @@ function abrirDetalhes(o) {
       : "Cores, tamanhos e a descrição completa aparecem na página da loja."));
 
   $("#detalhes-conteudo").replaceChildren(el("div", { class: "detalhes" }, galeria, info));
-  $("#janela-detalhes").showModal();
+  if (!$("#janela-detalhes").open) $("#janela-detalhes").showModal();
 }
 
+let pedidoHistorico = 0;
 async function abrirHistorico(o) {
   const janela = $("#janela-historico");
   const conteudo = $("#historico-conteudo");
   const loja = infoLoja(o);
+  const pedido = ++pedidoHistorico;
   conteudo.replaceChildren(el("h2", { id: "historico-titulo" }, "Histórico de preço"), el("p", {}, o.titulo), el("p", {}, "Carregando…"));
-  janela.showModal();
+  if (!janela.open) janela.showModal();
   let dados;
   try {
     const resp = await fetch(`/api/historico?id=${encodeURIComponent(o.id)}`);
@@ -660,6 +711,8 @@ async function abrirHistorico(o) {
   } catch {
     dados = { pontos: [] };
   }
+  // Resposta atrasada: a janela foi fechada ou já mostra outro produto
+  if (pedido !== pedidoHistorico || !janela.open) return;
   const pontos = dados.pontos || [];
   const precos = [...pontos.map((p) => p.preco), o.preco];
   const diasAcompanhando = pontos.length ? Math.round((Date.now() - Date.parse(`${pontos[0].dia}T00:00:00`)) / 864e5) : 0;
@@ -729,13 +782,26 @@ async function consultarApi(q, mais = "") {
   return resp.json();
 }
 
+// Preço digitado do jeito brasileiro: "1.000" é mil e "99,90" tem centavos
+function lerPreco(texto) {
+  const limpo = String(texto || "").replace(/[^\d.,]/g, "");
+  if (!limpo) return NaN;
+  // Com vírgula, os pontos são de milhar. Sem vírgula, ponto seguido de 3 números também ("1.000")
+  const numero = limpo.includes(",")
+    ? limpo.replace(/\./g, "").replace(",", ".")
+    : /\.\d{3}(\.|$)/.test(limpo) ? limpo.replace(/\./g, "") : limpo;
+  return parseFloat(numero);
+}
+
+// Acessórios só aparecem se pedidos (ou se a busca só achou acessórios)
+const escondeAcessorios = () => !$("#com-acessorios").checked && estado.ofertas.some((o) => !o.acessorio);
+
 function filtrar() {
-  const min = parseFloat($("#preco-min").value);
-  const max = parseFloat($("#preco-max").value);
+  const min = lerPreco($("#preco-min").value);
+  const max = lerPreco($("#preco-max").value);
   const frete = $("#so-frete").checked;
   const desconto = $("#so-desconto").checked;
-  // Acessórios só aparecem se pedidos (ou se a busca só achou acessórios)
-  const semAcessorios = !$("#com-acessorios").checked && estado.ofertas.some((o) => !o.acessorio);
+  const semAcessorios = escondeAcessorios();
   const lista = estado.ofertas.filter((o) =>
     !estado.lojasDesmarcadas.has(o.loja)
     && !(semAcessorios && o.acessorio)
@@ -755,8 +821,10 @@ function filtrar() {
 }
 
 function desenharFiltroLojas() {
+  // Conta só o que aparece na lista (acessórios escondidos não entram)
+  const semAcessorios = escondeAcessorios();
   const contagem = {};
-  for (const o of estado.ofertas) contagem[o.loja] = (contagem[o.loja] || 0) + 1;
+  for (const o of estado.ofertas) if (!(semAcessorios && o.acessorio)) contagem[o.loja] = (contagem[o.loja] || 0) + 1;
   $("#filtro-lojas").replaceChildren(...Object.keys(contagem).map((id) => {
     const loja = infoLoja(estado.ofertas.find((o) => o.loja === id));
     return el("label", { class: "opcao", style: `--cor-loja:${loja.cor}` },
@@ -828,6 +896,7 @@ function desenharBotaoFrete() {
 
 function desenharResultados() {
   desenharBotaoFrete();
+  if (estado.q && estado.buscando) return; // filtro mexido enquanto a busca carrega: espera a resposta
   const lista = filtrar();
   if (!estado.q) return desenharInicio(lista);
   const idMelhor = lista.length > 1 ? melhorOferta(lista)?.id : null;
@@ -847,6 +916,11 @@ function desenharResultados() {
   botao.textContent = `Ver também ${acessorios} ${acessorios === 1 ? "acessório ou peça" : "acessórios e peças"} para “${estado.q}”`;
 }
 
+function desenharResumoBuscando() {
+  const cat = navegandoCategoria();
+  $("#resumo").replaceChildren(el("div", {}, el("h1", {}, el("span", {}, "Buscando "), cat ? `${cat.nome}…` : `“${estado.q}”…`), el("p", {}, "Comparando preços nas lojas")));
+}
+
 async function buscar(q) {
   const pedido = ++estado.pedido;
   estado.q = q;
@@ -855,18 +929,23 @@ async function buscar(q) {
   $("#com-acessorios").checked = false;
   preencherBusca();
 
-  const cat = navegandoCategoria();
-  $("#resumo").replaceChildren(el("div", {}, el("h1", {}, el("span", {}, "Buscando "), cat ? `${cat.nome}…` : `“${q}”…`), el("p", {}, "Comparando preços nas lojas")));
+  // Tira os dados e botões da busca anterior enquanto a nova carrega (senão dá para clicar neles)
+  estado.ofertas = [];
+  estado.buscando = true;
+  desenharResumoBuscando();
   $("#total").textContent = "";
   $("#filtro-lojas").replaceChildren();
   $("#vazio").hidden = true;
   $("#grade").replaceChildren(...esqueletos(8));
   estado.temMaisBusca = false;
   $("#mais-resultados").hidden = true;
+  $("#ver-acessorios").hidden = true;
+  desenharBotaoFrete();
 
   try {
     const dados = await consultarApi(q);
     if (pedido !== estado.pedido) return; // chegou resposta de uma busca antiga
+    estado.buscando = false;
     $("#aviso-teste").hidden = !dados.exemplo;
     estado.ofertas = semRepetidos(dados.ofertas);
     // Nada na categoria: o servidor buscou em tudo, e as próximas páginas também são de tudo
@@ -877,9 +956,10 @@ async function buscar(q) {
     desenharResultados();
   } catch (erro) {
     if (pedido !== estado.pedido) return;
+    estado.buscando = false;
     estado.ofertas = [];
     $("#grade").replaceChildren();
-    $("#vazio").hidden = false;
+    $("#vazio").hidden = true; // o "Ops!" do topo já explica
     $("#resumo").replaceChildren(el("div", {}, el("h1", {}, "Ops! Não conseguimos buscar agora"), el("p", {}, "Verifique sua conexão e tente de novo.")));
   }
 }
@@ -912,27 +992,31 @@ async function carregarMaisOfertas() {
     estado.inicio = semRepetidos([...estado.inicio, ...dados.ofertas]);
     estado.paginaInicio += 1;
     estado.temMaisInicio = Boolean(dados.temMais && estado.inicio.length > antes);
-    if (!estado.q) {
+    // Só redesenha se o visitante continua no início (pode ter ido para uma busca)
+    if (!estado.q && !$("#inicio").hidden) {
       estado.ofertas = estado.inicio;
       desenharFiltroLojas();
       desenharResultados();
     }
   } catch {
-    toast("Não foi possível carregar mais ofertas agora");
+    if (!estado.q) toast("Não foi possível carregar mais ofertas agora");
+  } finally {
+    botao.disabled = false;
+    botao.textContent = "Ver mais ofertas";
   }
-  botao.disabled = false;
-  botao.textContent = "Ver mais ofertas";
 }
 
 // "Ver mais resultados": traz a próxima página da busca (Shopee) e junta à lista
 async function carregarMaisResultados() {
   const botao = $("#mais-resultados");
   const pedido = estado.pedido;
+  const q = estado.q;
   botao.disabled = true;
   botao.textContent = "Carregando…";
   try {
-    const dados = await consultarApi(estado.q, estado.maisBusca);
-    if (pedido !== estado.pedido) return; // o visitante já fez outra busca
+    const dados = await consultarApi(q, estado.maisBusca);
+    // O visitante já fez outra busca ou voltou para o início: a resposta não vale mais
+    if (pedido !== estado.pedido || estado.q !== q) return;
     const antes = estado.ofertas.length;
     const todas = semRepetidos([...estado.ofertas, ...dados.ofertas]);
     estado.maisBusca = dados.mais;
@@ -942,7 +1026,7 @@ async function carregarMaisResultados() {
     desenharFiltroLojas();
     desenharResultados();
   } catch {
-    toast("Não foi possível carregar mais resultados agora");
+    if (pedido === estado.pedido) toast("Não foi possível carregar mais resultados agora");
   } finally {
     botao.disabled = false;
     botao.textContent = "Ver mais resultados";
@@ -950,6 +1034,7 @@ async function carregarMaisResultados() {
 }
 
 function mostrarInicio() {
+  estado.pedido++; // busca que ainda está carregando não pode mais desenhar nada
   estado.q = "";
   estado.lojasDesmarcadas.clear();
   if (estado.inicio) {
@@ -1026,18 +1111,22 @@ function desenharCategorias(lista = categoriasAtuais) {
     } }, `Ver todas (${lista.length}) ▼`);
   caixa.replaceChildren(...botoes, ...(verTodas ? [verTodas] : []));
   marcarCategoria();
-  if (estado.q && !$("#resultados").hidden) preencherBusca();
+  if (estado.q && !$("#resultados").hidden) {
+    // Link aberto direto (?q=perfume&cat=Perfumes): só agora dá para saber o título da categoria
+    preencherBusca();
+    if (estado.buscando) desenharResumoBuscando();
+    else if (estado.ofertas.length) desenharResumo(filtrar());
+  }
 }
 
 const categoriaPeloNome = (nome) => (nome ? categoriasAtuais.find((c) => c.nome === nome) : null);
 
-// Categoria escolhida no menu: ?cat= no endereço (ou link antigo ?q=perfume, que é a busca da categoria)
+// Categoria escolhida no menu: ?cat= no endereço (o clique na categoria sempre põe o cat).
+// Digitar "perfume" sem categoria é uma busca comum, e não a vitrine de Perfumes
 function categoriaAtual() {
   const params = new URLSearchParams(location.search);
-  const q = normalizar(params.get("q") || "");
-  if (!q) return null;
-  if (params.get("cat")) return params.get("cat");
-  return categoriasAtuais.find((c) => normalizar(c.busca || c.nome) === q)?.nome || null;
+  if (!(params.get("q") || "").trim()) return null;
+  return params.get("cat") || null;
 }
 
 // Visitante clicou numa categoria (e não buscou nada dentro dela): devolve a categoria
@@ -1112,29 +1201,49 @@ function irPara(q, { atalho = false, cat = null } = {}) {
 // ---------------------------------------------------------------------
 const normalizar = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
+let contadorBuscas = 0;
 function prepararBusca(form) {
   const input = $("input", form);
   const lista = $(".sugestoes", form);
   let itens = [];
   let ativo = -1;
 
-  const fechar = () => { lista.hidden = true; ativo = -1; };
+  // Leitor de tela: a caixa é um "combobox" e anuncia a sugestão marcada pelas setas
+  const idLista = lista.id || `sugestoes-${++contadorBuscas}`;
+  lista.id = idLista;
+  input.setAttribute("role", "combobox");
+  input.setAttribute("aria-autocomplete", "list");
+  input.setAttribute("aria-controls", idLista);
+  input.setAttribute("aria-expanded", "false");
 
-  const marcar = () => [...lista.children].forEach((li, i) => li.setAttribute("aria-selected", i === ativo));
+  const fechar = () => {
+    lista.hidden = true;
+    ativo = -1;
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+  };
+
+  const marcar = () => {
+    [...lista.children].forEach((li, i) => li.setAttribute("aria-selected", i === ativo));
+    if (ativo >= 0) input.setAttribute("aria-activedescendant", `${idLista}-${ativo}`);
+    else input.removeAttribute("aria-activedescendant");
+  };
 
   function desenhar() {
     const termo = normalizar(input.value.trim());
     itens = termo ? SUGESTOES.filter((s) => normalizar(s).includes(termo)).slice(0, 6) : [];
     if (!itens.length) return fechar();
-    lista.replaceChildren(...itens.map((s) => {
+    lista.replaceChildren(...itens.map((s, n) => {
       const i = normalizar(s).indexOf(termo);
       return el("li", {
-        role: "option",
+        role: "option", id: `${idLista}-${n}`, "aria-selected": "false",
         onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual() }); },
       }, el("span", {}, s.slice(0, i), el("mark", {}, s.slice(i, i + termo.length)), s.slice(i + termo.length)));
     }));
     ativo = -1;
     lista.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    input.removeAttribute("aria-activedescendant");
   }
 
   input.addEventListener("input", desenhar);
@@ -1160,8 +1269,12 @@ function prepararBusca(form) {
 // Filtros no celular (gaveta que sobe da parte de baixo)
 // ---------------------------------------------------------------------
 function abrirFiltros(abrir) {
-  $("#filtros").classList.toggle("aberto", abrir);
+  const gaveta = $("#filtros");
+  const estavaAberta = gaveta.classList.contains("aberto");
+  gaveta.classList.toggle("aberto", abrir);
   $("#painel-fundo").hidden = !abrir && $("#painel-favoritos").hidden;
+  if (abrir && !estavaAberta) focarAoAbrir(gaveta, $(".filtros-cabecalho .fechar", gaveta));
+  else if (!abrir && estavaAberta) devolverFoco(gaveta);
 }
 
 // ---------------------------------------------------------------------
@@ -1177,12 +1290,14 @@ let timerPreco;
   clearTimeout(timerPreco);
   timerPreco = setTimeout(desenharResultados, 300);
 }));
-["#so-frete", "#so-desconto", "#com-acessorios"].forEach((s) => $(s).addEventListener("change", desenharResultados));
+["#so-frete", "#so-desconto"].forEach((s) => $(s).addEventListener("change", desenharResultados));
+// Mostrar/esconder acessórios muda também a contagem de cada loja
+$("#com-acessorios").addEventListener("change", () => { desenharFiltroLojas(); desenharResultados(); });
 document.querySelectorAll("[data-frete]").forEach((b) => b.addEventListener("click", () => {
   $("#so-frete").checked = !$("#so-frete").checked;
   desenharResultados();
 }));
-$("#ver-acessorios").addEventListener("click", () => { $("#com-acessorios").checked = true; desenharResultados(); });
+$("#ver-acessorios").addEventListener("click", () => { $("#com-acessorios").checked = true; desenharFiltroLojas(); desenharResultados(); });
 document.querySelectorAll("input[name=ordem]").forEach((r) => r.addEventListener("change", desenharResultados));
 function zerarFiltros() {
   $("#preco-min").value = "";
@@ -1194,6 +1309,7 @@ function zerarFiltros() {
 }
 $("#limpar-filtros").addEventListener("click", () => {
   zerarFiltros();
+  $("input[name=ordem][value=relevancia]").checked = true;
   desenharFiltroLojas();
   desenharResultados();
 });
@@ -1236,7 +1352,13 @@ $("#janela-conta").addEventListener("click", (e) => {
 $("#painel-fundo").addEventListener("click", () => { abrirPainel(false); abrirFiltros(false); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { abrirPainel(false); abrirFiltros(false); } });
 
-window.addEventListener("popstate", mostrar);
+// Voltar do celular: fecha a gaveta, o carrinho e as janelas abertas antes de trocar a página
+window.addEventListener("popstate", () => {
+  abrirFiltros(false);
+  abrirPainel(false);
+  document.querySelectorAll("dialog[open]").forEach((j) => j.close());
+  mostrar();
+});
 
 $("#ano").textContent = new Date().getFullYear();
 

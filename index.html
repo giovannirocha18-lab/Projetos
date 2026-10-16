@@ -40,7 +40,7 @@
           <button type="submit" aria-label="Comparar preços">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
           </button>
-          <ul class="sugestoes" role="listbox" hidden></ul>
+          <ul class="sugestoes" id="sugestoes-busca" role="listbox" aria-label="Sugestões de busca" hidden></ul>
         </form>
         <div class="em-alta" aria-label="Buscas em alta"><div class="chips" id="em-alta"></div></div>
       </div>
@@ -98,8 +98,8 @@
       <fieldset>
         <legend>Preço</legend>
         <div class="faixa-preco">
-          <label>Mín. <input type="number" id="preco-min" min="0" inputmode="numeric" placeholder="R$ 0"></label>
-          <label>Máx. <input type="number" id="preco-max" min="0" inputmode="numeric" placeholder="R$ ∞"></label>
+          <label>Mín. <input type="text" id="preco-min" inputmode="decimal" autocomplete="off" placeholder="R$ 0"></label>
+          <label>Máx. <input type="text" id="preco-max" inputmode="decimal" autocomplete="off" placeholder="R$ ∞"></label>
         </div>
       </fieldset>
 
