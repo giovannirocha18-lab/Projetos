@@ -307,6 +307,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (iphone, samsung galaxy, xiaomi, motorola), tira acessórios, preço < R$ 500 e palavras excluídas (idoso, botão, flip…)
   e intercala as marcas. Só Celulares tem vitrine por enquanto; dá para pôr em outras. Celulares foi para antes de
   Automotivo ("Moto G" não é moto); Smartwatches ganhou "watch" e "mi band".
+  16/10/2026 (pedido dele): **todas as 37 categorias têm vitrine** com 4 buscas de produtos em alta (ex.: Perfumes =
+  lattafa, perfume árabe, body splash, perfume importado), cada uma pela ordem de **mais vendidos** da Shopee
+  (`shopee.buscar(..., { maisVendidos: true })` = sortType 2), intercaladas. Atalhos "em alta" que são categoria também
+  abrem a vitrine. Cada categoria aberta = 4 consultas à Shopee (guardadas 1h). Revisar as listas de tempos em tempos.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Próximos passos

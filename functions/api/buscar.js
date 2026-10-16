@@ -19,7 +19,7 @@ const FONTES_REAIS = [curadoria, shopee, awin];
 
 const CACHE_SEGUNDOS = 60 * 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 10;
+const VERSAO_CACHE = 11;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -61,11 +61,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const fontes = (reais.length ? reais : [exemplo]).filter((f) => pagina === 1 || f.porPagina);
 
   const lojas = {};
-  const consultar = async (termo) => {
+  const consultar = async (termo, opcoes) => {
     const resultados = await Promise.all(
       fontes.map(async (fonte) => {
         try {
-          const ofertas = termo ? await fonte.buscar(termo, env, pagina) : await fonte.destaques(env, pagina);
+          const ofertas = termo ? await fonte.buscar(termo, env, pagina, opcoes) : await fonte.destaques(env, pagina);
           // Na vitrine (várias buscas) a loja vale pela busca que trouxe mais
           lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(ofertas.length, lojas[fonte.nome]?.total || 0) };
           return ofertas;
@@ -79,12 +79,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
     return resultados.flat();
   };
 
-  // Categoria com vitrine (ex.: Celulares): várias buscas juntas, só produtos de verdade
+  // Abriu uma categoria: vitrine com os produtos em alta (várias buscas, mais vendidos primeiro)
   const vitrine = vitrineDaCategoria(q, categoria);
   let ofertas;
   let foraDaCategoria = false;
   if (vitrine) {
-    const listas = await Promise.all(vitrine.buscas.map(async (termo) => separarAcessorios(await consultar(termo), termo)));
+    const listas = await Promise.all(vitrine.buscas.map(async (termo) => separarAcessorios(await consultar(termo, { maisVendidos: true }), termo)));
     ofertas = montarVitrine(listas, vitrine, categoria);
   } else {
     // Dentro de uma categoria: "invictus" em Perfumes pesquisa "invictus perfume".

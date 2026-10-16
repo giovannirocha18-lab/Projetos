@@ -738,7 +738,7 @@ async function consultarApi(q, pagina = 1) {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=10&q=${encodeURIComponent(q)}${cat}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=11&q=${encodeURIComponent(q)}${cat}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -996,7 +996,7 @@ async function carregarDestaques() {
 function desenharEmAlta(itens) {
   $("#em-alta").replaceChildren(...itens.map((i) => {
     const { nome, busca } = typeof i === "string" ? { nome: i, busca: i } : i;
-    return el("button", { class: "chip-alta", type: "button", onclick: () => irPara(busca, { atalho: true }) }, nome);
+    return el("button", { class: "chip-alta", type: "button", onclick: () => irPara(busca, { atalho: true, cat: categoriaPeloNome(nome)?.nome }) }, nome);
   }));
 }
 
