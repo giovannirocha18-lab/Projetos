@@ -281,6 +281,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   vale no começo do título mesmo sem o termo junto; `GENERICAS` (cesto, copo, assadeira…) só logo antes do termo e só
   em buscas de 2+ palavras (busca por marca "stanley"/"tramontina" não esconde). Produtos com todas as palavras da
   busca vêm primeiro ("airfryer" conta como "air fryer"). Teste: título → acessório? em casos reais antes de mudar.
+  16/10/2026 (air fryer mostrava limpador, grelha, bandeja "for Chefman" e airfryer de brinquedo): `PECAS` + limpa/limpador/
+  desengordurante/espuma; `DEPOIS` (janela de 5 palavras) + grelha/assadeira/forminha/bandeja/silicone/oil/drip;
+  `EM_QUALQUER_LUGAR` (for, compatível, fits, limpador, desengordurante; "for men/women" não conta); "para <termo>" em
+  qualquer ocorrência; brinquedo/miniatura escondidos quando a busca é de outra categoria (não em Brinquedos/Bebês).
 - **Fotos mais leves (15/10/2026)**: Shopee manda a foto original (às vezes vários MB); `shopee.js` troca pela miniatura
   (`_tn` no fim da URL). Se a miniatura falhar, o `app.js` (`fotoQuebrada`) volta para a original.
 - **Atalhos "em alta" (15/10/2026)**: "Roupas" e "Attracione men" vinham das buscas do site (cliques em atalhos antigos

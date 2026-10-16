@@ -27,7 +27,7 @@ const PAGINAS_POR_LOTE = 3;
 const MINIMO_PRODUTOS = 100;
 const MAX_PAGINAS = 9;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 16;
+const VERSAO_CACHE = 17;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
