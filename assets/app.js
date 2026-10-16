@@ -6,13 +6,17 @@ const LOJAS = {
   shopee: { nome: "Shopee", em: "na", cor: "#ee4d2d", texto: "#fff" },
   mercadolivre: { nome: "Mercado Livre", em: "no", cor: "#ffe600", texto: "#2d3277" },
   amazon: { nome: "Amazon", em: "na", cor: "#ff9900", texto: "#131921" },
-  aliexpress: { nome: "AliExpress", em: "no", cor: "#b0002a", texto: "#fff" },
+  aliexpress: { nome: "AliExpress", em: "no", cor: "#6d28d9", texto: "#fff" },
   magalu: { nome: "Magalu", em: "na", cor: "#0086ff", texto: "#fff" },
   shein: { nome: "Shein", em: "na", cor: "#222222", texto: "#fff" },
 };
 
-// Lojas fora da lista acima (as da Awin, por exemplo) chegam com o nome em lojaNome
-const infoLoja = (o) => LOJAS[o.loja] || { nome: o.lojaNome || o.loja, em: "na", cor: "#6d28d9", texto: "#fff" };
+// Lojas fora da lista acima (as da Awin, por exemplo) chegam com o nome em lojaNome.
+// Cor própria de algumas (o nome começa por: "spicy" vale "Spicy BR"); as outras ficam roxas
+const CORES_POR_NOME = [["spicy", "#b0002a"]];
+const corPorNome = (nome) => CORES_POR_NOME.find(([n]) => String(nome || "").toLowerCase().trim().startsWith(n))?.[1];
+const infoLoja = (o) => LOJAS[o.loja] || { nome: o.lojaNome || o.loja, em: "na",
+  cor: corPorNome(o.lojaNome) || "#6d28d9", texto: "#fff" };
 
 const CATEGORIAS = [
   { nome: "Eletrônicos", emoji: "🎧", fundo: "linear-gradient(135deg,#dbeafe,#e0e7ff)" },
