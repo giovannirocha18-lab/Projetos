@@ -228,7 +228,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   cadastra); Magalu/Temu/Shein aceitam CPF mas sem API conhecida (só curadoria). Alternativa: **MEI** para virar PJ na Awin.
   **16/10/2026: cadastro na Lomadee feito** (painel: Início, Minha carteira, Meus canais, Marcas, Ofertas, Cupons, Produtos,
   Para Desenvolvedores). Canal "Comparador de Preços" criado; meta tag `<meta name="lomadee" …>` de verificação posta no `index.html` (manter).
-  Próximo: verificar o canal e ver "Para Desenvolvedores" (API/chave) e "Marcas".
+  ✅ Canal "Vai pro carrinho" **Ativo** (16/10/2026), ID do canal 5275daaf-c3d2-4f89-9b4a-75ad4f19906a.
+  Próximo: ver "Para Desenvolvedores" (API/chave) e "Marcas".
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
