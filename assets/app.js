@@ -977,25 +977,31 @@ function desenharResultados() {
   botao.textContent = `Ver também ${acessorios} ${acessorios === 1 ? "acessório ou peça" : "acessórios e peças"} para “${estado.q}”`;
 }
 
-// Animação enquanto busca: o carrinho do logo andando e produtos das lojas caindo dentro dele
-const ANIMACAO_BUSCANDO = `<svg viewBox="56 -14 170 116" aria-hidden="true">
-  <g class="anim-chao"><path d="M-40 96 H300" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-dasharray="14 12" stroke-linecap="round"/></g>
+// Animação enquanto busca: um boneco empurra o carrinho do logo de um lado ao outro, olhando para os lados
+const ANIMACAO_BUSCANDO = `<div class="anim-andando"><svg viewBox="0 0 165 100" aria-hidden="true">
   <g class="anim-vento" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round">
-    <path d="M70 40 H108"/><path d="M84 56 H116"/><path d="M62 72 H100"/>
+    <path d="M2 50 H22"/><path d="M8 66 H26"/><path d="M0 82 H18"/>
   </g>
-  <g class="anim-item" style="--atraso:0s"><rect x="164" y="0" width="20" height="18" rx="4" fill="#ee4d2d"/><path d="M168 6 H180" stroke="#fff" stroke-width="2"/></g>
-  <g class="anim-item" style="--atraso:.6s"><rect x="170" y="-4" width="14" height="24" rx="3" fill="#6d28d9" stroke="#fff" stroke-width="2"/></g>
-  <g class="anim-item" style="--atraso:1.2s"><path d="M160 2 h20 l6 8 -6 8 h-20 z" fill="#fde047" stroke="#fff" stroke-width="2"/><text x="168" y="14" font-size="9" font-weight="800" fill="#7c2d12" text-anchor="middle">R$</text></g>
-  <g class="anim-item" style="--atraso:1.8s"><circle cx="176" cy="8" r="10" fill="#22c55e" stroke="#fff" stroke-width="2"/><path d="M171 8 l4 4 7 -8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></g>
-  <g class="anim-carrinho">
-    <g transform="translate(116 6) scale(.8)">
+  <g class="anim-corpo">
+    <g class="anim-perna" style="--fase:0s"><path d="M45 62 V90" stroke="#1e1b4b" stroke-width="7" stroke-linecap="round"/><path d="M44 92 H52" stroke="#fff" stroke-width="5" stroke-linecap="round"/></g>
+    <path d="M50 39 L75 29" stroke="#e8a87c" stroke-width="5" stroke-linecap="round"/>
+    <rect x="36" y="31" width="19" height="33" rx="8" fill="#fde047"/>
+    <g class="anim-perna" style="--fase:-.25s"><path d="M45 62 V90" stroke="#312e81" stroke-width="7" stroke-linecap="round"/><path d="M44 92 H52" stroke="#fff" stroke-width="5" stroke-linecap="round"/></g>
+    <path d="M47 38 L75 28" stroke="#f5c09a" stroke-width="5" stroke-linecap="round"/>
+    <g class="anim-cabeca">
+      <circle cx="46" cy="19" r="11" fill="#f5c09a"/>
+      <path d="M35 18 a11 11 0 0 1 22 -2 c-6 -1 -12 -4 -14 -7 c-2 4 -5 7 -8 9z" fill="#3b2314"/>
+      <g class="anim-olhos" fill="#1e1b4b"><circle cx="43" cy="20" r="1.6"/><circle cx="50" cy="20" r="1.6"/></g>
+      <path d="M44 25 q2.5 1.8 5 0" fill="none" stroke="#9a3412" stroke-width="1.4" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(70 18) scale(.75)">
       <path d="M6 12 H22 L36 72 H96" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M27 26 H110 L100 60 H35 Z" fill="#fbbf24" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
     </g>
   </g>
-  <g class="anim-roda"><circle cx="151" cy="79.6" r="7.5" fill="#fff"/><path d="M151 74 V85.2 M145.4 79.6 H156.6" stroke="#9333ea" stroke-width="2"/></g>
-  <g class="anim-roda"><circle cx="186" cy="79.6" r="7.5" fill="#fff"/><path d="M186 74 V85.2 M180.4 79.6 H191.6" stroke="#9333ea" stroke-width="2"/></g>
-</svg>`;
+  <g class="anim-roda"><circle cx="103" cy="87" r="7" fill="#fff"/><path d="M103 81.5 V92.5 M97.5 87 H108.5" stroke="#9333ea" stroke-width="2"/></g>
+  <g class="anim-roda"><circle cx="136" cy="87" r="7" fill="#fff"/><path d="M136 81.5 V92.5 M130.5 87 H141.5" stroke="#9333ea" stroke-width="2"/></g>
+</svg></div>`;
 
 function desenharResumoBuscando() {
   const cat = navegandoCategoria();
