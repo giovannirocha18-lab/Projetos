@@ -29,7 +29,7 @@ const MAX_PAGINAS = 9;
 // Vitrine das categorias: cada busca (4 ou 5) pede 1 página por vez, até 3 páginas, até ter MINIMO_PRODUTOS
 const MAX_PAGINAS_VITRINE = 3;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 18;
+const VERSAO_CACHE = 19;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
