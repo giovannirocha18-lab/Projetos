@@ -222,6 +222,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   na Awin por engano (suporte corrigiu) e que o comparador já funciona com produtos reais; promete usar preço/link
   oficiais, sem cupons falsos nem anúncios pagos com a marca (ele deve conferir se isso é verdade). **Não** reenviar a
   Central Ar e Dufrio (exigem CNPJ). Próximo: ver respostas na Awin.
+- **Outras redes para PF (16/10/2026, Giovanni: Awin demora e lojas recusam PF)**: sugerido 1) **Lomadee** (aceita CPF, tem API;
+  conferir se PF pode divulgar em site ou só redes sociais) e 2) **Admitad** (rede internacional com feeds como a Awin; conferir
+  lojas BR abertas); 3) **Mercado Livre e Amazon** (aceitam CPF; sem API de busca liberada → curadoria: ele manda links, Claude
+  cadastra); Magalu/Temu/Shein aceitam CPF mas sem API conhecida (só curadoria). Alternativa: **MEI** para virar PJ na Awin.
+  Aguardando ele escolher.
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
