@@ -311,6 +311,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   lattafa, perfume árabe, body splash, perfume importado), cada uma pela ordem de **mais vendidos** da Shopee
   (`shopee.buscar(..., { maisVendidos: true })` = sortType 2), intercaladas. Atalhos "em alta" que são categoria também
   abrem a vitrine. Cada categoria aberta = 4 consultas à Shopee (guardadas 1h). Revisar as listas de tempos em tempos.
+  Ajuste: Informática trazia notebook de brinquedo e medidor de pressão → buscas "notebook lenovo"/"monitor gamer",
+  `excluir` (infantil, educativo, pressão…) e Brinquedos ganhou "educativo"/"laptop infantil".
 - **F5 volta ao começo (16/10/2026, pedido do Giovanni)**: atualizar a página tira busca/categoria do endereço, zera filtros e
   ordem e volta ao topo (`performance.getEntriesByType("navigation")[0].type === "reload"`). Link com `?q=` aberto direto continua funcionando.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
