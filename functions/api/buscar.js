@@ -32,7 +32,7 @@ const MAX_PAGINAS_VITRINE = 3;
 // Lojas consultadas ao vivo (sem robô): o preço de hoje é guardado quando aparecem numa busca
 const AO_VIVO = new Set(["shopee", "aliexpress"]);
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 20;
+const VERSAO_CACHE = 21;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
