@@ -14,7 +14,7 @@ import { awin } from "../../lib/fontes/awin.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { historicoAoVivo } from "../../lib/ofertas.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
-import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
+import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
 const FONTES_REAIS = [curadoria, shopee, awin];
@@ -28,6 +28,12 @@ const MINIMO_PRODUTOS = 100;
 const MAX_PAGINAS = 9;
 // Vitrine das categorias: cada busca (4 ou 5) pede 1 página por vez, até 3 páginas, até ter MINIMO_PRODUTOS
 const MAX_PAGINAS_VITRINE = 3;
+// Até onde o "Ver mais" vai (pagina= nas "Ofertas do dia", desde= na busca e na vitrine)
+const MAX_PAGINA = 20;
+const MAX_DESDE = 100;
+// Histórico ao vivo: grava o preço de no máximo tantos produtos por busca (sem acessórios), para uma
+// busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
+const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
 const VERSAO_CACHE = 19;
 
@@ -46,15 +52,16 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const inicio = Date.now();
   const params = new URL(request.url).searchParams;
   const q = (params.get("q") || "").trim().slice(0, 100);
-  const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), 20);
-  const desde = Math.min(Math.max(parseInt(params.get("desde"), 10) || 1, 1), 100);
+  const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), MAX_PAGINA);
+  const desde = Math.min(Math.max(parseInt(params.get("desde"), 10) || 1, 1), MAX_DESDE);
   const categoria = q ? categoriaPorNome(params.get("cat")) : null;
 
   // Conta a busca para os "em alta" da semana, sem atrasar a resposta.
   // Clique num atalho não conta: senão o atalho se manteria em alta sozinho.
+  // O IP só serve para contar cada pessoa uma vez por termo por dia (ver lib/buscas.js); não é guardado.
   const contar = (resposta) => {
     if (q && pagina === 1 && desde === 1 && !params.has("atalho") && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
-      waitUntil(registrarBusca(env, q).catch(() => {}));
+      waitUntil(registrarBusca(env, q, request.headers.get("CF-Connecting-IP")).catch(() => {}));
     }
     return resposta;
   };
@@ -81,9 +88,14 @@ export async function onRequestGet({ request, env, waitUntil }) {
             lojas[fonte.nome] = { ok: true, total: ofertas.length };
             return ofertas;
           }
-          // Lojas sem páginas (Awin, curadoria) vêm inteiras na primeira vez
           const paginas = opcoes?.paginas || [pagina];
-          if (!fonte.porPagina && !paginas.includes(1)) return [];
+          if (!fonte.porPagina) {
+            // Lojas sem páginas (Awin, curadoria) vêm inteiras na primeira vez: uma consulta só por termo
+            if (!paginas.includes(1)) return [];
+            const ofertas = await fonte.buscar(termo, env, 1, opcoes);
+            lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(ofertas.length, lojas[fonte.nome]?.total || 0) };
+            return ofertas;
+          }
           const listas = await Promise.all(paginas.map((p) => fonte.buscar(termo, env, p, opcoes)));
           const vistos = new Set();
           const ofertas = listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id));
@@ -101,23 +113,26 @@ export async function onRequestGet({ request, env, waitUntil }) {
   };
 
   // Busca digitada: pede páginas de 3 em 3 até ter produtos suficientes (ver MINIMO_PRODUTOS).
-  // termos = o que foi digitado (e, na categoria, "invictus perfume"); produtos = conta os de verdade
-  const buscarAteEncher = async (termos, produtos) => {
-    let juntas = [];
+  // termos = o que foi digitado (e, na categoria, "invictus perfume"); contar = quantos produtos de verdade
+  // há entre os que chegaram nesta rodada (conta só os novos: refazer a lista toda a cada rodada gastava CPU)
+  const buscarAteEncher = async (termos, contar) => {
+    const juntas = [];
+    const vistos = new Set();
+    let produtos = 0;
     let pag = desde;
     let acabou = false;
     do {
       const paginas = Array.from({ length: PAGINAS_POR_LOTE }, (_, i) => pag + i);
       for (const l of Object.values(lojas)) l.total = 0;
       const listas = await Promise.all(termos.map((t) => consultar(t, { paginas })));
-      const vistos = new Set(juntas.map((o) => o.id));
-      juntas = [...juntas, ...listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id))];
+      const novas = listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id));
+      juntas.push(...novas);
+      produtos += contar(novas);
       pag += PAGINAS_POR_LOTE;
       acabou = !fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina);
-    } while (!acabou && pag - desde < MAX_PAGINAS && produtos(juntas) < MINIMO_PRODUTOS);
-    return { juntas, proxima: acabou ? null : pag };
+    } while (!acabou && pag - desde < MAX_PAGINAS && produtos < MINIMO_PRODUTOS);
+    return { juntas, proxima: acabou || pag > MAX_DESDE ? null : pag };
   };
-  const semAcessorios = (lista) => separarAcessorios(lista, q).filter((o) => !o.acessorio);
   let mais = null;
 
   // Abriu uma categoria: vitrine com os produtos em alta (várias buscas, mais vendidos primeiro)
@@ -126,24 +141,25 @@ export async function onRequestGet({ request, env, waitUntil }) {
   let foraDaCategoria = false;
   if (vitrine) {
     // "apple watch" nos mais vendidos da Shopee é quase tudo pulseira: continua pedindo páginas até encher
-    const brutas = vitrine.buscas.map(() => []);
+    // Cada página é marcada (acessório/bate) uma vez só, quando chega
+    const marcadas = vitrine.buscas.map(() => []);
     let pag = desde;
     let acabou = false;
     do {
       for (const l of Object.values(lojas)) l.total = 0;
       const novas = await Promise.all(vitrine.buscas.map((termo) => consultar(termo, { maisVendidos: true, paginas: [pag] })));
-      novas.forEach((lista, i) => brutas[i].push(...lista));
+      novas.forEach((lista, i) => marcadas[i].push(...separarAcessorios(lista, vitrine.buscas[i])));
       pag += 1;
       acabou = !fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina);
-      ofertas = montarVitrine(brutas.map((lista, i) => separarAcessorios(lista, vitrine.buscas[i])), vitrine, categoria);
+      ofertas = montarVitrine(marcadas, vitrine, categoria);
     } while (!acabou && pag - desde < MAX_PAGINAS_VITRINE && ofertas.length < MINIMO_PRODUTOS);
-    mais = acabou ? null : `desde=${pag}`;
+    mais = acabou || pag > MAX_DESDE ? null : `desde=${pag}`;
   } else if (categoria) {
     // Dentro de uma categoria: o que foi digitado + (se a categoria tem chave) "invictus perfume";
     // fica só o que não é de outra categoria, o que é dela primeiro. Se nada sobrar, busca em tudo (e o site avisa).
     const extra = termoNaCategoria(q, categoria);
     const { juntas, proxima } = await buscarAteEncher(extra ? [extra, q] : [q],
-      (lista) => ordenarNaCategoria(semAcessorios(lista), categoria).length);
+      (novas) => contarNaCategoria(separarAcessorios(novas, q), categoria));
     ofertas = ordenarNaCategoria(separarAcessorios(juntas, q), categoria);
     if (!ofertas.length && desde === 1) {
       ofertas = separarAcessorios(juntas, q);
@@ -152,7 +168,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     mais = proxima && `desde=${proxima}`;
   } else if (q) {
     // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
-    const { juntas, proxima } = await buscarAteEncher([q], (lista) => semAcessorios(lista).length);
+    const { juntas, proxima } = await buscarAteEncher([q], (novas) => separarAcessorios(novas, q).filter((o) => !o.acessorio).length);
     ofertas = separarAcessorios(juntas, q);
     mais = proxima && `desde=${proxima}`;
   } else {
@@ -160,13 +176,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   // "Ofertas do dia": a próxima página
   if (!q) {
-    mais = fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina) ? `pagina=${pagina + 1}` : null;
+    mais = pagina < MAX_PAGINA && fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina) ? `pagina=${pagina + 1}` : null;
   }
   // Shopee: junta o histórico de preço e guarda o preço de hoje (sem atrasar a resposta).
   // É o que permite o selo "Desconto real" (ex.: na Black Friday). Banco fora do ar não derruba a busca.
   if (env.DB && ofertas.some((o) => o.loja === "shopee")) {
     try {
-      const vivo = await historicoAoVivo(env.DB, ofertas);
+      const vivo = await historicoAoVivo(env.DB, ofertas, { gravarAte: GRAVAR_POR_BUSCA });
       ofertas = vivo.ofertas;
       waitUntil(vivo.gravar().catch(() => {}));
     } catch {
