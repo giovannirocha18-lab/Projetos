@@ -33,7 +33,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Com 1 produto ou mais, o site deixa de mostrar os exemplos. Giovanni manda os links; Claude cadastra.
 - `lib/fontes/shopee.js` = API GraphQL de afiliados da Shopee (busca ao vivo, 48 por página, sortType 1 = relevância; botão "Ver mais resultados" pede a próxima página;
   destaques = mais vendidos). Chaves `SHOPEE_APP_ID` e `SHOPEE_SECRET` no Cloudflare. ✅ **Funcionando desde 15/10/2026.**
-  Ofertas da Shopee ainda **não** entram no histórico de preço (só as do robô da Awin).
+  Ofertas da Shopee, AliExpress e Lomadee entram no histórico de preço ao vivo (`historicoAoVivo`).
 - `lib/conta.js` + `functions/api/conta/*` = cadastro com "Entrar com Google" ou e-mail + senha ("Esqueci minha senha"
   manda link por e-mail via Resend; login por código foi removido em 14/10/2026), sessão por cookie, "Meu carrinho" salvo na conta (D1, binding `DB`; tabelas criadas sozinhas). Ver README.
 - `lib/fontes/awin.js` = lojas da Awin: busca na tabela `ofertas` do D1 (índice FTS5 `ofertas_fts`). Liga sozinha quando
@@ -63,7 +63,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Cloudflare criou registros "sem e-mail" (MX nulo, SPF -all, DMARC reject). Trocar se um dia
   quiser e-mail no domínio.
 
-## Situação atual (atualizado em 16/10/2026, 3ª sessão)
+## Situação atual (atualizado em 16/10/2026, fim da 3ª sessão)
 | Item | Situação |
 |---|---|
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
@@ -83,6 +83,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Robô de preços (Awin → D1 + coleta Shopee, GitHub Actions 02:30 Cuiabá) | ✅ funcionando. Execução #10 (15/10/2026, disparada pelo Claude): 398 produtos (Spicy 349, Shark-Ninja 18, EINSTAR 31) |
 | Histórico de preço + produto agrupado por código de barras | ✅ publicado (15/10/2026); ganha dados com o tempo |
 | AliExpress Afiliados | ✅ **aprovado (16/10/2026)**. Cadastro de desenvolvedor no openservice.aliexpress.com ✅ aprovado (16/10/2026; "Affiliates (individual)", Brasil; Conformidade de Dados: Não/Não/Não/Não, local Brasil, Não/Não/Sim = **compromisso: apagar dados da AliExpress se a parceria acabar**). App "Vai pro Carrinho" criado (16/10/2026): categoria Affiliates API, status **Test**, 1000 chamadas/min, "Standard API for Publishers" ativa (Advanced API = hot products, inativa, opcional). Tracking ID `vaiprocarrinho` criado e posto como padrão (é o padrão no código). **`lib/fontes/aliexpress.js` pronto e publicado (16/10/2026)**: busca (até 3 páginas de 50, BRL, entrega BR, selo Internacional), vitrine por mais vendidos, histórico ao vivo como a Shopee, lojas intercaladas na lista; sem "Ofertas do dia" (precisa da Advanced API). Testado só com fetch falso (rede do Claude bloqueia api-sg.aliexpress.com). ✅ **FUNCIONANDO no site (16/10/2026)**: chaves no Cloudflare, teste `/api/buscar?q=mochila notebook` trouxe produtos da AliExpress intercalados com a Shopee (link s.click.aliexpress.com, fotos, preço em R$, vendedor). Vendidos da AliExpress costumam ser baixos (campo lastest_volume). **Filtro "Envio" (16/10/2026, pedido dele)**: barra lateral "Todos / 🇧🇷 Nacional / 🌎 Internacional" (campo `internacional`). A API da AliExpress não diz de onde sai o produto: `aliexpress.buscar` faz uma 2ª consulta com `delivery_days=5` (entrega no BR em até 5 dias = armazém no Brasil) e marca esses como nacionais com selo verde "🇧🇷 Envio do Brasil"; se a API recusar/ignorar o filtro, tudo fica internacional. **Não testado com a API real** (rede do Claude bloqueada): Giovanni conferir. Shopee conta como nacional (API não informa vendedor internacional). Cores dos botões (16/10/2026, pedido dele): **AliExpress roxo-azulado `#6d28d9`**, **Spicy vinho `#b0002a`** (`CORES_POR_NOME` no `app.js`, pelo começo do nome da loja da Awin); outras lojas da Awin roxas. **"Ofertas do dia" com AliExpress (16/10/2026, pedido dele)**: `destaques()` tenta a Advanced API (hotproduct.query); se recusar, usa 4 buscas das vitrines por página (mudam todo dia, espalhadas pelas categorias), mais vendidos com desconto e sem acessórios, 6 de cada, intercalados (24 por página). Próximo: Giovanni conferir no site; opcional pedir a "Advanced API" |
+| Lomadee (rede de afiliados, ~133 lojas, PF) | ✅ **funcionando no site (16/10/2026)**: busca ao vivo + link com comissão no clique (`/api/ir`). Ver "Outras redes para PF" |
+| Busca rápida | ✅ 16/10/2026: busca nova ~3 s (era 12–14 s); buscas populares prontas no banco (robô 02:30). ⏳ Conferir se as 91 ficaram prontas (Claude rodou o preparo manualmente no fim da sessão) |
 | Logo e imagens do Instagram | ✅ em `marca/` |
 | Mercado Livre Afiliados | ❗ não se inscreveu ainda. API de busca dá 403 para muitos devs (Reclame Aqui) |
 | Segurança: print com senha do Registro.br (`registrobr.jpg`) | ✅ apagado do site e do histórico do GitHub (13/10/2026). ❗ Giovanni **ainda não trocou a senha** do Registro.br: cobrar. Conferir também deploys antigos no Cloudflare (Deployments) |
@@ -459,6 +461,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 
 ## Próximos passos
 0. ✅ **Lomadee ligada no site (16/10/2026)**. Próximo: Giovanni pedir afiliação em mais marcas no menu "Marcas" (Magalu etc.) e conferir no site.
+   Giovanni também ia mandar print de "Minha carteira" da Lomadee (regras de saque: mínimo, prazo, impostos PF).
+0b. Conferir as buscas prontas: `curl -D - .../api/buscar?v=32&q=notebook` deve ter `X-Pronta: 1` (se cache de 1h não estiver na frente);
+   ver o log do job `prontas` da madrugada (quantas `"guardada":true`). Se o robô do GitHub seguir com a Lomadee travando,
+   ok: as buscas são guardadas sem ela.
 1. Giovanni: reenviar pedidos às lojas que recusaram (texto acima) e acompanhar aprovações na Awin; recusar convites
    fora do perfil. A cada loja nova: Claude pode disparar o robô (GitHub MCP `actions_run_trigger`, workflow
    `robo-precos.yml`, ref `claude/inspiring-hamilton-wafagr`) e ler o log; se o nome da loja vier como empresa,
