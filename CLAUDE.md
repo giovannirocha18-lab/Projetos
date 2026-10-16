@@ -247,7 +247,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   via `ehAoVivo`). Link "Comprar" = `/api/ir?m=<org>&u=<url>` (`functions/api/ir.js`): gera o link com comissão no encurtador
   (`POST /affiliate/shortener/url`, type Custom) só no clique e guarda na tabela D1 `links_lomadee`; se falhar, manda para o
   produto só se for do site da marca. Sem "Ofertas do dia" da Lomadee. Liga sozinho com o Secret `LOMADEE_API_KEY`.
-  Próximo: Giovanni criar a chave e pôr no Cloudflare; Claude testar `/api/buscar?q=...` e um clique no site real.
+  ✅ **FUNCIONANDO no site (16/10/2026)**: chave "vaiprocarrinho" (escopos Marcas, Campanhas, Produtos, Encurtador leitura/escrita;
+  sem Canais/Pedidos) no Secret `LOMADEE_API_KEY`. A chave enxerga **133 marcas** (a maioria já liberada para o canal; ex.: FATOR 5
+  "This channel is not allowed by the organization"). Descobertas reais: **preço vem em REAIS** (a doc diz centavos) e mandar
+  `organizationIds` com todas as marcas faz a API devolver 0 → filtro feito no site. Teste "air fryer": Friopeças (Philco R$ 598,
+  Britânia, Mallory, Elgin); clique `/api/ir` → `lmdee.link/...` → friopecas.com.br com `utm_source=lomadee` ✅.
+  A busca da Lomadee é solta ("air" traz jaquetas "Air"); nossa relevância põe esses no fim.
   (Antigo) **Próximo (conversa nova, rede liberada)**: Claude ler docs.lomadee.com.br ("Get all Products" Query Parameters, "Shorten a URL",
   "API Keys"); Giovanni criar a chave e pôr Secret `LOMADEE_API_KEY` no Cloudflare (nunca no chat); Claude montar
   `lib/fontes/lomadee.js` (busca + link encurtado guardado no D1 + só marcas aprovadas + controle de limite) e testar.
@@ -442,7 +447,7 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos
-0. **Lomadee** (cadastro e canal ✅ 16/10/2026): ligar a API no site (ver "Outras redes para PF" em "Em andamento").
+0. ✅ **Lomadee ligada no site (16/10/2026)**. Próximo: Giovanni pedir afiliação em mais marcas no menu "Marcas" (Magalu etc.) e conferir no site.
 1. Giovanni: reenviar pedidos às lojas que recusaram (texto acima) e acompanhar aprovações na Awin; recusar convites
    fora do perfil. A cada loja nova: Claude pode disparar o robô (GitHub MCP `actions_run_trigger`, workflow
    `robo-precos.yml`, ref `claude/inspiring-hamilton-wafagr`) e ler o log; se o nome da loja vier como empresa,
