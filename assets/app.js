@@ -473,21 +473,6 @@ function selosHistorico(o) {
   ];
 }
 
-// Mesmo produto (mesmo código de barras) em outras lojas
-function listaOutrasLojas(o) {
-  if (!o.outras?.length) return null;
-  const detalhes = el("details", { class: "outras-lojas" },
-    el("summary", {}, `+ ${o.outras.length} ${o.outras.length === 1 ? "loja" : "lojas"} com este produto`),
-    el("ul", {}, ...o.outras.map((x) => {
-      const loja = infoLoja(x);
-      return el("li", {},
-        el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
-        el("a", { href: x.link, target: "_blank", rel: "sponsored noopener", onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
-          `R$ ${brl(x.preco)}`, el("span", { "aria-hidden": "true" }, " →")));
-    })));
-  return detalhes;
-}
-
 function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
   const loja = infoLoja(o);
   const [inteiro, decimal] = brl(o.preco).split(",");
@@ -504,10 +489,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         ? el("img", { src: o.imagem, alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(o) })
         : el("span", { class: "foto-emoji" }, o.emoji || "🛍️"),
       el("div", { class: "selos" },
-        // Mesmo produto em várias lojas: o cartão mostra a mais barata delas
-        o.outras?.length
-          ? el("span", { class: "selo selo-melhor" }, ...longoCurto(`🏆 Menor preço entre ${o.outras.length + 1} lojas`, `🏆 ${o.outras.length + 1} lojas`))
-          : melhor && el("span", { class: "selo selo-melhor" }, ...longoCurto("🏆 Menor preço da busca", "🏆 Menor preço")),
+        melhor && el("span", { class: "selo selo-melhor" }, ...longoCurto("🏆 Menor preço da busca", "🏆 Menor preço")),
         maisVendido && el("span", { class: "selo selo-vendido" }, ...longoCurto("⭐ Mais vendido", "⭐ Top")),
         o.desconto && el("span", { class: "selo selo-desconto" }, `-${o.desconto}%`),
         ...selosHistorico(o))),
@@ -539,30 +521,8 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       el("div", { class: "links-oferta" },
         temDetalhes(o) && el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
         o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico")),
-      listaOutrasLojas(o),
       el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
         ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
-}
-
-// ---------------------------------------------------------------------
-// Agrupa o mesmo produto (mesmo código de barras) vendido em várias lojas:
-// fica um cartão só, com o menor preço, e a lista das outras lojas.
-// Mantém a ordem da lista (o grupo aparece onde aparecia a primeira oferta).
-// ---------------------------------------------------------------------
-function agrupar(lista) {
-  const grupos = new Map();
-  const saida = [];
-  for (const o of lista) {
-    if (!o.gtin) { saida.push(o); continue; }
-    const grupo = grupos.get(o.gtin);
-    if (grupo) grupo.push(o);
-    else { const novo = [o]; grupos.set(o.gtin, novo); saida.push(novo); }
-  }
-  return saida.map((item) => {
-    if (!Array.isArray(item)) return item;
-    const [principal, ...outras] = [...item].sort((a, b) => a.preco - b.preco);
-    return outras.length ? { ...principal, outras } : principal;
-  });
 }
 
 // ---------------------------------------------------------------------
@@ -845,7 +805,7 @@ function desenharResultados() {
   desenharResumo(lista);
   $("#total").textContent = `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}`;
   const idVendido = idMaisVendido(lista);
-  $("#grade").replaceChildren(...agrupar(lista).map((o, i) => {
+  $("#grade").replaceChildren(...lista.map((o, i) => {
     const c = cartaoOferta(o, { melhor: o.id === idMelhor, maisVendido: o.id === idVendido });
     c.style.animationDelay = `${Math.min(i, 12) * 30}ms`;
     return c;
@@ -901,7 +861,7 @@ async function buscar(q) {
 function desenharInicio(lista) {
   const idVendido = idMaisVendido(lista);
   $("#destaques").replaceChildren(...(lista.length
-    ? agrupar(lista).map((o) => {
+    ? lista.map((o) => {
       const c = cartaoOferta(o, { maisVendido: o.id === idVendido });
       // Ao carregar mais, só os cartões novos "surgem"; os que já estavam ficam parados
       if (estado.vistosInicio.has(o.id)) c.style.animation = "none";

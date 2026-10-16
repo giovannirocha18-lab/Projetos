@@ -183,7 +183,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
     30+ dias de acompanhamento e preço que variou; `historico.caiu` = % da última queda, se nos últimos 7 dias).
   - `/api/historico?id=` devolve os pontos; no site, botão "📈 Histórico de preço" abre janela com gráfico em degraus
     (Hoje/Menor/Maior + dica ao passar o dedo). Selos "📉 Menor em 30 dias" e "📉 Baixou X%".
-  - Site agrupa ofertas com o mesmo `gtin`: um cartão com o menor preço + "+ N lojas com este produto" (lista com preço/link).
+  - ~~Site agrupa ofertas com o mesmo `gtin`~~ **removido em 16/10/2026 (pedido do Giovanni: confundia; cada produto no seu
+    próprio cartão)**. O robô continua guardando o `gtin`.
   - Execução #7 do robô gravou o gtin nos 31 produtos da EINSTAR (migração aplicada no D1). Publicado.
 - **15/10/2026: 4 lojas recusaram na Awin.** Causa provável explicada: quem avalia abre vaiprocarrinho.com.br e vê só
   "Em breve" (sem produtos/visitas), conta nova, sem e-mail de contato. Sugerido: ver o motivo na aba "Recusado",

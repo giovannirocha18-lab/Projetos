@@ -481,19 +481,13 @@ a { color: inherit; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
-/* ============ Histórico de preço e outras lojas ============ */
+/* ============ Histórico de preço ============ */
 .selo-historico { background: #1d4ed8; }
 .ver-historico {
   align-self: flex-start; background: none; border: 0; padding: 2px 0; cursor: pointer;
   font: inherit; font-size: .8rem; font-weight: 700; color: var(--roxo);
 }
 .ver-historico:hover { text-decoration: underline; }
-.outras-lojas { font-size: .82rem; border: 1px solid var(--borda); border-radius: 10px; padding: 6px 10px; }
-.outras-lojas summary { cursor: pointer; font-weight: 700; color: var(--roxo); }
-.outras-lojas ul { list-style: none; margin: 8px 0 2px; padding: 0; display: grid; gap: 6px; }
-.outras-lojas li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 8px; }
-.outras-lojas a { font-weight: 800; color: var(--texto); text-decoration: none; white-space: nowrap; }
-.outras-lojas a:hover { color: var(--roxo); }
 .janela-historico { width: min(440px, calc(100vw - 32px)); }
 .janela-historico .botao-oferta { margin-top: 8px; }
 .historico-numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
