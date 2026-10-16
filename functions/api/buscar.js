@@ -1,7 +1,8 @@
 // GET /api/buscar?q=air+fryer  -> ofertas de todas as lojas ligadas
 // GET /api/buscar               -> ofertas em destaque
 // GET /api/buscar?pagina=2      -> mais ofertas em destaque (só das lojas que têm páginas, como a Shopee)
-// GET /api/buscar?q=...&pagina=2 -> mais resultados da busca (idem)
+// GET /api/buscar?q=...&desde=10 -> mais resultados da busca, a partir da página 10 da Shopee
+//                                   (a resposta traz em "mais" o pedaço de endereço para a próxima vez)
 // GET /api/buscar?q=invictus&cat=Perfumes -> busca dentro da categoria escolhida no menu
 //
 // Roda nos servidores do Cloudflare (Pages Functions). É aqui que ficam as
@@ -19,11 +20,14 @@ import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, vitrineDaCatego
 const FONTES_REAIS = [curadoria, shopee, awin];
 
 const CACHE_SEGUNDOS = 60 * 60;
-// Na busca digitada, cada "lote" pede várias páginas da loja de uma vez (Shopee: 3 x 48 = 144),
-// para sobrarem uns 100 produtos depois de tirar os acessórios. "Ver mais resultados" pede o próximo lote.
+// Na busca digitada, pede páginas da loja de 3 em 3 (Shopee: 48 cada) até ter MINIMO_PRODUTOS produtos
+// de verdade (sem contar acessórios: "air fryer" traz muita forminha e papel) ou MAX_PAGINAS páginas.
+// "Ver mais resultados" continua de onde parou.
 const PAGINAS_POR_LOTE = 3;
+const MINIMO_PRODUTOS = 100;
+const MAX_PAGINAS = 9;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 15;
+const VERSAO_CACHE = 16;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -41,12 +45,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const params = new URL(request.url).searchParams;
   const q = (params.get("q") || "").trim().slice(0, 100);
   const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), 20);
+  const desde = Math.min(Math.max(parseInt(params.get("desde"), 10) || 1, 1), 100);
   const categoria = q ? categoriaPorNome(params.get("cat")) : null;
 
   // Conta a busca para os "em alta" da semana, sem atrasar a resposta.
   // Clique num atalho não conta: senão o atalho se manteria em alta sozinho.
   const contar = (resposta) => {
-    if (q && pagina === 1 && !params.has("atalho") && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
+    if (q && pagina === 1 && desde === 1 && !params.has("atalho") && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
       waitUntil(registrarBusca(env, q).catch(() => {}));
     }
     return resposta;
@@ -54,7 +59,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Guarda as respostas por 1 hora para não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}`, request.url));
+  const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return contar(guardada);
 
@@ -74,8 +79,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
             lojas[fonte.nome] = { ok: true, total: ofertas.length };
             return ofertas;
           }
-          const lote = opcoes?.lote && fonte.porPagina ? PAGINAS_POR_LOTE : 1;
-          const paginas = Array.from({ length: lote }, (_, i) => (pagina - 1) * lote + i + 1);
+          // Lojas sem páginas (Awin, curadoria) vêm inteiras na primeira vez
+          const paginas = opcoes?.paginas || [pagina];
+          if (!fonte.porPagina && !paginas.includes(1)) return [];
           const listas = await Promise.all(paginas.map((p) => fonte.buscar(termo, env, p, opcoes)));
           const vistos = new Set();
           const ofertas = listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id));
@@ -92,6 +98,26 @@ export async function onRequestGet({ request, env, waitUntil }) {
     return resultados.flat();
   };
 
+  // Busca digitada: pede páginas de 3 em 3 até ter produtos suficientes (ver MINIMO_PRODUTOS).
+  // termos = o que foi digitado (e, na categoria, "invictus perfume"); produtos = conta os de verdade
+  const buscarAteEncher = async (termos, produtos) => {
+    let juntas = [];
+    let pag = desde;
+    let acabou = false;
+    do {
+      const paginas = Array.from({ length: PAGINAS_POR_LOTE }, (_, i) => pag + i);
+      for (const l of Object.values(lojas)) l.total = 0;
+      const listas = await Promise.all(termos.map((t) => consultar(t, { paginas })));
+      const vistos = new Set(juntas.map((o) => o.id));
+      juntas = [...juntas, ...listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id))];
+      pag += PAGINAS_POR_LOTE;
+      acabou = !fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina);
+    } while (!acabou && pag - desde < MAX_PAGINAS && produtos(juntas) < MINIMO_PRODUTOS);
+    return { juntas, proxima: acabou ? null : pag };
+  };
+  const semAcessorios = (lista) => separarAcessorios(lista, q).filter((o) => !o.acessorio);
+  let mais = null;
+
   // Abriu uma categoria: vitrine com os produtos em alta (várias buscas, mais vendidos primeiro)
   const vitrine = vitrineDaCategoria(q, categoria);
   let ofertas;
@@ -103,17 +129,25 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Dentro de uma categoria: o que foi digitado + (se a categoria tem chave) "invictus perfume";
     // fica só o que não é de outra categoria, o que é dela primeiro. Se nada sobrar, busca em tudo (e o site avisa).
     const extra = termoNaCategoria(q, categoria);
-    const [digitada, comChave] = await Promise.all([consultar(q, { lote: true }), extra ? consultar(extra, { lote: true }) : []]);
-    const vistos = new Set();
-    const juntas = [...comChave, ...digitada].filter((o) => !vistos.has(o.id) && vistos.add(o.id));
+    const { juntas, proxima } = await buscarAteEncher(extra ? [extra, q] : [q],
+      (lista) => ordenarNaCategoria(semAcessorios(lista), categoria).length);
     ofertas = ordenarNaCategoria(separarAcessorios(juntas, q), categoria);
-    if (!ofertas.length && pagina === 1) {
-      ofertas = separarAcessorios(digitada, q);
+    if (!ofertas.length && desde === 1) {
+      ofertas = separarAcessorios(juntas, q);
       foraDaCategoria = ofertas.length > 0;
     }
-  } else {
+    mais = proxima && `desde=${proxima}`;
+  } else if (q) {
     // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
-    ofertas = q ? separarAcessorios(await consultar(q, { lote: true }), q) : await consultar(q);
+    const { juntas, proxima } = await buscarAteEncher([q], (lista) => semAcessorios(lista).length);
+    ofertas = separarAcessorios(juntas, q);
+    mais = proxima && `desde=${proxima}`;
+  } else {
+    ofertas = await consultar(q);
+  }
+  // Vitrine e "Ofertas do dia": a próxima página
+  if (!q || vitrine) {
+    mais = fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina) ? `pagina=${pagina + 1}` : null;
   }
   // Shopee: junta o histórico de preço e guarda o preço de hoje (sem atrasar a resposta).
   // É o que permite o selo "Desconto real" (ex.: na Black Friday). Banco fora do ar não derruba a busca.
@@ -133,8 +167,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
     foraDaCategoria,
     exemplo: !reais.length,
     ofertas,
-    // Avisa o site se vale mostrar o botão "Ver mais ofertas" / "Ver mais resultados"
-    temMais: fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina),
+    // Botão "Ver mais ofertas" / "Ver mais resultados": o site pede /api/buscar?q=...&<mais>
+    temMais: Boolean(mais),
+    mais,
     lojas,
     tempoMs: Date.now() - inicio,
   });

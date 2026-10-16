@@ -720,11 +720,12 @@ function semRepetidos(lista) {
   return saida;
 }
 
-async function consultarApi(q, pagina = 1) {
+// mais = pedaço de endereço que a resposta anterior mandou para buscar a continuação ("desde=10", "pagina=2")
+async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=15&q=${encodeURIComponent(q)}${cat}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=16&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -883,8 +884,8 @@ async function buscar(q) {
     estado.ofertas = semRepetidos(dados.ofertas);
     // Nada na categoria: o servidor buscou em tudo, e as próximas páginas também são de tudo
     if (dados.foraDaCategoria) { estado.foraDaCategoria = estado.cat; estado.cat = null; }
-    estado.paginaBusca = 1;
-    estado.temMaisBusca = Boolean(dados.temMais);
+    estado.maisBusca = dados.mais;
+    estado.temMaisBusca = Boolean(dados.mais);
     desenharFiltroLojas();
     desenharResultados();
   } catch (erro) {
@@ -919,7 +920,7 @@ async function carregarMaisOfertas() {
   botao.disabled = true;
   botao.textContent = "Carregando…";
   try {
-    const dados = await consultarApi("", estado.paginaInicio + 1);
+    const dados = await consultarApi("", `pagina=${estado.paginaInicio + 1}`);
     const antes = estado.inicio.length;
     estado.inicio = semRepetidos([...estado.inicio, ...dados.ofertas]);
     estado.paginaInicio += 1;
@@ -943,12 +944,12 @@ async function carregarMaisResultados() {
   botao.disabled = true;
   botao.textContent = "Carregando…";
   try {
-    const dados = await consultarApi(estado.q, estado.paginaBusca + 1);
+    const dados = await consultarApi(estado.q, estado.maisBusca);
     if (pedido !== estado.pedido) return; // o visitante já fez outra busca
     const antes = estado.ofertas.length;
     const todas = semRepetidos([...estado.ofertas, ...dados.ofertas]);
-    estado.paginaBusca += 1;
-    estado.temMaisBusca = Boolean(dados.temMais && todas.length > antes);
+    estado.maisBusca = dados.mais;
+    estado.temMaisBusca = Boolean(dados.mais && todas.length > antes);
     // Produtos antes, acessórios (escondidos) no fim
     estado.ofertas = [...todas.filter((o) => !o.acessorio), ...todas.filter((o) => o.acessorio)];
     desenharFiltroLojas();

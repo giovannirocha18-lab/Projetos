@@ -318,8 +318,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   para carro" (lixo). Agora pesquisa o que foi digitado e, só se a categoria tiver `chave` (ex.: Perfumes = "perfume"),
   também "invictus perfume"; junta, tira o que é de outra categoria e põe primeiro o que é da categoria
   (`ordenarNaCategoria`). Perfumes ganhou "eau de"/"toilette".
-- **~100 resultados por busca (16/10/2026, pedido do Giovanni)**: busca digitada pede um "lote" de 3 páginas da Shopee
-  (`PAGINAS_POR_LOTE` em `buscar.js`, 3 x 48 = 144 brutos); "Ver mais resultados" (`pagina=N`) pede o lote seguinte.
+- **~100 resultados por busca (16/10/2026, pedido do Giovanni)**: busca digitada pede páginas da Shopee de 3 em 3
+  (`buscarAteEncher` em `buscar.js`) até ter 100 produtos **sem contar acessórios** ("air fryer" na Shopee é ~80% forminha/papel)
+  ou 9 páginas. A resposta traz `mais` ("desde=10" na busca, "pagina=2" na vitrine/início) e o site pede `&<mais>` no
+  "Ver mais resultados".
   Vitrine e "Ofertas do dia" continuam 1 página. Teste com Shopee simulada: `fetch` falso + `onRequestGet` direto no Node.
 - **Anúncios repetidos (16/10/2026, pedido do Giovanni)**: na Shopee vários vendedores publicam o mesmo produto com códigos
   diferentes. `semRepetidos()` no `app.js` junta por mesmo título (60 letras) + preço ou mesma foto e fica com o que vendeu mais.
