@@ -5,7 +5,7 @@ name: Robô de preços
 
 on:
   schedule:
-    - cron: "30 5 * * *" # 02:30 no horário de Brasília (pedido do Giovanni, 16/10/2026)
+    - cron: "30 6 * * *" # 02:30 no horário de Cuiabá (03:30 de Brasília), pedido do Giovanni, 16/10/2026
   workflow_dispatch:
 
 jobs:
