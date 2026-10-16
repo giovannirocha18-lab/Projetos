@@ -358,6 +358,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **Palavras perto umas das outras (16/10/2026, pedido do Giovanni)**: "mini pc" trazia "Microfone Mini USB … para PC" no topo.
   `criarPontuacao` (`lib/relevancia.js`): frase inteira > todas as palavras perto (até 4 no meio, sem contar de/para/com) >
   espalhadas (não `bate`); palavra logo depois de "para/for…" só conta se o título começa pelo 1º termo ("Capa para iPhone" ok). Cache v=26.
+- **⚠️ REGRA: teste da busca (16/10/2026, pedido do Giovanni, porque correções antigas "voltavam")**: `node testes/busca.mjs`
+  tem que dar "✓ Tudo certo" **antes de publicar qualquer mudança na busca** (`lib/relevancia.js`, `lib/categorias.js`, `buscar.js`).
+  Tem os termos mais buscados (pesquisa 16/10: MELI Trends 2025, Google "Mais Desejados" 2025, Shopee 2025/Mapa 2026) e
+  **todo print de erro do Giovanni vira um caso novo** no arquivo. Sinônimos em `SINONIMOS`/`comSinonimos` (`lib/relevancia.js`):
+  smartphone=celular, capinha=capa, smart watch=smartwatch, PlayStation 5=ps5, televisão=tv, refrigerador=geladeira,
+  laptop=notebook, "55 polegadas"=55. Pontuação aceita frase com de/para no meio ("Retrovisor para Moto"). Cache v=27.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
