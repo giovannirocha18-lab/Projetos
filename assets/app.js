@@ -810,19 +810,7 @@ function desenharResumo(lista) {
       : "Nenhuma oferta com esses filtros"),
     avisoCategoria());
 
-  if (lista.length < 2) return $("#resumo").replaceChildren(titulo);
-
-  const comparaveis = ofertasComparaveis(lista);
-  const melhor = melhorOferta(lista);
-  const economia = Math.max(...comparaveis.map((o) => o.preco)) - melhor.preco;
-  const loja = infoLoja(melhor);
-  $("#resumo").replaceChildren(titulo,
-    el("a", { class: "resumo-melhor", href: melhor.link, target: "_blank", rel: "sponsored noopener", onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
-      el("span", { style: "font-size:2rem", "aria-hidden": "true" }, "🏆"),
-      el("span", {},
-        el("small", {}, `Menor preço · ${loja.nome}`),
-        el("strong", {}, `R$ ${brl(melhor.preco)}`),
-        economia > 1 && el("span", { class: "economia" }, `Economize até R$ ${brl(economia)}`))));
+  $("#resumo").replaceChildren(titulo);
 }
 
 // Botão "🚚 Frete grátis" acima da lista (o mesmo filtro de "Mais opções"). A Shopee não informa o frete
