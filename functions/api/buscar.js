@@ -11,6 +11,7 @@ import { curadoria } from "../../lib/fontes/curadoria.js";
 import { shopee } from "../../lib/fontes/shopee.js";
 import { awin } from "../../lib/fontes/awin.js";
 import { registrarBusca } from "../../lib/buscas.js";
+import { historicoAoVivo } from "../../lib/ofertas.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
 import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
@@ -22,7 +23,7 @@ const CACHE_SEGUNDOS = 60 * 60;
 // para sobrarem uns 100 produtos depois de tirar os acessórios. "Ver mais resultados" pede o próximo lote.
 const PAGINAS_POR_LOTE = 3;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 14;
+const VERSAO_CACHE = 15;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -114,6 +115,18 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
     ofertas = q ? separarAcessorios(await consultar(q, { lote: true }), q) : await consultar(q);
   }
+  // Shopee: junta o histórico de preço e guarda o preço de hoje (sem atrasar a resposta).
+  // É o que permite o selo "Desconto real" (ex.: na Black Friday). Banco fora do ar não derruba a busca.
+  if (env.DB && ofertas.some((o) => o.loja === "shopee")) {
+    try {
+      const vivo = await historicoAoVivo(env.DB, ofertas);
+      ofertas = vivo.ofertas;
+      waitUntil(vivo.gravar().catch(() => {}));
+    } catch {
+      // tabela precos ainda não existe (o robô cria) ou D1 indisponível
+    }
+  }
+
   const resposta = responder({
     q,
     categoria: categoria && !foraDaCategoria ? categoria.nome : null,

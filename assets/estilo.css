@@ -146,6 +146,7 @@ a { color: inherit; }
 .secao { margin-top: 40px; }
 .secao-ofertas { margin-top: 24px; }
 .secao-titulo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.secao-titulo .botao-frete { margin: 0 auto 0 14px; }
 .secao-titulo h2 { margin: 0; font-size: clamp(1.3rem, 3vw, 1.7rem); letter-spacing: -.02em; }
 
 .setas { display: flex; gap: 8px; }
@@ -348,6 +349,11 @@ a { color: inherit; }
 
 .barra-lista { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
 .total { margin: 0; color: var(--suave); font-weight: 600; }
+.botao-frete {
+  padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--verde); background: var(--verde-fundo);
+  color: var(--verde); font: inherit; font-size: .88rem; font-weight: 800; cursor: pointer;
+}
+.botao-frete:hover, .botao-frete[aria-pressed="true"] { background: var(--verde); color: #fff; }
 .botao-filtros {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 9px 14px; border-radius: 10px; border: 1px solid var(--borda); background: var(--card); font-weight: 700;
@@ -483,6 +489,7 @@ a { color: inherit; }
 
 /* ============ Histórico de preço ============ */
 .selo-historico { background: #1d4ed8; }
+.selo-real { background: var(--verde); }
 .ver-historico {
   align-self: flex-start; background: none; border: 0; padding: 2px 0; cursor: pointer;
   font: inherit; font-size: .8rem; font-weight: 700; color: var(--roxo);

@@ -469,7 +469,9 @@ function selosHistorico(o) {
   if (!h) return [];
   return [
     h.menorEm30Dias && el("span", { class: "selo selo-historico" }, "📉 Menor em 30 dias"),
-    !h.menorEm30Dias && h.caiu >= 3 && el("span", { class: "selo selo-historico" }, `📉 Baixou ${h.caiu}%`),
+    h.descontoReal && el("span", { class: "selo selo-real", title: "Preço abaixo do que a loja cobrou na maior parte dos últimos 30 dias (acompanhado pelo Vai pro Carrinho)" },
+      `✅ Desconto real -${h.descontoReal}%`),
+    !h.menorEm30Dias && !h.descontoReal && h.caiu >= 3 && el("span", { class: "selo selo-historico" }, `📉 Baixou ${h.caiu}%`),
   ];
 }
 
@@ -722,7 +724,7 @@ async function consultarApi(q, pagina = 1) {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=14&q=${encodeURIComponent(q)}${cat}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=15&q=${encodeURIComponent(q)}${cat}${pagina > 1 ? `&pagina=${pagina}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -822,7 +824,20 @@ function desenharResumo(lista) {
         economia > 1 && el("span", { class: "economia" }, `Economize até R$ ${brl(economia)}`))));
 }
 
+// Botão "🚚 Frete grátis" acima da lista (o mesmo filtro de "Mais opções"). Só aparece quando alguma
+// oferta da lista tem frete grátis informado pela loja (a Shopee não informa isso para afiliados).
+function desenharBotaoFrete() {
+  const qtd = estado.ofertas.filter((o) => o.freteGratis).length;
+  const ligado = $("#so-frete").checked;
+  document.querySelectorAll("[data-frete]").forEach((b) => {
+    b.hidden = !qtd && !ligado;
+    b.setAttribute("aria-pressed", String(ligado));
+    b.textContent = ligado ? "🚚 Frete grátis ✕" : `🚚 Frete grátis (${qtd})`;
+  });
+}
+
 function desenharResultados() {
+  desenharBotaoFrete();
   const lista = filtrar();
   if (!estado.q) return desenharInicio(lista);
   const idMelhor = lista.length > 1 ? melhorOferta(lista)?.id : null;
@@ -1173,6 +1188,10 @@ let timerPreco;
   timerPreco = setTimeout(desenharResultados, 300);
 }));
 ["#so-frete", "#so-desconto", "#com-acessorios"].forEach((s) => $(s).addEventListener("change", desenharResultados));
+document.querySelectorAll("[data-frete]").forEach((b) => b.addEventListener("click", () => {
+  $("#so-frete").checked = !$("#so-frete").checked;
+  desenharResultados();
+}));
 $("#ver-acessorios").addEventListener("click", () => { $("#com-acessorios").checked = true; desenharResultados(); });
 document.querySelectorAll("input[name=ordem]").forEach((r) => r.addEventListener("change", desenharResultados));
 function zerarFiltros() {

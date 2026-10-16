@@ -26,3 +26,20 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+
+  # Shopee: o site guarda o preço de hoje dos produtos das vitrines e dos mais buscados
+  # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
+  shopee:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Guardar preços da Shopee
+        run: |
+          echo "### Preços da Shopee" >> "$GITHUB_STEP_SUMMARY"
+          for parte in $(seq 0 80); do
+            r=$(curl -sS --retry 2 --max-time 60 "https://vaiprocarrinho.com.br/api/coletar-precos?parte=$parte") || { echo "parte $parte: falhou"; continue; }
+            echo "parte $parte: $r"
+            echo "- parte $parte: $r" >> "$GITHUB_STEP_SUMMARY"
+            echo "$r" | grep -q '"fim":true' && break
+            sleep 2
+          done

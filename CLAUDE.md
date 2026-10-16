@@ -323,6 +323,15 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Vitrine e "Ofertas do dia" continuam 1 página. Teste com Shopee simulada: `fetch` falso + `onRequestGet` direto no Node.
 - **Anúncios repetidos (16/10/2026, pedido do Giovanni)**: na Shopee vários vendedores publicam o mesmo produto com códigos
   diferentes. `semRepetidos()` no `app.js` junta por mesmo título (60 letras) + preço ou mesma foto e fica com o que vendeu mais.
+- **Histórico da Shopee + "Desconto real" (16/10/2026, item 1 da análise, pedido do Giovanni)**: `/api/buscar` grava na tabela
+  `precos` o preço de hoje das ofertas da Shopee que mudaram (`historicoAoVivo` em `lib/ofertas.js`, via waitUntil) e junta o
+  resumo. Coleta diária: job `shopee` no `robo-precos.yml` chama `/api/coletar-precos?parte=N` (5 buscas por parte: as 148
+  das vitrines + mais buscados; cada parte 1x por dia, tabela `coletas`). Selo "✅ Desconto real -X%" = preço ≥5% abaixo do
+  **preço habitual** (o que durou mais dias nos últimos 30), com 21+ dias de acompanhamento (pronto para a Black Friday
+  27/11/2026). "Baixou X%" agora compara com o habitual (subir e baixar não engana). Botão "📈 Histórico" na Shopee só
+  com mudança de preço ou 7+ dias. Teste: `node:sqlite` como D1 falso + `fetch` falso (ver conversa de 16/10).
+- **Botão "🚚 Frete grátis (N)" (16/10/2026, item 2)**: acima da lista (início e busca), liga o filtro `#so-frete`; só aparece
+  se alguma oferta tem frete grátis. **A API de afiliados da Shopee não informa frete** (só Awin/curadoria).
 - **F5 volta ao começo (16/10/2026, pedido do Giovanni)**: atualizar a página tira busca/categoria do endereço, zera filtros e
   ordem e volta ao topo (`performance.getEntriesByType("navigation")[0].type === "reload"`). Link com `?q=` aberto direto continua funcionando.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
