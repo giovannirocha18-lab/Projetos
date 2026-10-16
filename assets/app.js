@@ -753,7 +753,7 @@ function esqueletos(qtd) {
 // Busca
 // ---------------------------------------------------------------------
 // A mesma lista de filtros serve para as "Ofertas do dia" (q vazio) e para a busca
-const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), pedido: 0 };
+const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), secoesSo: null, secoesFora: new Set(), pedido: 0 };
 
 // Anúncios repetidos: na Shopee vários vendedores publicam o mesmo produto (mesmo título, foto e preço)
 // com códigos diferentes. Fica um só, o que vendeu mais, na posição em que apareceu primeiro.
@@ -784,7 +784,7 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=24&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=25&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -803,6 +803,9 @@ function lerPreco(texto) {
 // Acessórios só aparecem se pedidos (ou se a busca só achou acessórios)
 const escondeAcessorios = () => !$("#com-acessorios").checked && estado.ofertas.some((o) => !o.acessorio);
 
+// O produto buscado: todas as palavras e, numa busca dentro de categoria, da categoria
+const produtoExato = (o) => o.bate && (!estado.cat || estado.foraDaCategoria || o.naCategoria);
+
 function filtrar() {
   const min = lerPreco($("#preco-min").value);
   const max = lerPreco($("#preco-max").value);
@@ -812,6 +815,7 @@ function filtrar() {
   const semAcessorios = escondeAcessorios();
   const lista = estado.ofertas.filter((o) =>
     !estado.lojasDesmarcadas.has(o.loja)
+    && secaoVisivel(o)
     && !(semAcessorios && o.acessorio)
     && !(min >= 0 && o.preco < min)
     && !(max >= 0 && o.preco > max)
@@ -829,11 +833,41 @@ function filtrar() {
   if (!ordenar) return lista;
   // Ordenar por preço/desconto não pode trazer o "Pôster Invictus" antes do perfume buscado:
   // primeiro o produto exato (todas as palavras e, numa categoria, da categoria), depois o resto
-  const grupo = (o) => (o.acessorio ? 2 : o.bate && (!estado.cat || estado.foraDaCategoria || o.naCategoria) ? 0 : 1);
+  const grupo = (o) => (o.acessorio ? 2 : produtoExato(o) ? 0 : 1);
   return [...lista].sort((a, b) => grupo(a) - grupo(b) || ordenar(a, b));
 }
 
+// Categorias nos resultados: "invictus" traz perfume, pôster e camiseta; o visitante marca as que quer ver.
+// secoesSo = só estas (busca dentro de uma categoria: começa só com ela); senão, todas menos secoesFora.
+const secaoVisivel = (o) => (estado.secoesSo ? estado.secoesSo.has(o.secao || "") : !estado.secoesFora.has(o.secao || ""));
+
+function zerarSecoes() {
+  estado.secoesSo = null;
+  estado.secoesFora.clear();
+}
+
+function marcarSecao(secao, marcada) {
+  const conjunto = estado.secoesSo || estado.secoesFora;
+  (marcada === Boolean(estado.secoesSo)) ? conjunto.add(secao) : conjunto.delete(secao);
+  desenharResultados();
+}
+
+function desenharFiltroSecoes() {
+  const semAcessorios = escondeAcessorios();
+  const contagem = new Map();
+  for (const o of estado.ofertas) {
+    if (!(semAcessorios && o.acessorio)) contagem.set(o.secao || "", (contagem.get(o.secao || "") || 0) + 1);
+  }
+  $("#caixa-secoes").hidden = contagem.size < 2;
+  const ordem = [...contagem.keys()].sort((a, b) => (!a) - (!b) || (b === estado.cat) - (a === estado.cat) || contagem.get(b) - contagem.get(a));
+  $("#filtro-secoes").replaceChildren(...ordem.map((secao) => el("label", { class: "opcao" },
+    el("input", { type: "checkbox", checked: secaoVisivel({ secao }), onchange: (e) => marcarSecao(secao, e.target.checked) }),
+    secao ? `${categoriaPeloNome(secao)?.emoji || ""} ${secao}` : "Outros",
+    el("span", { class: "qtd", title: `${contagem.get(secao)} ofertas desta categoria na lista` }, contagem.get(secao)))));
+}
+
 function desenharFiltroLojas() {
+  desenharFiltroSecoes();
   // Conta só o que aparece na lista (acessórios escondidos não entram)
   const semAcessorios = escondeAcessorios();
   const contagem = {};
@@ -867,7 +901,7 @@ function avisoCategoria() {
 // sem acessórios e sem preços fora da curva ("Bit para parafusadeira" a R$ 5 numa lista de R$ 200)
 function ofertasComparaveis(lista) {
   const produtos = lista.filter((o) => !o.acessorio);
-  const certeiros = produtos.filter((o) => o.bate);
+  const certeiros = produtos.filter(produtoExato);
   const base = certeiros.length ? certeiros : produtos.length ? produtos : lista;
   const precos = base.map((o) => o.preco).sort((a, b) => a - b);
   const mediana = precos[Math.floor(precos.length / 2)];
@@ -939,6 +973,7 @@ async function buscar(q) {
   estado.q = q;
   estado.foraDaCategoria = null;
   estado.lojasDesmarcadas.clear();
+  zerarSecoes();
   $("#com-acessorios").checked = false;
   preencherBusca();
 
@@ -948,6 +983,7 @@ async function buscar(q) {
   desenharResumoBuscando();
   $("#total").textContent = "";
   $("#filtro-lojas").replaceChildren();
+  $("#caixa-secoes").hidden = true;
   $("#vazio").hidden = true;
   $("#grade").replaceChildren(...esqueletos(8));
   estado.temMaisBusca = false;
@@ -963,6 +999,8 @@ async function buscar(q) {
     estado.ofertas = semRepetidos(dados.ofertas);
     // Nada na categoria: o servidor buscou em tudo, e as próximas páginas também são de tudo
     if (dados.foraDaCategoria) { estado.foraDaCategoria = estado.cat; estado.cat = null; }
+    // Buscou dentro de uma categoria: começa mostrando só ela (as outras ficam para marcar)
+    if (estado.cat && !navegandoCategoria() && estado.ofertas.some((o) => o.secao === estado.cat)) estado.secoesSo = new Set([estado.cat]);
     estado.maisBusca = dados.mais;
     estado.temMaisBusca = Boolean(dados.mais);
     desenharFiltroLojas();
@@ -1050,6 +1088,7 @@ function mostrarInicio() {
   estado.pedido++; // busca que ainda está carregando não pode mais desenhar nada
   estado.q = "";
   estado.lojasDesmarcadas.clear();
+  zerarSecoes();
   if (estado.inicio) {
     estado.ofertas = estado.inicio;
     desenharFiltroLojas();
@@ -1320,6 +1359,7 @@ function zerarFiltros() {
   $("#com-acessorios").checked = false;
   $("input[name=envio][value=todos]").checked = true;
   estado.lojasDesmarcadas.clear();
+  zerarSecoes();
 }
 $("#limpar-filtros").addEventListener("click", () => {
   zerarFiltros();

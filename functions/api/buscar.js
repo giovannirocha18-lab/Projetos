@@ -15,7 +15,7 @@ import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { historicoAoVivo, AO_VIVO } from "../../lib/ofertas.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
-import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
+import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
 const FONTES_REAIS = [curadoria, shopee, awin, aliexpress];
@@ -36,7 +36,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 24;
+const VERSAO_CACHE = 25;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -163,6 +163,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       acabou = !fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina);
       ofertas = montarVitrine(marcadas, vitrine, categoria);
     } while (!acabou && pag - desde < MAX_PAGINAS_VITRINE && ofertas.length < MINIMO_PRODUTOS);
+    ofertas = marcarSecoes(ofertas, categoria);
     mais = acabou || pag > MAX_DESDE ? null : `desde=${pag}`;
   } else if (categoria) {
     // Dentro de uma categoria: o que foi digitado + (se a categoria tem chave) "invictus perfume";
@@ -171,15 +172,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const { juntas, proxima } = await buscarAteEncher(extra ? [extra, q] : [q],
       (novas) => contarNaCategoria(separarAcessorios(novas, q), categoria));
     ofertas = ordenarNaCategoria(separarAcessorios(juntas, q), categoria);
-    if (!ofertas.length && desde === 1) {
-      ofertas = separarAcessorios(juntas, q);
+    if (!ofertas.some((o) => o.naCategoria) && desde === 1) {
+      ofertas = marcarSecoes(separarAcessorios(juntas, q));
       foraDaCategoria = ofertas.length > 0;
     }
     mais = proxima && `desde=${proxima}`;
   } else if (q) {
     // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
     const { juntas, proxima } = await buscarAteEncher([q], (novas) => separarAcessorios(novas, q).filter((o) => !o.acessorio).length);
-    ofertas = separarAcessorios(juntas, q);
+    ofertas = marcarSecoes(separarAcessorios(juntas, q));
     mais = proxima && `desde=${proxima}`;
   } else {
     ofertas = await consultar(q);

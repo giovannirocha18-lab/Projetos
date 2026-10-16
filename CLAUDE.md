@@ -349,6 +349,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   peças" logo abaixo de "Ordenar por". (Testado e desfeito a pedido dele: quadro de resultados preso no topo com botão de acessórios.)
 - **F5 volta ao começo (16/10/2026, pedido do Giovanni)**: atualizar a página tira busca/categoria do endereço, zera filtros e
   ordem e volta ao topo (`performance.getEntriesByType("navigation")[0].type === "reload"`). Link com `?q=` aberto direto continua funcionando.
+- **Categorias nos resultados (16/10/2026, pedido do Giovanni)**: "invictus" em Perfumes trazia pôster/camiseta, e "Menor preço"/
+  "Maior desconto" os punham no topo. Servidor marca `secao` (categoria do produto, `marcarSecoes` em `lib/categorias.js`) em toda
+  busca e vitrine; busca dentro de categoria não tira mais nada (ordem: da categoria, sem categoria, outras, acessórios).
+  Barra lateral "Categorias nos resultados" (caixinhas com quantidade, "Outros" = sem categoria): na busca dentro de categoria
+  começa só com ela marcada; na busca normal todas marcadas. Ordenar por preço/desconto põe primeiro o produto exato
+  (`produtoExato`: todas as palavras + da categoria). Cache v=25.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
