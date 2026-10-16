@@ -573,6 +573,8 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         class: "internacional",
         title: `Loja de fora do Brasil.${o.moeda ? ` Preço convertido de ${o.moeda} pela cotação do dia;` : ""} pode haver impostos de importação.`,
       }, o.moeda ? `🌎 Internacional · valor aproximado` : "🌎 Internacional"),
+      o.envioNacional && el("span", { class: "internacional nacional", title: "Sai de um armazém no Brasil: chega mais rápido e sem impostos de importação." },
+        "🇧🇷 Envio do Brasil"),
       el("div", { class: "links-oferta" },
         temDetalhes(o) && el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
         o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico")),
@@ -685,7 +687,8 @@ function abrirDetalhes(o) {
     el("div", { class: "detalhes-selos" },
       o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
       o.internacional && el("span", { class: "internacional" },
-        o.moeda ? `🌎 Internacional · valor convertido de ${o.moeda}` : "🌎 Internacional")),
+        o.moeda ? `🌎 Internacional · valor convertido de ${o.moeda}` : "🌎 Internacional"),
+      o.envioNacional && el("span", { class: "internacional nacional" }, "🇧🇷 Envio do Brasil")),
     o.descricao && el("div", { class: "detalhes-descricao" }, el("h3", {}, "Descrição"), el("p", {}, o.descricao)),
     o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => { $("#janela-detalhes").close(); abrirHistorico(o); } },
       "📈 Ver histórico de preço"),
@@ -781,7 +784,7 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=22&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=23&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -805,6 +808,7 @@ function filtrar() {
   const max = lerPreco($("#preco-max").value);
   const frete = $("#so-frete").checked;
   const desconto = $("#so-desconto").checked;
+  const envio = $("input[name=envio]:checked")?.value || "todos";
   const semAcessorios = escondeAcessorios();
   const lista = estado.ofertas.filter((o) =>
     !estado.lojasDesmarcadas.has(o.loja)
@@ -812,7 +816,8 @@ function filtrar() {
     && !(min >= 0 && o.preco < min)
     && !(max >= 0 && o.preco > max)
     && (!frete || o.freteGratis)
-    && (!desconto || o.desconto));
+    && (!desconto || o.desconto)
+    && (envio === "todos" || (envio === "internacional") === Boolean(o.internacional)));
 
   const ordem = $("input[name=ordem]:checked").value;
   const ordenar = {
@@ -1302,13 +1307,14 @@ document.querySelectorAll("[data-frete]").forEach((b) => b.addEventListener("cli
   desenharResultados();
 }));
 $("#ver-acessorios").addEventListener("click", () => { $("#com-acessorios").checked = true; desenharFiltroLojas(); desenharResultados(); });
-document.querySelectorAll("input[name=ordem]").forEach((r) => r.addEventListener("change", desenharResultados));
+document.querySelectorAll("input[name=ordem], input[name=envio]").forEach((r) => r.addEventListener("change", desenharResultados));
 function zerarFiltros() {
   $("#preco-min").value = "";
   $("#preco-max").value = "";
   $("#so-frete").checked = false;
   $("#so-desconto").checked = false;
   $("#com-acessorios").checked = false;
+  $("input[name=envio][value=todos]").checked = true;
   estado.lojasDesmarcadas.clear();
 }
 $("#limpar-filtros").addEventListener("click", () => {

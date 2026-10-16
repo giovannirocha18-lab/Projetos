@@ -536,6 +536,7 @@ a { color: inherit; }
 .selo-oficial { font-size: .75rem; font-weight: 800; color: #fff; background: #dc2626; padding: 2px 8px; border-radius: 6px; }
 .detalhes-selos { display: flex; flex-wrap: wrap; gap: 6px; }
 .detalhes-selos .internacional { margin-top: 0; }
+.internacional.nacional { color: #15803d; background: #dcfce7; }
 .detalhes-descricao h3 { margin: 4px 0; font-size: .95rem; }
 .detalhes-descricao p { margin: 0 !important; color: var(--texto) !important; font-size: .9rem !important; line-height: 1.5; }
 .detalhes-info .preco-antigo { display: block; }
