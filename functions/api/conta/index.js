@@ -1,6 +1,8 @@
 // GET    /api/conta  -> quem está conectado e o carrinho salvo
 // DELETE /api/conta  -> exclui a conta e todos os dados dela (direito garantido pela LGPD)
-import { banco, responder, SEM_BANCO, erro, lerJson, usuarioDaSessao, lerCarrinho, cookieApagar } from "../../../lib/conta.js";
+import {
+  banco, responder, SEM_BANCO, erro, lerJson, usuarioDaSessao, lerCarrinho, cookieApagar, chavesDoEmail,
+} from "../../../lib/conta.js";
 
 export async function onRequestGet({ request, env }) {
   const db = await banco(env);
@@ -28,7 +30,8 @@ export async function onRequestDelete({ request, env }) {
     db.prepare("DELETE FROM sessoes WHERE usuario_id = ?").bind(usuario.id),
     db.prepare("DELETE FROM senhas WHERE usuario_id = ?").bind(usuario.id),
     db.prepare("DELETE FROM redefinicoes WHERE usuario_id = ?").bind(usuario.id),
-    db.prepare("DELETE FROM limites WHERE chave LIKE ?").bind(`%:${usuario.email}`),
+    // Limites de tentativas ligados ao e-mail (chaves exatas: LIKE aceitaria % e _ vindos do e-mail)
+    ...chavesDoEmail(usuario.email).map((chave) => db.prepare("DELETE FROM limites WHERE chave = ?").bind(chave)),
     db.prepare("DELETE FROM usuarios WHERE id = ?").bind(usuario.id),
   ]);
   return responder({ ok: true }, 200, { "Set-Cookie": cookieApagar() });

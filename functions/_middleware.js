@@ -1,18 +1,66 @@
 // Roda antes de qualquer página. Esconde do público os arquivos internos do
 // repositório (anotações, código da busca), que o Cloudflare Pages publicaria
-// junto com o site.
+// junto com o site, e põe cabeçalhos de segurança em todas as respostas.
 const INTERNOS = /^\/(claude\.md|readme\.md|\.gitignore|_headers|lib\/|functions\/|robo\/|\.github\/|\.claude\/)/i;
 
 const VERIFICACAO_AWIN = "2e195e3c8c68351f1709348e09eae77d";
 
-export async function onRequest({ request, next }) {
+// O que as páginas podem carregar: código e dados só do próprio site, fontes do Google Fonts e
+// fotos de qualquer loja (https). Estilos "inline" ficam liberados porque o site muda estilos pelo
+// código e a Política de Privacidade tem um <style>. Cloudflare Web Analytics, se for ligado, também
+// funciona. Nenhum outro site pode abrir o nosso dentro de uma moldura (frame-ancestors).
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' https://static.cloudflareinsights.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' https: data: blob:",
+  "connect-src 'self' https://cloudflareinsights.com",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join("; ");
+
+const SEGURANCA = {
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "X-Frame-Options": "DENY",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "Content-Security-Policy": CSP,
+};
+
+// Endereço "limpo" para conferir os internos: %2F, %2E, barras repetidas e "/./" não enganam a regra
+function caminhoNormal(caminho) {
+  try {
+    caminho = decodeURIComponent(caminho);
+  } catch {
+    // endereço com % quebrado: confere como veio
+  }
+  caminho = caminho.replace(/\\/g, "/").replace(/\/{2,}/g, "/");
+  while (/\/\.(\/|$)/.test(caminho)) caminho = caminho.replace(/\/\.(\/|$)/, "/");
+  return caminho;
+}
+
+// As respostas do Cloudflare podem vir "travadas" (cabeçalhos só de leitura): copia para poder mexer
+function comSeguranca(resposta) {
+  const nova = new Response(resposta.body, resposta);
+  for (const [nome, valor] of Object.entries(SEGURANCA)) nova.headers.set(nome, valor);
+  return nova;
+}
+
+export async function onRequest(contexto) {
+  return comSeguranca(await responder(contexto));
+}
+
+async function responder({ request, next }) {
   const url = new URL(request.url);
   // O endereço vaiprocarrinho.pages.dev (do Cloudflare) não pode ser desligado: leva para o domínio
   // oficial. As prévias de outras branches (algo.vaiprocarrinho.pages.dev) continuam abrindo.
   if (url.hostname === "vaiprocarrinho.pages.dev") {
     return Response.redirect(`https://vaiprocarrinho.com.br${url.pathname}${url.search}`, 301);
   }
-  if (INTERNOS.test(url.pathname)) {
+  if (INTERNOS.test(caminhoNormal(url.pathname))) {
     return new Response("Página não encontrada", { status: 404 });
   }
   // Verificação do site na Awin (método do arquivo). Respondido aqui porque o Cloudflare Pages

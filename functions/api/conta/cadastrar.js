@@ -20,12 +20,23 @@ export async function onRequestPost({ request, env }) {
   }
 
   // Quem já tem conta (com Google ou senha) não pode ter a senha trocada por aqui
+  const jaTem = () => erro("Este e-mail já tem conta. Clique em \"Já tenho conta\" para entrar.", 409);
   const existe = await db.prepare("SELECT id FROM usuarios WHERE email = ?").bind(email).first();
-  if (existe) return erro("Este e-mail já tem conta. Clique em \"Já tenho conta\" para entrar.", 409);
+  if (existe) return jaTem();
 
+  // Conta e senha gravadas juntas (tudo ou nada). Se dois cadastros do mesmo e-mail chegarem ao
+  // mesmo tempo, o segundo esbarra no e-mail repetido e recebe a mesma resposta acima
   const hash = await embaralharSenha(senha);
-  const novo = await db.prepare("INSERT INTO usuarios (email, nome, criado_em) VALUES (?, ?, ?) RETURNING id")
-    .bind(email, nome, Date.now()).first();
-  await db.prepare("INSERT INTO senhas (usuario_id, hash, email_confirmado) VALUES (?, ?, 0)").bind(novo.id, hash).run();
+  try {
+    await db.batch([
+      db.prepare("INSERT INTO usuarios (email, nome, criado_em) VALUES (?, ?, ?)").bind(email, nome, Date.now()),
+      db.prepare("INSERT INTO senhas (usuario_id, hash, email_confirmado) SELECT id, ?, 0 FROM usuarios WHERE email = ?")
+        .bind(hash, email),
+    ]);
+  } catch (e) {
+    if (/UNIQUE/i.test(String(e?.message || e))) return jaTem();
+    throw e;
+  }
+  const novo = await db.prepare("SELECT id FROM usuarios WHERE email = ?").bind(email).first();
   return respostaConectado(db, { id: novo.id, nome, email });
 }

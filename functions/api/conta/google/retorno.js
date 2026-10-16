@@ -54,6 +54,18 @@ export async function onRequestGet({ request, env }) {
   // Cria a conta na primeira vez (quem já tem conta com esse e-mail entra na mesma conta)
   const nome = String(dados.name || dados.given_name || email.split("@")[0]).replace(/\s+/g, " ").trim().slice(0, 60);
   await db.prepare("INSERT OR IGNORE INTO usuarios (email, nome, criado_em) VALUES (?, ?, ?)").bind(email, nome, Date.now()).run();
-  const usuario = await db.prepare("SELECT id FROM usuarios WHERE email = ?").bind(email).first();
+  const usuario = await db.prepare(
+    "SELECT u.id, s.email_confirmado FROM usuarios u LEFT JOIN senhas s ON s.usuario_id = u.id WHERE u.email = ?",
+  ).bind(email).first();
+  // Senha cadastrada sem confirmar o e-mail pode ser de outra pessoa que usou este e-mail antes do
+  // dono. O Google prova que o e-mail é de quem está entrando agora: apaga essa senha, desconecta
+  // todos os aparelhos e invalida links de nova senha. O dono cria outra senha em "Esqueci minha senha"
+  if (usuario.email_confirmado === 0) {
+    await db.batch([
+      db.prepare("DELETE FROM senhas WHERE usuario_id = ? AND email_confirmado = 0").bind(usuario.id),
+      db.prepare("DELETE FROM sessoes WHERE usuario_id = ?").bind(usuario.id),
+      db.prepare("DELETE FROM redefinicoes WHERE usuario_id = ?").bind(usuario.id),
+    ]);
+  }
   return voltar(volta, [apagar, await criarSessao(db, usuario.id)]);
 }
