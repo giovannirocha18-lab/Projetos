@@ -1193,16 +1193,30 @@ let timerPreco;
 ["#so-frete", "#so-desconto", "#com-acessorios"].forEach((s) => $(s).addEventListener("change", desenharResultados));
 $("#ver-acessorios").addEventListener("click", () => { $("#com-acessorios").checked = true; desenharResultados(); });
 document.querySelectorAll("input[name=ordem]").forEach((r) => r.addEventListener("change", desenharResultados));
-$("#limpar-filtros").addEventListener("click", () => {
+function zerarFiltros() {
   $("#preco-min").value = "";
   $("#preco-max").value = "";
   $("#so-frete").checked = false;
   $("#so-desconto").checked = false;
   $("#com-acessorios").checked = false;
   estado.lojasDesmarcadas.clear();
+}
+$("#limpar-filtros").addEventListener("click", () => {
+  zerarFiltros();
   desenharFiltroLojas();
   desenharResultados();
 });
+
+// Atualizar a página (F5) volta ao começo: sem busca, sem categoria e sem filtros
+// (o navegador guardaria o que estava marcado). Link compartilhado com ?q= continua abrindo a busca.
+zerarFiltros();
+$("input[name=ordem][value=relevancia]").checked = true;
+document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
+if (performance.getEntriesByType?.("navigation")[0]?.type === "reload") {
+  history.scrollRestoration = "manual";
+  window.scrollTo(0, 0);
+  if (location.search) history.replaceState(null, "", location.pathname);
+}
 
 $("#mais-ofertas").addEventListener("click", carregarMaisOfertas);
 $("#mais-resultados").addEventListener("click", carregarMaisResultados);
