@@ -364,6 +364,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   **todo print de erro do Giovanni vira um caso novo** no arquivo. Sinônimos em `SINONIMOS`/`comSinonimos` (`lib/relevancia.js`):
   smartphone=celular, capinha=capa, smart watch=smartwatch, PlayStation 5=ps5, televisão=tv, refrigerador=geladeira,
   laptop=notebook, "55 polegadas"=55. Pontuação aceita frase com de/para no meio ("Retrovisor para Moto"). Cache v=27.
+- **"Maior desconto" honesto (16/10/2026, pedido do Giovanni)**: categoria em "Maior desconto" mostrava -81% em produto de
+  R$ 13 (preço antigo inflado). Agora (`nivelDesconto` no `app.js`): 1º "Desconto real" do nosso histórico (como o Zoom),
+  2º desconto da loja de 5–75%, 3º acima de 75% (`DESCONTO_SUSPEITO`, provável maquiagem de preço), 4º sem desconto.
+  Nova opção "Maior economia (R$)" com os mesmos níveis. "Maior desconto" virou "Maior desconto (%)".
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)

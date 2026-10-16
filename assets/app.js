@@ -806,6 +806,18 @@ const escondeAcessorios = () => !$("#com-acessorios").checked && estado.ofertas.
 // O produto buscado: todas as palavras e, numa busca dentro de categoria, da categoria
 const produtoExato = (o) => o.bate && (!estado.cat || estado.foraDaCategoria || o.naCategoria);
 
+// "Maior desconto" honesto (como o selo "Desconto Real" do Zoom): primeiro o desconto que nós conferimos no
+// histórico (preço abaixo do habitual dos últimos 30 dias); depois o desconto informado pela loja; os acima de 75%
+// por último, porque quase sempre o "preço antigo" foi inflado (o Procon chama de maquiagem de preço)
+const DESCONTO_SUSPEITO = 75;
+const percentual = (o) => o.historico?.descontoReal || o.desconto || 0;
+const economia = (o) => (o.historico?.descontoReal ? o.preco / (1 - o.historico.descontoReal / 100) - o.preco : (o.precoAntigo || o.preco) - o.preco);
+function nivelDesconto(o) {
+  if (o.historico?.descontoReal) return 0;
+  if (!o.desconto || o.desconto < 5) return 3;
+  return o.desconto > DESCONTO_SUSPEITO ? 2 : 1;
+}
+
 function filtrar() {
   const min = lerPreco($("#preco-min").value);
   const max = lerPreco($("#preco-max").value);
@@ -827,7 +839,8 @@ function filtrar() {
   const ordenar = {
     menor: (a, b) => a.preco - b.preco,
     maior: (a, b) => b.preco - a.preco,
-    desconto: (a, b) => (b.desconto || 0) - (a.desconto || 0),
+    desconto: (a, b) => nivelDesconto(a) - nivelDesconto(b) || percentual(b) - percentual(a),
+    economia: (a, b) => nivelDesconto(a) - nivelDesconto(b) || economia(b) - economia(a),
     vendidos: (a, b) => (b.vendidos || 0) - (a.vendidos || 0),
   }[ordem];
   if (!ordenar) return lista;
