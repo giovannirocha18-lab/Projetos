@@ -254,7 +254,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Britânia, Mallory, Elgin); clique `/api/ir` → `lmdee.link/...` → friopecas.com.br com `utm_source=lomadee` ✅.
   A busca da Lomadee é solta ("air fryer" trazia jaquetas/capacete "Air" da Moto BR; print do Giovanni): `lomadee.buscar` só
   aceita títulos com todas as palavras (`temTodasAsPalavras` em `lib/relevancia.js`) e o selo "Menor preço da busca" só vai
-  para o produto exato (sem ele, ninguém ganha). Casos no `testes/busca.mjs`. Cache v=30.
+  para o produto exato (sem ele, ninguém ganha). Casos no `testes/busca.mjs`. Cache v=31.
   (Antigo) **Próximo (conversa nova, rede liberada)**: Claude ler docs.lomadee.com.br ("Get all Products" Query Parameters, "Shorten a URL",
   "API Keys"); Giovanni criar a chave e pôr Secret `LOMADEE_API_KEY` no Cloudflare (nunca no chat); Claude montar
   `lib/fontes/lomadee.js` (busca + link encurtado guardado no D1 + só marcas aprovadas + controle de limite) e testar.
