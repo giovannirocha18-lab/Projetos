@@ -355,6 +355,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Barra lateral "Categorias nos resultados" (caixinhas com quantidade, "Outros" = sem categoria): na busca dentro de categoria
   começa só com ela marcada; na busca normal todas marcadas. Ordenar por preço/desconto põe primeiro o produto exato
   (`produtoExato`: todas as palavras + da categoria). Cache v=25.
+- **Palavras perto umas das outras (16/10/2026, pedido do Giovanni)**: "mini pc" trazia "Microfone Mini USB … para PC" no topo.
+  `criarPontuacao` (`lib/relevancia.js`): frase inteira > todas as palavras perto (até 4 no meio, sem contar de/para/com) >
+  espalhadas (não `bate`); palavra logo depois de "para/for…" só conta se o título começa pelo 1º termo ("Capa para iPhone" ok). Cache v=26.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
