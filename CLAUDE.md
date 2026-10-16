@@ -226,7 +226,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   conferir se PF pode divulgar em site ou só redes sociais) e 2) **Admitad** (rede internacional com feeds como a Awin; conferir
   lojas BR abertas); 3) **Mercado Livre e Amazon** (aceitam CPF; sem API de busca liberada → curadoria: ele manda links, Claude
   cadastra); Magalu/Temu/Shein aceitam CPF mas sem API conhecida (só curadoria). Alternativa: **MEI** para virar PJ na Awin.
-  Aguardando ele escolher.
+  **16/10/2026: cadastro na Lomadee feito** (painel: Início, Minha carteira, Meus canais, Marcas, Ofertas, Cupons, Produtos,
+  Para Desenvolvedores). Próximo: criar canal tipo site (vaiprocarrinho.com.br) e ver "Para Desenvolvedores" (API/chave).
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
