@@ -62,11 +62,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Cloudflare criou registros "sem e-mail" (MX nulo, SPF -all, DMARC reject). Trocar se um dia
   quiser e-mail no domínio.
 
-## Situação atual (atualizado em 15/10/2026, fim da sessão)
+## Situação atual (atualizado em 16/10/2026, fim da sessão)
 | Item | Situação |
 |---|---|
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
-| Comparador com produtos reais (Shopee + Awin) | ✅ |
+| Comparador com produtos reais (Shopee + Awin + AliExpress) | ✅ (AliExpress desde 16/10/2026; falta Giovanni conferir AliExpress nas "Ofertas do dia" no site) |
 | Lista de produtos reais (curadoria) pronta para receber links | ✅ vazia, aguardando links |
 | Favoritos virou "Meu carrinho" (ícone de carrinho) | ✅ |
 | Cadastro sem senha + carrinho na conta (código testado localmente) | ✅ funcionando (14/10/2026: código chegou no e-mail dele). Sessão dura 90 dias por aparelho |
