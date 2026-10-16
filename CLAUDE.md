@@ -391,6 +391,8 @@ Lista original (as seções "Segurança" e "Site" já estão resolvidas):
 Trabalhos parados até ele mandar voltar. **Robô de preços suspenso**: `schedule` comentado no `robo-precos.yml`
 (Awin e coleta da Shopee não rodam sozinhos; "Run workflow" manual continua possível). Ao retomar, perguntar se
 religa o robô (tirar o `# ` das linhas do `schedule`). O site continua no ar normalmente.
+Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
+Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos
 1. Giovanni: reenviar pedidos às lojas que recusaram (texto acima) e acompanhar aprovações na Awin; recusar convites
