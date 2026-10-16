@@ -340,6 +340,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   se a lista tem 8+ ofertas com frete grátis (`FRETE_MINIMO`). **A API de afiliados da Shopee não informa frete** (depende do
   CEP e dos cupons; ler a página da Shopee é proibido). Giovanni preocupado em frustrar o visitante: botão quase sempre
   escondido até haver mais lojas da Awin.
+- **Resumo preso + botão de acessórios (16/10/2026, pedido do Giovanni)**: no computador (>860px) o quadro "Resultados para…"
+  fica preso abaixo do cabeçalho (`position: sticky`) e tem o botão "🔧 Mostrar acessórios e peças (N)" / "Esconder…"
+  (liga o `#com-acessorios`, que saiu da barra lateral e ficou escondido).
 - **F5 volta ao começo (16/10/2026, pedido do Giovanni)**: atualizar a página tira busca/categoria do endereço, zera filtros e
   ordem e volta ao topo (`performance.getEntriesByType("navigation")[0].type === "reload"`). Link com `?q=` aberto direto continua funcionando.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).

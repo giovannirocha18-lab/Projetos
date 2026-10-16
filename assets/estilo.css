@@ -264,7 +264,18 @@ a { color: inherit; }
   padding: 22px 24px; border-radius: 20px; background: var(--gradiente); color: #fff;
   box-shadow: var(--sombra-forte);
 }
-.resumo h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 2rem); letter-spacing: -.02em; }
+.resumo h1 { margin: 0; font-size: clamp(1.3rem, 3.4vw, 1.75rem); letter-spacing: -.02em; }
+/* No computador o resumo fica preso logo abaixo do cabeçalho (a sombra cobre o vão por onde passam os cartões) */
+@media (min-width: 861px) {
+  .resumo { position: sticky; top: calc(var(--altura-topo, 120px) + 12px); z-index: 5; padding: 16px 22px;
+    box-shadow: 0 -12px 0 var(--bg), var(--sombra-forte); }
+}
+.resumo-acessorios {
+  font: inherit; font-size: .9rem; font-weight: 700; color: #fff; cursor: pointer; white-space: nowrap;
+  padding: 8px 16px; border-radius: 999px; background: rgba(255, 255, 255, .18); border: 1.5px solid rgba(255, 255, 255, .45);
+}
+.resumo-acessorios:hover { background: rgba(255, 255, 255, .3); }
+.resumo-acessorios[aria-pressed="true"] { background: #fff; color: var(--roxo-forte); }
 .resumo h1 span { opacity: .8; font-weight: 600; }
 .resumo p { margin: 4px 0 0; opacity: .9; }
 .resumo .resumo-categoria { margin-top: 8px; font-weight: 600; opacity: 1; }
