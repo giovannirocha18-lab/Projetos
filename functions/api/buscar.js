@@ -22,14 +22,18 @@ import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, marcarSecoes, c
 const FONTES_REAIS = [curadoria, shopee, awin, aliexpress, lomadee];
 
 const CACHE_SEGUNDOS = 60 * 60;
-// Na busca digitada, pede páginas da loja de 3 em 3 (Shopee: 48 cada) até ter MINIMO_PRODUTOS produtos
-// de verdade (sem contar acessórios: "air fryer" traz muita forminha e papel) ou MAX_PAGINAS páginas.
-// "Ver mais resultados" continua de onde parou.
+// Na busca digitada, cada chamada pede 3 páginas de cada loja (Shopee: 48 cada) e responde logo: o site mostra
+// esses e pede sozinho as próximas (desde=4, 7…) até ter uns 100 produtos de verdade. Antes o servidor só
+// respondia com tudo pronto e a primeira busca levava 12–14 s.
 const PAGINAS_POR_LOTE = 3;
 const MINIMO_PRODUTOS = 100;
-const MAX_PAGINAS = 9;
-// Vitrine das categorias: cada busca (4 ou 5) pede 1 página por vez, até 3 páginas, até ter MINIMO_PRODUTOS
-const MAX_PAGINAS_VITRINE = 3;
+const MAX_PAGINAS = PAGINAS_POR_LOTE;
+// Vitrine das categorias: cada busca (4 ou 5) pede 1 página por chamada (o site pede as próximas sozinho)
+const MAX_PAGINAS_VITRINE = 1;
+// Loja que demora mais que isso fica de fora desta resposta (as outras não esperam por ela)
+const LIMITE_LOJA_MS = 8000;
+// Buscas populares preparadas pelo robô da madrugada (/api/preparar-buscas) valem por até 30 horas
+const VALIDADE_PRONTA_MS = 30 * 60 * 60 * 1000;
 // Até onde o "Ver mais" vai (pagina= nas "Ofertas do dia", desde= na busca e na vitrine)
 const MAX_PAGINA = 20;
 const MAX_DESDE = 100;
@@ -37,7 +41,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 31;
+const VERSAO_CACHE = 32;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -59,7 +63,17 @@ function responder(dados, status = 200) {
   });
 }
 
+const comLimite = (promessa, ms) => Promise.race([promessa,
+  new Promise((_, falha) => setTimeout(() => falha(new Error(`demorou mais de ${ms / 1000} s`)), ms))]);
+
+async function criarTabelaProntas(db) {
+  await db.prepare(`CREATE TABLE IF NOT EXISTS buscas_prontas (
+    chave TEXT PRIMARY KEY, resposta TEXT NOT NULL, total INTEGER NOT NULL, criado INTEGER NOT NULL)`).run();
+}
+
 export async function onRequestGet({ request, env, waitUntil }) {
+  // O robô (/api/preparar-buscas) passa preparar = true: busca de novo nas lojas e guarda a resposta no banco
+  const preparar = Boolean(env.__PREPARAR);
   const inicio = Date.now();
   const params = new URL(request.url).searchParams;
   const q = (params.get("q") || "").trim().slice(0, 100);
@@ -80,8 +94,24 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Guarda as respostas por 1 hora para não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
-  const guardada = cache && (await cache.match(chave));
+  const guardada = !preparar && cache && (await cache.match(chave));
   if (guardada) return contar(guardada);
+  // Busca popular já preparada pelo robô: responde na hora (e guarda no cache por 1 hora)
+  const primeira = q && pagina === 1 && desde === 1;
+  if (primeira && !preparar && env.DB) {
+    try {
+      const pronta = await env.DB.prepare("SELECT resposta, total, criado FROM buscas_prontas WHERE chave = ?").bind(chave.url).first();
+      if (pronta && Date.now() - pronta.criado < VALIDADE_PRONTA_MS) {
+        const resposta = responder(JSON.parse(pronta.resposta));
+        resposta.headers.set("X-Total-Ofertas", String(pronta.total));
+        resposta.headers.set("X-Pronta", "1");
+        if (cache) waitUntil(cache.put(chave, resposta.clone()).catch(() => {}));
+        return contar(resposta);
+      }
+    } catch {
+      // tabela ainda não existe (o robô cria): segue buscando nas lojas
+    }
+  }
 
   const ligadas = await Promise.all(FONTES_REAIS.map((f) => f.ativa(env)));
   const reais = FONTES_REAIS.filter((_, i) => ligadas[i]);
@@ -95,7 +125,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       fontes.map(async (fonte) => {
         try {
           if (!termo) {
-            const ofertas = await fonte.destaques(env, pagina);
+            const ofertas = await comLimite(fonte.destaques(env, pagina), LIMITE_LOJA_MS);
             lojas[fonte.nome] = { ok: true, total: ofertas.length };
             return ofertas;
           }
@@ -103,11 +133,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
           if (!fonte.porPagina) {
             // Lojas sem páginas (Awin, curadoria) vêm inteiras na primeira vez: uma consulta só por termo
             if (!paginas.includes(1)) return [];
-            const ofertas = await fonte.buscar(termo, env, 1, opcoes);
+            const ofertas = await comLimite(fonte.buscar(termo, env, 1, opcoes), LIMITE_LOJA_MS);
             lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(ofertas.length, lojas[fonte.nome]?.total || 0) };
             return ofertas;
           }
-          const listas = await Promise.all(paginas.map((p) => fonte.buscar(termo, env, p, opcoes)));
+          const listas = await comLimite(Promise.all(paginas.map((p) => fonte.buscar(termo, env, p, opcoes))), LIMITE_LOJA_MS);
           const vistos = new Set();
           const ofertas = listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id));
           // total = tamanho da última página (cheia = a loja tem mais). Na vitrine (várias buscas) vale a que trouxe mais
@@ -216,6 +246,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
   });
   // Produtos de exemplo não contam como busca em alta
   resposta.headers.set("X-Total-Ofertas", reais.length ? String(ofertas.length) : "0");
-  if (cache && Object.values(lojas).every((l) => l.ok)) await cache.put(chave, resposta.clone());
+  const todasOk = Object.values(lojas).every((l) => l.ok);
+  if (cache && todasOk) await cache.put(chave, resposta.clone());
+  if (preparar && primeira && todasOk && reais.length && env.DB) {
+    await criarTabelaProntas(env.DB);
+    await env.DB.prepare("INSERT OR REPLACE INTO buscas_prontas (chave, resposta, total, criado) VALUES (?, ?, ?, ?)")
+      .bind(chave.url, await resposta.clone().text(), ofertas.length, Date.now()).run();
+  }
+  if (preparar) return resposta; // o robô não conta como busca em alta
   return contar(resposta);
 }

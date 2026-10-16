@@ -404,6 +404,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   R$ 13 (preço antigo inflado). Agora (`nivelDesconto` no `app.js`): 1º "Desconto real" do nosso histórico (como o Zoom),
   2º desconto da loja de 5–75%, 3º acima de 75% (`DESCONTO_SUSPEITO`, provável maquiagem de preço), 4º sem desconto.
   Nova opção "Maior economia (R$)" com os mesmos níveis. "Maior desconto" virou "Maior desconto (%)".
+- **Busca mais rápida (16/10/2026, pedido do Giovanni: busca nova levava 12–14 s)**: (1) **Buscas prontas**: job `prontas` no
+  `robo-precos.yml` chama `/api/preparar-buscas?parte=N` (1 busca por chamada; ~89: 37 categorias + `POPULARES` + mais buscados),
+  que roda o `buscar.js` com `env.__PREPARAR` e guarda a resposta na tabela D1 `buscas_prontas` (vale 30 h; cabeçalho `X-Pronta: 1`).
+  (2) **Resposta em partes**: cada chamada de busca pede só 1 lote (3 páginas de cada loja; vitrine 1 página) e o site pede o
+  resto sozinho (`completarSozinho` no `app.js`, até 100 produtos sem acessórios ou 3 pedidos). Loja com mais de 8 s fica de
+  fora daquela resposta (`LIMITE_LOJA_MS`). Marcas da Lomadee: páginas em paralelo e guardadas no cache do Cloudflare 6 h. Cache v=32.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)

@@ -43,3 +43,20 @@ jobs:
             echo "$r" | grep -q '"fim":true' && break
             sleep 2
           done
+
+  # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
+  prontas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Preparar buscas populares
+        run: |
+          echo "### Buscas prontas" >> "$GITHUB_STEP_SUMMARY"
+          for parte in $(seq 0 300); do
+            r=$(curl -sS --retry 2 --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-buscas?parte=$parte") || { echo "parte $parte: falhou"; continue; }
+            echo "parte $parte: $r"
+            echo "- $r" >> "$GITHUB_STEP_SUMMARY"
+            echo "$r" | grep -q '"fim":true' && break
+            sleep 3
+          done
+

@@ -784,7 +784,7 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=31&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=32&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -1019,6 +1019,7 @@ async function buscar(q) {
     estado.temMaisBusca = Boolean(dados.mais);
     desenharFiltroLojas();
     desenharResultados();
+    completarSozinho(pedido);
   } catch (erro) {
     if (pedido !== estado.pedido) return;
     estado.buscando = false;
@@ -1072,7 +1073,19 @@ async function carregarMaisOfertas() {
 }
 
 // "Ver mais resultados": traz a próxima página da busca (Shopee) e junta à lista
-async function carregarMaisResultados() {
+// A busca chega aos poucos: o servidor responde com as primeiras páginas de cada loja (em poucos segundos)
+// e o site pede as próximas sozinho, até ter uns 100 produtos (sem contar acessórios)
+const PRODUTOS_DESEJADOS = 100;
+const PEDIDOS_AUTOMATICOS = 3;
+async function completarSozinho(pedido) {
+  for (let i = 0; i < PEDIDOS_AUTOMATICOS; i++) {
+    if (pedido !== estado.pedido || !estado.temMaisBusca) return;
+    if (estado.ofertas.filter((o) => !o.acessorio).length >= PRODUTOS_DESEJADOS) return;
+    await carregarMaisResultados({ sozinho: true });
+  }
+}
+
+async function carregarMaisResultados({ sozinho = false } = {}) {
   const botao = $("#mais-resultados");
   const pedido = estado.pedido;
   const q = estado.q;
@@ -1091,7 +1104,7 @@ async function carregarMaisResultados() {
     desenharFiltroLojas();
     desenharResultados();
   } catch {
-    if (pedido === estado.pedido) toast("Não foi possível carregar mais resultados agora");
+    if (pedido === estado.pedido && !sozinho) toast("Não foi possível carregar mais resultados agora");
   } finally {
     botao.disabled = false;
     botao.textContent = "Ver mais resultados";
@@ -1394,7 +1407,7 @@ if (performance.getEntriesByType?.("navigation")[0]?.type === "reload") {
 }
 
 $("#mais-ofertas").addEventListener("click", carregarMaisOfertas);
-$("#mais-resultados").addEventListener("click", carregarMaisResultados);
+$("#mais-resultados").addEventListener("click", () => carregarMaisResultados());
 document.querySelectorAll("[data-abrir-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(true)));
 document.querySelectorAll("[data-fechar-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(false)));
 $("#abrir-favoritos").addEventListener("click", () => abrirPainel(true));
