@@ -331,7 +331,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   27/11/2026). "Baixou X%" agora compara com o habitual (subir e baixar não engana). Botão "📈 Histórico" na Shopee só
   com mudança de preço ou 7+ dias. Teste: `node:sqlite` como D1 falso + `fetch` falso (ver conversa de 16/10).
 - **Botão "🚚 Frete grátis (N)" (16/10/2026, item 2)**: acima da lista (início e busca), liga o filtro `#so-frete`; só aparece
-  se alguma oferta tem frete grátis. **A API de afiliados da Shopee não informa frete** (só Awin/curadoria).
+  se a lista tem 8+ ofertas com frete grátis (`FRETE_MINIMO`). **A API de afiliados da Shopee não informa frete** (depende do
+  CEP e dos cupons; ler a página da Shopee é proibido). Giovanni preocupado em frustrar o visitante: botão quase sempre
+  escondido até haver mais lojas da Awin.
 - **F5 volta ao começo (16/10/2026, pedido do Giovanni)**: atualizar a página tira busca/categoria do endereço, zera filtros e
   ordem e volta ao topo (`performance.getEntriesByType("navigation")[0].type === "reload"`). Link com `?q=` aberto direto continua funcionando.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).

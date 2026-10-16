@@ -824,13 +824,15 @@ function desenharResumo(lista) {
         economia > 1 && el("span", { class: "economia" }, `Economize até R$ ${brl(economia)}`))));
 }
 
-// Botão "🚚 Frete grátis" acima da lista (o mesmo filtro de "Mais opções"). Só aparece quando alguma
-// oferta da lista tem frete grátis informado pela loja (a Shopee não informa isso para afiliados).
+// Botão "🚚 Frete grátis" acima da lista (o mesmo filtro de "Mais opções"). A Shopee não informa o frete
+// para afiliados, então hoje só lojas da Awin têm essa informação: o botão só aparece quando a lista tem
+// pelo menos FRETE_MINIMO ofertas com frete grátis (para não frustrar com 1 ou 2 resultados).
+const FRETE_MINIMO = 8;
 function desenharBotaoFrete() {
   const qtd = estado.ofertas.filter((o) => o.freteGratis).length;
   const ligado = $("#so-frete").checked;
   document.querySelectorAll("[data-frete]").forEach((b) => {
-    b.hidden = !qtd && !ligado;
+    b.hidden = qtd < FRETE_MINIMO && !ligado;
     b.setAttribute("aria-pressed", String(ligado));
     b.textContent = ligado ? "🚚 Frete grátis ✕" : `🚚 Frete grátis (${qtd})`;
   });
