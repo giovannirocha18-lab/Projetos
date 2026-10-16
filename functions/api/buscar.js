@@ -11,13 +11,14 @@ import { exemplo } from "../../lib/fontes/exemplo.js";
 import { curadoria } from "../../lib/fontes/curadoria.js";
 import { shopee } from "../../lib/fontes/shopee.js";
 import { awin } from "../../lib/fontes/awin.js";
+import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { historicoAoVivo } from "../../lib/ofertas.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
 import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
-const FONTES_REAIS = [curadoria, shopee, awin];
+const FONTES_REAIS = [curadoria, shopee, awin, aliexpress];
 
 const CACHE_SEGUNDOS = 60 * 60;
 // Na busca digitada, pede páginas da loja de 3 em 3 (Shopee: 48 cada) até ter MINIMO_PRODUTOS produtos
@@ -28,8 +29,19 @@ const MINIMO_PRODUTOS = 100;
 const MAX_PAGINAS = 9;
 // Vitrine das categorias: cada busca (4 ou 5) pede 1 página por vez, até 3 páginas, até ter MINIMO_PRODUTOS
 const MAX_PAGINAS_VITRINE = 3;
+// Lojas consultadas ao vivo (sem robô): o preço de hoje é guardado quando aparecem numa busca
+const AO_VIVO = new Set(["shopee", "aliexpress"]);
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 19;
+const VERSAO_CACHE = 20;
+
+// Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
+function intercalar(listas) {
+  const saida = [];
+  for (let i = 0; i < Math.max(0, ...listas.map((l) => l.length)); i++) {
+    for (const lista of listas) if (i < lista.length) saida.push(lista[i]);
+  }
+  return saida;
+}
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -97,7 +109,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         }
       }),
     );
-    return resultados.flat();
+    return intercalar(resultados);
   };
 
   // Busca digitada: pede páginas de 3 em 3 até ter produtos suficientes (ver MINIMO_PRODUTOS).
@@ -162,9 +174,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (!q) {
     mais = fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina) ? `pagina=${pagina + 1}` : null;
   }
-  // Shopee: junta o histórico de preço e guarda o preço de hoje (sem atrasar a resposta).
+  // Shopee e AliExpress: junta o histórico de preço e guarda o preço de hoje (sem atrasar a resposta).
   // É o que permite o selo "Desconto real" (ex.: na Black Friday). Banco fora do ar não derruba a busca.
-  if (env.DB && ofertas.some((o) => o.loja === "shopee")) {
+  if (env.DB && ofertas.some((o) => AO_VIVO.has(o.loja))) {
     try {
       const vivo = await historicoAoVivo(env.DB, ofertas);
       ofertas = vivo.ofertas;
