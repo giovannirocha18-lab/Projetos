@@ -41,7 +41,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - `lib/ofertas.js` = criação das tabelas `ofertas`, `ofertas_fts` (com gatilhos) e `precos` (histórico de preço por dia).
 - `robo/awin.mjs` = **robô de preços**: baixa a lista de feeds da Awin (chave `AWIN_FEED_KEY`), pega os das lojas aprovadas
   (região BR) e atualiza o D1 pela API do Cloudflare (só grava o que mudou; limite 20 mil/dia; não apaga nada se o feed
-  falhar ou encolher mais da metade). Roda pelo GitHub Actions (`.github/workflows/robo-precos.yml`, 04:17 BRT).
+  falhar ou encolher mais da metade). Roda pelo GitHub Actions (`.github/workflows/robo-precos.yml`, 02:30 BRT desde 16/10/2026).
   Teste local: `node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite`. Ver README.
 - `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br`, que **ainda não existe**.
 - `_headers` + `<meta robots noindex>` escondem o site do Google até o lançamento.
@@ -79,7 +79,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 | Shopee: conta "Maree" (para receber pagamentos) | ❗ falta ativar (link "Como ativar?" no portal) |
 | Shopee: Open API | ❗ sem acesso (14/10/2026: tela "Abrir API" com AppID/Senha vazios e "Aplicar" cinza; pede contato com a Shopee). **Pedido de acesso feito em 14/10/2026.** 15/10/2026: ✅ **API liberada e FUNCIONANDO no site** (chaves SHOPEE_APP_ID/SHOPEE_SECRET no Cloudflare; teste /api/buscar?q=fone bluetooth → shopee ok, 30 produtos com link de afiliado s.shopee.com.br, foto, preço, desconto, avaliação, vendidos). Quando liberar: "Senha" da tela = `SHOPEE_SECRET` |
 | Awin (rede de afiliados) | ✅ conta aprovada (ID 3124296). Lojas aprovadas: EINSTAR (EUA), **Spicy e Shark-Ninja (BR, 15/10/2026)**; outras BR pendentes |
-| Robô de preços (Awin → D1, GitHub Actions 04:17) | ✅ funcionando. Execução #10 (15/10/2026, disparada pelo Claude): 398 produtos (Spicy 349, Shark-Ninja 18, EINSTAR 31) |
+| Robô de preços (Awin → D1 + coleta Shopee, GitHub Actions 02:30) | ✅ funcionando. Execução #10 (15/10/2026, disparada pelo Claude): 398 produtos (Spicy 349, Shark-Ninja 18, EINSTAR 31) |
 | Histórico de preço + produto agrupado por código de barras | ✅ publicado (15/10/2026); ganha dados com o tempo |
 | AliExpress Afiliados | ✅ **aprovado (16/10/2026)**. Cadastro de desenvolvedor no openservice.aliexpress.com ✅ aprovado (16/10/2026; "Affiliates (individual)", Brasil; Conformidade de Dados: Não/Não/Não/Não, local Brasil, Não/Não/Sim = **compromisso: apagar dados da AliExpress se a parceria acabar**). App "Vai pro Carrinho" criado (16/10/2026): categoria Affiliates API, status **Test**, 1000 chamadas/min, "Standard API for Publishers" ativa (Advanced API = hot products, inativa, opcional). Tracking ID `vaiprocarrinho` criado e posto como padrão (é o padrão no código). **`lib/fontes/aliexpress.js` pronto e publicado (16/10/2026)**: busca (até 3 páginas de 50, BRL, entrega BR, selo Internacional), vitrine por mais vendidos, histórico ao vivo como a Shopee, lojas intercaladas na lista; sem "Ofertas do dia" (precisa da Advanced API). Testado só com fetch falso (rede do Claude bloqueia api-sg.aliexpress.com). ✅ **FUNCIONANDO no site (16/10/2026)**: chaves no Cloudflare, teste `/api/buscar?q=mochila notebook` trouxe produtos da AliExpress intercalados com a Shopee (link s.click.aliexpress.com, fotos, preço em R$, vendedor). Vendidos da AliExpress costumam ser baixos (campo lastest_volume). **Filtro "Envio" (16/10/2026, pedido dele)**: barra lateral "Todos / 🇧🇷 Nacional / 🌎 Internacional" (campo `internacional`). A API da AliExpress não diz de onde sai o produto: `aliexpress.buscar` faz uma 2ª consulta com `delivery_days=5` (entrega no BR em até 5 dias = armazém no Brasil) e marca esses como nacionais com selo verde "🇧🇷 Envio do Brasil"; se a API recusar/ignorar o filtro, tudo fica internacional. **Não testado com a API real** (rede do Claude bloqueada): Giovanni conferir. Shopee conta como nacional (API não informa vendedor internacional). Cores dos botões (16/10/2026, pedido dele): **AliExpress roxo-azulado `#6d28d9`**, **Spicy vinho `#b0002a`** (`CORES_POR_NOME` no `app.js`, pelo começo do nome da loja da Awin); outras lojas da Awin roxas. **"Ofertas do dia" com AliExpress (16/10/2026, pedido dele)**: `destaques()` tenta a Advanced API (hotproduct.query); se recusar, usa 4 buscas das vitrines por página (mudam todo dia, espalhadas pelas categorias), mais vendidos com desconto e sem acessórios, 6 de cada, intercalados (24 por página). Próximo: Giovanni conferir no site; opcional pedir a "Advanced API" |
 | Logo e imagens do Instagram | ✅ em `marca/` |
@@ -152,7 +152,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   aw_product_id, product_name, search_price, aw_deep_link… e, desde 15/10/2026, também o formato Google: title, price,
   sale_price, link, image_link, availability; se o link vier sem rastreio da Awin, monta awin1.com/cread.php com
   awinaffid = ID de afiliado 3124296, tirado do link da Lista de Feed). A Awin avisou que as lojas estão migrando para o formato Google.
-  Roda sozinho todo dia 04:17; quando uma loja aprovar, os produtos entram na madrugada seguinte.
+  Roda sozinho todo dia (hoje às 02:30); quando uma loja aprovar, os produtos entram na madrugada seguinte.
   **15/10/2026: 1ª aprovação = EINSTAR** (scanner 3D, loja dos EUA, preço em dólar). Execução #4 confirmou: status de loja
   aprovada na lista = "active" (5 feeds da EINSTAR), mas o robô ignora de propósito (região US / moeda USD).
   Nenhuma loja BR aprovada ainda.
@@ -406,10 +406,9 @@ Lista original (as seções "Segurança" e "Site" já estão resolvidas):
   corta em 2 linhas (Awin). (8) Voltar no celular deixa a gaveta de filtros aberta. (9) filtro de preço lê "1.000" como 1.
   (10) contagem de lojas inclui acessórios escondidos. (11) selos cobrem a foto no celular. (12) acessibilidade da gaveta/carrinho.
 
-## ⏸️ PAUSA (16/10/2026, pedido do Giovanni)
-Trabalhos parados até ele mandar voltar. **Robô de preços suspenso**: `schedule` comentado no `robo-precos.yml`
-(Awin e coleta da Shopee não rodam sozinhos; "Run workflow" manual continua possível). Ao retomar, perguntar se
-religa o robô (tirar o `# ` das linhas do `schedule`). O site continua no ar normalmente.
+## ▶️ Robô religado (16/10/2026, pedido do Giovanni)
+Pausa encerrada. Robô de preços volta a rodar sozinho **todo dia às 02:30** (cron `30 5 * * *` UTC no `robo-precos.yml`).
+Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta de 07/11/2026, antes da Black Friday (27/11).
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 

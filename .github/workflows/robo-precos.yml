@@ -4,9 +4,8 @@
 name: Robô de preços
 
 on:
-  # PAUSADO em 16/10/2026 a pedido do Giovanni. Para voltar a rodar sozinho todo dia, apagar o "# " das 2 linhas abaixo.
-  # schedule:
-  #   - cron: "17 7 * * *" # 04:17 no horário de Brasília
+  schedule:
+    - cron: "30 5 * * *" # 02:30 no horário de Brasília (pedido do Giovanni, 16/10/2026)
   workflow_dispatch:
 
 jobs:

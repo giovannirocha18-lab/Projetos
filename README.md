@@ -45,7 +45,7 @@ e `https://vaiprocarrinho.pages.dev/api/conta/google/retorno`.
 Sem o banco, o botão de entrar some e o carrinho fica só no aparelho.
 
 ## Robô de preços (Awin)
-`robo/awin.mjs` roda todo dia às 04:17 pelo GitHub (`.github/workflows/robo-precos.yml`). Ele baixa o
+`robo/awin.mjs` roda todo dia às 02:30 (horário de Brasília) pelo GitHub (`.github/workflows/robo-precos.yml`). Ele baixa o
 catálogo de todas as lojas da Awin em que a conta foi aprovada e atualiza a tabela `ofertas` do banco D1:
 produto novo entra, preço que mudou é atualizado (e guardado na tabela `precos`, o histórico), produto
 que saiu da loja é removido. Grava no máximo 20 mil produtos por dia (limite do plano grátis do D1);
