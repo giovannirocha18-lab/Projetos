@@ -784,7 +784,7 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=29&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=30&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -914,8 +914,9 @@ function avisoCategoria() {
 // sem acessórios e sem preços fora da curva ("Bit para parafusadeira" a R$ 5 numa lista de R$ 200)
 function ofertasComparaveis(lista) {
   const produtos = lista.filter((o) => !o.acessorio);
-  const certeiros = produtos.filter(produtoExato);
-  const base = certeiros.length ? certeiros : produtos.length ? produtos : lista;
+  // Sem o produto buscado na lista (ex.: só jaquetas "Air" numa busca por "air fryer"), ninguém ganha o selo
+  const base = produtos.filter(produtoExato);
+  if (!base.length) return [];
   const precos = base.map((o) => o.preco).sort((a, b) => a - b);
   const mediana = precos[Math.floor(precos.length / 2)];
   const dentro = base.filter((o) => o.preco >= mediana * 0.3 && o.preco <= mediana * 3);
