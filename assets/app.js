@@ -784,7 +784,7 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=23&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=24&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -826,7 +826,11 @@ function filtrar() {
     desconto: (a, b) => (b.desconto || 0) - (a.desconto || 0),
     vendidos: (a, b) => (b.vendidos || 0) - (a.vendidos || 0),
   }[ordem];
-  return ordenar ? [...lista].sort(ordenar) : lista;
+  if (!ordenar) return lista;
+  // Ordenar por preço/desconto não pode trazer o "Pôster Invictus" antes do perfume buscado:
+  // primeiro o produto exato (todas as palavras e, numa categoria, da categoria), depois o resto
+  const grupo = (o) => (o.acessorio ? 2 : o.bate && (!estado.cat || estado.foraDaCategoria || o.naCategoria) ? 0 : 1);
+  return [...lista].sort((a, b) => grupo(a) - grupo(b) || ordenar(a, b));
 }
 
 function desenharFiltroLojas() {
