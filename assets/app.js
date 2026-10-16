@@ -694,6 +694,30 @@ function esqueletos(qtd) {
 // A mesma lista de filtros serve para as "Ofertas do dia" (q vazio) e para a busca
 const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), pedido: 0 };
 
+// Anúncios repetidos: na Shopee vários vendedores publicam o mesmo produto (mesmo título, foto e preço)
+// com códigos diferentes. Fica um só, o que vendeu mais, na posição em que apareceu primeiro.
+function semRepetidos(lista) {
+  const posicao = new Map();
+  const saida = [];
+  for (const o of lista) {
+    const chaves = [
+      `id|${o.id}`,
+      `t|${o.loja}|${o.preco}|${normalizar(o.titulo || "").slice(0, 60)}`,
+      o.imagem && `f|${o.loja}|${o.imagem.replace(/_tn$/, "")}`,
+    ].filter(Boolean);
+    const achada = chaves.find((c) => posicao.has(c));
+    if (achada === undefined) {
+      chaves.forEach((c) => posicao.set(c, saida.length));
+      saida.push(o);
+    } else {
+      const i = posicao.get(achada);
+      if ((o.vendidos || 0) > (saida[i].vendidos || 0)) saida[i] = o;
+      chaves.forEach((c) => posicao.set(c, i));
+    }
+  }
+  return saida;
+}
+
 async function consultarApi(q, pagina = 1) {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
@@ -839,7 +863,7 @@ async function buscar(q) {
     const dados = await consultarApi(q);
     if (pedido !== estado.pedido) return; // chegou resposta de uma busca antiga
     $("#aviso-teste").hidden = !dados.exemplo;
-    estado.ofertas = dados.ofertas;
+    estado.ofertas = semRepetidos(dados.ofertas);
     // Nada na categoria: o servidor buscou em tudo, e as próximas páginas também são de tudo
     if (dados.foraDaCategoria) { estado.foraDaCategoria = estado.cat; estado.cat = null; }
     estado.paginaBusca = 1;
@@ -879,11 +903,10 @@ async function carregarMaisOfertas() {
   botao.textContent = "Carregando…";
   try {
     const dados = await consultarApi("", estado.paginaInicio + 1);
-    const ids = new Set(estado.inicio.map((o) => o.id));
-    const novas = dados.ofertas.filter((o) => !ids.has(o.id));
+    const antes = estado.inicio.length;
+    estado.inicio = semRepetidos([...estado.inicio, ...dados.ofertas]);
     estado.paginaInicio += 1;
-    estado.temMaisInicio = Boolean(dados.temMais && novas.length);
-    estado.inicio = [...estado.inicio, ...novas];
+    estado.temMaisInicio = Boolean(dados.temMais && estado.inicio.length > antes);
     if (!estado.q) {
       estado.ofertas = estado.inicio;
       desenharFiltroLojas();
@@ -905,12 +928,11 @@ async function carregarMaisResultados() {
   try {
     const dados = await consultarApi(estado.q, estado.paginaBusca + 1);
     if (pedido !== estado.pedido) return; // o visitante já fez outra busca
-    const ids = new Set(estado.ofertas.map((o) => o.id));
-    const novas = dados.ofertas.filter((o) => !ids.has(o.id));
+    const antes = estado.ofertas.length;
+    const todas = semRepetidos([...estado.ofertas, ...dados.ofertas]);
     estado.paginaBusca += 1;
-    estado.temMaisBusca = Boolean(dados.temMais && novas.length);
+    estado.temMaisBusca = Boolean(dados.temMais && todas.length > antes);
     // Produtos antes, acessórios (escondidos) no fim
-    const todas = [...estado.ofertas, ...novas];
     estado.ofertas = [...todas.filter((o) => !o.acessorio), ...todas.filter((o) => o.acessorio)];
     desenharFiltroLojas();
     desenharResultados();
@@ -941,7 +963,7 @@ async function carregarDestaques() {
   $("#destaques").replaceChildren(...esqueletos(12));
   try {
     const dados = await consultarApi("");
-    estado.inicio = dados.ofertas;
+    estado.inicio = semRepetidos(dados.ofertas);
     estado.temMaisInicio = Boolean(dados.temMais);
     if (pedido !== estado.pedido) return; // a pessoa já foi para uma busca
     $("#aviso-teste").hidden = !dados.exemplo;

@@ -321,6 +321,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **~100 resultados por busca (16/10/2026, pedido do Giovanni)**: busca digitada pede um "lote" de 3 páginas da Shopee
   (`PAGINAS_POR_LOTE` em `buscar.js`, 3 x 48 = 144 brutos); "Ver mais resultados" (`pagina=N`) pede o lote seguinte.
   Vitrine e "Ofertas do dia" continuam 1 página. Teste com Shopee simulada: `fetch` falso + `onRequestGet` direto no Node.
+- **Anúncios repetidos (16/10/2026, pedido do Giovanni)**: na Shopee vários vendedores publicam o mesmo produto com códigos
+  diferentes. `semRepetidos()` no `app.js` junta por mesmo título (60 letras) + preço ou mesma foto e fica com o que vendeu mais.
 - **F5 volta ao começo (16/10/2026, pedido do Giovanni)**: atualizar a página tira busca/categoria do endereço, zera filtros e
   ordem e volta ao topo (`performance.getEntriesByType("navigation")[0].type === "reload"`). Link com `?q=` aberto direto continua funcionando.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
