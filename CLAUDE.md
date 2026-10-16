@@ -387,6 +387,11 @@ Lista original (as seções "Segurança" e "Site" já estão resolvidas):
   corta em 2 linhas (Awin). (8) Voltar no celular deixa a gaveta de filtros aberta. (9) filtro de preço lê "1.000" como 1.
   (10) contagem de lojas inclui acessórios escondidos. (11) selos cobrem a foto no celular. (12) acessibilidade da gaveta/carrinho.
 
+## ⏸️ PAUSA (16/10/2026, pedido do Giovanni)
+Trabalhos parados até ele mandar voltar. **Robô de preços suspenso**: `schedule` comentado no `robo-precos.yml`
+(Awin e coleta da Shopee não rodam sozinhos; "Run workflow" manual continua possível). Ao retomar, perguntar se
+religa o robô (tirar o `# ` das linhas do `schedule`). O site continua no ar normalmente.
+
 ## Próximos passos
 1. Giovanni: reenviar pedidos às lojas que recusaram (texto acima) e acompanhar aprovações na Awin; recusar convites
    fora do perfil. A cada loja nova: Claude pode disparar o robô (GitHub MCP `actions_run_trigger`, workflow
