@@ -46,7 +46,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br`, que **ainda não existe**.
 - `_headers` + `<meta robots noindex>` escondem o site do Google até o lançamento.
 - Testar local: `npx wrangler pages dev .` (rodar **de dentro do repositório**) e abrir a página principal.
-- A rede do ambiente do Claude bloqueia `*.pages.dev`, API e docs do Mercado Livre e DNS externo.
+- Rede do ambiente do Claude: **"Completo" desde 16/10/2026** (Giovanni trocou em Ambiente > Edit > Acesso à rede). Antes
+  bloqueava docs/API da Lomadee, AliExpress, Mercado Livre, `*.pages.dev`. Vale em conversas novas.
 
 ## Hospedagem e domínio
 - Cloudflare Pages, projeto **vaiprocarrinho** → `vaiprocarrinho.pages.dev`. Deploy automático.
@@ -62,7 +63,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Cloudflare criou registros "sem e-mail" (MX nulo, SPF -all, DMARC reject). Trocar se um dia
   quiser e-mail no domínio.
 
-## Situação atual (atualizado em 16/10/2026, 2ª sessão)
+## Situação atual (atualizado em 16/10/2026, 3ª sessão)
 | Item | Situação |
 |---|---|
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
@@ -233,8 +234,15 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (api-beta ainda funciona), chave no cabeçalho `x-api-key` (chave com escopos; sem escopo = 403), `GET /affiliate/products`
   (limit 1–100; filtros preço/marca/disponibilidade; nome do parâmetro de palavra-chave NÃO confirmado), `/affiliate/brands`,
   `/affiliate/orders`; limite 60 req/min por chave+IP. Pode trazer produtos de marcas não aprovadas (filtrar por organizationId).
-  Próximo: Giovanni criar a chave em "Para Desenvolvedores" → Secret `LOMADEE_API_KEY` no Cloudflare (nunca no chat) e colar
-  o texto da página "Products" da documentação (parâmetros) para o Claude montar `lib/fontes/lomadee.js`.
+  Resposta de `GET /affiliate/products?page=1&limit=5` (print do Giovanni): `{ data: [{ organizationId, id, available, name,
+  description, url, images:[{url}], options:[{ id, ean, name, available, seller, images, categories, brands,
+  pricing:[{listPrice, price}], stocks:[{value}] }] }], count }`. `url` deve ser o link normal: link de afiliado sai do
+  **Shorten** (`POST "Shorten a URL"`, escopo shortener:write). Chave: criada no painel (API Keys / GraphQL open-api), mostrada
+  1 vez; escopos products:read, brands:read, campaigns:read, shortener:read, shortener:write. Chave tipo Affiliate (rotas
+  /affiliate/*); Partner é outra (401 se trocar). Limites: 60 req/60s; limit máx 20 em brands/campaigns, 100 em products.
+  **Próximo (conversa nova, rede liberada)**: Claude ler docs.lomadee.com.br ("Get all Products" Query Parameters, "Shorten a URL",
+  "API Keys"); Giovanni criar a chave e pôr Secret `LOMADEE_API_KEY` no Cloudflare (nunca no chat); Claude montar
+  `lib/fontes/lomadee.js` (busca + link encurtado guardado no D1 + só marcas aprovadas + controle de limite) e testar.
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
@@ -426,6 +434,7 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos
+0. **Lomadee** (cadastro e canal ✅ 16/10/2026): ligar a API no site (ver "Outras redes para PF" em "Em andamento").
 1. Giovanni: reenviar pedidos às lojas que recusaram (texto acima) e acompanhar aprovações na Awin; recusar convites
    fora do perfil. A cada loja nova: Claude pode disparar o robô (GitHub MCP `actions_run_trigger`, workflow
    `robo-precos.yml`, ref `claude/inspiring-hamilton-wafagr`) e ler o log; se o nome da loja vier como empresa,
