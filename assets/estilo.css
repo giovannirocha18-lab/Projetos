@@ -274,6 +274,27 @@ a { color: inherit; }
 }
 .resumo-categoria button:hover { background: rgba(255, 255, 255, .3); }
 
+/* Animação "buscando": carrinho andando com produtos caindo dentro */
+.anim-buscando { width: 160px; flex-shrink: 0; margin: -14px 0; }
+.anim-buscando svg { display: block; width: 100%; height: auto; overflow: hidden; }
+.anim-chao { animation: anim-chao .6s linear infinite; }
+.anim-vento path { animation: anim-vento .8s ease-in-out infinite; }
+.anim-vento path:nth-child(2) { animation-delay: .25s; }
+.anim-vento path:nth-child(3) { animation-delay: .5s; }
+.anim-carrinho { animation: anim-pulo .4s ease-in-out infinite alternate; }
+.anim-roda { transform-box: fill-box; transform-origin: center; animation: anim-roda .6s linear infinite; }
+.anim-item { opacity: 0; animation: anim-cair 2.4s ease-in infinite; animation-delay: var(--atraso); }
+@keyframes anim-chao { to { transform: translateX(-26px); } }
+@keyframes anim-vento { 0%, 100% { opacity: .2; transform: translateX(8px); } 50% { opacity: 1; transform: translateX(-8px); } }
+@keyframes anim-pulo { to { transform: translateY(-3px); } }
+@keyframes anim-roda { to { transform: rotate(360deg); } }
+@keyframes anim-cair {
+  0% { opacity: 0; transform: translateY(-30px) rotate(-12deg); }
+  10% { opacity: 1; }
+  35% { opacity: 1; transform: translateY(24px) rotate(6deg); }
+  45%, 100% { opacity: 0; transform: translateY(28px) rotate(0); }
+}
+
 /* Página: barra lateral (ordem, categorias, lojas, filtros) + conteúdo */
 /* Cabeçalho, página e rodapé usam a tela toda: a barra lateral encosta na esquerda */
 .topo .container, .pagina, .rodape .container { max-width: none; padding-left: 20px; padding-right: 20px; }
@@ -474,6 +495,7 @@ a { color: inherit; }
   .selos .selo:nth-child(n + 3) { display: none; }
   .setas { display: none; }
   .resumo { padding: 18px; }
+  .anim-buscando { width: 160px; margin: 0 auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {
