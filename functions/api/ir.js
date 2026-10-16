@@ -1,0 +1,63 @@
+// /api/ir?m=<marca>&u=<link do produto> — botão "Comprar" dos produtos da Lomadee.
+// Gera o link com comissão no encurtador da Lomadee só quando alguém clica (o limite é de 60 consultas
+// por minuto, não dá para gerar os 48 de cada busca) e guarda no banco: o próximo clique já sai pronto.
+import { pedirLomadee, marcasAprovadas } from "../../lib/fontes/lomadee.js";
+
+const UUID = /^[0-9a-f-]{20,40}$/i;
+
+async function criarTabela(db) {
+  await db.prepare(`CREATE TABLE IF NOT EXISTS links_lomadee (
+    url TEXT PRIMARY KEY, curto TEXT NOT NULL, criado TEXT DEFAULT (datetime('now')))`).run();
+}
+
+// Mesmo site da marca (para o caso de o encurtador falhar): "www.loja.com.br" e "loja.com.br" valem
+const dominio = (host) => String(host || "").toLowerCase().replace(/^www\./, "");
+function mesmoSite(url, site) {
+  try {
+    const alvo = dominio(new URL(url).hostname);
+    const daMarca = dominio(new URL(site.startsWith("http") ? site : `https://${site}`).hostname);
+    return Boolean(daMarca) && (alvo === daMarca || alvo.endsWith(`.${daMarca}`));
+  } catch {
+    return false;
+  }
+}
+
+export async function onRequestGet({ request, env }) {
+  const params = new URL(request.url).searchParams;
+  const marca = params.get("m") || "";
+  const url = params.get("u") || "";
+  const voltar = () => Response.redirect(new URL("/", request.url).toString(), 302);
+  if (!env.LOMADEE_API_KEY || !UUID.test(marca) || !url.startsWith("https://") || url.length > 2000) return voltar();
+
+  if (env.DB) {
+    try {
+      await criarTabela(env.DB);
+      const guardado = await env.DB.prepare("SELECT curto FROM links_lomadee WHERE url = ?").bind(url).first();
+      if (guardado?.curto) return Response.redirect(guardado.curto, 302);
+    } catch {
+      // banco fora do ar: gera o link mesmo assim
+    }
+  }
+
+  try {
+    const canais = await pedirLomadee(env, "/affiliate/shortener/url", {
+      metodo: "POST",
+      corpo: { organizationId: marca, type: "Custom", url },
+    });
+    const curto = (Array.isArray(canais) ? canais : []).flatMap((c) => c.shortUrls || []).find((u) => u.startsWith("https://"));
+    if (curto) {
+      if (env.DB) await env.DB.prepare("INSERT OR REPLACE INTO links_lomadee (url, curto) VALUES (?, ?)").bind(url, curto).run().catch(() => {});
+      return Response.redirect(curto, 302);
+    }
+  } catch {
+    // limite estourado ou Lomadee fora do ar: cai no link da própria loja abaixo
+  }
+  // Sem link com comissão, o visitante ainda chega ao produto (só se o link for mesmo do site da marca)
+  try {
+    const dados = (await marcasAprovadas(env)).get(marca);
+    if (dados && mesmoSite(url, dados.site)) return Response.redirect(url, 302);
+  } catch {
+    // sem a lista de marcas, não arrisca mandar para um site qualquer
+  }
+  return voltar();
+}

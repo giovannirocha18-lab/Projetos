@@ -240,7 +240,15 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   **Shorten** (`POST "Shorten a URL"`, escopo shortener:write). Chave: criada no painel (API Keys / GraphQL open-api), mostrada
   1 vez; escopos products:read, brands:read, campaigns:read, shortener:read, shortener:write. Chave tipo Affiliate (rotas
   /affiliate/*); Partner é outra (401 se trocar). Limites: 60 req/60s; limit máx 20 em brands/campaigns, 100 em products.
-  **Próximo (conversa nova, rede liberada)**: Claude ler docs.lomadee.com.br ("Get all Products" Query Parameters, "Shorten a URL",
+  ✅ **Código pronto e publicado (16/10/2026)**, testado só com Lomadee simulada: `lib/fontes/lomadee.js` (busca
+  `GET /affiliate/products?search=&limit=48&isAvailable=true&organizationIds=<aprovadas>`, preço em centavos ÷100; marcas
+  aprovadas = `/affiliate/brands` com canal que tem shortUrls sem `message`, guardadas 6h; Shopee/AliExpress da Lomadee ficam de
+  fora; loja = chave do app.js (Magalu, Amazon…) ou `lomadee-<nome>` + `lojaNome`; `fonte: "lomadee"` entra no histórico ao vivo
+  via `ehAoVivo`). Link "Comprar" = `/api/ir?m=<org>&u=<url>` (`functions/api/ir.js`): gera o link com comissão no encurtador
+  (`POST /affiliate/shortener/url`, type Custom) só no clique e guarda na tabela D1 `links_lomadee`; se falhar, manda para o
+  produto só se for do site da marca. Sem "Ofertas do dia" da Lomadee. Liga sozinho com o Secret `LOMADEE_API_KEY`.
+  Próximo: Giovanni criar a chave e pôr no Cloudflare; Claude testar `/api/buscar?q=...` e um clique no site real.
+  (Antigo) **Próximo (conversa nova, rede liberada)**: Claude ler docs.lomadee.com.br ("Get all Products" Query Parameters, "Shorten a URL",
   "API Keys"); Giovanni criar a chave e pôr Secret `LOMADEE_API_KEY` no Cloudflare (nunca no chat); Claude montar
   `lib/fontes/lomadee.js` (busca + link encurtado guardado no D1 + só marcas aprovadas + controle de limite) e testar.
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
@@ -384,7 +392,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Tem os termos mais buscados (pesquisa 16/10: MELI Trends 2025, Google "Mais Desejados" 2025, Shopee 2025/Mapa 2026) e
   **todo print de erro do Giovanni vira um caso novo** no arquivo. Sinônimos em `SINONIMOS`/`comSinonimos` (`lib/relevancia.js`):
   smartphone=celular, capinha=capa, smart watch=smartwatch, PlayStation 5=ps5, televisão=tv, refrigerador=geladeira,
-  laptop=notebook, "55 polegadas"=55. Pontuação aceita frase com de/para no meio ("Retrovisor para Moto"). Cache v=27.
+  laptop=notebook, "55 polegadas"=55. Pontuação aceita frase com de/para no meio ("Retrovisor para Moto"). Cache v=27 (v=28 desde a Lomadee).
 - **"Maior desconto" honesto (16/10/2026, pedido do Giovanni)**: categoria em "Maior desconto" mostrava -81% em produto de
   R$ 13 (preço antigo inflado). Agora (`nivelDesconto` no `app.js`): 1º "Desconto real" do nosso histórico (como o Zoom),
   2º desconto da loja de 5–75%, 3º acima de 75% (`DESCONTO_SUSPEITO`, provável maquiagem de preço), 4º sem desconto.
