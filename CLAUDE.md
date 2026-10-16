@@ -462,7 +462,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 ## Próximos passos
 0. ✅ **Lomadee ligada no site (16/10/2026)**. Próximo: Giovanni pedir afiliação em mais marcas no menu "Marcas" (Magalu etc.) e conferir no site.
    Giovanni também ia mandar print de "Minha carteira" da Lomadee (regras de saque: mínimo, prazo, impostos PF).
-0b. Conferir as buscas prontas: `curl -D - .../api/buscar?v=32&q=notebook` deve ter `X-Pronta: 1` (se cache de 1h não estiver na frente);
+0b. ✅ 16/10/2026 (4ª sessão): as 91 buscas prontas foram guardadas (busca popular responde em ~0,3 s). A execução #15 do robô
+   tinha sido cancelada por tempo (Lomadee travando 25 s + erros 1102 do Cloudflare): limite do job `prontas` subiu para 45 min.
+   Conferir na madrugada seguinte se o job `prontas` termina. (Antigo) Conferir as buscas prontas: `curl -D - .../api/buscar?v=32&q=notebook` deve ter `X-Pronta: 1` (se cache de 1h não estiver na frente);
    ver o log do job `prontas` da madrugada (quantas `"guardada":true`). Se o robô do GitHub seguir com a Lomadee travando,
    ok: as buscas são guardadas sem ela.
 1. Giovanni: reenviar pedidos às lojas que recusaram (texto acima) e acompanhar aprovações na Awin; recusar convites

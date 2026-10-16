@@ -47,7 +47,7 @@ jobs:
   # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
   prontas:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Preparar buscas populares
         run: |
