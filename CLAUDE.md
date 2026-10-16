@@ -353,7 +353,13 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
 Corrigido na hora: "Ver detalhes" quebrado (`listaOutrasLojas` apagada junto com o agrupamento por gtin).
-Pendentes, por prioridade (Giovanni ainda vai escolher o que corrigir):
+**16/10/2026: Giovanni pediu "corrija todos em ordem de gravidade".** ✅ **Segurança da conta: TODOS corrigidos e publicados**
+(exceto PBKDF2: falta Giovanni testar login com e-mail+senha no site). ✅ **Site: TODOS corrigidos e publicados** (teste
+Playwright com 51 verificações). ⏸️ **Servidor/busca: PAUSADO a pedido dele (limite de uso)**: trabalho parcial salvo na
+branch `wip/correcoes-busca-servidor` (NÃO vai para o ar; mexe em buscar.js, buscas.js, categorias.js, ofertas.js,
+relevancia.js). Para retomar: `git checkout wip/correcoes-busca-servidor`, conferir o que já foi feito, terminar os itens
+abaixo, testar (scratch: acess.mjs, mock2/mock3.mjs, teste-hist.mjs, d1.mjs) e trazer para a branch de produção.
+Lista original (as seções "Segurança" e "Site" já estão resolvidas):
 - **Segurança da conta**: (1) cadastro com e-mail+senha não confirma o e-mail; quem cadastrar o e-mail de outra pessoa
   continua com acesso depois que o dono entra com Google (`cadastrar.js` + `google/retorno.js`; apagar senha não confirmada e
   sessões ao entrar com Google, ou confirmar e-mail no cadastro). (2) `DELETE FROM limites WHERE chave LIKE '%:'||email` em
