@@ -313,6 +313,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   abrem a vitrine. Cada categoria aberta = 4 consultas à Shopee (guardadas 1h). Revisar as listas de tempos em tempos.
   Ajuste: Informática trazia notebook de brinquedo e medidor de pressão → buscas "notebook lenovo"/"monitor gamer",
   `excluir` (infantil, educativo, pressão…) e Brinquedos ganhou "educativo"/"laptop infantil".
+- **Busca dentro da categoria refeita (16/10/2026, pedido do Giovanni)**: "capacete" em Automotivo virava "capacete acessórios
+  para carro" (lixo). Agora pesquisa o que foi digitado e, só se a categoria tiver `chave` (ex.: Perfumes = "perfume"),
+  também "invictus perfume"; junta, tira o que é de outra categoria e põe primeiro o que é da categoria
+  (`ordenarNaCategoria`). Perfumes ganhou "eau de"/"toilette".
 - **F5 volta ao começo (16/10/2026, pedido do Giovanni)**: atualizar a página tira busca/categoria do endereço, zera filtros e
   ordem e volta ao topo (`performance.getEntriesByType("navigation")[0].type === "reload"`). Link com `?q=` aberto direto continua funcionando.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).

@@ -12,14 +12,14 @@ import { shopee } from "../../lib/fontes/shopee.js";
 import { awin } from "../../lib/fontes/awin.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
-import { categoriaPorNome, termoNaCategoria, daCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
+import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
 const FONTES_REAIS = [curadoria, shopee, awin];
 
 const CACHE_SEGUNDOS = 60 * 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 12;
+const VERSAO_CACHE = 13;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -86,20 +86,21 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (vitrine) {
     const listas = await Promise.all(vitrine.buscas.map(async (termo) => separarAcessorios(await consultar(termo, { maisVendidos: true }), termo)));
     ofertas = montarVitrine(listas, vitrine, categoria);
-  } else {
-    // Dentro de uma categoria: "invictus" em Perfumes pesquisa "invictus perfume".
-    // Se nada aparecer na categoria, mostra a busca em tudo (e o site avisa).
-    let encontradas = await consultar(categoria ? termoNaCategoria(q, categoria) : q);
-    if (categoria) {
-      encontradas = daCategoria(encontradas, categoria);
-      if (!encontradas.length && pagina === 1) {
-        for (const k of Object.keys(lojas)) delete lojas[k];
-        encontradas = await consultar(q);
-        foraDaCategoria = encontradas.length > 0;
-      }
+  } else if (categoria) {
+    // Dentro de uma categoria: o que foi digitado + (se a categoria tem chave) "invictus perfume";
+    // fica só o que não é de outra categoria, o que é dela primeiro. Se nada sobrar, busca em tudo (e o site avisa).
+    const extra = termoNaCategoria(q, categoria);
+    const [digitada, comChave] = await Promise.all([consultar(q), extra ? consultar(extra) : []]);
+    const vistos = new Set();
+    const juntas = [...comChave, ...digitada].filter((o) => !vistos.has(o.id) && vistos.add(o.id));
+    ofertas = ordenarNaCategoria(separarAcessorios(juntas, q), categoria);
+    if (!ofertas.length && pagina === 1) {
+      ofertas = separarAcessorios(digitada, q);
+      foraDaCategoria = ofertas.length > 0;
     }
+  } else {
     // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
-    ofertas = q ? separarAcessorios(encontradas, q) : encontradas;
+    ofertas = q ? separarAcessorios(await consultar(q), q) : await consultar(q);
   }
   const resposta = responder({
     q,
