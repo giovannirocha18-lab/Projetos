@@ -351,6 +351,34 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   ordem e volta ao topo (`performance.getEntriesByType("navigation")[0].type === "reload"`). Link com `?q=` aberto direto continua funcionando.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
+## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
+Corrigido na hora: "Ver detalhes" quebrado (`listaOutrasLojas` apagada junto com o agrupamento por gtin).
+Pendentes, por prioridade (Giovanni ainda vai escolher o que corrigir):
+- **Segurança da conta**: (1) cadastro com e-mail+senha não confirma o e-mail; quem cadastrar o e-mail de outra pessoa
+  continua com acesso depois que o dono entra com Google (`cadastrar.js` + `google/retorno.js`; apagar senha não confirmada e
+  sessões ao entrar com Google, ou confirmar e-mail no cadastro). (2) `DELETE FROM limites WHERE chave LIKE '%:'||email` em
+  `conta/index.js` aceita `%`/`_` no e-mail e zera limites de todos. (3) limite de tentativas não é atômico (`dentroDoLimite`).
+  (4) 10 tentativas com o e-mail de alguém bloqueiam o login dele por 1h. (5) dá para descobrir quais e-mails têm conta.
+  (6) PBKDF2 100k pode passar do limite de CPU do plano grátis (testar login no site). (7) sem cabeçalhos de segurança.
+  (8) Política de Privacidade não cita IP/e-mail na tabela `limites`, cookie `vpc_google` e localStorage.
+- **Servidor/busca**: (1) CPU: `categoriaDoProduto` chamado muitas vezes por busca de categoria (guardar resultado por título).
+  (2) `/api/buscar` aberto: cada busca nova grava ~290 linhas no D1 (inclui acessórios) e qualquer um pode encher o limite
+  diário (100 mil) ou forçar termos no "Em alta" com repetição. (3) Ordem das categorias classifica errado ("Tapete de Yoga"
+  → Decoração, "Whey … Pote" → Cozinha, "Babá Eletrônica … Monitor" → Informática, "… com Carregador" → Carregadores),
+  esvaziando vitrines (Suplementos quase vazia). (4) Detector de acessórios esconde produtos reais: "… com Case", "com Grelha",
+  "com Tampa", "Kit", "Compatível com", "Carregador Portátil Power Bank", "Robô Aspirador … Limpador", "Mordedor Silicone".
+  (5) `bate` exige "de/do" ("Jogo Panelas" não bate "jogo de panelas"). (6) robô apaga histórico com +180 dias e perde o preço
+  base de produto estável (`robo/awin.mjs`). (7) Awin consultada 3x por termo (`paginas` em `consultar`). (8) Corrida no
+  retry do `shopType` (só importa se a Shopee recusar o campo). (9) `/api/em-alta` guarda 1h resposta vazia se a Shopee falhar.
+  (10) `coletar-precos`: parte pode rodar 2x em paralelo; partes mudam durante o dia (mais buscados).
+- **Site**: (1) voltar/logo durante busca carregando põe resultados da busca nas "Ofertas do dia" (`mostrarInicio` não faz
+  `estado.pedido++`). (2) janela de histórico pode mostrar/linkar outro produto (resposta atrasada). (3) item tirado do
+  "Meu carrinho" volta em outro aparelho (`juntarCarrinho` em todo carregamento). (4) loop infinito GET/PUT se salvar o carrinho
+  falhar. (5) resultados antigos aparecem durante nova busca (botão de acessórios da busca anterior). (6) digitar "perfume",
+  "fone de ouvido" etc. vira a vitrine da categoria e apaga a caixa (fallback de `categoriaAtual`). (7) título com botão não
+  corta em 2 linhas (Awin). (8) Voltar no celular deixa a gaveta de filtros aberta. (9) filtro de preço lê "1.000" como 1.
+  (10) contagem de lojas inclui acessórios escondidos. (11) selos cobrem a foto no celular. (12) acessibilidade da gaveta/carrinho.
+
 ## Próximos passos
 1. Giovanni: reenviar pedidos às lojas que recusaram (texto acima) e acompanhar aprovações na Awin; recusar convites
    fora do perfil. A cada loja nova: Claude pode disparar o robô (GitHub MCP `actions_run_trigger`, workflow

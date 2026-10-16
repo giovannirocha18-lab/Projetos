@@ -634,7 +634,6 @@ function abrirDetalhes(o) {
       o.internacional && el("span", { class: "internacional" },
         o.moeda ? `🌎 Internacional · valor convertido de ${o.moeda}` : "🌎 Internacional")),
     o.descricao && el("div", { class: "detalhes-descricao" }, el("h3", {}, "Descrição"), el("p", {}, o.descricao)),
-    listaOutrasLojas(o),
     o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => { $("#janela-detalhes").close(); abrirHistorico(o); } },
       "📈 Ver histórico de preço"),
     el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener",
