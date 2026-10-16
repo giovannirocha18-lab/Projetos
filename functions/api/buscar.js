@@ -26,8 +26,10 @@ const CACHE_SEGUNDOS = 60 * 60;
 const PAGINAS_POR_LOTE = 3;
 const MINIMO_PRODUTOS = 100;
 const MAX_PAGINAS = 9;
+// Vitrine das categorias: cada busca (4 ou 5) pede 1 página por vez, até 3 páginas, até ter MINIMO_PRODUTOS
+const MAX_PAGINAS_VITRINE = 3;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 17;
+const VERSAO_CACHE = 18;
 
 function responder(dados, status = 200) {
   return new Response(JSON.stringify(dados), {
@@ -123,8 +125,19 @@ export async function onRequestGet({ request, env, waitUntil }) {
   let ofertas;
   let foraDaCategoria = false;
   if (vitrine) {
-    const listas = await Promise.all(vitrine.buscas.map(async (termo) => separarAcessorios(await consultar(termo, { maisVendidos: true }), termo)));
-    ofertas = montarVitrine(listas, vitrine, categoria);
+    // "apple watch" nos mais vendidos da Shopee é quase tudo pulseira: continua pedindo páginas até encher
+    const brutas = vitrine.buscas.map(() => []);
+    let pag = desde;
+    let acabou = false;
+    do {
+      for (const l of Object.values(lojas)) l.total = 0;
+      const novas = await Promise.all(vitrine.buscas.map((termo) => consultar(termo, { maisVendidos: true, paginas: [pag] })));
+      novas.forEach((lista, i) => brutas[i].push(...lista));
+      pag += 1;
+      acabou = !fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina);
+      ofertas = montarVitrine(brutas.map((lista, i) => separarAcessorios(lista, vitrine.buscas[i])), vitrine, categoria);
+    } while (!acabou && pag - desde < MAX_PAGINAS_VITRINE && ofertas.length < MINIMO_PRODUTOS);
+    mais = acabou ? null : `desde=${pag}`;
   } else if (categoria) {
     // Dentro de uma categoria: o que foi digitado + (se a categoria tem chave) "invictus perfume";
     // fica só o que não é de outra categoria, o que é dela primeiro. Se nada sobrar, busca em tudo (e o site avisa).
@@ -145,8 +158,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   } else {
     ofertas = await consultar(q);
   }
-  // Vitrine e "Ofertas do dia": a próxima página
-  if (!q || vitrine) {
+  // "Ofertas do dia": a próxima página
+  if (!q) {
     mais = fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina) ? `pagina=${pagina + 1}` : null;
   }
   // Shopee: junta o histórico de preço e guarda o preço de hoje (sem atrasar a resposta).

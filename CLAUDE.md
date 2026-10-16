@@ -318,6 +318,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   abrem a vitrine. Cada categoria aberta = 4 consultas à Shopee (guardadas 1h). Revisar as listas de tempos em tempos.
   Ajuste: Informática trazia notebook de brinquedo e medidor de pressão → buscas "notebook lenovo"/"monitor gamer",
   `excluir` (infantil, educativo, pressão…) e Brinquedos ganhou "educativo"/"laptop infantil".
+  16/10: Smartwatches mostrava só 2 (vitrine pedia 1 página por busca e "apple watch" é quase tudo pulseira). Vitrine agora
+  pede 1 página por busca por rodada, até 3 rodadas (`MAX_PAGINAS_VITRINE`) ou 100 produtos; "Ver mais" continua com `desde=`.
+  Smartwatches: buscas smartwatch, apple watch, galaxy watch, amazfit, xiaomi smart band; precoMin 80; excluir + carregador/case.
 - **Busca dentro da categoria refeita (16/10/2026, pedido do Giovanni)**: "capacete" em Automotivo virava "capacete acessórios
   para carro" (lixo). Agora pesquisa o que foi digitado e, só se a categoria tiver `chave` (ex.: Perfumes = "perfume"),
   também "invictus perfume"; junta, tira o que é de outra categoria e põe primeiro o que é da categoria
