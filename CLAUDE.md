@@ -229,7 +229,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   **16/10/2026: cadastro na Lomadee feito** (painel: Início, Minha carteira, Meus canais, Marcas, Ofertas, Cupons, Produtos,
   Para Desenvolvedores). Canal "Comparador de Preços" criado; meta tag `<meta name="lomadee" …>` de verificação posta no `index.html` (manter).
   ✅ Canal "Vai pro carrinho" **Ativo** (16/10/2026), ID do canal 5275daaf-c3d2-4f89-9b4a-75ad4f19906a.
-  Próximo: ver "Para Desenvolvedores" (API/chave) e "Marcas".
+  API (pesquisado 16/10/2026; docs.lomadee.com.br bloqueado na rede do Claude): base `https://api.lomadee.com.br`
+  (api-beta ainda funciona), chave no cabeçalho `x-api-key` (chave com escopos; sem escopo = 403), `GET /affiliate/products`
+  (limit 1–100; filtros preço/marca/disponibilidade; nome do parâmetro de palavra-chave NÃO confirmado), `/affiliate/brands`,
+  `/affiliate/orders`; limite 60 req/min por chave+IP. Pode trazer produtos de marcas não aprovadas (filtrar por organizationId).
+  Próximo: Giovanni criar a chave em "Para Desenvolvedores" → Secret `LOMADEE_API_KEY` no Cloudflare (nunca no chat) e colar
+  o texto da página "Products" da documentação (parâmetros) para o Claude montar `lib/fontes/lomadee.js`.
 - Convite na Awin de "World Businesses for Sale" (venda de empresas, Reino Unido, libras): recomendado **não aceitar**
   (não é produto de consumo; o feed poluiria a busca). Regra geral: convites de lojas fora do perfil = recusar.
 
