@@ -510,10 +510,6 @@ a { color: inherit; }
   .anim-buscando { flex-basis: 100%; margin: 0; }
 }
 
-/* Sem animações para quem pediu menos movimento no aparelho, menos o boneco da busca (pedido do Giovanni: mostra que está carregando) */
-@media (prefers-reduced-motion: reduce) {
-  *:not(.anim-buscando *), *::before, *::after { animation: none !important; transition: none !important; }
-}
 
 /* ============ Histórico de preço ============ */
 .selo-historico { background: #1d4ed8; }
