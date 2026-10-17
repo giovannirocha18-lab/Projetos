@@ -559,7 +559,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   cartão): `AVISO_CUPOM` "💸 Preços sem cupom: na loja pode sair ainda mais barato com cupom ou Pix." uma vez só, no card de
   resultados e na faixa das "Ofertas do dia". Ideias éticas sugeridas e não feitas: perguntar ao suporte de Afiliados da Shopee se
   a API tem cupons; cupons oficiais da Lomadee ("Cupons") e Awin ("Minhas Ofertas"); curadoria manual; "Achei mais barato" no futuro.
-  Ainda fracos: "bateria carro", "kindle", "protetor solar" (para-brisa). Buscas prontas só voltam na madrugada.
+  ✅ **"bateria para carro", "kindle", "protetor solar" (17/10/2026, 7ª sessão, print do Giovanni)**: a API da Shopee não acha
+  bateria de carro pelo nome comum (traz testador/terminal). `PRODUTOS_NAS_LOJAS`/`buscaNasLojas` em `lib/vocabulario.js`: a busca
+  vira várias consultas (bateria automotiva moura, bateria 60ah/50ah/40ah, eletran, zetta; kindle paperwhite, leitor kindle, kindle),
+  1 página cada, e `precoMin` (R$ 250 bateria, R$ 300 Kindle) marca o mais barato como acessório (`separarAcessorios(…, { precoMin })`).
+  Para outro produto assim: acrescentar na lista e um caso no `testes/busca.mjs`. "protetor solar": para-brisa/carro/painel em
+  `OUTRO_PRODUTO` (vai para o fim). Conferido no ar: bateria = 35 baterias de verdade; Kindle = só 3–4 (a Shopee tem poucos). Cache v=51.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
   Web Analytics > Enable); o CSP já libera cloudflareinsights. Aguardando ele.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
@@ -606,7 +611,8 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 17/10/2026, fim da 6ª sessão)
+## Próximos passos (atualizado 17/10/2026, 7ª sessão)
+- Giovanni: conferir "bateria para carro", "kindle" e "protetor solar" no site.
 - Giovanni: conferir a categoria "Eletrodomésticos" (1ª do menu).
 - Opcional (sugerido na 6ª sessão): perguntar ao suporte de Afiliados da Shopee se a API tem cupons; ligar cupons oficiais da Lomadee/Awin.
 - Giovanni: ligar o Web Analytics do Cloudflare (ver "Visitas"); decidir sobre o Mercado Livre (inscrição + app de desenvolvedor).
