@@ -483,7 +483,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Para avaliar de novo: baixar `/api/buscar?v=41&q=<termo>` de várias buscas e rodar `separarAcessorios` comparando com a marcação antiga.
 - **Awin só pelo título (17/10/2026, print "armario de cozinha")**: o índice FTS tem título + marca + categoria + loja, e a categoria
   da Spicy ("Cozinha > Armários…") trazia tábua e facas. `awin.buscar` agora filtra por `temTodasAsPalavras` no título (e
-  `citaAlgumaPalavra` no "faltando uma"). Cache v=43.
+  `citaAlgumaPalavra` no "faltando uma"); "de/do/para" não contam como palavra na busca da Awin. Cache v=44.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
