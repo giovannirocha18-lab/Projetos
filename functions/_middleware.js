@@ -49,8 +49,36 @@ function comSeguranca(resposta) {
   return nova;
 }
 
+// O navegador guarda app.js e estilo.css por horas (regra do Cloudflare). Para todo visitante receber a versão
+// nova logo depois de cada publicação, sem Ctrl+F5, as páginas pedem "assets/app.js?v=<código do arquivo>":
+// o código (ETag) muda quando o arquivo muda, e o navegador entende que é outro arquivo.
+const versoes = new Map(); // arquivo -> código; vale enquanto esta publicação estiver no ar
+async function versaoDe(env, origem, arquivo) {
+  if (!versoes.has(arquivo)) {
+    const resp = await env.ASSETS.fetch(new URL(`/${arquivo}`, origem)).catch(() => null);
+    const etag = resp?.ok ? (resp.headers.get("ETag") || "").replace(/^W\//, "").replace(/"/g, "") : "";
+    if (!etag) return null; // tenta de novo na próxima página
+    versoes.set(arquivo, etag.slice(0, 12));
+  }
+  return versoes.get(arquivo);
+}
+
+async function comVersaoNosArquivos(resposta, env, origem) {
+  if (!env.ASSETS || !(resposta.headers.get("Content-Type") || "").includes("text/html")) return resposta;
+  const trocar = (atributo) => ({
+    async element(el) {
+      const valor = el.getAttribute(atributo) || "";
+      if (!/^\/?assets\/[\w.-]+\.(js|css)$/.test(valor)) return;
+      const versao = await versaoDe(env, origem, valor.replace(/^\//, ""));
+      if (versao) el.setAttribute(atributo, `${valor}?v=${versao}`);
+    },
+  });
+  return new HTMLRewriter().on("script[src]", trocar("src")).on("link[href]", trocar("href")).transform(resposta);
+}
+
 export async function onRequest(contexto) {
-  return comSeguranca(await responder(contexto));
+  const resposta = await responder(contexto);
+  return comSeguranca(await comVersaoNosArquivos(resposta, contexto.env, new URL(contexto.request.url).origin));
 }
 
 async function responder({ request, next }) {
