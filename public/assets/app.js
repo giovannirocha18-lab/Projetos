@@ -848,7 +848,7 @@ async function consultarApi(q, mais = "") {
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
   const exato = q && estado.exato ? "&exato=1" : "";
-  const resp = await fetch(`/api/buscar?v=47&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
+  const resp = await fetch(`/api/buscar?v=48&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -1416,7 +1416,7 @@ function desenharEmAlta(itens) {
 
 async function carregarEmAlta() {
   try {
-    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta?v=2")).json();
+    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta?v=3")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);

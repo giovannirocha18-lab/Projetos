@@ -182,6 +182,21 @@ for (const [q, itens, esperado] of CASOS_PRECO) {
   }
 }
 
+// "máquina de lavar" é a de roupa; a de sapatos/louças só vem na frente quando a busca pede (pedido do Giovanni)
+for (const [q, titulos, primeiro, naoBate] of [
+  ["maquina de lavar", ["Máquina de lavar sapatos doméstica de parede", "Máquina de Lavar Consul 15Kg"], "Máquina de Lavar Consul 15Kg", "Máquina de lavar sapatos doméstica de parede"],
+  ["máquina de lavar sapato", ["Máquina de Lavar Consul 15Kg", "Máquina de lavar sapatos doméstica de parede"], "Máquina de lavar sapatos doméstica de parede", null],
+  ["maquina de lavar", ["Máquina de Lavar Louças Brastemp 8 Serviços", "Lavadora Electrolux 12kg"], "Lavadora Electrolux 12kg", "Máquina de Lavar Louças Brastemp 8 Serviços"],
+  ["maquina de lavar louça", ["Máquina de Lavar Consul 15Kg", "Máquina de Lavar Louças Brastemp 8 Serviços"], "Máquina de Lavar Louças Brastemp 8 Serviços", null],
+]) {
+  total++;
+  const saida = separarAcessorios(titulos.map((titulo, i) => ({ id: String(i), titulo, preco: 1000 })), q);
+  const outro = naoBate && saida.find((o) => o.titulo === naoBate);
+  if (saida[0].titulo !== primeiro || outro?.bate || outro?.principal) {
+    falhas++; console.log(`✗ outro produto "${q}": ${saida.map((o) => `${o.titulo}${o.bate ? " (bate)" : ""}`).join(" | ")}`);
+  }
+}
+
 // Versões de nicho vêm depois das comuns, a não ser que a busca peça: [busca, títulos, o que tem que vir primeiro]
 const ORDEM = [
   ["geladeira", ["Geladeira Portátil 40L Camping Veicular", "Geladeira Frost Free Consul 340L"], "Geladeira Frost Free Consul 340L"],
@@ -202,6 +217,13 @@ const CATEGORIAS_ESPERADAS = [
   ["Vara de Pesca Telescópica Carbono 2,1m", "Esporte e fitness"],
   ["Molinete de Pesca 5000 Rolamentos", "Esporte e fitness"],
   ["Óculos de Sol Polarizado para Pesca", "Óculos"],
+  // Eletrodomésticos (17/10/2026)
+  ["Geladeira Electrolux Frost Free 432L", "Eletrodomésticos"], ["Fogão Itatiaia 4 Bocas", "Eletrodomésticos"],
+  ["Micro-ondas Midea 20L", "Eletrodomésticos"], ["Máquina de Lavar Consul 15kg", "Eletrodomésticos"],
+  ["Ar Condicionado Split 12000 BTUs", "Eletrodomésticos"], ["Smart TV 55 Polegadas LG", "Eletrodomésticos"],
+  ["Secadora de Roupas Electrolux 11kg", "Eletrodomésticos"], ["Secador de Cabelo Taiff", "Cabelo"],
+  ["Lavadora de Alta Pressão Wap", "Ferramentas"], ["Ar condicionado automotivo 12v", "Automotivo"],
+  ["Air Fryer / Forno Elétrico 3 em 1", "Eletroportáteis"],
 ];
 for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
   total++;
