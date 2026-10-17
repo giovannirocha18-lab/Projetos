@@ -540,6 +540,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   = 1º principal de verdade com preço ≥ 30% do típico (mediana dos principais, 5+), depois variante/carro/barato demais, depois o
   resto, acessórios no fim; selo "Menor preço" idem. Conferido no ar: "ar condicionado" em Menor preço começa em splits/janela de
   R$ 1.641; "geladeira" em geladeiras de R$ 1.346. Cache v=49.
+  ✅ **REGRA DA ORDEM (Giovanni, 17/10/2026)**: **sem busca** ("Ofertas do dia") a ordem escolhida vale para todas as ofertas
+  (puro preço/desconto/vendidos); **com busca**, qualquer ordem (inclusive "Mais relevantes") segue a categoria do que foi buscado:
+  `categoriasDaBusca()` no `app.js` = categorias (`secao`, "" = sem) com mais de 20% dos produtos `principal` (5+), tiradas dos
+  próprios resultados ("colchão" = Cama e banho + Móveis); esses vêm primeiro, os de outras categorias depois. Conferido no ar
+  com as 5 ordens em "ar condicionado", "colchão", "vestido", "geladeira" e sem busca.
   Ainda fracos: "bateria carro", "kindle", "protetor solar" (para-brisa). Buscas prontas só voltam na madrugada.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
   Web Analytics > Enable); o CSP já libera cloudflareinsights. Aguardando ele.
