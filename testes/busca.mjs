@@ -97,6 +97,7 @@ const CASOS = {
   "smartphone": { E: ["Celular Motorola Moto G35 5G 128GB", "Smartphone Samsung Galaxy A16"], A: ["Suporte Celular Carro Magnético"] },
   "playstation 5": { E: ["Console Sony PS5 Slim Digital", "PlayStation 5 Pro 2TB"] },
   "televisao 50": { E: ["Smart TV 50 Polegadas Philco 4K", "Televisão 50\" Samsung Crystal UHD"] },
+  "meia": { E: ["Meias de pé meio pé meias femininas verão", "Uemori meias de dedo do pé dividido meia"] },
   "stanley": { E: ["Copo Térmico Stanley 473ml Quencher", "Garrafa Stanley Classic 1L"] },
   // Conferência no site (17/10/2026): peças com o título começando pelo produto e brinquedo colecionável
   "bicicleta": {
@@ -109,7 +110,8 @@ const CASOS = {
   },
   "maquina de lavar": {
     E: ["Máquina de Lavar Electrolux 15kg Branca Essential Care", "Máquina de Lavar Consul 15Kg com Modo Eco Branca"],
-    A: ["Máquina de lavar roupa coletor de pêlos de animais de estimação flutuante"],
+    A: ["Máquina de lavar roupa coletor de pêlos de animais de estimação flutuante",
+      "Pé Máquina De Lavar Nivelador Anti Vibração Resistente Moveis Máquinas Geladeira"],
   },
   "impressora 3d": {
     E: ["Impressora 3D Creality Ender 3 V3 SE", "Impressora 3D Bambu Lab A1 Mini"],
