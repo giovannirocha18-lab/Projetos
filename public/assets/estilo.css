@@ -64,6 +64,7 @@ a { color: inherit; }
   background: linear-gradient(90deg, rgba(124, 58, 237, .09), rgba(219, 39, 119, .09)); border: 1px solid rgba(124, 58, 237, .18);
 }
 .numeros-inicio strong { color: #6d28d9; }
+.nota-lojas { margin: -2px 0 10px; font-size: .8rem; line-height: 1.35; color: var(--suave); }
 .topo-faixa-linha { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 30px; opacity: .92; }
 .topo-links { display: flex; gap: 14px; }
 .topo-links a { color: #fff; text-decoration: none; }

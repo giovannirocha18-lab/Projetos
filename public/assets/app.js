@@ -1361,6 +1361,10 @@ async function mostrarNumeros() {
     inicio.replaceChildren("🛒 Aqui você encontra ", el("strong", {}, produtos), " de ", el("strong", {}, qtdLojas),
       " e compara os preços num só lugar.");
     inicio.hidden = false;
+    // Filtro de lojas: deixa claro que ali só estão as lojas da lista atual, não todas as parceiras
+    const nota = $("#nota-lojas");
+    nota.textContent = `Temos ${qtdLojas} parceiras; aqui aparecem as que têm ofertas nesta lista.`;
+    nota.hidden = false;
   } catch {
     // sem a frase
   }
