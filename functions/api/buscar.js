@@ -45,7 +45,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 52;
+const VERSAO_CACHE = 53;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -173,7 +173,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Busca digitada: pede páginas de 3 em 3 até ter produtos suficientes (ver MINIMO_PRODUTOS).
   // termos = o que foi digitado (e, na categoria, "invictus perfume"); contar = quantos produtos de verdade
   // há entre os que chegaram nesta rodada (conta só os novos: refazer a lista toda a cada rodada gastava CPU)
-  // porLote: páginas de cada termo por rodada (várias buscas juntas, como "bateria carro", pedem 1 cada)
+  // porLote: páginas de cada termo por rodada (3+ buscas juntas, como "bateria carro", pedem 1 cada)
   const buscarAteEncher = async (termos, contar, porLote = PAGINAS_POR_LOTE) => {
     const juntas = [];
     const vistos = new Set();
@@ -232,7 +232,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const { buscas, termo, precoMin } = buscaNasLojas(q);
     const separar = (lista) => separarAcessorios(lista, termo, { precoMin });
     const { juntas, proxima } = await buscarAteEncher(buscas, (novas) => separar(novas).filter((o) => !o.acessorio).length,
-      buscas.length > 1 ? 1 : PAGINAS_POR_LOTE);
+      buscas.length > 2 ? 1 : PAGINAS_POR_LOTE);
     ofertas = marcarSecoes(separar(juntas));
     mais = proxima && `desde=${proxima}`;
   } else {

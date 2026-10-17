@@ -568,6 +568,13 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   ✅ **UP Kids da Lomadee com link quebrado (17/10/2026, print)**: todos os produtos apontam para vestis.com.br, que manda para
   upkids.com.br com o mesmo endereço = 404 (12 de 12 testados). `SITES_QUEBRADOS` em `lib/fontes/lomadee.js` tira esses produtos;
   conferir de vez em quando se a UP Kids corrigiu (abrir um link vestis) e tirar da lista. Cache v=52.
+  ✅ **"controle para video game" (17/10/2026, print)**: "controle" é genérica (acessório do ar/videogame), então a busca
+  virava "busca de acessório" e nada era escondido (suporte, porta-controle, adesivo no meio). Agora, se a busca começa por
+  "controle" e tem cara de videogame (`DE_JOGO`: video game, ps4, xbox, pc, console…), é busca de produto com o controle como
+  alvo (`controleDeJogo` em `lib/relevancia.js`); "controle remoto"/"controle ar condicionado" seguem como antes.
+  Joystick/gamepad = controle (`SINONIMOS`), e `variantesDeJogo` (`lib/vocabulario.js`) pesquisa também "joystick …"
+  (ou "controle … video game" quando digitam joystick). "Porta" entrou em `DE_OUTRO_ACESSORIO` ("Porta Controle", "Case Fone",
+  "Base Controle" logo antes do produto = acessório; não vale se a busca tem a palavra: "base líquida"). Cache v=53.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >

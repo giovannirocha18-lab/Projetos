@@ -13,6 +13,16 @@ import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.
 
 const CASOS = {
   // ---- Prints do Giovanni ----
+  // 17/10/2026: suporte, porta-controle e adesivo apareciam no meio; joystick e gamepad são o próprio controle
+  "controle para video game": {
+    E: ["Controle De Xbox 360 Com Fio Para Video Game e PC", "Joystick Para Video Game Ps3 USB Com Fio", "Gamepad Sem Fio Para Video Game e PC"],
+    A: ["Porta Controle Polvo Gamer Decorativo Organizador para Controle de Videogame PS5", "Suporte para Controle de Video Game Universal",
+      "Grip Extensor Gamer Botão Analógico Protetor Controle Para Xbox Ps4 Ps5", "Máscara Oni - Suporte para Controle de PS5 / suporte mascara para game"],
+  },
+  "joystick": {
+    E: ["Controle Joystick Com Fio USB Para PC Notebook", "Joystick Sem Fio Para PS4 Bluetooth"],
+    A: ["Suporte para Joystick PS5 Base de Mesa", "Capa de Silicone para Controle PS4"],
+  },
   "mini pc": {
     E: ["Mini Pc Itautec Infoway Atom 4gb 120gb Ssd Preto", "Mini PC OKI Brasil Intel Celeron J1800 8GB", "Mini Pc Dell Wyse | AMD 1.4Ghz | 8gb", "Mini PC Gamer N100 16GB 512GB Windows 11"],
     N: ["1-5 unidades de Microfone Lavalier Mini USB Portátil Clip-on para PC", "Microfone de lapela portátil USB mini com clipe de metal para PC", "NOVO Microfone de Lapela Mini de 0,5mm para PC, Laptop"],
@@ -287,6 +297,8 @@ for (const [q, buscaEsperada, itens, esperado] of [
   ["bateria para carro", "bateria 60ah",
     [["Bateria Automotiva Moura M60AD 60Ah 12V", 717], ["Bateria Zetta 12V 45AH Polo Positivo", 499], ["Bateria Moura Moto 5ah Titan Biz", 183]],
     { "Bateria Automotiva Moura M60AD 60Ah 12V": "P", "Bateria Zetta 12V 45AH Polo Positivo": "P", "Bateria Moura Moto 5ah Titan Biz": "A" }],
+  ["controle para vídeo game", "joystick para video game", [["Controle Xbox 360 Com Fio Para Video Game", 60]], { "Controle Xbox 360 Com Fio Para Video Game": "P" }],
+  ["joystick", "controle video game", [["Joystick Sem Fio Para PS4", 90]], { "Joystick Sem Fio Para PS4": "P" }],
   ["Kindle", "kindle paperwhite",
     [["Kindle Paperwhite 12ª geração 16GB", 1399], ["Kindle kit 2 unidades Card para Capinha de Kindle", 12], ["Kindle Charm Pingente Anti Poeira", 17]],
     { "Kindle Paperwhite 12ª geração 16GB": "P", "Kindle kit 2 unidades Card para Capinha de Kindle": "A", "Kindle Charm Pingente Anti Poeira": "A" }],
