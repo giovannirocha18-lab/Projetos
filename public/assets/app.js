@@ -1150,8 +1150,11 @@ function desenharResultados() {
     return c;
   }));
   $("#vazio").hidden = lista.length > 0;
-  $("#mais-resultados").hidden = !estado.temMaisBusca;
-  const acessorios = estado.ofertas.filter((o) => o.acessorio).length;
+  // Botões de baixo seguem as lojas marcadas no card: com todas desligadas não há o que "ver mais"
+  const lojaLigada = (o) => !estado.lojasDesmarcadas.has(o.loja);
+  const nenhumaLoja = !estado.ofertas.some(lojaLigada);
+  $("#mais-resultados").hidden = !estado.temMaisBusca || nenhumaLoja;
+  const acessorios = estado.ofertas.filter((o) => o.acessorio && lojaLigada(o)).length;
   const botao = $("#ver-acessorios");
   botao.hidden = !acessorios || $("#com-acessorios").checked || acessorios === estado.ofertas.length;
   botao.textContent = `Ver também ${acessorios} ${acessorios === 1 ? "acessório ou peça" : "acessórios e peças"} para “${estado.q}”`;
