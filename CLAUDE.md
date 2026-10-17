@@ -550,6 +550,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   `.chip-loja` no CSS). A caixa "Lojas nesta lista" da barra lateral (`#caixa-lojas`) agora só aparece nas "Ofertas do dia".
   Testado no ar (computador e celular). "Ver mais resultados" e "Ver também N acessórios e peças" (botão continua existindo, de
   propósito) seguem as lojas marcadas: contam só lojas ligadas e somem com todas desligadas.
+  ✅ **Busca de acessório (17/10/2026)**: já funciona sozinha (nada escondido, acessórios na frente: cabo flat monitor, película,
+  carregador, pneu bicicleta, forma air fryer…). Ajustes: nível 2 vale +0,6 (nível 1 +0,4); na busca de acessório, outro acessório
+  na frente do título (peça/genérica ou `DE_OUTRO_ACESSORIO`: base, apoio, dock, estojo, case, chaveiro…) = "acessório do acessório",
+  recua 1 ("controle ps5" abre com controles, não suportes); "visor" virou peça. Cache v=50.
   ✅ **Preço com cupom (17/10/2026, print Invictus: Shopee R$ 676 "no Pix com cupom" x site R$ 759,90)**: a API de afiliados só
   manda o preço sem cupom; cupom/Pix varia por produto, campanha e conta. Ler a página = proibido. Feito (pedido dele, sem poluir o
   cartão): `AVISO_CUPOM` "💸 Preços sem cupom: na loja pode sair ainda mais barato com cupom ou Pix." uma vez só, no card de
