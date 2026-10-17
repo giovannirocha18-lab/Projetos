@@ -512,6 +512,15 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (`textoComprar` no `app.js`, `.comprar-curto` no CSS).
 - **Filtro de lojas (17/10/2026, print do Giovanni: só 3 lojas pareciam ser todas as parceiras)**: título virou "Lojas nesta lista"
   + nota "Temos mais de N lojas parceiras; aqui aparecem as que têm ofertas nesta lista" (`#nota-lojas`, número de `/api/numeros`).
+- **Política de Privacidade enxuta (17/10/2026, pedido do Giovanni)**: tiradas "Não pedimos CPF…", "Para que usamos" e "Onde os
+  dados ficam"; IP/e-mail (24 h), contagem de buscas, Cloudflare/Resend e "fora do Brasil" ficaram num parágrafo só (exigência da LGPD:
+  não tirar isso).
+- **Mercado Livre (17/10/2026, pesquisado)**: `/sites/MLB/search` e `/products/search` dão 403 sem token (testado). Programa
+  "Afiliados e Criadores": CPF, até 16% venda direta / 8% indireta, saque no Mercado Pago a partir de R$ 30 (3 compradores),
+  validação até 60 dias; blogs divergem na janela (24 h x 30 dias). Próximo, se ele quiser: inscrever-se + criar app em
+  developers.mercadolivre.com.br + chaves no Cloudflare → Claude testar `/products/search` e `/highlights` com token; senão curadoria.
+- **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
+  Web Analytics > Enable); o CSP já libera cloudflareinsights. Aguardando ele.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
@@ -556,7 +565,10 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 17/10/2026, fim da 4ª sessão)
+## Próximos passos (atualizado 17/10/2026, fim da 5ª sessão)
+- Giovanni: ligar o Web Analytics do Cloudflare (ver "Visitas"); decidir sobre o Mercado Livre (inscrição + app de desenvolvedor).
+- Giovanni: testar no site a correção de digitação, as sugestões da busca, o aviso "não está à venda" e o botão "Comprar / na loja" no celular.
+- Ideia pendente: alerta de preço por e-mail; contar cliques em "Comprar" por loja quando houver visitas.
 - Giovanni: conferir no site as buscas de produto (microondas, geladeira, notebook, capacete…) e de acessório (prato microondas,
   reparo capacete, viseira capacete…); cada print de erro vira caso novo no `testes/busca.mjs`.
 - Giovanni: acompanhar pedidos na Awin (Karsten, adidas: ~31 mil produtos, entram em ~2 madrugadas pelo limite de 20 mil/dia) e na
