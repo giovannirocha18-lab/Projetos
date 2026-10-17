@@ -1,8 +1,8 @@
-// Roda antes de TUDO (páginas, arquivos e API). O Cloudflare Pages publica o repositório inteiro (anotações,
-// código da busca, robô, testes), então aqui vale uma LISTA DO QUE PODE ABRIR: qualquer outro endereço dá 404,
-// inclusive arquivos novos criados no futuro. Também põe cabeçalhos de segurança.
-// Não tirar /assets/ e /marca/ daqui com _routes.json enquanto os arquivos internos forem publicados junto:
-// testado em 17/10/2026, "/assets/..%2fCLAUDE.md" abria a memória do projeto quando a pasta não passava por aqui.
+// Roda antes das páginas e da API. Só a pasta public/ é publicada (Cloudflare > Settings > Builds > "Build output
+// directory" = public): anotações, código da busca, robô e testes nem vão para o servidor. Mesmo assim, aqui vale uma
+// LISTA DO QUE PODE ABRIR (segunda camada): qualquer outro endereço dá 404. Também põe cabeçalhos de segurança.
+// /assets/ e /marca/ não passam por aqui (public/_routes.json): saem direto do Cloudflare, mais rápido e sem gastar o
+// limite de chamadas, com os cabeçalhos de segurança do public/_headers. Só é seguro porque NADA interno fica em public/.
 const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
 
 const VERIFICACAO_AWIN = "2e195e3c8c68351f1709348e09eae77d";
