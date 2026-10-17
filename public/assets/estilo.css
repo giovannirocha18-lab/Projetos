@@ -283,6 +283,10 @@ a { color: inherit; }
   padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35);
 }
 .resumo-categoria button:hover { background: rgba(255, 255, 255, .3); }
+.resumo .aviso-sem-produto {
+  margin-top: 12px; padding: 10px 14px; border-radius: 12px; font-weight: 600; opacity: 1;
+  background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35);
+}
 
 /* Animação "buscando": boneco empurrando o carrinho da esquerda para a direita, olhando para os lados */
 .anim-buscando {

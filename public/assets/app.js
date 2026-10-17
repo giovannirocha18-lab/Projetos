@@ -838,7 +838,7 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=44&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=45&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -978,8 +978,22 @@ function ofertasComparaveis(lista) {
 }
 
 function melhorOferta(lista) {
+  if (poucosProdutos()) return null; // só peças na lista: o selo iria para uma peça
   const base = ofertasComparaveis(lista);
   return base.length ? base.reduce((a, b) => (b.preco < a.preco ? b : a)) : null;
+}
+
+// Busca de um produto que nenhuma loja parceira vende (só peças dele): "máquina de lavar eletrolux" trazia
+// só bomba, pé nivelador e embreagem. "principal" = título começa pelo produto buscado (lib/relevancia.js)
+const POUCOS_PRODUTOS = 2;
+const qtdPrincipais = () => estado.ofertas.filter((o) => o.principal).length;
+const poucosProdutos = () => Boolean(estado.q) && !navegandoCategoria() && estado.ofertas.length > 0 && qtdPrincipais() <= POUCOS_PRODUTOS;
+function avisoSemProduto() {
+  if (!poucosProdutos()) return null;
+  const qtd = qtdPrincipais();
+  return el("p", { class: "aviso-sem-produto", role: "status" }, qtd
+    ? `Encontramos só ${qtd} ${qtd === 1 ? "oferta" : "ofertas"} de “${estado.q}” nas lojas parceiras. O resto da lista são peças, acessórios e produtos parecidos.`
+    : `😕 “${estado.q}” não está à venda nas nossas lojas parceiras no momento. Abaixo, peças, acessórios e produtos parecidos.`);
 }
 
 function desenharResumo(lista) {
@@ -990,7 +1004,8 @@ function desenharResumo(lista) {
     el("p", {}, lista.length
       ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"} em ${qtdLojas} ${qtdLojas === 1 ? "loja" : "lojas"}`
       : "Nenhuma oferta com esses filtros"),
-    avisoCategoria());
+    avisoCategoria(),
+    avisoSemProduto());
 
   $("#resumo").replaceChildren(titulo);
 }

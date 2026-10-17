@@ -31,6 +31,12 @@ const CASOS = {
   "capa iphone": {
     E: ["Capa para iPhone 15 Pro Silicone", "Kit 2 Capas para iPhone 13 Transparente", "Capinha iPhone 14 Anti Impacto"],
   },
+  // Print de 17/10/2026: nenhuma loja tinha a máquina, só peças (o site avisa "não encontrado nas lojas parceiras")
+  "maquina de lavar eletrolux": {
+    E: ["Máquina de Lavar Electrolux 13kg LED13", "Lavadora Eletrolux 12kg Essential Care", "Máquina de Lavar Roupas Eletrolux 8,5kg Branca"],
+    A: ["Eletrobomba máquina de lavar, Brastemp, Consul, Eletrolux de 8 a 15 kg, 127V", "Kit 4 Pé Nivelador Anti Vibração Máquina de Lavar Eletrolux Pezinho Alto",
+      "Embreagem Maquina De Lavar Eletrolux Lbu15 Ltp15", "Pezinho Nivelador Máquina De Lavar Eletrolux", "Agitador Eletrolux Com 4 Pé Para Máquina De Lavar Lm08"],
+  },
   "fone celular": { E: ["Fone de Ouvido para Celular P2 com Microfone"] },
   // Print de 17/10/2026: "microondas" misturava peças de conserto com os aparelhos
   "microondas": {
