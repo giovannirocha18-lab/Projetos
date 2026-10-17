@@ -1416,7 +1416,7 @@ function desenharEmAlta(itens) {
 
 async function carregarEmAlta() {
   try {
-    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta?v=3")).json();
+    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta?v=4")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);
@@ -1438,7 +1438,8 @@ try { if (localStorage.getItem("ordemCategorias") === "az") ordemCategorias = "a
 function desenharCategorias(lista = categoriasAtuais) {
   categoriasAtuais = lista;
   document.querySelectorAll("[data-ordem-cat]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.ordemCat === ordemCategorias)));
-  if (ordemCategorias === "az") lista = [...lista].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  // Categoria fixa (Eletrodomésticos) continua em 1º também em A–Z
+  if (ordemCategorias === "az") lista = [...lista].sort((a, b) => Boolean(b.fixa) - Boolean(a.fixa) || a.nome.localeCompare(b.nome, "pt-BR"));
   const botoes = lista.map((c, i) =>
     el("button", { class: "cat-item", type: "button", "data-nome": c.nome,
       style: `--fundo-cat:${FUNDOS_MENU[i % FUNDOS_MENU.length]}`,
