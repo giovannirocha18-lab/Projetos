@@ -25,7 +25,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 
 ## Estrutura técnica (ver README.md)
 - Site estático + **Cloudflare Pages Functions**, sem build. Repositório `giovannirocha18-lab/Projetos` (privado; renomeado de `Gerador-de-Riquezas` em 14/10/2026).
-- `index.html` = **o comparador (página principal) desde 15/10/2026**. A antiga página "Em breve" foi apagada e o
+- `public/index.html` = **o comparador (página principal) desde 15/10/2026** (tudo que é publicado fica em `public/`). A antiga página "Em breve" foi apagada e o
   endereço `/previa` redireciona (301) para `/` (feito no `functions/_middleware.js`).
 - `functions/api/buscar.js` = busca; junta as fontes de `lib/fontes/`, cache de 1h.
 - `lib/fontes/exemplo.js` = produtos fictícios (usado enquanto nenhuma fonte real está ligada).
@@ -45,7 +45,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Teste local: `node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite`. Ver README.
 - `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br`, que **ainda não existe**.
 - `_headers` + `<meta robots noindex>` escondem o site do Google até o lançamento.
-- Testar local: `npx wrangler pages dev .` (rodar **de dentro do repositório**) e abrir a página principal.
+- Testar local: `npx wrangler pages dev public` (rodar **de dentro do repositório**; desde 17/10/2026 o site fica em `public/`) e abrir a página principal.
 - Rede do ambiente do Claude: **"Completo" desde 16/10/2026** (Giovanni trocou em Ambiente > Edit > Acesso à rede). Antes
   bloqueava docs/API da Lomadee, AliExpress, Mercado Livre, `*.pages.dev`. Vale em conversas novas.
 
@@ -460,10 +460,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (script de teste na conversa). **NÃO usar `_routes.json` para tirar /assets/ e /marca/ do middleware**: testado,
   `/assets/..%2fCLAUDE.md` abria a memória. Para ganhar desempenho com segurança: mover o site para a pasta `public/` e trocar
   em Cloudflare > Settings > Builds > "Build output directory" para `public` (fazer a troca ANTES do push).
-  ⏳ **PRONTO E TESTADO na branch `claude/upbeat-goodall-s0p9kt` (commit "Só a pasta public/ é publicada")**, NÃO está na produção.
-  Quando o Giovanni avisar que salvou `public` no Cloudflare: `git merge claude/upbeat-goodall-s0p9kt` na produção, push e
-  rodar o teste de 34 endereços (páginas abrem; CLAUDE.md, lib/, robo/, testes/ e truques com ".." não mostram nada interno).
-  Se ele salvar `public` e a mudança NÃO entrar, o site sai do ar na próxima publicação (index.html só existe em public/ depois do merge).
+  ✅ **FEITO (17/10/2026)**: Giovanni trocou "Build output directory" para `public`; só `public/` é publicada (index, privacidade,
+  assets, marca, _headers, _routes.json). `/assets/*` e `/marca/*` saem direto do Cloudflare (`public/_routes.json`), com
+  cabeçalhos de segurança no `public/_headers`. Testado no ar: 10 páginas públicas abrem, 24 endereços internos/truques bloqueados.
+  **Nunca pôr nada interno em `public/`.** Para testar local: `npx wrangler pages dev public` (de dentro do repositório).
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
