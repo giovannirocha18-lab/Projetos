@@ -1,7 +1,9 @@
-// Roda antes de qualquer página. Esconde do público os arquivos internos do
-// repositório (anotações, código da busca), que o Cloudflare Pages publicaria
-// junto com o site, e põe cabeçalhos de segurança em todas as respostas.
-const INTERNOS = /^\/(claude\.md|readme\.md|\.gitignore|_headers|lib\/|functions\/|robo\/|\.github\/|\.claude\/)/i;
+// Roda antes de TUDO (páginas, arquivos e API). O Cloudflare Pages publica o repositório inteiro (anotações,
+// código da busca, robô, testes), então aqui vale uma LISTA DO QUE PODE ABRIR: qualquer outro endereço dá 404,
+// inclusive arquivos novos criados no futuro. Também põe cabeçalhos de segurança.
+// Não tirar /assets/ e /marca/ daqui com _routes.json enquanto os arquivos internos forem publicados junto:
+// testado em 17/10/2026, "/assets/..%2fCLAUDE.md" abria a memória do projeto quando a pasta não passava por aqui.
+const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
 
 const VERIFICACAO_AWIN = "2e195e3c8c68351f1709348e09eae77d";
 
@@ -88,9 +90,7 @@ async function responder({ request, next }) {
   if (url.hostname === "vaiprocarrinho.pages.dev") {
     return Response.redirect(`https://vaiprocarrinho.com.br${url.pathname}${url.search}`, 301);
   }
-  if (INTERNOS.test(caminhoNormal(url.pathname))) {
-    return new Response("Página não encontrada", { status: 404 });
-  }
+
   // Verificação do site na Awin (método do arquivo). Respondido aqui porque o Cloudflare Pages
   // tiraria o ".html" do endereço com um redirecionamento, e o verificador espera o arquivo direto.
   if (url.pathname === `/${VERIFICACAO_AWIN}.html`) {
@@ -100,6 +100,15 @@ async function responder({ request, next }) {
   // O comparador ficava em /previa antes do lançamento: leva para a página principal
   if (/^\/previa(\.html)?\/?$/i.test(url.pathname)) {
     return Response.redirect(`${url.origin}/${url.search}`, 301);
+  }
+  // Só os endereços públicos (página principal, Política de Privacidade e API); o resto não existe para o visitante
+  const caminho = caminhoNormal(url.pathname);
+  let cru = url.pathname;
+  try { cru = decodeURIComponent(cru); } catch { /* % quebrado: confere como veio */ }
+  // Endereço "torto" nunca passa: ".." (mesmo escrito %2e%2e), barra dupla ou barra invertida (%5c)
+  const torto = /(^|\/)\.\.(\/|$)/.test(caminho) || /\/\/|\\/.test(cru);
+  if (torto || !PUBLICOS.test(caminho)) {
+    return new Response("Página não encontrada", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
   }
   return next();
 }

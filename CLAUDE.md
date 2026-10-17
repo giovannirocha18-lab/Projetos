@@ -454,6 +454,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   pelo título também vota ("-", conta no total mas nunca ganha), vale com 10+ votos e 80%+, mapa recarrega a cada 5 min.
   Esporte e fitness ganhou vara de pesca/molinete/carretilha/anzol. Cache v=39.
 - **Logo (17/10/2026, pedido dele)**: clicar no logo zera busca, categoria, filtros e ordem.
+- **Segurança dos arquivos (17/10/2026, pedido do Giovanni: "nada de segurança frágil")**: o `_middleware.js` agora usa LISTA DO QUE
+  PODE ABRIR (`PUBLICOS`: /, index, privacidade, api/*, assets/<arquivo>, marca/<arquivo>, arquivo da Awin, /previa); todo o resto
+  dá 404, e endereço com "..", "//" ou "\" também. Antes era lista de bloqueio e `testes/busca.mjs` abria. Testado com 24 endereços
+  (script de teste na conversa). **NÃO usar `_routes.json` para tirar /assets/ e /marca/ do middleware**: testado,
+  `/assets/..%2fCLAUDE.md` abria a memória. Para ganhar desempenho com segurança: mover o site para a pasta `public/` e trocar
+  em Cloudflare > Settings > Builds > "Build output directory" para `public` (proposto ao Giovanni; fazer a troca ANTES do push).
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
