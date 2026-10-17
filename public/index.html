@@ -80,7 +80,8 @@
         <legend>Mais opções</legend>
         <label class="opcao"><input type="checkbox" id="so-frete"> Frete grátis</label>
         <label class="opcao"><input type="checkbox" id="so-desconto"> Com desconto</label>
-        <label class="opcao"><input type="checkbox" id="com-acessorios"> Mostrar acessórios e peças</label>
+        <!-- Sem caixinha visível (confundia): os acessórios aparecem pelo botão "Ver também N acessórios e peças" abaixo da lista -->
+        <input type="checkbox" id="com-acessorios" hidden aria-hidden="true" tabindex="-1">
       </fieldset>
 
       <fieldset id="caixa-secoes" hidden>
