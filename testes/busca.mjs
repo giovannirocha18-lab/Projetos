@@ -56,7 +56,10 @@ const CASOS = {
   "tapete yoga": { E: ["Tapete de Yoga Antiderrapante 6mm"] },
   "ar condicionado": {
     E: ["Ar Condicionado Split 12000 Btus Inverter", "Ar-Condicionado Portátil 9000 BTUs"],
-    A: ["Controle Remoto para Ar Condicionado Universal", "Adequado para Volvo XC90 painel de saída de ar condicionado"],
+    A: ["Controle Remoto para Ar Condicionado Universal", "Adequado para Volvo XC90 painel de saída de ar condicionado",
+      // Print de 17/10/2026 (ordem "Menor preço")
+      "***Comando Ar C/ Moldura Central Ar Condicionado Ford Fiesta 2009/14", "Comando Ar Condicionado com ar Clio 2000 2001 a 2012",
+      "BLOWER AR CONDICIONADO SANDERO 1.0 2013 ATE 2017", "Evaporador de Ar Condicionado Trator Série 5000"],
   },
 
   // ---- Mercado Livre: mais buscados 2025 ----
@@ -202,6 +205,8 @@ const ORDEM = [
   ["geladeira", ["Geladeira Portátil 40L Camping Veicular", "Geladeira Frost Free Consul 340L"], "Geladeira Frost Free Consul 340L"],
   ["celular", ["Celular Nokia 150 4G Para Idoso", "Celular Samsung Galaxy A06"], "Celular Samsung Galaxy A06"],
   ["geladeira", ["Mini Geladeira Mini Brands Com 2 Bolas Surpresa Colecionável", "Geladeira Brastemp Duplex 375L"], "Geladeira Brastemp Duplex 375L"],
+  ["ar condicionado", ["Ar Condicionado Volkswagen Polo 2009 a 2014 Comando Controle do Ar Digital", "Ar Condicionado Split Philco 12000 BTUs"], "Ar Condicionado Split Philco 12000 BTUs"],
+  ["ar condicionado", ["Ar Condicionado Oribreeze, Resfriador de Ar Portátil", "Ar Condicionado Split Vix 9000 BTUs"], "Ar Condicionado Split Vix 9000 BTUs"],
   ["tv", ["TV Stick Android 4K", "TV Samsung 50 Polegadas 4K"], "TV Samsung 50 Polegadas 4K"],
   ["geladeira portatil", ["Geladeira Frost Free Consul 340L", "Geladeira Portátil 40L Camping"], "Geladeira Portátil 40L Camping"],
   ["mini geladeira", ["Mini Geladeira Frigobar 45L", "Geladeira Mini Bar Consul"], "Mini Geladeira Frigobar 45L"],

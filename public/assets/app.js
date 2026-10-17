@@ -848,7 +848,7 @@ async function consultarApi(q, mais = "") {
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
   const exato = q && estado.exato ? "&exato=1" : "";
-  const resp = await fetch(`/api/buscar?v=48&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
+  const resp = await fetch(`/api/buscar?v=49&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -882,6 +882,14 @@ function nivelDesconto(o) {
   return o.desconto > DESCONTO_SUSPEITO ? 2 : 1;
 }
 
+// Preço típico do produto buscado: mediana dos que começam pelo que foi buscado (5 ou mais), sem versões de nicho
+const PARTE_DO_TIPICO = 0.3;
+function precoTipico(lista) {
+  const precos = lista.filter((o) => o.principal && !o.acessorio && !o.variante && !o.foraDoTipo && o.preco > 0)
+    .map((o) => o.preco).sort((a, b) => a - b);
+  return precos.length >= 5 ? precos[Math.floor(precos.length / 2)] : 0;
+}
+
 function filtrar() {
   const min = lerPreco($("#preco-min").value);
   const max = lerPreco($("#preco-max").value);
@@ -908,9 +916,18 @@ function filtrar() {
     vendidos: (a, b) => (b.vendidos || 0) - (a.vendidos || 0),
   }[ordem];
   if (!ordenar) return lista;
-  // Ordenar por preço/desconto não pode trazer o "Pôster Invictus" antes do perfume buscado:
-  // primeiro o produto exato (todas as palavras e, numa categoria, da categoria), depois o resto
-  const grupo = (o) => (o.acessorio ? 2 : produtoExato(o) ? 0 : 1);
+  // Ordenar por preço/desconto não pode trazer o "Pôster Invictus" antes do perfume buscado, nem o "Comando Ar
+  // Condicionado Ford Fiesta" e o resfriador de R$ 300 antes dos splits (print do Giovanni, 17/10/2026). Primeiro o produto
+  // de verdade: começa pelo que foi buscado (principal), não é versão de nicho nem de carro e custa pelo menos 30% do preço
+  // típico do produto; depois esses outros com todas as palavras; depois o resto; acessórios no fim
+  const tipico = precoTipico(lista);
+  const comPrincipal = lista.some((o) => o.principal);
+  const grupo = (o) => {
+    if (o.acessorio) return 4;
+    if (!produtoExato(o)) return 3;
+    if (comPrincipal && !o.principal) return 2;
+    return o.variante || o.foraDoTipo || (tipico && o.preco < tipico * PARTE_DO_TIPICO) ? 1 : 0;
+  };
   return [...lista].sort((a, b) => grupo(a) - grupo(b) || ordenar(a, b));
 }
 
@@ -979,7 +996,10 @@ function avisoCategoria() {
 function ofertasComparaveis(lista) {
   const produtos = lista.filter((o) => !o.acessorio);
   // Sem o produto buscado na lista (ex.: só jaquetas "Air" numa busca por "air fryer"), ninguém ganha o selo
-  const base = produtos.filter(produtoExato);
+  // e o selo "Menor preço" não vai para resfriador nem peça de carro quando há o produto de verdade
+  const exatos = produtos.filter(produtoExato);
+  const deVerdade = exatos.filter((o) => o.principal && !o.variante && !o.foraDoTipo);
+  const base = deVerdade.length ? deVerdade : exatos;
   if (!base.length) return [];
   const precos = base.map((o) => o.preco).sort((a, b) => a - b);
   const mediana = precos[Math.floor(precos.length / 2)];
