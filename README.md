@@ -4,16 +4,17 @@ Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
 ## Como está organizado
 | Caminho | O que é |
 |---|---|
-| `index.html` | O comparador (página principal). O antigo endereço `/previa` leva para cá |
-| `assets/` | Visual (`estilo.css`) e funcionamento da página (`app.js`) |
+| `public/` | **Única pasta publicada** (Cloudflare: Build output directory = `public`). Nunca guardar nada interno aqui |
+| `public/index.html` | O comparador (página principal). O antigo endereço `/previa` leva para cá |
+| `public/assets/` | Visual (`estilo.css`) e funcionamento da página (`app.js`) |
 | `functions/api/buscar.js` | A busca: roda no Cloudflare, consulta as lojas e junta os resultados |
 | `lib/fontes/` | Uma "fonte" por loja. `exemplo.js` tem produtos fictícios para testes |
 | `robo/` | Robô de preços: baixa os catálogos das lojas (Awin) para o banco do site |
-| `marca/` | Logo e ícone do Vai pro Carrinho |
+| `public/marca/` | Logo e ícone do Vai pro Carrinho |
 | `lib/buscas.js` + `functions/api/em-alta.js` | Conta as buscas e mostra os termos mais buscados da semana abaixo da busca |
 | `functions/api/conta/` + `lib/conta.js` | Cadastro (Google ou e-mail + senha, com "Esqueci minha senha") e "Meu carrinho" salvo na conta |
-| `privacidade.html` | Política de Privacidade (LGPD) |
-| `_headers` | Pede aos buscadores para não indexar o site enquanto ele está em construção |
+| `public/privacidade.html` | Política de Privacidade (LGPD) |
+| `public/_headers` | Pede aos buscadores para não indexar o site enquanto ele está em construção |
 
 ## Lojas
 - **Exemplo**: usada automaticamente enquanto nenhuma loja real estiver ligada.
@@ -80,4 +81,4 @@ e abrir http://localhost:8788 (no computador, o link de "Esqueci minha senha" ap
 
 ## Para lançar o site
 O comparador já é a página principal desde 15/10/2026. Para aparecer no Google, falta:
-apagar o arquivo `_headers` e a linha `<meta name="robots" ...>` do `index.html`.
+apagar a regra `/*` do `public/_headers` e a linha `<meta name="robots" ...>` do `public/index.html`.
