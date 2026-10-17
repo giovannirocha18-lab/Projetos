@@ -415,6 +415,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Lomadee: 1 consulta de 48 por lote (100 passava de 8 s; limite dela 60/min, pausa no 429). Pelo robô do GitHub a Lomadee
   costuma travar (>25 s; daqui do Claude responde em ~3 s): busca pronta é guardada se a Shopee respondeu (robô espera 10 s
   por loja). Busca nova medida: ~3 s (antes 12–14 s).
+- **Animação da busca (17/10/2026, pedido do Giovanni)**: no quadro "Buscando…" um boneco empurra o carrinho do logo da esquerda
+  para a direita, olhando para os lados (`ANIMACAO_BUSCANDO` no `app.js`, CSS `.anim-*`). A regra `prefers-reduced-motion` foi
+  **tirada do site inteiro** (pedido dele: o Windows dele tem "Efeitos de animação" desligado e tudo ficava parado).
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
