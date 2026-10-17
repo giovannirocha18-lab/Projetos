@@ -979,9 +979,13 @@ function desenharResultados() {
   botao.textContent = `Ver também ${acessorios} ${acessorios === 1 ? "acessório ou peça" : "acessórios e peças"} para “${estado.q}”`;
 }
 
-// Animação enquanto busca: um boneco empurra o carrinho do logo de um lado ao outro, olhando para os lados,
-// e o carrinho vai enchendo de produtos pelo caminho (caem por trás da cesta e ficam aparecendo por cima)
-const ANIMACAO_BUSCANDO = `<div class="anim-andando"><svg viewBox="0 0 165 100" aria-hidden="true">
+// Animação enquanto busca: alguém empurra um carrinho de um lado ao outro, olhando para os lados, e o carrinho
+// vai enchendo de produtos pelo caminho. Dois modelos guardados; para trocar, mude MODELO_ANIMACAO.
+//   v1 = boneco de camiseta amarela + carrinho do logo (cesta amarela; produtos aparecem por cima)
+//   v2 = moça de rabo de cavalo + carrinho de supermercado de grade (produtos aparecem por dentro)
+const MODELO_ANIMACAO = "v2";
+const ANIMACOES = {
+  v1: `<div class="anim-andando"><svg viewBox="0 0 165 100" aria-hidden="true">
   <g class="anim-vento" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round">
     <path d="M2 50 H22"/><path d="M8 66 H26"/><path d="M0 82 H18"/>
   </g>
@@ -1010,7 +1014,44 @@ const ANIMACAO_BUSCANDO = `<div class="anim-andando"><svg viewBox="0 0 165 100" 
   </g>
   <g class="anim-roda"><circle cx="103" cy="87" r="7" fill="#fff"/><path d="M103 81.5 V92.5 M97.5 87 H108.5" stroke="#9333ea" stroke-width="2"/></g>
   <g class="anim-roda"><circle cx="136" cy="87" r="7" fill="#fff"/><path d="M136 81.5 V92.5 M130.5 87 H141.5" stroke="#9333ea" stroke-width="2"/></g>
-</svg></div>`;
+</svg></div>`,
+  v2: `<div class="anim-andando"><svg viewBox="0 0 165 100" aria-hidden="true">
+  <g class="anim-vento" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round">
+    <path d="M2 50 H22"/><path d="M8 66 H26"/><path d="M0 82 H18"/>
+  </g>
+  <g class="anim-corpo">
+    <g class="anim-perna" style="--fase:0s"><path d="M45 62 V90" stroke="#1e3a8a" stroke-width="7" stroke-linecap="round"/><path d="M44 92 H52" stroke="#f472b6" stroke-width="5" stroke-linecap="round"/></g>
+    <path d="M50 39 L70 31" stroke="#a0673f" stroke-width="5" stroke-linecap="round"/>
+    <path d="M36 40 a8 8 0 0 1 8 -9 h3 a8 8 0 0 1 8 9 v22 h-19 z" fill="#14b8a6"/>
+    <g class="anim-perna" style="--fase:-.25s"><path d="M45 62 V90" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round"/><path d="M44 92 H52" stroke="#f472b6" stroke-width="5" stroke-linecap="round"/></g>
+    <path d="M47 38 L70 30" stroke="#b97a4f" stroke-width="5" stroke-linecap="round"/>
+    <g class="anim-cabeca">
+      <g class="anim-rabo"><path d="M36 14 c-9 1 -12 9 -9 17 c2 -5 5 -8 10 -9z" fill="#1f1209"/><circle cx="36" cy="14" r="2.5" fill="#f472b6"/></g>
+      <circle cx="46" cy="19" r="11" fill="#b97a4f"/>
+      <path d="M35 19 a11 11 0 0 1 22 -3 c-4 0 -9 -2 -12 -6 c-3 4 -6 7 -10 9z" fill="#1f1209"/>
+      <g class="anim-olhos" fill="#1e1b4b"><circle cx="43" cy="20" r="1.6"/><circle cx="50" cy="20" r="1.6"/></g>
+      <circle cx="41" cy="23.5" r="1.8" fill="#f472b6" opacity=".5"/><circle cx="52" cy="23.5" r="1.8" fill="#f472b6" opacity=".5"/>
+      <path d="M44 25 q2.5 2 5 0" fill="none" stroke="#7c2d12" stroke-width="1.4" stroke-linecap="round"/>
+    </g>
+    <g class="anim-produto p1"><rect x="88" y="44" width="18" height="16" rx="2" fill="#ee4d2d"/><path d="M88 49 H106 M97 44 V49" stroke="#fff" stroke-width="1.5"/></g>
+    <g class="anim-produto p2"><rect x="109" y="40" width="10" height="20" rx="2.5" fill="#6d28d9" stroke="#fff" stroke-width="1.5"/></g>
+    <g class="anim-produto p3"><rect x="122" y="43" width="12" height="17" rx="3" fill="#ec4899"/><rect x="125" y="38" width="6" height="5" rx="1" fill="#fde047"/></g>
+    <g class="anim-produto p4"><rect x="136" y="45" width="11" height="15" rx="2" fill="#22c55e"/><path d="M141.5 45 V60 M136 51 H147" stroke="#fff" stroke-width="1.5"/></g>
+    <g class="anim-produto p5"><rect x="92" y="26" width="25" height="16" rx="2" fill="#1e1b4b" stroke="#fff" stroke-width="1.5"/><path d="M99 45 L104 42 L109 45" fill="none" stroke="#fff" stroke-width="1.5"/></g>
+    <g class="anim-produto p6"><path d="M120 22 h15 l5 6 -5 6 h-15 z" fill="#fde047" stroke="#fff" stroke-width="1.5"/><text x="128" y="31.5" font-size="8" font-weight="800" fill="#7c2d12" text-anchor="middle">R$</text></g>
+    <g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M80 34 H154 L146 63 H88 Z" fill="rgba(255,255,255,.12)" stroke-width="3.5"/>
+      <path d="M95 34 L98 63 M110 34 L111 63 M125 34 L124 63 M140 34 L136 63 M82 44 H151 M85 54 H148" stroke-width="1.5" opacity=".8"/>
+      <path d="M72 30 L80 34 M88 63 L92 72 H144 L146 63" stroke-width="3.5"/>
+    </g>
+    <rect x="65" y="26" width="10" height="7" rx="3.5" fill="#ef4444" transform="rotate(25 70 29.5)"/>
+  </g>
+  <g class="anim-roda"><circle cx="98" cy="84" r="7" fill="#fff"/><circle cx="98" cy="84" r="3" fill="#ef4444"/><path d="M98 79 V89 M93 84 H103" stroke="#ef4444" stroke-width="1.5"/></g>
+  <g class="anim-roda"><circle cx="138" cy="84" r="7" fill="#fff"/><circle cx="138" cy="84" r="3" fill="#ef4444"/><path d="M138 79 V89 M133 84 H143" stroke="#ef4444" stroke-width="1.5"/></g>
+  <path d="M98 72 V77 M138 72 V77" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+</svg></div>`,
+};
+const ANIMACAO_BUSCANDO = ANIMACOES[MODELO_ANIMACAO];
 
 function desenharResumoBuscando() {
   const cat = navegandoCategoria();

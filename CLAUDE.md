@@ -441,6 +441,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   `separarAcessorios` marca `principal` quando o título começa pelo termo (2 primeiras palavras, pulando `ANTES_DO_NOME`:
   console, novo, sony…) e põe esses primeiro; o site mantém isso ao juntar lotes. Acessórios novos: skin, sticker, enfeite,
   adesivo/suporte depois do termo, "protetor(a)" em qualquer lugar. Cache v=37.
+- **Modelos da animação da busca (17/10/2026)**: `MODELO_ANIMACAO` no `app.js` escolhe entre `v1` (boneco de camiseta amarela +
+  carrinho do logo) e `v2` (moça de rabo de cavalo + carrinho de supermercado de grade; **no ar**). Os dois enchem de produtos.
+  Giovanni pediu para guardar o v1 caso queira voltar.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
