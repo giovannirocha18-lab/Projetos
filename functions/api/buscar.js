@@ -15,6 +15,7 @@ import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { historicoAoVivo, ehAoVivo } from "../../lib/ofertas.js";
+import { carregarMapa, aplicarMapa, aprenderCategorias } from "../../lib/mapaCategorias.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
 import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
@@ -43,7 +44,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 34;
+const VERSAO_CACHE = 35;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -122,6 +123,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Da 2ª página em diante, só as lojas que têm mais páginas de destaques
   const fontes = (reais.length ? reais : [exemplo]).filter((f) => pagina === 1 || f.porPagina);
 
+  // Categorias das lojas que já sabemos traduzir para as nossas (ver lib/mapaCategorias.js)
+  const mapa = await carregarMapa(env);
   const lojas = {};
   const consultar = async (termo, opcoes) => {
     const resultados = await Promise.all(
@@ -159,7 +162,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         }
       }),
     );
-    return intercalar(resultados);
+    return aplicarMapa(intercalar(resultados), mapa);
   };
 
   // Busca digitada: pede páginas de 3 em 3 até ter produtos suficientes (ver MINIMO_PRODUTOS).
@@ -240,6 +243,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
       // tabela precos ainda não existe (o robô cria) ou D1 indisponível
     }
   }
+
+  // O robô ensina o mapa de categorias com as buscas dele; os códigos das lojas não vão para o site
+  if (preparar && env.DB) await aprenderCategorias(env.DB, ofertas).catch(() => {});
+  ofertas = ofertas.map(({ catsLoja, catLojaNome, catMapa, ...o }) => o);
 
   const resposta = responder({
     q,
