@@ -31,6 +31,11 @@ const CASOS = {
     E: ["Capa para iPhone 15 Pro Silicone", "Kit 2 Capas para iPhone 13 Transparente", "Capinha iPhone 14 Anti Impacto"],
   },
   "fone celular": { E: ["Fone de Ouvido para Celular P2 com Microfone"] },
+  // Print de 17/10/2026: "ps5" mostrava adesivo, enfeite e skin no topo e o console só em "Maior preço"
+  "ps5": {
+    E: ["Console PS5 Slim 825GB Digital Edition + 2 Jogos", "PS5 SLIM BUNDLE 1TB FISICO", "Console PlayStation PS5 Bundle Edição Digital", "playstation 5 825gb", "Console PlayStation 5 Slim 1TB", "Sony PS5 Pro Digital"],
+    A: ["Controle DualSense para PS5", "Capa Skin Adesivo PS5", "2026 Novo produto PS5 SLIM Elite Version pro Handle Silicone Capa protetora", "2026 Novo produto Heroes PS5 pro Adesivo de corpo", "Skin PS5 Fat Playstation 5 Adesivo - Personalizada", "Decoração PlayStation PS5 | Enfeite de Mesa"],
+  },
   "jogo de panelas": { E: ["Jogo Panelas Tramontina Antiaderente 5 peças", "Jogo de Panelas Cerâmica 10 Peças Kit Cozinha"] },
   "tapete yoga": { E: ["Tapete de Yoga Antiderrapante 6mm"] },
   "ar condicionado": {
@@ -71,7 +76,6 @@ const CASOS = {
   "areia para gatos": { E: ["Areia para Gatos Higiênica Pipicat 4kg", "Areia Sanitária para Gatos Biodegradável 12kg"] },
   "retrovisor moto": { E: ["Retrovisor Moto Honda CG 160 Par", "Par de Retrovisor para Moto Universal"] },
   "torneira cozinha": { E: ["Torneira Gourmet Cozinha Monocomando Inox", "Torneira de Cozinha Parede Bica Móvel"], A: ["Refil Filtro para Torneira de Cozinha"] },
-  "ps5": { E: ["Console PlayStation 5 Slim 1TB", "Sony PS5 Pro Digital"], A: ["Controle DualSense para PS5", "Capa Skin Adesivo PS5"] },
   "notebook": { E: ["Notebook Lenovo IdeaPad 1 Ryzen 5 8GB", "Notebook Samsung Galaxy Book4 i5"], A: ["Carregador Fonte para Notebook Dell 65W", "Mochila para Notebook 15.6 Impermeável", "Suporte para Notebook Ajustável Alumínio"] },
   "smartwatch": { E: ["Smartwatch Xiaomi Redmi Watch 5 Active", "Relógio Smart Watch D20 Bluetooth"], A: ["Pulseira Silicone para Smartwatch 20mm"] },
   "smartphone": { E: ["Celular Motorola Moto G35 5G 128GB", "Smartphone Samsung Galaxy A16"], A: ["Suporte Celular Carro Magnético"] },
@@ -91,6 +95,7 @@ for (const [q, esperado] of Object.entries(CASOS)) {
     const tipo = tipoDe.get(o.titulo);
     total++;
     const exato = o.bate && !o.acessorio;
+    if (q === "ps5" && tipo === "E" && !o.principal) erros.push(`deveria vir na frente (principal): ${o.titulo}`);
     if (tipo === "E" && !exato) erros.push(`deveria ser o produto: ${o.titulo} (${o.acessorio ? "marcado acessório" : "não bateu"})`);
     if (tipo === "A" && !o.acessorio) erros.push(`deveria ser acessório: ${o.titulo}`);
     if (tipo === "N" && exato) erros.push(`não é o produto, mas bateu: ${o.titulo}`);

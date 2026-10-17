@@ -786,7 +786,7 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=36&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=37&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -1141,7 +1141,8 @@ async function carregarMaisResultados({ sozinho = false } = {}) {
     estado.maisBusca = dados.mais;
     estado.temMaisBusca = Boolean(dados.mais && todas.length > antes);
     // Produtos antes, acessórios (escondidos) no fim
-    estado.ofertas = [...todas.filter((o) => !o.acessorio), ...todas.filter((o) => o.acessorio)];
+    // Produtos que começam pelo que foi buscado ("Console PS5 …") na frente, depois os outros, acessórios no fim
+    estado.ofertas = [...todas.filter((o) => o.principal), ...todas.filter((o) => !o.principal && !o.acessorio), ...todas.filter((o) => o.acessorio)];
     desenharFiltroLojas();
     desenharResultados();
   } catch {
