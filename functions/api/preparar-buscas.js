@@ -5,6 +5,7 @@
 import { onRequestGet as buscar } from "./buscar.js";
 import { categoriasParaPreparar } from "../../lib/categorias.js";
 import { maisBuscados } from "../../lib/buscas.js";
+import { carregarMapa } from "../../lib/mapaCategorias.js";
 
 // Os mais procurados no Brasil (pesquisa de 16/10/2026: Mercado Livre, Google, Shopee) e os atalhos "em alta"
 const POPULARES = [
@@ -43,6 +44,6 @@ export async function onRequestGet({ request, env, waitUntil }) {
   return Response.json({
     parte, partes: lista.length, fim, busca: cat ? `${cat} (${q})` : q,
     produtos: dados.ofertas?.length || 0, guardada: Boolean(dados.lojas?.shopee?.ok && dados.ofertas?.length), falhou,
-    segundos: (Date.now() - inicio) / 1000,
+    segundos: (Date.now() - inicio) / 1000, categoriasAprendidas: (await carregarMapa(env)).size,
   }, { headers: { "Cache-Control": "no-store" } });
 }

@@ -44,7 +44,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 35;
+const VERSAO_CACHE = 36;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -244,9 +244,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
     }
   }
 
-  // O robô ensina o mapa de categorias com as buscas dele; os códigos das lojas não vão para o site
+  // O robô ensina o mapa de categorias com as buscas dele (catsLoja e catMapa ficam na resposta para conferência)
   if (preparar && env.DB) await aprenderCategorias(env.DB, ofertas).catch(() => {});
-  ofertas = ofertas.map(({ catsLoja, catLojaNome, catMapa, ...o }) => o);
+  ofertas = ofertas.map(({ catLojaNome, ...o }) => o);
 
   const resposta = responder({
     q,
