@@ -434,6 +434,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (`tituloOfertas` no `app.js`); as "Ofertas do dia" viraram busca pronta (parte 0 do `/api/preparar-buscas`, `q` vazio):
   abre em ~0,5 s (eram ~6 s, por causa da AliExpress). Botão "Comprar no AliExpress" com letra menor (`texto-longo`) e
   todos os botões com a mesma altura numa linha.
+- **Sem Ctrl+F5 (17/10/2026, pedido do Giovanni)**: o Cloudflare manda o navegador guardar app.js/estilo.css por 4 h. O
+  `_middleware.js` reescreve as páginas para `assets/app.js?v=<ETag>` (HTMLRewriter + `env.ASSETS`), então cada publicação
+  chega a todos os visitantes na hora. Não precisa mudar nada a cada publicação.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
