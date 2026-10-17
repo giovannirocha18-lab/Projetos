@@ -508,6 +508,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **Tela toda de verdade (17/10/2026, print do Giovanni)**: a regra "cabeçalho/página/rodapé sem limite de 1600px" nunca valia: um
   pedaço solto de animação antiga no `estilo.css` (sobra do commit da animação da busca) anulava a regra seguinte. Removido;
   em tela de 1890px a barra lateral encosta na esquerda e cabem 6 cartões por linha (eram 5).
+- **Botão no celular (17/10/2026, print do Giovanni)**: era só "Comprar →"; agora 2 linhas "Comprar" + "na Shopee" menor
+  (`textoComprar` no `app.js`, `.comprar-curto` no CSS).
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
