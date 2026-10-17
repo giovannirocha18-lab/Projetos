@@ -9,7 +9,7 @@
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
 import { citaAlgumaPalavra, separarAcessorios } from "../lib/relevancia.js";
 import { categoriaDoProduto } from "../lib/categorias.js";
-import { corrigirBusca, termoNasLojas } from "../lib/vocabulario.js";
+import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 
 const CASOS = {
   // ---- Prints do Giovanni ----
@@ -214,6 +214,9 @@ const ORDEM = [
   ["tv", ["TV Stick Android 4K", "TV Samsung 50 Polegadas 4K"], "TV Samsung 50 Polegadas 4K"],
   ["geladeira portatil", ["Geladeira Frost Free Consul 340L", "Geladeira Portátil 40L Camping"], "Geladeira Portátil 40L Camping"],
   ["mini geladeira", ["Mini Geladeira Frigobar 45L", "Geladeira Mini Bar Consul"], "Mini Geladeira Frigobar 45L"],
+  // Protetor de para-brisa não é protetor solar de pele (17/10/2026)
+  ["protetor solar", ["Protetor Solar para Para-brisa de Carro Estiloso", "Protetor Solar Facial FPS 50 Neutrogena"], "Protetor Solar Facial FPS 50 Neutrogena"],
+  ["protetor solar", ["Protetor Solar Personalizado para Carro com Qualquer Design", "Protetor Solar Corporal FPS 30 Sundown"], "Protetor Solar Corporal FPS 30 Sundown"],
 ];
 for (const [q, titulos, primeiro] of ORDEM) {
   total++;
@@ -278,6 +281,26 @@ for (const [q, esperado] of [["tv", "smart tv"], ["Televisão", "smart tv"], ["i
   ["tv box", "tv box"], ["impressora térmica", "impressora térmica"]]) {
   total++;
   if (termoNasLojas(q) !== esperado) { falhas++; console.log(`✗ termo nas lojas "${q}": ${termoNasLojas(q)} (esperado ${esperado})`); }
+}
+// Produto que a loja só acha com marca/amperagem, com preço mínimo (print "bateria para carro", 17/10/2026)
+for (const [q, buscaEsperada, itens, esperado] of [
+  ["bateria para carro", "bateria 60ah",
+    [["Bateria Automotiva Moura M60AD 60Ah 12V", 717], ["Bateria Zetta 12V 45AH Polo Positivo", 499], ["Bateria Moura Moto 5ah Titan Biz", 183]],
+    { "Bateria Automotiva Moura M60AD 60Ah 12V": "P", "Bateria Zetta 12V 45AH Polo Positivo": "P", "Bateria Moura Moto 5ah Titan Biz": "A" }],
+  ["Kindle", "kindle paperwhite",
+    [["Kindle Paperwhite 12ª geração 16GB", 1399], ["Kindle kit 2 unidades Card para Capinha de Kindle", 12], ["Kindle Charm Pingente Anti Poeira", 17]],
+    { "Kindle Paperwhite 12ª geração 16GB": "P", "Kindle kit 2 unidades Card para Capinha de Kindle": "A", "Kindle Charm Pingente Anti Poeira": "A" }],
+]) {
+  const { buscas, termo, precoMin } = buscaNasLojas(q);
+  total++;
+  if (!buscas.includes(buscaEsperada)) { falhas++; console.log(`✗ buscas nas lojas "${q}": ${buscas.join(", ")}`); }
+  const saida = separarAcessorios(itens.map(([titulo, preco], i) => ({ id: String(i), titulo, preco })), termo, { precoMin });
+  for (const [titulo, tipo] of Object.entries(esperado)) {
+    total++;
+    const o = saida.find((x) => x.titulo === titulo);
+    const obtido = o.acessorio ? "A" : o.principal ? "P" : "N";
+    if (obtido !== tipo) { falhas++; console.log(`✗ produto nas lojas "${q}": "${titulo}" deu ${obtido}, esperado ${tipo}`); }
+  }
 }
 console.log(falhas ? `\n${falhas} problema(s) em ${total} títulos` : `\n✓ Tudo certo (${Object.keys(CASOS).length} buscas, ${total} títulos)`);
 process.exitCode = falhas ? 1 : 0;

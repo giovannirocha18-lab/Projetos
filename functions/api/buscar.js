@@ -17,7 +17,7 @@ import { registrarBusca } from "../../lib/buscas.js";
 import { historicoAoVivo, ehAoVivo } from "../../lib/ofertas.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias } from "../../lib/mapaCategorias.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
-import { corrigirBusca, acentuarBusca, termoNasLojas } from "../../lib/vocabulario.js";
+import { corrigirBusca, acentuarBusca, buscaNasLojas } from "../../lib/vocabulario.js";
 import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
@@ -45,7 +45,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 50;
+const VERSAO_CACHE = 51;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -173,20 +173,21 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Busca digitada: pede páginas de 3 em 3 até ter produtos suficientes (ver MINIMO_PRODUTOS).
   // termos = o que foi digitado (e, na categoria, "invictus perfume"); contar = quantos produtos de verdade
   // há entre os que chegaram nesta rodada (conta só os novos: refazer a lista toda a cada rodada gastava CPU)
-  const buscarAteEncher = async (termos, contar) => {
+  // porLote: páginas de cada termo por rodada (várias buscas juntas, como "bateria carro", pedem 1 cada)
+  const buscarAteEncher = async (termos, contar, porLote = PAGINAS_POR_LOTE) => {
     const juntas = [];
     const vistos = new Set();
     let produtos = 0;
     let pag = desde;
     let acabou = false;
     do {
-      const paginas = Array.from({ length: PAGINAS_POR_LOTE }, (_, i) => pag + i);
+      const paginas = Array.from({ length: porLote }, (_, i) => pag + i);
       for (const l of Object.values(lojas)) l.total = 0;
       const listas = await Promise.all(termos.map((t) => consultar(t, { paginas })));
       const novas = listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id));
       juntas.push(...novas);
       produtos += contar(novas);
-      pag += PAGINAS_POR_LOTE;
+      pag += porLote;
       acabou = !fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina);
     } while (!acabou && pag - desde < MAX_PAGINAS && produtos < MINIMO_PRODUTOS);
     return { juntas, proxima: acabou || pag > MAX_DESDE ? null : pag };
@@ -227,10 +228,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
     mais = proxima && `desde=${proxima}`;
   } else if (q) {
     // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
-    // "tv" pesquisa "smart tv" nas lojas (ver termoNasLojas)
-    const termo = termoNasLojas(q);
-    const { juntas, proxima } = await buscarAteEncher([termo], (novas) => separarAcessorios(novas, termo).filter((o) => !o.acessorio).length);
-    ofertas = marcarSecoes(separarAcessorios(juntas, termo));
+    // "tv" pesquisa "smart tv" nas lojas; "bateria carro", várias buscas com marca/amperagem (ver buscaNasLojas)
+    const { buscas, termo, precoMin } = buscaNasLojas(q);
+    const separar = (lista) => separarAcessorios(lista, termo, { precoMin });
+    const { juntas, proxima } = await buscarAteEncher(buscas, (novas) => separar(novas).filter((o) => !o.acessorio).length,
+      buscas.length > 1 ? 1 : PAGINAS_POR_LOTE);
+    ofertas = marcarSecoes(separar(juntas));
     mais = proxima && `desde=${proxima}`;
   } else {
     ofertas = await consultar(q);
