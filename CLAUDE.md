@@ -499,6 +499,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (mais buscados no site em 30 dias por 2+ pessoas, populares, vitrines, marcas, erros; baixado 1 vez ao focar a caixa):
   entende erro ("geladeria", "xiome"), completa com marca ("maquina de lavar ele" → electrolux). **Erro novo que o Giovanni
   mandar → acrescentar em `ERROS` e no teste `CORRECOES` do `testes/busca.mjs`.** Cache v=46.
+- **"Milhões de produtos de mais de N lojas" (17/10/2026, pedido do Giovanni)**: faixa do topo (computador) e quadro acima das
+  "Ofertas do dia" (todos). Número real de `/api/numeros` (guardado 6 h): Shopee + AliExpress + marcas da Lomadee liberadas para o
+  canal + lojas da Awin no banco, arredondado para baixo de 10 em 10. No ar: 112 lojas → "mais de 110". "Milhões" = Shopee/AliExpress.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
