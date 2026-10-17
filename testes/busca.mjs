@@ -118,6 +118,34 @@ for (const [q, esperado] of Object.entries(CASOS)) {
     for (const e of erros) console.log(`    ${e}`);
   }
 }
+// Preço como prova e busca de acessório (17/10/2026): [busca, [título, preço], esperado]
+//   P = produto na frente (principal), A = acessório (escondido), N = aparece, mas não na frente
+const geladeiras = [["Geladeira Frost Free 400L Electrolux", 2800], ["Geladeira Brastemp Duplex 375L", 2600], ["Geladeira Consul 300L", 1900],
+  ["Geladeira Midea Inverse 410L", 3100], ["Geladeira Portátil 40L", 1700], ["Geladeira Panasonic 425L", 3300]];
+const celulares = [["Celular Samsung Galaxy A06", 700], ["Celular Motorola Moto G24", 900], ["Celular Xiaomi Redmi 13", 1100],
+  ["Smartphone Samsung Galaxy S24", 4000], ["iPhone 15 Celular Apple 128GB", 4500], ["Celular Realme C61", 800]];
+const CASOS_PRECO = [
+  ["geladeira", [...geladeiras, ["Imã de Geladeira Dragon Ball", 21]], { "Imã de Geladeira Dragon Ball": "A", "Geladeira Consul 300L": "P" }],
+  ["geladeira", [...geladeiras, ["Toalha de Geladeira em PVC Rendada", 9]], { "Toalha de Geladeira em PVC Rendada": "A" }],
+  ["celular", [...celulares, ["LG B220 Celular Simples Para Idosos 2G", 120]], { "LG B220 Celular Simples Para Idosos 2G": "P" }],
+  ["celular", [...celulares, ["B220 CELULAR Simples Para Idosos Ou Rural 2G", 100]], { "B220 CELULAR Simples Para Idosos Ou Rural 2G": "P" }],
+  ["prato microondas", [["Prato Para Microondas 27 cm Giratório", 44], ["Microondas Electrolux 20L com prato giratório", 600]],
+    { "Prato Para Microondas 27 cm Giratório": "P", "Microondas Electrolux 20L com prato giratório": "N" }],
+  ["reparo capacete", [["Kit Reparo Capacete San Marino", 17], ["Capacete Norisk Flow com kit reparo", 800]], { "Kit Reparo Capacete San Marino": "P", "Capacete Norisk Flow com kit reparo": "N" }],
+  ["cabo flat monitor", [["Cabo Flat Monitor LG W2043S", 70], ["Monitor LG 24 Polegadas cabo flat", 900]], { "Cabo Flat Monitor LG W2043S": "P" }],
+  ["air fryer", [["Fritadeira Elétrica Inteligente com Tela Sensível ao Toque Air Fryer", 188], ["Air Fryer Mondial 4L", 400]],
+    { "Fritadeira Elétrica Inteligente com Tela Sensível ao Toque Air Fryer": "N" }],
+];
+for (const [q, itens, esperado] of CASOS_PRECO) {
+  const saida = separarAcessorios(itens.map(([titulo, preco], i) => ({ id: String(i), titulo, preco })), q);
+  for (const [titulo, tipo] of Object.entries(esperado)) {
+    total++;
+    const o = saida.find((x) => x.titulo === titulo);
+    const obtido = o.acessorio ? "A" : o.principal ? "P" : "N";
+    if (obtido !== tipo) { falhas++; console.log(`✗ preço/alvo "${q}": "${titulo}" deu ${obtido}, esperado ${tipo}`); }
+  }
+}
+
 // Categoria pelo título (print de 17/10/2026: vara de pesca caía em Óculos)
 const CATEGORIAS_ESPERADAS = [
   ["Vara de Pesca Telescópica Carbono 2,1m", "Esporte e fitness"],
