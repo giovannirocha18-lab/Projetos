@@ -1343,6 +1343,27 @@ function mostrarInicio() {
   }
 }
 
+// "Aqui você encontra milhões de produtos de mais de 120 lojas": números de verdade, vindos de /api/numeros
+// (lojas parceiras ativas agora, arredondadas para baixo). Sem resposta, a frase não aparece.
+async function mostrarNumeros() {
+  try {
+    const r = await fetch("/api/numeros");
+    if (!r.ok) return;
+    const { lojas, lojasArredondado, marketplaces } = await r.json();
+    if (!lojas || lojas < 2) return;
+    const qtdLojas = lojasArredondado < lojas ? `mais de ${lojasArredondado} lojas` : `${lojas} lojas`;
+    const produtos = marketplaces ? "milhões de produtos" : "produtos";
+    document.querySelectorAll("[data-numeros]").forEach((e) => { e.textContent = `${produtos[0].toUpperCase()}${produtos.slice(1)} de ${qtdLojas}`; e.hidden = false; });
+    const inicio = $("#numeros-inicio");
+    inicio.replaceChildren("🛒 Aqui você encontra ", el("strong", {}, produtos), " de ", el("strong", {}, qtdLojas),
+      " e compara os preços num só lugar.");
+    inicio.hidden = false;
+  } catch {
+    // sem a frase
+  }
+}
+mostrarNumeros();
+
 // Enquanto as ofertas carregam (a 1ª abertura leva alguns segundos), o título diz que está buscando
 function tituloOfertas(carregando) {
   const h2 = $("#titulo-ofertas");

@@ -57,6 +57,13 @@ a { color: inherit; }
   box-shadow: 0 4px 18px rgba(30, 0, 60, .28);
 }
 .topo-faixa { font-size: .8rem; }
+.numeros-faixa::before { content: " · "; }
+/* "Aqui você encontra milhões de produtos de mais de N lojas" (só na página inicial) */
+.numeros-inicio {
+  margin: 0 0 14px; padding: 10px 16px; border-radius: 12px; font-size: .95rem; color: var(--texto, #1f1235);
+  background: linear-gradient(90deg, rgba(124, 58, 237, .09), rgba(219, 39, 119, .09)); border: 1px solid rgba(124, 58, 237, .18);
+}
+.numeros-inicio strong { color: #6d28d9; }
 .topo-faixa-linha { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 30px; opacity: .92; }
 .topo-links { display: flex; gap: 14px; }
 .topo-links a { color: #fff; text-decoration: none; }
