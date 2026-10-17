@@ -534,6 +534,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   conferida no ar: só eletrodomésticos de verdade. Agora são 38 categorias. **Fixa em 1º no menu** (pedido dele; campo `fixa: true`
   em `lib/categorias.js`, vale também em A–Z; em-alta v=4). "Secadora de roupas" saiu de Cabelo. ✅ **"máquina de lavar" = a de roupa** (pedido dele): `OUTRO_PRODUTO` em
   `lib/relevancia.js` manda "sapatos/louças/alta pressão" para o fim, a não ser que a busca peça ("máquina de lavar sapato"). Cache v=48.
+  ✅ **"Menor preço" misturava peças (print "ar condicionado", 17/10/2026)**: servidor marca `variante` e `foraDoTipo` (de carro:
+  `CARROS`/`ehDeCarro` em `lib/categorias.js`; carros saem de Eletrodomésticos e vão para Automotivo); `PECAS` + comando, blower,
+  evaporador; `PECAS_SEMPRE` + tester, testador, expansor. No site (`filtrar`/`precoTipico` no `app.js`), ordem por preço/desconto
+  = 1º principal de verdade com preço ≥ 30% do típico (mediana dos principais, 5+), depois variante/carro/barato demais, depois o
+  resto, acessórios no fim; selo "Menor preço" idem. Conferido no ar: "ar condicionado" em Menor preço começa em splits/janela de
+  R$ 1.641; "geladeira" em geladeiras de R$ 1.346. Cache v=49.
   Ainda fracos: "bateria carro", "kindle", "protetor solar" (para-brisa). Buscas prontas só voltam na madrugada.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
   Web Analytics > Enable); o CSP já libera cloudflareinsights. Aguardando ele.
