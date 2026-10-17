@@ -981,18 +981,54 @@ function desenharFiltroSecoes() {
     el("span", { class: "qtd", title: `${contagem.get(secao)} ofertas desta categoria na lista` }, contagem.get(secao)))));
 }
 
-function desenharFiltroLojas() {
-  desenharFiltroSecoes();
-  // Conta só o que aparece na lista (acessórios escondidos não entram)
+// Ofertas de cada loja na lista (acessórios escondidos não entram)
+function contarLojas() {
   const semAcessorios = escondeAcessorios();
   const contagem = {};
   for (const o of estado.ofertas) if (!(semAcessorios && o.acessorio)) contagem[o.loja] = (contagem[o.loja] || 0) + 1;
+  return contagem;
+}
+
+function alternarLoja(id, ligar) {
+  if (ligar) estado.lojasDesmarcadas.delete(id); else estado.lojasDesmarcadas.add(id);
+}
+
+// Lojas desta busca dentro do card de resultados (pedido do Giovanni, 17/10/2026): o visitante vê na hora quais lojas
+// têm o produto e liga/desliga cada uma; "Limpar" desliga todas (para escolher só uma) e "Marcar todas" volta tudo
+function lojasNoResumo() {
+  const contagem = contarLojas();
+  const ids = Object.keys(contagem);
+  if (!ids.length) return null;
+  const atualizar = () => { desenharFiltroLojas(); desenharResultados(); };
+  const algumaDesligada = ids.some((id) => estado.lojasDesmarcadas.has(id));
+  return el("div", { class: "resumo-lojas" },
+    el("span", { class: "resumo-lojas-titulo" }, "Lojas com ofertas:"),
+    ...ids.map((id) => {
+      const loja = infoLoja(estado.ofertas.find((o) => o.loja === id));
+      const ligada = !estado.lojasDesmarcadas.has(id);
+      return el("button", {
+        type: "button", class: "chip-loja", "aria-pressed": String(ligada), style: `--cor-loja:${loja.cor}`,
+        title: ligada ? `Esconder as ofertas da ${loja.nome}` : `Mostrar as ofertas da ${loja.nome}`,
+        onclick: () => { alternarLoja(id, !ligada); atualizar(); },
+      }, el("span", { class: "loja-ponto" }), loja.nome, el("span", { class: "qtd" }, contagem[id]));
+    }),
+    el("button", {
+      type: "button", class: "chip-acao",
+      onclick: () => { ids.forEach((id) => alternarLoja(id, algumaDesligada)); atualizar(); },
+    }, algumaDesligada ? "Marcar todas" : "Limpar"),
+    estado.qtdParceiras && el("small", { class: "resumo-lojas-nota" },
+      `Temos ${estado.qtdParceiras} parceiras; aqui aparecem as que têm ofertas nesta busca.`));
+}
+
+function desenharFiltroLojas() {
+  desenharFiltroSecoes();
+  const contagem = contarLojas();
   $("#filtro-lojas").replaceChildren(...Object.keys(contagem).map((id) => {
     const loja = infoLoja(estado.ofertas.find((o) => o.loja === id));
     return el("label", { class: "opcao", style: `--cor-loja:${loja.cor}` },
       el("input", {
         type: "checkbox", checked: !estado.lojasDesmarcadas.has(id),
-        onchange: (e) => { e.target.checked ? estado.lojasDesmarcadas.delete(id) : estado.lojasDesmarcadas.add(id); desenharResultados(); },
+        onchange: (e) => { alternarLoja(id, e.target.checked); desenharResultados(); },
       }),
       el("span", { class: "loja-ponto" }), loja.nome,
       el("span", { class: "qtd", title: `${contagem[id]} ofertas desta loja na lista` }, contagem[id]));
@@ -1072,7 +1108,8 @@ function desenharResumo(lista) {
       : "Nenhuma oferta com esses filtros"),
     avisoCorrecao(),
     avisoCategoria(),
-    avisoSemProduto());
+    avisoSemProduto(),
+    lojasNoResumo());
 
   $("#resumo").replaceChildren(titulo);
 }
@@ -1095,6 +1132,8 @@ function desenharResultados() {
   desenharBotaoFrete();
   if (estado.q && estado.buscando) return; // filtro mexido enquanto a busca carrega: espera a resposta
   const lista = filtrar();
+  // Na busca as lojas ficam no card de resultados; a lista da barra lateral só vale nas "Ofertas do dia"
+  $("#caixa-lojas").hidden = Boolean(estado.q);
   if (!estado.q) return desenharInicio(lista);
   const idMelhor = lista.length > 1 ? melhorOferta(lista)?.id : null;
   desenharResumo(lista);
@@ -1410,6 +1449,7 @@ async function mostrarNumeros() {
     // Filtro de lojas: deixa claro que ali só estão as lojas da lista atual, não todas as parceiras
     const nota = $("#nota-lojas");
     nota.textContent = `Temos ${qtdLojas} parceiras; aqui aparecem as que têm ofertas nesta lista.`;
+    estado.qtdParceiras = qtdLojas;
     nota.hidden = false;
   } catch {
     // sem a frase

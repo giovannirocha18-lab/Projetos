@@ -300,6 +300,23 @@ a { color: inherit; }
   background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35);
 }
 
+/* Lojas da busca dentro do card de resultados: botões que ligam/desligam cada loja */
+.resumo-lojas { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.resumo-lojas-titulo { font-weight: 700; font-size: .9rem; margin-right: 2px; }
+.chip-loja, .chip-acao {
+  display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer;
+  padding: 6px 12px; border-radius: 999px; transition: background .15s, color .15s, opacity .15s;
+}
+.chip-loja { color: var(--texto); background: #fff; border: 1px solid #fff; }
+.chip-loja .qtd { font-size: .76rem; color: var(--suave); background: var(--bg); padding: 1px 7px; border-radius: 999px; }
+.chip-loja[aria-pressed="false"] { color: #fff; background: transparent; border-color: rgba(255, 255, 255, .5); opacity: .75; text-decoration: line-through; }
+.chip-loja[aria-pressed="false"] .loja-ponto { box-shadow: none; opacity: .6; }
+.chip-loja[aria-pressed="false"] .qtd { background: rgba(255, 255, 255, .2); color: #fff; }
+.chip-loja:hover { opacity: 1; }
+.chip-acao { color: #fff; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35); }
+.chip-acao:hover { background: rgba(255, 255, 255, .3); }
+.resumo .resumo-lojas-nota { flex-basis: 100%; font-size: .78rem; opacity: .85; }
+
 /* Animação "buscando": boneco empurrando o carrinho da esquerda para a direita, olhando para os lados */
 .anim-buscando {
   position: relative; flex: 1 1 260px; align-self: stretch; min-height: 96px; margin: -10px 0; overflow: hidden;
