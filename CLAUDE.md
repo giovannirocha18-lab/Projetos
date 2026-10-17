@@ -484,6 +484,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **Awin só pelo título (17/10/2026, print "armario de cozinha")**: o índice FTS tem título + marca + categoria + loja, e a categoria
   da Spicy ("Cozinha > Armários…") trazia tábua e facas. `awin.buscar` agora filtra por `temTodasAsPalavras` no título (e
   `citaAlgumaPalavra` no "faltando uma"); "de/do/para" não contam como palavra na busca da Awin. Cache v=44.
+- **Aviso "não está à venda nas lojas parceiras" (17/10/2026, print "maquina de lavar eletrolux" = só peças)**: `avisoSemProduto`
+  no `app.js`: busca digitada com 0 ofertas `principal` → "😕 “X” não está à venda nas nossas lojas parceiras no momento…";
+  com 1–2 (`POUCOS_PRODUTOS`) → "Encontramos só N oferta(s)…". Nesse caso sem selo "Menor preço da busca". Conferido em 23 buscas
+  reais (marcas como stanley/nike têm 11+ principais, não avisa). `PECAS` + eletrobomba, bomba, agitador, embreagem, atuador,
+  pressostato, nivelador, pezinho, rolamento, dosador, tirante, carcaça; sinônimos Electrolux=Eletrolux, Lavadora=máquina de lavar
+  (menos alta pressão/louças). Cache v=45.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
