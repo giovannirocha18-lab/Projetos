@@ -993,6 +993,10 @@ function alternarLoja(id, ligar) {
   if (ligar) estado.lojasDesmarcadas.delete(id); else estado.lojasDesmarcadas.add(id);
 }
 
+// A API das lojas manda o preço sem cupom; com cupom ou Pix (depende da conta e da campanha) pode sair menos na loja.
+// Aviso uma vez só, no card de resultados e na faixa das "Ofertas do dia", sem mexer nos cartões (pedido do Giovanni)
+const AVISO_CUPOM = "💸 Preços sem cupom: na loja pode sair ainda mais barato com cupom ou Pix.";
+
 // Lojas desta busca dentro do card de resultados (pedido do Giovanni, 17/10/2026): o visitante vê na hora quais lojas
 // têm o produto e liga/desliga cada uma; "Limpar" desliga todas (para escolher só uma) e "Marcar todas" volta tudo
 function lojasNoResumo() {
@@ -1016,8 +1020,9 @@ function lojasNoResumo() {
       type: "button", class: "chip-acao",
       onclick: () => { ids.forEach((id) => alternarLoja(id, algumaDesligada)); atualizar(); },
     }, algumaDesligada ? "Marcar todas" : "Limpar"),
-    estado.qtdParceiras && el("small", { class: "resumo-lojas-nota" },
-      `Temos ${estado.qtdParceiras} parceiras; aqui aparecem as que têm ofertas nesta busca.`));
+    el("small", { class: "resumo-lojas-nota" },
+      estado.qtdParceiras ? `Temos ${estado.qtdParceiras} parceiras; aqui aparecem as que têm ofertas nesta busca. ` : "",
+      AVISO_CUPOM));
 }
 
 function desenharFiltroLojas() {
@@ -1444,7 +1449,7 @@ async function mostrarNumeros() {
     document.querySelectorAll("[data-numeros]").forEach((e) => { e.textContent = `${produtos[0].toUpperCase()}${produtos.slice(1)} de ${qtdLojas}`; e.hidden = false; });
     const inicio = $("#numeros-inicio");
     inicio.replaceChildren("🛒 Aqui você encontra ", el("strong", {}, produtos), " de ", el("strong", {}, qtdLojas),
-      " e compara os preços num só lugar.");
+      " e compara os preços num só lugar.", el("small", { class: "aviso-cupom" }, AVISO_CUPOM));
     inicio.hidden = false;
     // Filtro de lojas: deixa claro que ali só estão as lojas da lista atual, não todas as parceiras
     const nota = $("#nota-lojas");
