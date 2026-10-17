@@ -437,6 +437,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **Sem Ctrl+F5 (17/10/2026, pedido do Giovanni)**: o Cloudflare manda o navegador guardar app.js/estilo.css por 4 h. O
   `_middleware.js` reescreve as páginas para `assets/app.js?v=<ETag>` (HTMLRewriter + `env.ASSETS`), então cada publicação
   chega a todos os visitantes na hora. Não precisa mudar nada a cada publicação.
+- **"ps5" (17/10/2026, print do Giovanni)**: a API de afiliados da Shopee ordena diferente do site dela (adesivo, enfeite no topo).
+  `separarAcessorios` marca `principal` quando o título começa pelo termo (2 primeiras palavras, pulando `ANTES_DO_NOME`:
+  console, novo, sony…) e põe esses primeiro; o site mantém isso ao juntar lotes. Acessórios novos: skin, sticker, enfeite,
+  adesivo/suporte depois do termo, "protetor(a)" em qualquer lugar. Cache v=37.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
