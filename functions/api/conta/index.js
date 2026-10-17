@@ -1,7 +1,7 @@
 // GET    /api/conta  -> quem está conectado e o carrinho salvo
 // DELETE /api/conta  -> exclui a conta e todos os dados dela (direito garantido pela LGPD)
 import {
-  banco, responder, SEM_BANCO, erro, lerJson, usuarioDaSessao, lerCarrinho, cookieApagar, chavesDoEmail,
+  banco, responder, SEM_BANCO, erro, lerJson, usuarioDaSessao, lerCarrinho, lerPersonagem, cookieApagar, chavesDoEmail,
 } from "../../../lib/conta.js";
 
 export async function onRequestGet({ request, env }) {
@@ -14,7 +14,7 @@ export async function onRequestGet({ request, env }) {
   return responder({
     ativo: true,
     google,
-    usuario: { nome: usuario.nome, email: usuario.email },
+    usuario: { nome: usuario.nome, email: usuario.email, personagem: await lerPersonagem(db, usuario.id) },
     carrinho: await lerCarrinho(db, usuario.id),
   });
 }
@@ -27,6 +27,7 @@ export async function onRequestDelete({ request, env }) {
   if (!usuario) return erro("Você não está conectado.", 401);
   await db.batch([
     db.prepare("DELETE FROM carrinhos WHERE usuario_id = ?").bind(usuario.id),
+    db.prepare("DELETE FROM personagens WHERE usuario_id = ?").bind(usuario.id),
     db.prepare("DELETE FROM sessoes WHERE usuario_id = ?").bind(usuario.id),
     db.prepare("DELETE FROM senhas WHERE usuario_id = ?").bind(usuario.id),
     db.prepare("DELETE FROM redefinicoes WHERE usuario_id = ?").bind(usuario.id),

@@ -441,9 +441,17 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   `separarAcessorios` marca `principal` quando o título começa pelo termo (2 primeiras palavras, pulando `ANTES_DO_NOME`:
   console, novo, sony…) e põe esses primeiro; o site mantém isso ao juntar lotes. Acessórios novos: skin, sticker, enfeite,
   adesivo/suporte depois do termo, "protetor(a)" em qualquer lugar. Cache v=37.
-- **Modelos da animação da busca (17/10/2026)**: `MODELO_ANIMACAO` no `app.js` escolhe entre `v1` (boneco de camiseta amarela +
-  carrinho do logo) e `v2` (moça de rabo de cavalo + carrinho de supermercado de grade; **no ar**). Os dois enchem de produtos.
-  Giovanni pediu para guardar o v1 caso queira voltar.
+- **Modelos da animação da busca (17/10/2026)**: v1 (boneco de camiseta amarela + carrinho do logo) e v2 (moça de rabo de cavalo +
+  carrinho de grade) viraram `PERSONAGENS_PRONTOS` (ver "Meu personagem"). Os dois enchem de produtos.
+- **Meu personagem (17/10/2026, pedido do Giovanni)**: na conta, botão "🎨 Montar meu personagem" abre editor com prévia andando:
+  cabelo (curto/rabo/cacheado/careca), cor do cabelo, pele (5 tons), rosto (sorriso/óculos/barba/piscadinha), roupa (6 cores) e
+  carrinho (do logo/de supermercado). `desenharPersonagem()` no `app.js` monta o SVG por partes; opções em `PERSONAGEM_OPCOES`
+  (app.js) e `OPCOES_PERSONAGEM` (lib/conta.js) — mudar nos dois. Tabela D1 `personagens`; `PUT /api/conta/personagem`
+  (null = voltar ao sorteio); apagado ao excluir a conta; citado na Política. Sem escolha (ou sem conta): sorteia entre os 2
+  prontos (`PERSONAGENS_PRONTOS` = antigos v1 e v2) a cada busca. Decidido NÃO pedir sexo no cadastro (LGPD/atrito).
+- **Mapa de categorias (17/10/2026, print "vara de pesca" em Óculos)**: a categoria "Pesca" da AliExpress tinha sido aprendida
+  como Óculos (só aparecia nas buscas de óculos). Agora toda busca nas lojas ensina o mapa (não só o robô) e vale com 10+ votos
+  e 80%+. Cache v=38.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)

@@ -294,6 +294,54 @@ function desenharContaTopo() {
   }
 }
 
+// ---------------------------------------------------------------------
+// Meu personagem: quem tem conta monta o personagem da animação de busca
+// ---------------------------------------------------------------------
+function abrirEditorPersonagem() {
+  conta.rascunho = { ...(conta.usuario.personagem || PERSONAGENS_PRONTOS[0]) };
+  conta.etapa = "personagem";
+  conta.erro = "";
+  desenharConta();
+}
+
+function editorPersonagem(erro) {
+  const r = conta.rascunho;
+  const previa = el("div", { class: "anim-buscando previa-personagem" });
+  previa.innerHTML = desenharPersonagem(r);
+  const escolher = (campo, valor) => { r[campo] = valor; desenharConta(); };
+  const grupos = Object.entries(PERSONAGEM_OPCOES).map(([campo, { titulo, itens, cores }]) => el("div", { class: "grupo-personagem" },
+    el("span", { class: "titulo-grupo" }, titulo),
+    el("div", { class: "opcoes-personagem" }, cores
+      ? Object.entries(cores).map(([valor, cor]) => el("button", {
+        type: "button", class: `cor-personagem${r[campo] === valor ? " ativa" : ""}`, style: `background:${cor}`,
+        title: valor, "aria-label": `${titulo}: ${valor}`, "aria-pressed": String(r[campo] === valor), onclick: () => escolher(campo, valor),
+      }))
+      : Object.entries(itens).map(([valor, nome]) => el("button", {
+        type: "button", class: `chip-personagem${r[campo] === valor ? " ativa" : ""}`, "aria-pressed": String(r[campo] === valor),
+        onclick: () => escolher(campo, valor),
+      }, nome)))));
+  return [
+    el("h2", { id: "conta-titulo" }, "🎨 Meu personagem"),
+    el("p", {}, "É ele que empurra o carrinho enquanto o site busca as ofertas para você."),
+    previa,
+    ...grupos,
+    erro,
+    el("button", { class: "botao-primario", type: "button", onclick: () => salvarPersonagem() }, "Salvar meu personagem"),
+    el("div", { class: "links-conta" },
+      el("button", { class: "botao-link", type: "button", onclick: () => { conta.etapa = "entrar"; conta.erro = ""; desenharConta(); } }, "Voltar"),
+      conta.usuario.personagem && el("button", { class: "botao-link", type: "button", onclick: () => salvarPersonagem(null) }, "Usar os personagens do site")),
+  ];
+}
+
+function salvarPersonagem(personagem = conta.rascunho) {
+  return comEspera(null, async () => {
+    const dados = await chamarConta("PUT", "/personagem", { personagem });
+    conta.usuario.personagem = dados.personagem;
+    conta.etapa = "entrar";
+    toast(dados.personagem ? "Personagem salvo! Ele aparece nas suas buscas 🛒" : "Pronto: o site volta a sortear os personagens");
+  });
+}
+
 function abrirConta() {
   conta.erro = "";
   if (!conta.usuario && conta.etapa !== "nova-senha") conta.etapa = "entrar";
@@ -307,13 +355,17 @@ function desenharConta() {
   const erro = conta.erro && el("p", { class: "erro-conta", role: "alert" }, conta.erro);
   let conteudo;
 
-  if (conta.usuario) {
+  if (conta.usuario && conta.etapa === "personagem") {
+    conteudo = editorPersonagem(erro);
+  } else if (conta.usuario) {
     conteudo = [
       el("h2", { id: "conta-titulo" }, `Olá, ${conta.usuario.nome.split(" ")[0]}! 👋`),
       el("div", { class: "conta-dados" }, el("strong", {}, conta.usuario.nome), el("span", {}, conta.usuario.email)),
       el("p", {}, `Você tem ${favoritos.length} ${favoritos.length === 1 ? "item" : "itens"} no carrinho, salvos na sua conta.`),
       erro,
       el("button", { class: "botao-primario", type: "button", onclick: () => { $("#janela-conta").close(); abrirPainel(true); } }, "🛒 Ver meu carrinho"),
+      el("button", { class: "botao-secundario botao-personagem", type: "button", onclick: abrirEditorPersonagem },
+        conta.usuario.personagem ? "🎨 Mudar meu personagem" : "🎨 Montar meu personagem"),
       el("div", { class: "links-conta" },
         el("button", { class: "botao-link", type: "button", onclick: sair }, "Sair desta conta"),
         el("button", { class: "botao-link perigo", type: "button", onclick: excluirConta }, "Excluir minha conta")),
@@ -359,7 +411,7 @@ function desenharConta() {
         el("div", { class: "links-conta" }, cadastro
           ? [linkEtapa("entrar", "Já tenho conta")]
           : [linkEtapa("cadastrar", "Criar conta"), linkEtapa("esqueci", "Esqueci minha senha")]),
-        el("p", { class: "legal" }, "Guardamos só o seu nome, e-mail e os itens do carrinho. Ao continuar, você concorda com a ",
+        el("p", { class: "legal" }, "Guardamos só o seu nome, e-mail, os itens do carrinho e o personagem, se você montar um. Ao continuar, você concorda com a ",
           el("a", { href: "privacidade", target: "_blank" }, "Política de Privacidade"), ".")),
     ];
   }
@@ -786,7 +838,7 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=37&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=38&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -979,84 +1031,123 @@ function desenharResultados() {
   botao.textContent = `Ver também ${acessorios} ${acessorios === 1 ? "acessório ou peça" : "acessórios e peças"} para “${estado.q}”`;
 }
 
-// Animação enquanto busca: alguém empurra um carrinho de um lado ao outro, olhando para os lados, e o carrinho
-// vai enchendo de produtos pelo caminho. Dois modelos guardados; para trocar, mude MODELO_ANIMACAO.
-//   v1 = boneco de camiseta amarela + carrinho do logo (cesta amarela; produtos aparecem por cima)
-//   v2 = moça de rabo de cavalo + carrinho de supermercado de grade (produtos aparecem por dentro)
-const MODELO_ANIMACAO = "v2";
-const ANIMACOES = {
-  v1: `<div class="anim-andando"><svg viewBox="0 0 165 100" aria-hidden="true">
-  <g class="anim-vento" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round">
-    <path d="M2 50 H22"/><path d="M8 66 H26"/><path d="M0 82 H18"/>
-  </g>
-  <g class="anim-corpo">
-    <g class="anim-perna" style="--fase:0s"><path d="M45 62 V90" stroke="#1e1b4b" stroke-width="7" stroke-linecap="round"/><path d="M44 92 H52" stroke="#fff" stroke-width="5" stroke-linecap="round"/></g>
-    <path d="M50 39 L75 29" stroke="#e8a87c" stroke-width="5" stroke-linecap="round"/>
-    <rect x="36" y="31" width="19" height="33" rx="8" fill="#fde047"/>
-    <g class="anim-perna" style="--fase:-.25s"><path d="M45 62 V90" stroke="#312e81" stroke-width="7" stroke-linecap="round"/><path d="M44 92 H52" stroke="#fff" stroke-width="5" stroke-linecap="round"/></g>
-    <path d="M47 38 L75 28" stroke="#f5c09a" stroke-width="5" stroke-linecap="round"/>
-    <g class="anim-cabeca">
-      <circle cx="46" cy="19" r="11" fill="#f5c09a"/>
-      <path d="M35 18 a11 11 0 0 1 22 -2 c-6 -1 -12 -4 -14 -7 c-2 4 -5 7 -8 9z" fill="#3b2314"/>
-      <g class="anim-olhos" fill="#1e1b4b"><circle cx="43" cy="20" r="1.6"/><circle cx="50" cy="20" r="1.6"/></g>
-      <path d="M44 25 q2.5 1.8 5 0" fill="none" stroke="#9a3412" stroke-width="1.4" stroke-linecap="round"/>
-    </g>
-    <g class="anim-produto p1"><rect x="96" y="26" width="18" height="16" rx="2" fill="#ee4d2d"/><path d="M96 31 H114 M105 26 V31" stroke="#fff" stroke-width="1.5"/></g>
-    <g class="anim-produto p2"><rect x="117" y="22" width="10" height="20" rx="2.5" fill="#6d28d9" stroke="#fff" stroke-width="1.5"/></g>
-    <g class="anim-produto p3"><rect x="131" y="25" width="12" height="17" rx="3" fill="#ec4899"/><rect x="134" y="20" width="6" height="5" rx="1" fill="#fde047"/></g>
-    <g class="anim-produto p4"><rect x="140" y="27" width="13" height="15" rx="2" fill="#22c55e"/><path d="M146.5 27 V42 M140 33 H153" stroke="#fff" stroke-width="1.5"/></g>
-    <g class="anim-produto p5"><rect x="99" y="11" width="25" height="16" rx="2" fill="#1e1b4b" stroke="#fff" stroke-width="1.5"/><path d="M106 30 L111 27 L116 30" fill="none" stroke="#fff" stroke-width="1.5"/></g>
-    <g class="anim-produto p6"><path d="M127 6 h15 l5 6 -5 6 h-15 z" fill="#fde047" stroke="#fff" stroke-width="1.5"/><text x="135" y="15.5" font-size="8" font-weight="800" fill="#7c2d12" text-anchor="middle">R$</text></g>
-    <g transform="translate(70 18) scale(.75)">
-      <path d="M6 12 H22 L36 72 H96" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M27 26 H110 L100 60 H35 Z" fill="#fbbf24" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
-    </g>
-  </g>
-  <g class="anim-roda"><circle cx="103" cy="87" r="7" fill="#fff"/><path d="M103 81.5 V92.5 M97.5 87 H108.5" stroke="#9333ea" stroke-width="2"/></g>
-  <g class="anim-roda"><circle cx="136" cy="87" r="7" fill="#fff"/><path d="M136 81.5 V92.5 M130.5 87 H141.5" stroke="#9333ea" stroke-width="2"/></g>
-</svg></div>`,
-  v2: `<div class="anim-andando"><svg viewBox="0 0 165 100" aria-hidden="true">
-  <g class="anim-vento" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round">
-    <path d="M2 50 H22"/><path d="M8 66 H26"/><path d="M0 82 H18"/>
-  </g>
-  <g class="anim-corpo">
-    <g class="anim-perna" style="--fase:0s"><path d="M45 62 V90" stroke="#1e3a8a" stroke-width="7" stroke-linecap="round"/><path d="M44 92 H52" stroke="#f472b6" stroke-width="5" stroke-linecap="round"/></g>
-    <path d="M50 39 L70 31" stroke="#a0673f" stroke-width="5" stroke-linecap="round"/>
-    <path d="M36 40 a8 8 0 0 1 8 -9 h3 a8 8 0 0 1 8 9 v22 h-19 z" fill="#14b8a6"/>
-    <g class="anim-perna" style="--fase:-.25s"><path d="M45 62 V90" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round"/><path d="M44 92 H52" stroke="#f472b6" stroke-width="5" stroke-linecap="round"/></g>
-    <path d="M47 38 L70 30" stroke="#b97a4f" stroke-width="5" stroke-linecap="round"/>
-    <g class="anim-cabeca">
-      <g class="anim-rabo"><path d="M36 14 c-9 1 -12 9 -9 17 c2 -5 5 -8 10 -9z" fill="#1f1209"/><circle cx="36" cy="14" r="2.5" fill="#f472b6"/></g>
-      <circle cx="46" cy="19" r="11" fill="#b97a4f"/>
-      <path d="M35 19 a11 11 0 0 1 22 -3 c-4 0 -9 -2 -12 -6 c-3 4 -6 7 -10 9z" fill="#1f1209"/>
-      <g class="anim-olhos" fill="#1e1b4b"><circle cx="43" cy="20" r="1.6"/><circle cx="50" cy="20" r="1.6"/></g>
-      <circle cx="41" cy="23.5" r="1.8" fill="#f472b6" opacity=".5"/><circle cx="52" cy="23.5" r="1.8" fill="#f472b6" opacity=".5"/>
-      <path d="M44 25 q2.5 2 5 0" fill="none" stroke="#7c2d12" stroke-width="1.4" stroke-linecap="round"/>
-    </g>
-    <g class="anim-produto p1"><rect x="88" y="44" width="18" height="16" rx="2" fill="#ee4d2d"/><path d="M88 49 H106 M97 44 V49" stroke="#fff" stroke-width="1.5"/></g>
-    <g class="anim-produto p2"><rect x="109" y="40" width="10" height="20" rx="2.5" fill="#6d28d9" stroke="#fff" stroke-width="1.5"/></g>
-    <g class="anim-produto p3"><rect x="122" y="43" width="12" height="17" rx="3" fill="#ec4899"/><rect x="125" y="38" width="6" height="5" rx="1" fill="#fde047"/></g>
-    <g class="anim-produto p4"><rect x="136" y="45" width="11" height="15" rx="2" fill="#22c55e"/><path d="M141.5 45 V60 M136 51 H147" stroke="#fff" stroke-width="1.5"/></g>
-    <g class="anim-produto p5"><rect x="92" y="26" width="25" height="16" rx="2" fill="#1e1b4b" stroke="#fff" stroke-width="1.5"/><path d="M99 45 L104 42 L109 45" fill="none" stroke="#fff" stroke-width="1.5"/></g>
-    <g class="anim-produto p6"><path d="M120 22 h15 l5 6 -5 6 h-15 z" fill="#fde047" stroke="#fff" stroke-width="1.5"/><text x="128" y="31.5" font-size="8" font-weight="800" fill="#7c2d12" text-anchor="middle">R$</text></g>
-    <g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M80 34 H154 L146 63 H88 Z" fill="rgba(255,255,255,.12)" stroke-width="3.5"/>
-      <path d="M95 34 L98 63 M110 34 L111 63 M125 34 L124 63 M140 34 L136 63 M82 44 H151 M85 54 H148" stroke-width="1.5" opacity=".8"/>
-      <path d="M72 30 L80 34 M88 63 L92 72 H144 L146 63" stroke-width="3.5"/>
-    </g>
-    <rect x="65" y="26" width="10" height="7" rx="3.5" fill="#ef4444" transform="rotate(25 70 29.5)"/>
-  </g>
-  <g class="anim-roda"><circle cx="98" cy="84" r="7" fill="#fff"/><circle cx="98" cy="84" r="3" fill="#ef4444"/><path d="M98 79 V89 M93 84 H103" stroke="#ef4444" stroke-width="1.5"/></g>
-  <g class="anim-roda"><circle cx="138" cy="84" r="7" fill="#fff"/><circle cx="138" cy="84" r="3" fill="#ef4444"/><path d="M138 79 V89 M133 84 H143" stroke="#ef4444" stroke-width="1.5"/></g>
-  <path d="M98 72 V77 M138 72 V77" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-</svg></div>`,
+// Animação enquanto busca: um personagem empurra um carrinho de um lado ao outro, olhando para os lados, e o
+// carrinho vai enchendo de produtos pelo caminho. Quem tem conta pode montar o seu ("Meu personagem");
+// sem escolha, o site sorteia um dos dois modelos prontos a cada busca.
+// As opções valem também no servidor (OPCOES_PERSONAGEM em lib/conta.js): mudar nos dois lugares.
+const PERSONAGEM_OPCOES = {
+  cabelo: { titulo: "Cabelo", itens: { curto: "Curto", rabo: "Rabo de cavalo", cacheado: "Cacheado", careca: "Careca" } },
+  corCabelo: { titulo: "Cor do cabelo", cores: { preto: "#1f1209", castanho: "#5b3a1e", loiro: "#e9c46a", ruivo: "#c2410c", grisalho: "#a8a29e" } },
+  pele: { titulo: "Pele", cores: { clara: "#f5c09a", media: "#e0a97a", morena: "#b97a4f", parda: "#8d5524", negra: "#5c3a21" } },
+  rosto: { titulo: "Rosto", itens: { sorriso: "😊 Sorriso", oculos: "🤓 Óculos", barba: "🧔 Barba", piscadinha: "😉 Piscadinha" } },
+  roupa: { titulo: "Roupa", cores: { amarelo: "#fde047", verde: "#14b8a6", azul: "#3b82f6", vermelho: "#ef4444", rosa: "#f472b6", preto: "#27272a" } },
+  carrinho: { titulo: "Carrinho", itens: { logo: "Do logo", grade: "De supermercado" } },
 };
-const ANIMACAO_BUSCANDO = ANIMACOES[MODELO_ANIMACAO];
+// Os dois modelos prontos (v1 = boneco de camiseta amarela + carrinho do logo; v2 = moça + carrinho de grade)
+const PERSONAGENS_PRONTOS = [
+  { cabelo: "curto", corCabelo: "castanho", pele: "clara", rosto: "sorriso", roupa: "amarelo", carrinho: "logo" },
+  { cabelo: "rabo", corCabelo: "preto", pele: "morena", rosto: "sorriso", roupa: "verde", carrinho: "grade" },
+];
+
+// Cor um pouco mais escura (braço e perna de trás)
+const escurecer = (hex, f = 0.82) => `#${[1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * f).toString(16).padStart(2, "0")).join("")}`;
+
+// Produtos que caem no carrinho (classe p1…p6 = ordem em que caem); dx/dy = onde ficam em cada carrinho
+function produtosNoCarrinho(dx, dy) {
+  const g = (n, conteudo) => `<g class="anim-produto p${n}" transform="translate(${dx} ${dy})">${conteudo}</g>`;
+  return [
+    g(1, '<rect x="96" y="26" width="18" height="16" rx="2" fill="#ee4d2d"/><path d="M96 31 H114 M105 26 V31" stroke="#fff" stroke-width="1.5"/>'),
+    g(2, '<rect x="117" y="22" width="10" height="20" rx="2.5" fill="#6d28d9" stroke="#fff" stroke-width="1.5"/>'),
+    g(3, '<rect x="131" y="25" width="12" height="17" rx="3" fill="#ec4899"/><rect x="134" y="20" width="6" height="5" rx="1" fill="#fde047"/>'),
+    g(4, '<rect x="140" y="27" width="13" height="15" rx="2" fill="#22c55e"/><path d="M146.5 27 V42 M140 33 H153" stroke="#fff" stroke-width="1.5"/>'),
+    g(5, '<rect x="99" y="11" width="25" height="16" rx="2" fill="#1e1b4b" stroke="#fff" stroke-width="1.5"/><path d="M106 30 L111 27 L116 30" fill="none" stroke="#fff" stroke-width="1.5"/>'),
+    g(6, '<path d="M127 6 h15 l5 6 -5 6 h-15 z" fill="#fde047" stroke="#fff" stroke-width="1.5"/><text x="135" y="15.5" font-size="8" font-weight="800" fill="#7c2d12" text-anchor="middle">R$</text>'),
+  ].join("");
+}
+
+const CARRINHOS = {
+  // Carrinho do logo: cesta amarela; os produtos ficam atrás dela e aparecem por cima
+  logo: {
+    mao: [75, 28],
+    desenho: () => `${produtosNoCarrinho(0, 0)}
+      <g transform="translate(70 18) scale(.75)">
+        <path d="M6 12 H22 L36 72 H96" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M27 26 H110 L100 60 H35 Z" fill="#fbbf24" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
+      </g>`,
+    rodas: [[103, 87], [136, 87]],
+    corRoda: "#9333ea",
+  },
+  // Carrinho de supermercado de grade: os produtos aparecem por dentro
+  grade: {
+    mao: [70, 30],
+    desenho: () => `${produtosNoCarrinho(-8, 18)}
+      <g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M80 34 H154 L146 63 H88 Z" fill="rgba(255,255,255,.12)" stroke-width="3.5"/>
+        <path d="M95 34 L98 63 M110 34 L111 63 M125 34 L124 63 M140 34 L136 63 M82 44 H151 M85 54 H148" stroke-width="1.5" opacity=".8"/>
+        <path d="M72 30 L80 34 M88 63 L92 72 H144 L146 63 M98 72 V77 M138 72 V77" stroke-width="3.5"/>
+      </g>
+      <rect x="65" y="26" width="10" height="7" rx="3.5" fill="#ef4444" transform="rotate(25 70 29.5)"/>`,
+    rodas: [[98, 84], [138, 84]],
+    corRoda: "#ef4444",
+  },
+};
+
+function desenharCabeca(p) {
+  const pele = PERSONAGEM_OPCOES.pele.cores[p.pele];
+  const cabelo = PERSONAGEM_OPCOES.corCabelo.cores[p.corCabelo];
+  const atras = {
+    rabo: `<g class="anim-rabo"><path d="M36 14 c-9 1 -12 9 -9 17 c2 -5 5 -8 10 -9z" fill="${cabelo}"/><circle cx="36" cy="14" r="2.5" fill="#f472b6"/></g>`,
+    cacheado: `<circle cx="46" cy="16" r="14" fill="${cabelo}"/>`,
+  }[p.cabelo] || "";
+  const frente = {
+    curto: `<path d="M35 18 a11 11 0 0 1 22 -2 c-6 -1 -12 -4 -14 -7 c-2 4 -5 7 -8 9z" fill="${cabelo}"/>`,
+    rabo: `<path d="M35 19 a11 11 0 0 1 22 -3 c-4 0 -9 -2 -12 -6 c-3 4 -6 7 -10 9z" fill="${cabelo}"/>`,
+    cacheado: `<path d="M35 17 c2 -6 6 -8 11 -8 c5 0 9 2 11 8 c-3 -2 -5 -2 -7 0 c-2 -2 -5 -2 -7 0 c-2 -2 -5 -2 -8 0z" fill="${cabelo}"/>`,
+    careca: '<path d="M40 11 q4 -3 9 -1" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".5"/>',
+  }[p.cabelo];
+  const olhos = p.rosto === "piscadinha"
+    ? '<g class="anim-olhos" fill="#1e1b4b"><path d="M41.5 20 q1.5 -1.5 3 0" fill="none" stroke="#1e1b4b" stroke-width="1.3" stroke-linecap="round"/><circle cx="50" cy="20" r="1.6"/></g>'
+    : '<g class="anim-olhos" fill="#1e1b4b"><circle cx="43" cy="20" r="1.6"/><circle cx="50" cy="20" r="1.6"/></g>';
+  const extra = {
+    oculos: '<g fill="rgba(255,255,255,.25)" stroke="#1e1b4b" stroke-width="1.3"><circle cx="42.5" cy="20" r="3.3"/><circle cx="50.5" cy="20" r="3.3"/><path d="M45.8 20 H47.2" fill="none"/></g>',
+    barba: `<path d="M35.5 20 c1 9 6 14 10.5 14 c4.5 0 9.5 -5 10.5 -14 c-2 4 -5 5 -7 4 c-2 -1 -5 -1 -7 0 c-2 1 -5 0 -7 -4z" fill="${cabelo}"/>`,
+  }[p.rosto] || "";
+  const bochechas = p.cabelo === "rabo" ? '<circle cx="41" cy="23.5" r="1.8" fill="#f472b6" opacity=".5"/><circle cx="52" cy="23.5" r="1.8" fill="#f472b6" opacity=".5"/>' : "";
+  const boca = p.rosto === "barba" ? "" : '<path d="M44 25 q2.5 1.8 5 0" fill="none" stroke="#7c2d12" stroke-width="1.4" stroke-linecap="round"/>';
+  return `<g class="anim-cabeca">${atras}<circle cx="46" cy="19" r="11" fill="${pele}"/>${frente}${olhos}${bochechas}${boca}${extra}</g>`;
+}
+
+function desenharPersonagem(p) {
+  const pele = PERSONAGEM_OPCOES.pele.cores[p.pele];
+  const roupa = PERSONAGEM_OPCOES.roupa.cores[p.roupa];
+  const carrinho = CARRINHOS[p.carrinho];
+  const [mx, my] = carrinho.mao;
+  const perna = (cor, fase) => `<g class="anim-perna" style="--fase:${fase}"><path d="M45 62 V90" stroke="${cor}" stroke-width="7" stroke-linecap="round"/><path d="M44 92 H52" stroke="#fff" stroke-width="5" stroke-linecap="round"/></g>`;
+  const roda = ([x, y]) => `<g class="anim-roda"><circle cx="${x}" cy="${y}" r="7" fill="#fff"/><path d="M${x} ${y - 5.5} V${y + 5.5} M${x - 5.5} ${y} H${x + 5.5}" stroke="${carrinho.corRoda}" stroke-width="2"/></g>`;
+  return `<div class="anim-andando"><svg viewBox="0 0 165 100" aria-hidden="true">
+  <g class="anim-vento" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round">
+    <path d="M2 50 H22"/><path d="M8 66 H26"/><path d="M0 82 H18"/>
+  </g>
+  <g class="anim-corpo">
+    ${perna("#1e1b4b", "0s")}
+    <path d="M50 39 L${mx} ${my + 1}" stroke="${escurecer(pele)}" stroke-width="5" stroke-linecap="round"/>
+    <rect x="36" y="31" width="19" height="33" rx="8" fill="${roupa}"/>
+    ${perna("#312e81", "-.25s")}
+    <path d="M47 38 L${mx} ${my}" stroke="${pele}" stroke-width="5" stroke-linecap="round"/>
+    ${desenharCabeca(p)}
+    ${carrinho.desenho()}
+  </g>
+  ${carrinho.rodas.map(roda).join("")}
+</svg></div>`;
+}
+
+// O personagem escolhido na conta; sem escolha, um dos prontos, sorteado a cada busca
+const personagemDaVez = () => conta.usuario?.personagem || PERSONAGENS_PRONTOS[Math.floor(Math.random() * PERSONAGENS_PRONTOS.length)];
 
 function desenharResumoBuscando() {
   const cat = navegandoCategoria();
   const animacao = el("div", { class: "anim-buscando" });
-  animacao.innerHTML = ANIMACAO_BUSCANDO;
+  animacao.innerHTML = desenharPersonagem(personagemDaVez());
   $("#resumo").replaceChildren(el("div", {}, el("h1", {}, el("span", {}, "Buscando "), cat ? `${cat.nome}…` : `“${estado.q}”…`), el("p", {}, "Comparando preços nas lojas")), animacao);
 }
 
