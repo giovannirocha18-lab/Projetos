@@ -59,12 +59,13 @@ a { color: inherit; }
 .topo-faixa { font-size: .8rem; }
 .numeros-faixa::before { content: " · "; }
 /* "Aqui você encontra milhões de produtos de mais de N lojas" (só na página inicial) */
+/* Mesmo card roxo dos resultados da busca (.resumo), pedido do Giovanni */
 .numeros-inicio {
-  margin: 0 0 14px; padding: 10px 16px; border-radius: 12px; font-size: .95rem; color: var(--texto, #1f1235);
-  background: linear-gradient(90deg, rgba(124, 58, 237, .09), rgba(219, 39, 119, .09)); border: 1px solid rgba(124, 58, 237, .18);
+  margin: 0 0 14px; padding: 16px 24px; border-radius: 20px; font-size: 1rem; color: #fff;
+  background: var(--gradiente); box-shadow: var(--sombra-forte);
 }
-.numeros-inicio strong { color: #6d28d9; }
-.numeros-inicio .aviso-cupom { display: block; margin-top: 2px; font-size: .78rem; color: var(--suave); }
+.numeros-inicio strong { color: #fff; }
+.numeros-inicio .aviso-cupom { display: block; margin-top: 4px; font-size: .78rem; opacity: .85; }
 .nota-lojas { margin: -2px 0 10px; font-size: .8rem; line-height: 1.35; color: var(--suave); }
 .topo-faixa-linha { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 30px; opacity: .92; }
 .topo-links { display: flex; gap: 14px; }
