@@ -882,6 +882,20 @@ function nivelDesconto(o) {
   return o.desconto > DESCONTO_SUSPEITO ? 2 : 1;
 }
 
+// Categoria(s) do que foi buscado, tirada dos próprios resultados: as categorias com mais de 20% dos produtos que
+// começam pelo que foi buscado ("ar condicionado" -> Eletrodomésticos; "colchão" -> Cama e banho e Móveis, porque as
+// lojas põem nas duas). "" = sem categoria. Sem busca, ou com menos de 5 desses produtos: null (não separa)
+const PARTE_DA_CATEGORIA = 0.2;
+function categoriasDaBusca() {
+  if (!estado.q || estado.cat) return null; // dentro de uma categoria aberta já vale a categoria dela
+  const base = estado.ofertas.filter((o) => o.principal && !o.acessorio && !o.variante && !o.foraDoTipo);
+  if (base.length < 5) return null;
+  const conta = new Map();
+  for (const o of base) conta.set(o.secao || "", (conta.get(o.secao || "") || 0) + 1);
+  const cats = [...conta].filter(([, n]) => n > base.length * PARTE_DA_CATEGORIA).map(([c]) => c);
+  return cats.length ? new Set(cats) : null;
+}
+
 // Preço típico do produto buscado: mediana dos que começam pelo que foi buscado (5 ou mais), sem versões de nicho
 const PARTE_DO_TIPICO = 0.3;
 function precoTipico(lista) {
@@ -915,7 +929,11 @@ function filtrar() {
     economia: (a, b) => nivelDesconto(a) - nivelDesconto(b) || economia(b) - economia(a),
     vendidos: (a, b) => (b.vendidos || 0) - (a.vendidos || 0),
   }[ordem];
-  if (!ordenar) return lista;
+  // Com busca, qualquer ordem segue a categoria do que foi buscado (regra do Giovanni, 17/10/2026): primeiro os produtos
+  // dessa categoria, depois os de outras. Sem busca ("Ofertas do dia"), a ordem vale para todas as ofertas
+  const daBusca = categoriasDaBusca();
+  const foraDaBusca = (o) => (daBusca && !o.acessorio && !daBusca.has(o.secao || "") ? 1 : 0);
+  if (!ordenar) return daBusca ? [...lista].sort((a, b) => foraDaBusca(a) - foraDaBusca(b)) : lista;
   // Ordenar por preço/desconto não pode trazer o "Pôster Invictus" antes do perfume buscado, nem o "Comando Ar
   // Condicionado Ford Fiesta" e o resfriador de R$ 300 antes dos splits (print do Giovanni, 17/10/2026). Primeiro o produto
   // de verdade: começa pelo que foi buscado (principal), não é versão de nicho nem de carro e custa pelo menos 30% do preço
@@ -928,7 +946,7 @@ function filtrar() {
     if (comPrincipal && !o.principal) return 2;
     return o.variante || o.foraDoTipo || (tipico && o.preco < tipico * PARTE_DO_TIPICO) ? 1 : 0;
   };
-  return [...lista].sort((a, b) => grupo(a) - grupo(b) || ordenar(a, b));
+  return [...lista].sort((a, b) => foraDaBusca(a) - foraDaBusca(b) || grupo(a) - grupo(b) || ordenar(a, b));
 }
 
 // Categorias nos resultados: "invictus" traz perfume, pôster e camiseta; o visitante marca as que quer ver.
