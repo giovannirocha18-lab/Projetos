@@ -549,6 +549,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   quantidade) dentro do card roxo; clicar liga/desliga; "Limpar" desliga todas e "Marcar todas" volta (`lojasNoResumo` no `app.js`,
   `.chip-loja` no CSS). A caixa "Lojas nesta lista" da barra lateral (`#caixa-lojas`) agora só aparece nas "Ofertas do dia".
   Testado no ar (computador e celular).
+  ✅ **Preço com cupom (17/10/2026, print Invictus: Shopee R$ 676 "no Pix com cupom" x site R$ 759,90)**: a API de afiliados só
+  manda o preço sem cupom; cupom/Pix varia por produto, campanha e conta. Ler a página = proibido. Feito (pedido dele, sem poluir o
+  cartão): `AVISO_CUPOM` "💸 Preços sem cupom: na loja pode sair ainda mais barato com cupom ou Pix." uma vez só, no card de
+  resultados e na faixa das "Ofertas do dia". Ideias éticas sugeridas e não feitas: perguntar ao suporte de Afiliados da Shopee se
+  a API tem cupons; cupons oficiais da Lomadee ("Cupons") e Awin ("Minhas Ofertas"); curadoria manual; "Achei mais barato" no futuro.
   Ainda fracos: "bateria carro", "kindle", "protetor solar" (para-brisa). Buscas prontas só voltam na madrugada.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
   Web Analytics > Enable); o CSP já libera cloudflareinsights. Aguardando ele.
