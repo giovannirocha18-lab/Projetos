@@ -1578,12 +1578,18 @@ function preencherBusca() {
 }
 
 // Destaca no menu a categoria que está sendo vista e avisa na caixa de busca
+// No celular os exemplos ("air fryer…") eram cortados: lá fica só o começo (pedido do Giovanni)
 const PLACEHOLDER_BUSCA = $("[data-busca] input").placeholder;
+const PLACEHOLDER_CURTO = "Busque e compare preços";
+const telaPequena = matchMedia("(max-width: 640px)");
 function marcarCategoria() {
   const cat = categoriaAtual();
   document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", b.dataset.nome === cat));
-  document.querySelectorAll("[data-busca] input").forEach((i) => { i.placeholder = cat ? `Buscar em ${cat}…` : PLACEHOLDER_BUSCA; });
+  const padrao = telaPequena.matches ? PLACEHOLDER_CURTO : PLACEHOLDER_BUSCA;
+  document.querySelectorAll("[data-busca] input").forEach((i) => { i.placeholder = cat ? `Buscar em ${cat}…` : padrao; });
 }
+marcarCategoria();
+telaPequena.addEventListener("change", marcarCategoria);
 
 document.querySelectorAll("[data-ordem-cat]").forEach((b) => b.addEventListener("click", () => {
   ordemCategorias = b.dataset.ordemCat;
