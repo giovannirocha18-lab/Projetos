@@ -519,6 +519,19 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   "Afiliados e Criadores": CPF, até 16% venda direta / 8% indireta, saque no Mercado Pago a partir de R$ 30 (3 compradores),
   validação até 60 dias; blogs divergem na janela (24 h x 30 dias). Próximo, se ele quiser: inscrever-se + criar app em
   developers.mercadolivre.com.br + chaves no Cloudflare → Claude testar `/products/search` e `/highlights` com token; senão curadoria.
+- **Auditoria das buscas (17/10/2026, 6ª sessão, pergunta do Giovanni: "buscas 100% equilibradas?")**: ~70 buscas reais
+  baixadas do site e conferidas. Corrigido (cache v=47): (1) **sem acento as lojas traziam resultados piores** ("fogao": Lomadee
+  0 fogões x 36; Shopee só 75 iguais) → `ACENTUADAS` em `lib/vocabulario.js` (~360 palavras dos títulos reais) põe o acento antes
+  de buscar, sem aviso; vale também no `exato=1`. (2) `termoNasLojas`: "tv"/"televisão" pesquisa "smart tv" (vinha cabo, TV Stick,
+  livro) e "impressora" pesquisa "impressora multifuncional" (vinha peça de impressora 3D); o site mostra o digitado.
+  (3) `PECAS_SEMPRE` (síncrono, extrusora, hotend, nozzle) + "tubo interno" e `DEPOIS` + coletor; preço como prova vale também no
+  nível 2 abaixo de 8% (`PARTE_DO_PRECO_TIPICO`). (4) Lomadee com preço < R$ 2 fora (PCYES manda R$ 1). (5) `VARIANTES` (mini,
+  portátil, camping, veicular, idoso, infantil, caneta, resfriador, usado, stick, colecionável) recuam 0,25 se a busca não pede:
+  "geladeira" agora abre com geladeiras de verdade, "celular" sem os de idoso no topo, "ar condicionado" com splits.
+  "Pé" é peça só como 1ª palavra (`PECAS_NA_FRENTE`; "Meias de pé" é produto). (6) `semRepetidos` junta mesmo título da mesma loja com preço até 15% diferente. Casos novos no `testes/busca.mjs` (ORDEM, etc.).
+  **Falta (sugerido, não feito)**: categoria "Eletrodomésticos" (geladeira, fogão, micro-ondas, máquina de lavar, ar, TV não
+  têm categoria em `lib/categorias.js`); "bateria carro", "kindle", "protetor solar" (para-brisa) ainda fracos; "maquina de lavar"
+  traz "máquina de lavar sapatos" da AliExpress. As buscas prontas (v=47) só voltam na madrugada (ou disparando o robô).
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
   Web Analytics > Enable); o CSP já libera cloudflareinsights. Aguardando ele.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
@@ -565,7 +578,8 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 17/10/2026, fim da 5ª sessão)
+## Próximos passos (atualizado 17/10/2026, 6ª sessão)
+- Giovanni: decidir se cria a categoria "Eletrodomésticos" (ver "Auditoria das buscas").
 - Giovanni: ligar o Web Analytics do Cloudflare (ver "Visitas"); decidir sobre o Mercado Livre (inscrição + app de desenvolvedor).
 - Giovanni: testar no site a correção de digitação, as sugestões da busca, o aviso "não está à venda" e o botão "Comprar / na loja" no celular.
 - Ideia pendente: alerta de preço por e-mail; contar cliques em "Comprar" por loja quando houver visitas.
