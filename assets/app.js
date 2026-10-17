@@ -1549,7 +1549,14 @@ function abrirFiltros(abrir) {
 // A barra lateral gruda logo abaixo do cabeçalho (que muda de altura no celular)
 new ResizeObserver(() => document.documentElement.style.setProperty("--altura-topo", `${$("#topo").offsetHeight}px`)).observe($("#topo"));
 document.querySelectorAll("[data-busca]").forEach(prepararBusca);
-document.querySelectorAll("[data-inicio]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); irPara(""); }));
+// Logo: volta ao começo de tudo (sem busca, sem categoria, filtros e ordem zerados)
+document.querySelectorAll("[data-inicio]").forEach((a) => a.addEventListener("click", (e) => {
+  e.preventDefault();
+  zerarFiltros();
+  $("input[name=ordem][value=relevancia]").checked = true;
+  document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
+  irPara("");
+}));
 
 let timerPreco;
 ["#preco-min", "#preco-max"].forEach((s) => $(s).addEventListener("input", () => {
