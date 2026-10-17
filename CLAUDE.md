@@ -545,6 +545,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   `categoriasDaBusca()` no `app.js` = categorias (`secao`, "" = sem) com mais de 20% dos produtos `principal` (5+), tiradas dos
   próprios resultados ("colchão" = Cama e banho + Móveis); esses vêm primeiro, os de outras categorias depois. Conferido no ar
   com as 5 ordens em "ar condicionado", "colchão", "vestido", "geladeira" e sem busca.
+  ✅ **Lojas no card de resultados (pedido dele, 17/10/2026)**: na busca, "Lojas com ofertas:" com botões por loja (cor, nome,
+  quantidade) dentro do card roxo; clicar liga/desliga; "Limpar" desliga todas e "Marcar todas" volta (`lojasNoResumo` no `app.js`,
+  `.chip-loja` no CSS). A caixa "Lojas nesta lista" da barra lateral (`#caixa-lojas`) agora só aparece nas "Ofertas do dia".
+  Testado no ar (computador e celular).
   Ainda fracos: "bateria carro", "kindle", "protetor solar" (para-brisa). Buscas prontas só voltam na madrugada.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
   Web Analytics > Enable); o CSP já libera cloudflareinsights. Aguardando ele.
