@@ -979,7 +979,8 @@ function desenharResultados() {
   botao.textContent = `Ver também ${acessorios} ${acessorios === 1 ? "acessório ou peça" : "acessórios e peças"} para “${estado.q}”`;
 }
 
-// Animação enquanto busca: um boneco empurra o carrinho do logo de um lado ao outro, olhando para os lados
+// Animação enquanto busca: um boneco empurra o carrinho do logo de um lado ao outro, olhando para os lados,
+// e o carrinho vai enchendo de produtos pelo caminho (caem por trás da cesta e ficam aparecendo por cima)
 const ANIMACAO_BUSCANDO = `<div class="anim-andando"><svg viewBox="0 0 165 100" aria-hidden="true">
   <g class="anim-vento" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round">
     <path d="M2 50 H22"/><path d="M8 66 H26"/><path d="M0 82 H18"/>
@@ -996,6 +997,12 @@ const ANIMACAO_BUSCANDO = `<div class="anim-andando"><svg viewBox="0 0 165 100" 
       <g class="anim-olhos" fill="#1e1b4b"><circle cx="43" cy="20" r="1.6"/><circle cx="50" cy="20" r="1.6"/></g>
       <path d="M44 25 q2.5 1.8 5 0" fill="none" stroke="#9a3412" stroke-width="1.4" stroke-linecap="round"/>
     </g>
+    <g class="anim-produto p1"><rect x="96" y="26" width="18" height="16" rx="2" fill="#ee4d2d"/><path d="M96 31 H114 M105 26 V31" stroke="#fff" stroke-width="1.5"/></g>
+    <g class="anim-produto p2"><rect x="117" y="22" width="10" height="20" rx="2.5" fill="#6d28d9" stroke="#fff" stroke-width="1.5"/></g>
+    <g class="anim-produto p3"><rect x="131" y="25" width="12" height="17" rx="3" fill="#ec4899"/><rect x="134" y="20" width="6" height="5" rx="1" fill="#fde047"/></g>
+    <g class="anim-produto p4"><rect x="140" y="27" width="13" height="15" rx="2" fill="#22c55e"/><path d="M146.5 27 V42 M140 33 H153" stroke="#fff" stroke-width="1.5"/></g>
+    <g class="anim-produto p5"><rect x="99" y="11" width="25" height="16" rx="2" fill="#1e1b4b" stroke="#fff" stroke-width="1.5"/><path d="M106 30 L111 27 L116 30" fill="none" stroke="#fff" stroke-width="1.5"/></g>
+    <g class="anim-produto p6"><path d="M127 6 h15 l5 6 -5 6 h-15 z" fill="#fde047" stroke="#fff" stroke-width="1.5"/><text x="135" y="15.5" font-size="8" font-weight="800" fill="#7c2d12" text-anchor="middle">R$</text></g>
     <g transform="translate(70 18) scale(.75)">
       <path d="M6 12 H22 L36 72 H96" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M27 26 H110 L100 60 H35 Z" fill="#fbbf24" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>

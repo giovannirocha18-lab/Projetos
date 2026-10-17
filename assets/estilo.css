@@ -300,6 +300,20 @@ a { color: inherit; }
 .anim-vento path:nth-child(3) { animation-delay: .5s; }
 .anim-roda { transform-box: fill-box; transform-origin: center; animation: anim-roda .6s linear infinite; }
 @keyframes anim-andar { from { left: -150px; } to { left: 100%; } }
+/* Produtos caindo no carrinho, um de cada vez, no mesmo ritmo da caminhada (7 s): no fim o carrinho está cheio */
+.anim-produto { opacity: 0; }
+.anim-produto.p1 { animation: anim-encher-1 7s linear infinite; }
+.anim-produto.p2 { animation: anim-encher-2 7s linear infinite; }
+.anim-produto.p3 { animation: anim-encher-3 7s linear infinite; }
+.anim-produto.p4 { animation: anim-encher-4 7s linear infinite; }
+.anim-produto.p5 { animation: anim-encher-5 7s linear infinite; }
+.anim-produto.p6 { animation: anim-encher-6 7s linear infinite; }
+@keyframes anim-encher-1 { 0%, 8% { opacity: 0; transform: translateY(-45px); } 8.5% { opacity: 1; } 12% { transform: translateY(0); } 13% { transform: translateY(-3px); } 14%, 100% { opacity: 1; transform: translateY(0); } }
+@keyframes anim-encher-2 { 0%, 18% { opacity: 0; transform: translateY(-45px); } 18.5% { opacity: 1; } 22% { transform: translateY(0); } 23% { transform: translateY(-3px); } 24%, 100% { opacity: 1; transform: translateY(0); } }
+@keyframes anim-encher-3 { 0%, 28% { opacity: 0; transform: translateY(-45px); } 28.5% { opacity: 1; } 32% { transform: translateY(0); } 33% { transform: translateY(-3px); } 34%, 100% { opacity: 1; transform: translateY(0); } }
+@keyframes anim-encher-4 { 0%, 40% { opacity: 0; transform: translateY(-45px); } 40.5% { opacity: 1; } 44% { transform: translateY(0); } 45% { transform: translateY(-3px); } 46%, 100% { opacity: 1; transform: translateY(0); } }
+@keyframes anim-encher-5 { 0%, 52% { opacity: 0; transform: translateY(-45px); } 52.5% { opacity: 1; } 56% { transform: translateY(0); } 57% { transform: translateY(-3px); } 58%, 100% { opacity: 1; transform: translateY(0); } }
+@keyframes anim-encher-6 { 0%, 64% { opacity: 0; transform: translateY(-45px); } 64.5% { opacity: 1; } 68% { transform: translateY(0); } 69% { transform: translateY(-3px); } 70%, 100% { opacity: 1; transform: translateY(0); } }
 @keyframes anim-pulo { to { transform: translateY(-2px); } }
 @keyframes anim-passo { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
 @keyframes anim-cabeca {
