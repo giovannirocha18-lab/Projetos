@@ -489,7 +489,16 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   com 1–2 (`POUCOS_PRODUTOS`) → "Encontramos só N oferta(s)…". Nesse caso sem selo "Menor preço da busca". Conferido em 23 buscas
   reais (marcas como stanley/nike têm 11+ principais, não avisa). `PECAS` + eletrobomba, bomba, agitador, embreagem, atuador,
   pressostato, nivelador, pezinho, rolamento, dosador, tirante, carcaça; sinônimos Electrolux=Eletrolux, Lavadora=máquina de lavar
-  (menos alta pressão/louças). Cache v=45.
+  (menos alta pressão/louças). Cache v=45 (v=46 desde a correção de digitação).
+- **Correção de digitação + sugestões enquanto digita (17/10/2026, pedido do Giovanni: "eletrolux" só achava peças; o certo é
+  "electrolux")**: `lib/vocabulario.js` tem `MARCAS`, `ERROS` (erros comuns → certo; trocados antes de buscar), `POPULARES`
+  (movido do preparar-buscas) e termos produto+marca. `/api/buscar` responde com o `q` corrigido; o site mostra
+  "Corrigimos “…” · Buscar como digitei" (`&exato=1` não corrige) e, para marca parecida fora da lista ERROS, só
+  "Você quis dizer: …?" (`marcaParecida`: marcas de 7+ letras, 1 letra errada; 9+, 2; conferido com 3 mil palavras de títulos
+  reais para não sugerir "nivea" em "nivel"). Caixa de busca: `sugerir()` no `app.js` com o vocabulário de `/api/vocabulario`
+  (mais buscados no site em 30 dias por 2+ pessoas, populares, vitrines, marcas, erros; baixado 1 vez ao focar a caixa):
+  entende erro ("geladeria", "xiome"), completa com marca ("maquina de lavar ele" → electrolux). **Erro novo que o Giovanni
+  mandar → acrescentar em `ERROS` e no teste `CORRECOES` do `testes/busca.mjs`.** Cache v=46.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
