@@ -418,6 +418,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - **Animação da busca (17/10/2026, pedido do Giovanni)**: no quadro "Buscando…" um boneco empurra o carrinho do logo da esquerda
   para a direita, olhando para os lados (`ANIMACAO_BUSCANDO` no `app.js`, CSS `.anim-*`). A regra `prefers-reduced-motion` foi
   **tirada do site inteiro** (pedido dele: o Windows dele tem "Efeitos de animação" desligado e tudo ficava parado).
+- **AliExpress sem produto sem relação (17/10/2026, print do Giovanni: "batedeira" trazia capacitor de carro)**: na busca digitada,
+  `aliexpress.buscar` só aceita título que cita alguma palavra buscada (`citaAlgumaPalavra` em `lib/relevancia.js`; não exige todas
+  porque os títulos são traduzidos). Sinônimos novos: "fritadeira a/de/sem ar/óleo" = air fryer; "bateria portátil/externa",
+  "carregador portátil" = power bank (o detector de acessórios agora também usa `comSinonimos`). No site, buscar com uma categoria
+  aberta só filtra pela categoria se ela tiver o produto exato (`bate` e não acessório). Cache v=33.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)

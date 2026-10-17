@@ -784,7 +784,7 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=32&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=33&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -1041,8 +1041,9 @@ async function buscar(q) {
     estado.ofertas = semRepetidos(dados.ofertas);
     // Nada na categoria: o servidor buscou em tudo, e as próximas páginas também são de tudo
     if (dados.foraDaCategoria) { estado.foraDaCategoria = estado.cat; estado.cat = null; }
-    // Buscou dentro de uma categoria: começa mostrando só ela (as outras ficam para marcar)
-    if (estado.cat && !navegandoCategoria() && estado.ofertas.some((o) => o.secao === estado.cat)) estado.secoesSo = new Set([estado.cat]);
+    // Buscou dentro de uma categoria: começa mostrando só ela (as outras ficam para marcar).
+    // Só se a categoria tiver o produto buscado: "batedeira" em Automotivo mostrava só 2 itens sem relação.
+    if (estado.cat && !navegandoCategoria() && estado.ofertas.some((o) => o.secao === estado.cat && o.bate && !o.acessorio)) estado.secoesSo = new Set([estado.cat]);
     estado.maisBusca = dados.mais;
     estado.temMaisBusca = Boolean(dados.mais);
     desenharFiltroLojas();
