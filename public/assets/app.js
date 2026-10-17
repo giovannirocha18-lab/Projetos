@@ -815,24 +815,29 @@ const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInici
 
 // Anúncios repetidos: na Shopee vários vendedores publicam o mesmo produto (mesmo título, foto e preço)
 // com códigos diferentes. Fica um só, o que vendeu mais, na posição em que apareceu primeiro.
+// Mesmo título com preço até 15% diferente também conta ("Celular Nokia 150 …" por R$ 155, 156, 165, 169 e 175)
+const DIFERENCA_REPETIDO = 1.15;
 function semRepetidos(lista) {
   const posicao = new Map();
+  const porTitulo = new Map(); // loja + título -> posições na saída
   const saida = [];
   for (const o of lista) {
     const chaves = [
       `id|${o.id}`,
-      `t|${o.loja}|${o.preco}|${normalizar(o.titulo || "").slice(0, 60)}`,
       o.imagem && `f|${o.loja}|${o.imagem.replace(/_tn$/, "")}`,
     ].filter(Boolean);
-    const achada = chaves.find((c) => posicao.has(c));
-    if (achada === undefined) {
-      chaves.forEach((c) => posicao.set(c, saida.length));
+    const titulo = `${o.loja}|${normalizar(o.titulo || "").slice(0, 60)}`;
+    let i = chaves.map((c) => posicao.get(c)).find((x) => x !== undefined);
+    i ??= (porTitulo.get(titulo) || []).find((j) => o.preco > 0 && saida[j].preco > 0
+      && Math.max(o.preco, saida[j].preco) <= Math.min(o.preco, saida[j].preco) * DIFERENCA_REPETIDO);
+    if (i === undefined) {
+      i = saida.length;
+      porTitulo.set(titulo, [...(porTitulo.get(titulo) || []), i]);
       saida.push(o);
-    } else {
-      const i = posicao.get(achada);
-      if ((o.vendidos || 0) > (saida[i].vendidos || 0)) saida[i] = o;
-      chaves.forEach((c) => posicao.set(c, i));
+    } else if ((o.vendidos || 0) > (saida[i].vendidos || 0)) {
+      saida[i] = o;
     }
+    chaves.forEach((c) => posicao.set(c, i));
   }
   return saida;
 }
@@ -843,7 +848,7 @@ async function consultarApi(q, mais = "") {
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
   const exato = q && estado.exato ? "&exato=1" : "";
-  const resp = await fetch(`/api/buscar?v=46&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
+  const resp = await fetch(`/api/buscar?v=47&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }

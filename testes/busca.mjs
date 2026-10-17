@@ -9,7 +9,7 @@
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
 import { citaAlgumaPalavra, separarAcessorios } from "../lib/relevancia.js";
 import { categoriaDoProduto } from "../lib/categorias.js";
-import { corrigirBusca } from "../lib/vocabulario.js";
+import { corrigirBusca, termoNasLojas } from "../lib/vocabulario.js";
 
 const CASOS = {
   // ---- Prints do Giovanni ----
@@ -98,6 +98,26 @@ const CASOS = {
   "playstation 5": { E: ["Console Sony PS5 Slim Digital", "PlayStation 5 Pro 2TB"] },
   "televisao 50": { E: ["Smart TV 50 Polegadas Philco 4K", "Televisão 50\" Samsung Crystal UHD"] },
   "stanley": { E: ["Copo Térmico Stanley 473ml Quencher", "Garrafa Stanley Classic 1L"] },
+  // Conferência no site (17/10/2026): peças com o título começando pelo produto e brinquedo colecionável
+  "bicicleta": {
+    E: ["Bicicleta Aro 29 Caloi Explorer 21 Marchas", "Bicicleta Infantil Aro 16 Nathor"],
+    A: ["20*1.75/47-406 bicicleta dobrável roda pequena bicicleta 67cm tubo interno tubo externo"],
+  },
+  "microondas": {
+    E: ["Microondas 32L Electrolux Painel Digital", "Micro-ondas Midea 20L Branco 127V"],
+    A: ["Forno de microondas motor síncrono forno de microondas plataforma giratória motor"],
+  },
+  "maquina de lavar": {
+    E: ["Máquina de Lavar Electrolux 15kg Branca Essential Care", "Máquina de Lavar Consul 15Kg com Modo Eco Branca"],
+    A: ["Máquina de lavar roupa coletor de pêlos de animais de estimação flutuante"],
+  },
+  "impressora 3d": {
+    E: ["Impressora 3D Creality Ender 3 V3 SE", "Impressora 3D Bambu Lab A1 Mini"],
+    A: ["Impressora 3D Anycubic vyper Conjunto de cabeça de extrusão quente E3D V5", "Impressora de extremidade quente da extrusora da impressora 3D"],
+  },
+  "geladeira": {
+    E: ["Geladeira Frost Free Consul 340L", "Geladeira Portátil 40L Camping"],
+  },
 };
 
 let falhas = 0;
@@ -142,6 +162,13 @@ const CASOS_PRECO = [
   ["cabo flat monitor", [["Cabo Flat Monitor LG W2043S", 70], ["Monitor LG 24 Polegadas cabo flat", 900]], { "Cabo Flat Monitor LG W2043S": "P" }],
   ["air fryer", [["Fritadeira Elétrica Inteligente com Tela Sensível ao Toque Air Fryer", 188], ["Air Fryer Mondial 4L", 400]],
     { "Fritadeira Elétrica Inteligente com Tela Sensível ao Toque Air Fryer": "N" }],
+  // Nível 2 com preço muito abaixo dos outros (17/10/2026): peça ou preço errado da loja
+  ["tv 55 polegadas", [["Smart TV 55 Polegadas LG 4K", 3200], ["Smart TV TCL 55 Polegadas QLED", 2900], ["Smart TV 55 Polegadas Samsung", 3800],
+    ["Smart TV 55 Polegadas Philips", 3100], ["Smart TV 55 Polegadas AOC", 2700], ["TV 55 Polegadas Capa Elástica Protetora", 33]],
+    { "TV 55 Polegadas Capa Elástica Protetora": "A", "Smart TV 55 Polegadas AOC": "P" }],
+  ["cadeira gamer", [["Cadeira Gamer PCYES Mad Racer", 950], ["Cadeira Gamer DT3 Elise", 1200], ["Cadeira Gamer ThunderX3", 900],
+    ["Cadeira Gamer Husky", 700], ["Cadeira Gamer Kuromi Rosa", 600], ["Cadeira Gamer PCYES Prime Red", 1]], { "Cadeira Gamer PCYES Prime Red": "A" }],
+  ["celular", [...celulares, ["Celular Usado Nokia 110 4G Dual Chip", 89]], { "Celular Usado Nokia 110 4G Dual Chip": "P" }],
 ];
 for (const [q, itens, esperado] of CASOS_PRECO) {
   const saida = separarAcessorios(itens.map(([titulo, preco], i) => ({ id: String(i), titulo, preco })), q);
@@ -151,6 +178,21 @@ for (const [q, itens, esperado] of CASOS_PRECO) {
     const obtido = o.acessorio ? "A" : o.principal ? "P" : "N";
     if (obtido !== tipo) { falhas++; console.log(`✗ preço/alvo "${q}": "${titulo}" deu ${obtido}, esperado ${tipo}`); }
   }
+}
+
+// Versões de nicho vêm depois das comuns, a não ser que a busca peça: [busca, títulos, o que tem que vir primeiro]
+const ORDEM = [
+  ["geladeira", ["Geladeira Portátil 40L Camping Veicular", "Geladeira Frost Free Consul 340L"], "Geladeira Frost Free Consul 340L"],
+  ["celular", ["Celular Nokia 150 4G Para Idoso", "Celular Samsung Galaxy A06"], "Celular Samsung Galaxy A06"],
+  ["geladeira", ["Mini Geladeira Mini Brands Com 2 Bolas Surpresa Colecionável", "Geladeira Brastemp Duplex 375L"], "Geladeira Brastemp Duplex 375L"],
+  ["tv", ["TV Stick Android 4K", "TV Samsung 50 Polegadas 4K"], "TV Samsung 50 Polegadas 4K"],
+  ["geladeira portatil", ["Geladeira Frost Free Consul 340L", "Geladeira Portátil 40L Camping"], "Geladeira Portátil 40L Camping"],
+  ["mini geladeira", ["Mini Geladeira Frigobar 45L", "Geladeira Mini Bar Consul"], "Mini Geladeira Frigobar 45L"],
+];
+for (const [q, titulos, primeiro] of ORDEM) {
+  total++;
+  const saida = separarAcessorios(titulos.map((titulo, i) => ({ id: String(i), titulo, preco: 1000 })), q);
+  if (saida[0].titulo !== primeiro) { falhas++; console.log(`✗ ordem "${q}": veio "${saida[0].titulo}" antes de "${primeiro}"`); }
 }
 
 // Categoria pelo título (print de 17/10/2026: vara de pesca caía em Óculos)
@@ -182,18 +224,27 @@ for (const [q, { fica, sai }] of Object.entries(FILTRO_ALIEXPRESS)) {
 }
 // Correção de digitação (17/10/2026, print "maquina de lavar eletrolux"): [digitado, q buscado, "Você quis dizer"]
 const CORRECOES = [
-  ["maquina de lavar eletrolux", "maquina de lavar electrolux", null],
+  ["maquina de lavar eletrolux", "máquina de lavar electrolux", null],
+  // Acentos (17/10/2026): sem acento as lojas trazem resultados piores
+  ["fogao", "fogão", null], ["Colchao casal", "colchão casal", null], ["tenis nike", "tênis nike", null], ["Fogão", "Fogão", null],
+  ["aspirador de po", "aspirador de pó", null], ["media", "media", null],
   ["samsumg galaxy", "samsung galaxy", null],
   ["fone bluetoth", "fone bluetooth", null],
   ["electrolox", "electrolox", "electrolux"],
   // Palavras de verdade perto de marcas não mudam
-  ["natural", "natural", null], ["nivel a laser", "nivel a laser", null], ["cross", "cross", null],
+  ["natural", "natural", null], ["nivel a laser", "nível a laser", null], ["cross", "cross", null],
   ["invictus", "invictus", null], ["conversor hdmi", "conversor hdmi", null], ["stranger things", "stranger things", null],
 ];
 for (const [digitado, q, sugestao] of CORRECOES) {
   total++;
   const r = corrigirBusca(digitado);
   if (r.q !== q || r.sugestao !== sugestao) { falhas++; console.log(`✗ correção "${digitado}": ${JSON.stringify(r)}`); }
+}
+// Busca de uma palavra que nas lojas só traz acessório: pesquisa outro termo (o site mostra o digitado)
+for (const [q, esperado] of [["tv", "smart tv"], ["Televisão", "smart tv"], ["impressora", "impressora multifuncional"],
+  ["tv box", "tv box"], ["impressora térmica", "impressora térmica"]]) {
+  total++;
+  if (termoNasLojas(q) !== esperado) { falhas++; console.log(`✗ termo nas lojas "${q}": ${termoNasLojas(q)} (esperado ${esperado})`); }
 }
 console.log(falhas ? `\n${falhas} problema(s) em ${total} títulos` : `\n✓ Tudo certo (${Object.keys(CASOS).length} buscas, ${total} títulos)`);
 process.exitCode = falhas ? 1 : 0;

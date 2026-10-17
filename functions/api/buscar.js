@@ -17,7 +17,7 @@ import { registrarBusca } from "../../lib/buscas.js";
 import { historicoAoVivo, ehAoVivo } from "../../lib/ofertas.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias } from "../../lib/mapaCategorias.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
-import { corrigirBusca } from "../../lib/vocabulario.js";
+import { corrigirBusca, acentuarBusca, termoNasLojas } from "../../lib/vocabulario.js";
 import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
@@ -45,7 +45,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 46;
+const VERSAO_CACHE = 47;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -84,7 +84,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Erros comuns de digitação são trocados antes de buscar ("eletrolux" -> "electrolux"); a resposta traz o q
   // corrigido e o site avisa. exato=1 = "Buscar por eletrolux mesmo". sugestao = "Você quis dizer…?" (não troca sozinho)
   const digitado = (params.get("q") || "").trim().slice(0, 100);
-  const { q, sugestao } = params.has("exato") ? { q: digitado, sugestao: null } : corrigirBusca(digitado);
+  const { q, sugestao } = params.has("exato") ? { q: acentuarBusca(digitado), sugestao: null } : corrigirBusca(digitado);
   const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const desde = Math.min(Math.max(parseInt(params.get("desde"), 10) || 1, 1), MAX_DESDE);
   const categoria = q ? categoriaPorNome(params.get("cat")) : null;
@@ -227,8 +227,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
     mais = proxima && `desde=${proxima}`;
   } else if (q) {
     // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
-    const { juntas, proxima } = await buscarAteEncher([q], (novas) => separarAcessorios(novas, q).filter((o) => !o.acessorio).length);
-    ofertas = marcarSecoes(separarAcessorios(juntas, q));
+    // "tv" pesquisa "smart tv" nas lojas (ver termoNasLojas)
+    const termo = termoNasLojas(q);
+    const { juntas, proxima } = await buscarAteEncher([termo], (novas) => separarAcessorios(novas, termo).filter((o) => !o.acessorio).length);
+    ofertas = marcarSecoes(separarAcessorios(juntas, termo));
     mais = proxima && `desde=${proxima}`;
   } else {
     ofertas = await consultar(q);
