@@ -450,8 +450,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (null = voltar ao sorteio); apagado ao excluir a conta; citado na Política. Sem escolha (ou sem conta): sorteia entre os 2
   prontos (`PERSONAGENS_PRONTOS` = antigos v1 e v2) a cada busca. Decidido NÃO pedir sexo no cadastro (LGPD/atrito).
 - **Mapa de categorias (17/10/2026, print "vara de pesca" em Óculos)**: a categoria "Pesca" da AliExpress tinha sido aprendida
-  como Óculos (só aparecia nas buscas de óculos). Agora toda busca nas lojas ensina o mapa (não só o robô) e vale com 10+ votos
-  e 80%+. Cache v=38.
+  como Óculos (só aparecia nas buscas de óculos). Agora toda busca nas lojas ensina o mapa (não só o robô), produto sem categoria
+  pelo título também vota ("-", conta no total mas nunca ganha), vale com 10+ votos e 80%+, mapa recarrega a cada 5 min.
+  Esporte e fitness ganhou vara de pesca/molinete/carretilha/anzol. Cache v=39.
+- **Logo (17/10/2026, pedido dele)**: clicar no logo zera busca, categoria, filtros e ordem.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)

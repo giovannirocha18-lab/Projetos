@@ -8,6 +8,7 @@
 // Fontes dos termos (pesquisa de 16/10/2026): MELI Trends 2025 (Mercado Livre), "Os Mais Desejados do Ano"
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
 import { citaAlgumaPalavra, separarAcessorios } from "../lib/relevancia.js";
+import { categoriaDoProduto } from "../lib/categorias.js";
 
 const CASOS = {
   // ---- Prints do Giovanni ----
@@ -109,6 +110,18 @@ for (const [q, esperado] of Object.entries(CASOS)) {
     for (const e of erros) console.log(`    ${e}`);
   }
 }
+// Categoria pelo título (print de 17/10/2026: vara de pesca caía em Óculos)
+const CATEGORIAS_ESPERADAS = [
+  ["Vara de Pesca Telescópica Carbono 2,1m", "Esporte e fitness"],
+  ["Molinete de Pesca 5000 Rolamentos", "Esporte e fitness"],
+  ["Óculos de Sol Polarizado para Pesca", "Óculos"],
+];
+for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
+  total++;
+  const obtida = categoriaDoProduto(titulo)?.nome;
+  if (obtida !== esperada) { falhas++; console.log(`✗ categoria de "${titulo}": ${obtida || "nenhuma"} (esperado ${esperada})`); }
+}
+
 // Filtro da AliExpress (busca solta): fica = passa no filtro; sai = tem que ser tirado
 const FILTRO_ALIEXPRESS = {
   "batedeira": {
