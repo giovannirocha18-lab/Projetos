@@ -784,7 +784,7 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=33&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const resp = await fetch(`/api/buscar?v=34&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -1042,8 +1042,11 @@ async function buscar(q) {
     // Nada na categoria: o servidor buscou em tudo, e as próximas páginas também são de tudo
     if (dados.foraDaCategoria) { estado.foraDaCategoria = estado.cat; estado.cat = null; }
     // Buscou dentro de uma categoria: começa mostrando só ela (as outras ficam para marcar).
-    // Só se a categoria tiver o produto buscado: "batedeira" em Automotivo mostrava só 2 itens sem relação.
-    if (estado.cat && !navegandoCategoria() && estado.ofertas.some((o) => o.secao === estado.cat && o.bate && !o.acessorio)) estado.secoesSo = new Set([estado.cat]);
+    // Só se a categoria tiver boa parte dos produtos buscados: "batedeira" em Automotivo mostrava 2 itens sem
+    // relação, e "batedeira de bolo" em Bebês, 1 de 111 (o resto estava em Eletroportáteis)
+    const exatos = estado.ofertas.filter((o) => o.bate && !o.acessorio);
+    const naCategoria = exatos.filter((o) => o.secao === estado.cat).length;
+    if (estado.cat && !navegandoCategoria() && naCategoria && naCategoria >= exatos.length * 0.3) estado.secoesSo = new Set([estado.cat]);
     estado.maisBusca = dados.mais;
     estado.temMaisBusca = Boolean(dados.mais);
     desenharFiltroLojas();
