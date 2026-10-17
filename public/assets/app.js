@@ -1148,7 +1148,7 @@ function desenharResumoBuscando() {
   const cat = navegandoCategoria();
   const animacao = el("div", { class: "anim-buscando" });
   animacao.innerHTML = desenharPersonagem(personagemDaVez());
-  $("#resumo").replaceChildren(el("div", {}, el("h1", {}, el("span", {}, "Buscando "), cat ? `${cat.nome}…` : `“${estado.q}”…`), el("p", {}, "Comparando preços nas lojas")), animacao);
+  $("#resumo").replaceChildren(el("div", {}, el("h1", {}, el("span", {}, "Buscando "), cat ? `${cat.nome}…` : `“${estado.q}”…`), el("p", {}, "Estamos buscando os melhores preços e ofertas para você 🛒")), animacao);
 }
 
 async function buscar(q) {
