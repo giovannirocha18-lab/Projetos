@@ -529,9 +529,12 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   portátil, camping, veicular, idoso, infantil, caneta, resfriador, usado, stick, colecionável) recuam 0,25 se a busca não pede:
   "geladeira" agora abre com geladeiras de verdade, "celular" sem os de idoso no topo, "ar condicionado" com splits.
   "Pé" é peça só como 1ª palavra (`PECAS_NA_FRENTE`; "Meias de pé" é produto). (6) `semRepetidos` junta mesmo título da mesma loja com preço até 15% diferente. Casos novos no `testes/busca.mjs` (ORDEM, etc.).
-  **Falta (sugerido, não feito)**: categoria "Eletrodomésticos" (geladeira, fogão, micro-ondas, máquina de lavar, ar, TV não
-  têm categoria em `lib/categorias.js`); "bateria carro", "kindle", "protetor solar" (para-brisa) ainda fracos; "maquina de lavar"
-  traz "máquina de lavar sapatos" da AliExpress. As buscas prontas (v=47) só voltam na madrugada (ou disparando o robô).
+  ✅ **Categoria "Eletrodomésticos" 🧊 (pedido dele)**: geladeira, fogão, micro-ondas, máquina de lavar, secadora, lava-louças, ar,
+  smart TV…; vitrine com 6 buscas (geladeira frost free, máquina de lavar, smart tv, ar split, micro-ondas, fogão 4 bocas; mín. R$ 300),
+  conferida no ar: só eletrodomésticos de verdade. Agora são 38 categorias; ela fica na 31ª posição em "Mais vendidos" (só aparece
+  em "Ver todas"). "Secadora de roupas" saiu de Cabelo. ✅ **"máquina de lavar" = a de roupa** (pedido dele): `OUTRO_PRODUTO` em
+  `lib/relevancia.js` manda "sapatos/louças/alta pressão" para o fim, a não ser que a busca peça ("máquina de lavar sapato"). Cache v=48.
+  Ainda fracos: "bateria carro", "kindle", "protetor solar" (para-brisa). Buscas prontas só voltam na madrugada.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
   Web Analytics > Enable); o CSP já libera cloudflareinsights. Aguardando ele.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
@@ -579,7 +582,7 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 17/10/2026, 6ª sessão)
-- Giovanni: decidir se cria a categoria "Eletrodomésticos" (ver "Auditoria das buscas").
+- Giovanni: conferir a categoria "Eletrodomésticos" (em "Ver todas") e dizer se quer ela fixa entre as 12 primeiras.
 - Giovanni: ligar o Web Analytics do Cloudflare (ver "Visitas"); decidir sobre o Mercado Livre (inscrição + app de desenvolvedor).
 - Giovanni: testar no site a correção de digitação, as sugestões da busca, o aviso "não está à venda" e o botão "Comprar / na loja" no celular.
 - Ideia pendente: alerta de preço por e-mail; contar cliques em "Comprar" por loja quando houver visitas.
