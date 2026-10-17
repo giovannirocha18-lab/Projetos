@@ -339,10 +339,6 @@ a { color: inherit; }
 }
 @keyframes anim-vento { 0%, 100% { opacity: .2; transform: translateX(6px); } 50% { opacity: 1; transform: translateX(-6px); } }
 @keyframes anim-roda { to { transform: rotate(360deg); } }
-  10% { opacity: 1; }
-  35% { opacity: 1; transform: translateY(24px) rotate(6deg); }
-  45%, 100% { opacity: 0; transform: translateY(28px) rotate(0); }
-}
 
 /* Página: barra lateral (ordem, categorias, lojas, filtros) + conteúdo */
 /* Cabeçalho, página e rodapé usam a tela toda: a barra lateral encosta na esquerda */
