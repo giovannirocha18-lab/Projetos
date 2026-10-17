@@ -423,6 +423,13 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   porque os títulos são traduzidos). Sinônimos novos: "fritadeira a/de/sem ar/óleo" = air fryer; "bateria portátil/externa",
   "carregador portátil" = power bank (o detector de acessórios agora também usa `comSinonimos`). No site, buscar com uma categoria
   aberta só filtra pela categoria se ela tiver o produto exato (`bate` e não acessório). Cache v=33.
+- **Categorias das lojas (17/10/2026, pedido do Giovanni: "muita coisa errada" nas categorias)**: a Shopee manda `productCatIds`
+  (3 níveis, só códigos; a API de afiliados não dá os nomes) e a AliExpress `first/second_level_category_id/name`. Ficam em
+  `catsLoja` em cada oferta. `lib/mapaCategorias.js` aprende sozinho "categoria da loja → nossa categoria" com as buscas do robô
+  (`/api/preparar-buscas`: cada produto classificado pelo título vota; tabela D1 `cat_loja_votos`; vale com 5+ votos e 70%+).
+  A categoria aprendida (`catMapa`) manda na `secao`, na busca dentro da categoria e na vitrine; sem ela, as regras do título.
+  1ª rodada: 208 categorias aprendidas. Limite: a Shopee põe batedeira de mão em Casa > Cozinha, então ela aparece em "Cozinha".
+  Também: categoria aberta só filtra a busca se tiver 30%+ dos produtos exatos. Cache v=36.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
