@@ -148,6 +148,14 @@ a { color: inherit; }
 .secao-titulo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
 .secao-titulo .botao-frete { margin: 0 auto 0 14px; }
 .secao-titulo h2 { margin: 0; font-size: clamp(1.3rem, 3vw, 1.7rem); letter-spacing: -.02em; }
+/* "🔍 Buscando ofertas do dia…": a lupa procura de um lado para o outro */
+.secao-titulo h2.carregando { color: var(--suave); }
+.secao-titulo h2 .lupa { display: inline-block; animation: lupa-procura 1.2s ease-in-out infinite; }
+@keyframes lupa-procura {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-4px) rotate(-12deg); }
+  75% { transform: translateX(4px) rotate(12deg); }
+}
 
 .setas { display: flex; gap: 8px; }
 .seta {

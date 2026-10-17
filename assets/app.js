@@ -1157,19 +1157,31 @@ function mostrarInicio() {
   }
 }
 
+// Enquanto as ofertas carregam (a 1ª abertura leva alguns segundos), o título diz que está buscando
+function tituloOfertas(carregando) {
+  const h2 = $("#titulo-ofertas");
+  h2.classList.toggle("carregando", carregando);
+  h2.replaceChildren(...(carregando
+    ? [el("span", { class: "lupa", "aria-hidden": "true" }, "🔍"), " Buscando ofertas do dia…"]
+    : ["⚡ Ofertas do dia"]));
+}
+
 async function carregarDestaques() {
   const pedido = ++estado.pedido;
   estado.ofertas = [];
   $("#filtro-lojas").replaceChildren();
   $("#destaques").replaceChildren(...esqueletos(12));
+  tituloOfertas(true);
   try {
     const dados = await consultarApi("");
     estado.inicio = semRepetidos(dados.ofertas);
     estado.temMaisInicio = Boolean(dados.temMais);
+    tituloOfertas(false);
     if (pedido !== estado.pedido) return; // a pessoa já foi para uma busca
     $("#aviso-teste").hidden = !dados.exemplo;
     mostrarInicio();
   } catch {
+    tituloOfertas(false);
     if (pedido !== estado.pedido) return;
     $("#destaques").replaceChildren(el("p", { class: "vazio" }, "Não foi possível carregar as ofertas agora."));
   }
