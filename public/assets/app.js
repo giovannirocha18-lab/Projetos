@@ -995,7 +995,7 @@ function alternarLoja(id, ligar) {
 
 // A API das lojas manda o preço sem cupom; com cupom ou Pix (depende da conta e da campanha) pode sair menos na loja.
 // Aviso uma vez só, no card de resultados e na faixa das "Ofertas do dia", sem mexer nos cartões (pedido do Giovanni)
-const AVISO_CUPOM = "💸 Preços sem cupom: na loja pode sair ainda mais barato com cupom ou Pix.";
+const AVISO_CUPOM = "💸 Produtos que têm cupom na loja podem sair ainda mais baratos.";
 
 // Lojas desta busca dentro do card de resultados (pedido do Giovanni, 17/10/2026): o visitante vê na hora quais lojas
 // têm o produto e liga/desliga cada uma; "Limpar" desliga todas (para escolher só uma) e "Marcar todas" volta tudo

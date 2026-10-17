@@ -556,7 +556,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   recua 1 ("controle ps5" abre com controles, não suportes); "visor" virou peça. Cache v=50.
   ✅ **Preço com cupom (17/10/2026, print Invictus: Shopee R$ 676 "no Pix com cupom" x site R$ 759,90)**: a API de afiliados só
   manda o preço sem cupom; cupom/Pix varia por produto, campanha e conta. Ler a página = proibido. Feito (pedido dele, sem poluir o
-  cartão): `AVISO_CUPOM` "💸 Preços sem cupom: na loja pode sair ainda mais barato com cupom ou Pix." uma vez só, no card de
+  cartão): `AVISO_CUPOM` "💸 Produtos que têm cupom na loja podem sair ainda mais baratos." (texto do Giovanni) uma vez só, no card de
   resultados e na faixa das "Ofertas do dia". Ideias éticas sugeridas e não feitas: perguntar ao suporte de Afiliados da Shopee se
   a API tem cupons; cupons oficiais da Lomadee ("Cupons") e Awin ("Minhas Ofertas"); curadoria manual; "Achei mais barato" no futuro.
   ✅ **"bateria para carro", "kindle", "protetor solar" (17/10/2026, 7ª sessão, print do Giovanni)**: a API da Shopee não acha
