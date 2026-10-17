@@ -1226,12 +1226,15 @@ function desenharCabeca(p) {
   const cabelo = PERSONAGEM_OPCOES.corCabelo.cores[p.corCabelo];
   const atras = {
     rabo: `<g class="anim-rabo"><path d="M36 14 c-9 1 -12 9 -9 17 c2 -5 5 -8 10 -9z" fill="${cabelo}"/><circle cx="36" cy="14" r="2.5" fill="#f472b6"/></g>`,
-    cacheado: `<circle cx="46" cy="16" r="14" fill="${cabelo}"/>`,
+    // Volume de cachos em volta da cabeça (mais atrás, porque ele olha para o carrinho)
+    cacheado: `<g fill="${cabelo}">${[[34, 26, 5], [33, 19, 5.5], [35, 12, 5.5], [40, 7, 5.5], [46, 5.5, 5.5], [52, 7, 5], [56.5, 11.5, 4.5]]
+      .map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}</g>`,
   }[p.cabelo] || "";
   const frente = {
     curto: `<path d="M35 18 a11 11 0 0 1 22 -2 c-6 -1 -12 -4 -14 -7 c-2 4 -5 7 -8 9z" fill="${cabelo}"/>`,
     rabo: `<path d="M35 19 a11 11 0 0 1 22 -3 c-4 0 -9 -2 -12 -6 c-3 4 -6 7 -10 9z" fill="${cabelo}"/>`,
-    cacheado: `<path d="M35 17 c2 -6 6 -8 11 -8 c5 0 9 2 11 8 c-3 -2 -5 -2 -7 0 c-2 -2 -5 -2 -7 0 c-2 -2 -5 -2 -8 0z" fill="${cabelo}"/>`,
+    cacheado: `<g fill="${cabelo}">${[[37, 15, 3.5], [41, 11.5, 3.5], [46, 10.5, 3.5], [51, 11.5, 3.2], [55, 14, 2.8]]
+      .map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}</g>`,
     careca: '<path d="M40 11 q4 -3 9 -1" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".5"/>',
   }[p.cabelo];
   const olhos = p.rosto === "piscadinha"
