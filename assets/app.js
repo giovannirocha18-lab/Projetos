@@ -1384,8 +1384,9 @@ function prepararBusca(form) {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     fechar();
-    if (!input.value.trim()) { input.focus(); return toast("Digite o nome de um produto 😉"); }
     input.blur();
+    // Busca vazia: volta para as "Ofertas do dia" (como clicar no logo)
+    if (!input.value.trim()) return irPara("");
     irPara(input.value, { cat: categoriaAtual() });
   });
 }
