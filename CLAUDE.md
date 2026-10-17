@@ -565,6 +565,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   1 página cada, e `precoMin` (R$ 250 bateria, R$ 300 Kindle) marca o mais barato como acessório (`separarAcessorios(…, { precoMin })`).
   Para outro produto assim: acrescentar na lista e um caso no `testes/busca.mjs`. "protetor solar": para-brisa/carro/painel em
   `OUTRO_PRODUTO` (vai para o fim). Conferido no ar: bateria = 35 baterias de verdade; Kindle = só 3–4 (a Shopee tem poucos). Cache v=51.
+- **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
+  card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
   Web Analytics > Enable); o CSP já libera cloudflareinsights. Aguardando ele.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
