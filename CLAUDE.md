@@ -548,7 +548,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   ✅ **Lojas no card de resultados (pedido dele, 17/10/2026)**: na busca, "Lojas com ofertas:" com botões por loja (cor, nome,
   quantidade) dentro do card roxo; clicar liga/desliga; "Limpar" desliga todas e "Marcar todas" volta (`lojasNoResumo` no `app.js`,
   `.chip-loja` no CSS). A caixa "Lojas nesta lista" da barra lateral (`#caixa-lojas`) agora só aparece nas "Ofertas do dia".
-  Testado no ar (computador e celular).
+  Testado no ar (computador e celular). "Ver mais resultados" e "Ver também N acessórios e peças" (botão continua existindo, de
+  propósito) seguem as lojas marcadas: contam só lojas ligadas e somem com todas desligadas.
   ✅ **Preço com cupom (17/10/2026, print Invictus: Shopee R$ 676 "no Pix com cupom" x site R$ 759,90)**: a API de afiliados só
   manda o preço sem cupom; cupom/Pix varia por produto, campanha e conta. Ler a página = proibido. Feito (pedido dele, sem poluir o
   cartão): `AVISO_CUPOM` "💸 Preços sem cupom: na loja pode sair ainda mais barato com cupom ou Pix." uma vez só, no card de
