@@ -554,9 +554,12 @@ const fotoQuebrada = (o) => (e) => {
   else img.replaceWith(el("span", { class: "foto-emoji" }, o.emoji || "🛍️"));
 };
 
-// Texto do botão: verbo + loja ("Comprar na Shopee"). No celular, só "Comprar"
-const textoComprar = (loja) =>
-  longoCurto(loja.nome.length <= 16 ? `Comprar ${loja.em} ${loja.nome}` : "Comprar na loja", "Comprar");
+// Texto do botão: verbo + loja ("Comprar na Shopee"). No celular (cartão estreito), em 2 linhas: "Comprar" e,
+// menor embaixo, "na Shopee" (pedido do Giovanni: a loja tem que aparecer no botão também no celular)
+const textoComprar = (loja) => [
+  el("span", { class: "so-longo" }, loja.nome.length <= 16 ? `Comprar ${loja.em} ${loja.nome}` : "Comprar na loja"),
+  el("span", { class: "so-curto comprar-curto" }, "Comprar", el("small", {}, `${loja.em} ${loja.nome}`)),
+];
 // Nome de loja comprido ("Comprar no AliExpress"): letra menor, para o botão ficar numa linha como os outros
 const classeBotao = (loja) => (`Comprar ${loja.em} ${loja.nome}`.length > 18 ? "botao-oferta texto-longo" : "botao-oferta");
 

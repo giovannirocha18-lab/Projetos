@@ -258,6 +258,10 @@ a { color: inherit; }
 }
 .botao-oferta > span:not(.flecha) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .botao-oferta.texto-longo { font-size: .84rem; }
+@media (max-width: 640px) {
+  .botao-oferta .comprar-curto { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.15; min-width: 0; }
+  .botao-oferta .comprar-curto small { font-size: .72rem; font-weight: 700; opacity: .92; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
 .botao-oferta:hover { filter: brightness(1.08); }
 .botao-oferta:active { transform: scale(.97); }
 .botao-oferta .flecha { transition: transform .2s; }
