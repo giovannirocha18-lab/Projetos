@@ -606,8 +606,9 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 17/10/2026, 6ª sessão)
+## Próximos passos (atualizado 17/10/2026, fim da 6ª sessão)
 - Giovanni: conferir a categoria "Eletrodomésticos" (1ª do menu).
+- Opcional (sugerido na 6ª sessão): perguntar ao suporte de Afiliados da Shopee se a API tem cupons; ligar cupons oficiais da Lomadee/Awin.
 - Giovanni: ligar o Web Analytics do Cloudflare (ver "Visitas"); decidir sobre o Mercado Livre (inscrição + app de desenvolvedor).
 - Giovanni: testar no site a correção de digitação, as sugestões da busca, o aviso "não está à venda" e o botão "Comprar / na loja" no celular.
 - Ideia pendente: alerta de preço por e-mail; contar cliques em "Comprar" por loja quando houver visitas.
