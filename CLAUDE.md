@@ -430,6 +430,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   A categoria aprendida (`catMapa`) manda na `secao`, na busca dentro da categoria e na vitrine; sem ela, as regras do título.
   1ª rodada: 208 categorias aprendidas. Limite: a Shopee põe batedeira de mão em Casa > Cozinha, então ela aparece em "Cozinha".
   Também: categoria aberta só filtra a busca se tiver 30%+ dos produtos exatos. Cache v=36.
+- **Página inicial (17/10/2026, pedidos do Giovanni)**: título "🔍 Buscando ofertas do dia…" (lupa animada) enquanto carrega
+  (`tituloOfertas` no `app.js`); as "Ofertas do dia" viraram busca pronta (parte 0 do `/api/preparar-buscas`, `q` vazio):
+  abre em ~0,5 s (eram ~6 s, por causa da AliExpress). Botão "Comprar no AliExpress" com letra menor (`texto-longo`) e
+  todos os botões com a mesma altura numa linha.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)

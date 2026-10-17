@@ -245,10 +245,12 @@ a { color: inherit; }
 
 .botao-oferta {
   display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px;
-  padding: 12px; border-radius: 12px; font-weight: 800; text-decoration: none; font-size: .95rem;
+  padding: 12px; border-radius: 12px; font-weight: 800; text-decoration: none; font-size: .95rem; line-height: 1.4rem;
   background: var(--cor-loja); color: var(--texto-loja);
   transition: filter .15s, transform .15s;
 }
+.botao-oferta > span:not(.flecha) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.botao-oferta.texto-longo { font-size: .84rem; }
 .botao-oferta:hover { filter: brightness(1.08); }
 .botao-oferta:active { transform: scale(.97); }
 .botao-oferta .flecha { transition: transform .2s; }

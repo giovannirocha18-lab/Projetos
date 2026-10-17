@@ -504,6 +504,8 @@ const fotoQuebrada = (o) => (e) => {
 // Texto do botão: verbo + loja ("Comprar na Shopee"). No celular, só "Comprar"
 const textoComprar = (loja) =>
   longoCurto(loja.nome.length <= 16 ? `Comprar ${loja.em} ${loja.nome}` : "Comprar na loja", "Comprar");
+// Nome de loja comprido ("Comprar no AliExpress"): letra menor, para o botão ficar numa linha como os outros
+const classeBotao = (loja) => (`Comprar ${loja.em} ${loja.nome}`.length > 18 ? "botao-oferta texto-longo" : "botao-oferta");
 
 // Mais vendido da lista (só quando a venda é expressiva, para o selo não perder valor)
 function idMaisVendido(lista) {
@@ -578,7 +580,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       el("div", { class: "links-oferta" },
         temDetalhes(o) && el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
         o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico")),
-      el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
+      el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
         ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
 }
 
@@ -692,7 +694,7 @@ function abrirDetalhes(o) {
     o.descricao && el("div", { class: "detalhes-descricao" }, el("h3", {}, "Descrição"), el("p", {}, o.descricao)),
     o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => { $("#janela-detalhes").close(); abrirHistorico(o); } },
       "📈 Ver histórico de preço"),
-    el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener",
+    el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener",
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}`, onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
       `Comprar ${loja.em} ${loja.nome.length <= 16 ? loja.nome : "loja"}`, el("span", { class: "flecha", "aria-hidden": "true" }, "→")),
     el("p", { class: "detalhes-nota" }, o.descricao
@@ -734,7 +736,7 @@ async function abrirHistorico(o) {
     el("p", { class: "historico-nota" }, diasAcompanhando < 7
       ? "Começamos a acompanhar este preço há pouco tempo. O gráfico fica mais completo a cada dia."
       : `Preço acompanhado há ${diasAcompanhando} dias.${o.moeda ? ` Valores convertidos de ${o.moeda} para reais.` : ""}`),
-    el("a", { class: "botao-oferta", href: o.link, target: "_blank", rel: "sponsored noopener",
+    el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener",
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}` },
       ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→")));
 }
