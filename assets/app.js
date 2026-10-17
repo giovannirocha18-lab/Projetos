@@ -475,7 +475,7 @@ function sair() {
 }
 
 function excluirConta() {
-  if (!confirm("Excluir a sua conta? O seu nome, e-mail e carrinho serão apagados para sempre.")) return;
+  if (!confirm("Excluir a sua conta? O seu nome, e-mail e carrinho serão excluídos. Deseja continuar?")) return;
   return comEspera(null, async () => {
     await chamarConta("DELETE", "", {});
     esquecerAqui();
