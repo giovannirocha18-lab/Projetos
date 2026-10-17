@@ -101,7 +101,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const guardada = !preparar && cache && (await cache.match(chave));
   if (guardada) return contar(guardada);
   // Busca popular já preparada pelo robô: responde na hora (e guarda no cache por 1 hora)
-  const primeira = q && pagina === 1 && desde === 1;
+  // Vale para as buscas populares e para as "Ofertas do dia" da página inicial (q vazio, 1ª página)
+  const primeira = pagina === 1 && desde === 1;
   if (primeira && !preparar && env.DB) {
     try {
       const pronta = await env.DB.prepare("SELECT resposta, total, criado FROM buscas_prontas WHERE chave = ?").bind(chave.url).first();
