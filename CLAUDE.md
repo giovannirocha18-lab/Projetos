@@ -63,7 +63,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - Cloudflare criou registros "sem e-mail" (MX nulo, SPF -all, DMARC reject). Trocar se um dia
   quiser e-mail no domínio.
 
-## Situação atual (atualizado em 16/10/2026, fim da 3ª sessão)
+## Situação atual (atualizado em 16/10/2026, fim da 3ª sessão; ver também as entradas de 17/10/2026 em "Em andamento")
 | Item | Situação |
 |---|---|
 | Site publicado em `vaiprocarrinho.pages.dev` | ✅ |
@@ -468,6 +468,19 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   capacitor, diodo, display, membrana, lâmpada, válvula, temporizador, prato, detector; `EM_QUALQUER_LUGAR` + reparo, conserto,
   substituição, reposição, dedicado(a) (tradução AliExpress), magnetron, capacitor, filamento, diodo, membrana, interruptor, placa;
   `DEPOIS` + pé(s), almofada, frigideira; sinônimo "micro ondas" = microondas. Cache v=40.
+- **⭐ Produto x acessório em 3 camadas (17/10/2026, pedido do Giovanni: "resolver de vez as buscas erradas")** — `separarAcessorios`
+  em `lib/relevancia.js`, mesmo princípio da patente do Google US10354308 (classificar a BUSCA como produto ou acessório):
+  1) **Alvo**: a palavra de acessório da busca, se houver ("prato" em "prato microondas", "reparo", "cabo", "viseira", "copo"…);
+     senão a 1ª palavra. Busca de acessório põe os acessórios na frente e não esconde nada.
+  2) **Nível do título** (`criarNivelDoTitulo`): 2 = começa pelo alvo (pulando `ANTES_DO_NOME`: console, forno, fritadeira, mini,
+     smart, novo…); 1 = alvo na 2ª palavra sem "de/para" nem peça antes ("Electrolux Micro-ondas"); 0 = só cita ("Imã de Geladeira").
+     Códigos de modelo (B220, SM-B315E) não contam como palavra. Nível 1 e 2 = `principal` (vêm primeiro).
+  3) **Preço como prova** (só busca de produto): mediana dos nível 2 (5+); nível 0 abaixo de 20% e nível 1 abaixo de 10% = acessório.
+  Genéricas (cesto, tela, fonte, copo, teclado, cooler, pneu…) só nas 2 palavras logo antes do produto. Novas peças: viseira, palmilha,
+  cadarço, evaporadora, condensador(a), radiador, difusor, compressor, imã. Avaliado com 24 buscas reais (16 de produto, 8 de acessório)
+  baixadas do site: geladeira -55 imãs/peças, ar condicionado -76 peças de carro, bicicleta -76 pneus/câmaras, máquina de lavar -29,
+  monitor -27; celular simples de R$ 100 continua aparecendo. Casos de preço no `testes/busca.mjs` (`CASOS_PRECO`). Cache v=41.
+  Para avaliar de novo: baixar `/api/buscar?v=41&q=<termo>` de várias buscas e rodar `separarAcessorios` comparando com a marcação antiga.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
@@ -512,7 +525,12 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos
+## Próximos passos (atualizado 17/10/2026, fim da 4ª sessão)
+- Giovanni: conferir no site as buscas de produto (microondas, geladeira, notebook, capacete…) e de acessório (prato microondas,
+  reparo capacete, viseira capacete…); cada print de erro vira caso novo no `testes/busca.mjs`.
+- Giovanni: acompanhar pedidos na Awin (Karsten, adidas: ~31 mil produtos, entram em ~2 madrugadas pelo limite de 20 mil/dia) e na
+  Lomadee (Mondial: "Solicitar permissão"; NutriBullet já liberada; Xiaomi NÃO aceita comparador). Shein: procurar na Awin.
+- Ideia futura (não feita): usar a categoria da loja dominante entre os `principal` para "resgatar" produtos de título estranho.
 0. ✅ **Lomadee ligada no site (16/10/2026)**. Próximo: Giovanni pedir afiliação em mais marcas no menu "Marcas" (Magalu etc.) e conferir no site.
    Giovanni também ia mandar print de "Minha carteira" da Lomadee (regras de saque: mínimo, prazo, impostos PF).
 0b. ✅ 16/10/2026 (4ª sessão): as 91 buscas prontas foram guardadas (busca popular responde em ~0,3 s). A execução #15 do robô
