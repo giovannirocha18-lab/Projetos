@@ -459,7 +459,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   dá 404, e endereço com "..", "//" ou "\" também. Antes era lista de bloqueio e `testes/busca.mjs` abria. Testado com 24 endereços
   (script de teste na conversa). **NÃO usar `_routes.json` para tirar /assets/ e /marca/ do middleware**: testado,
   `/assets/..%2fCLAUDE.md` abria a memória. Para ganhar desempenho com segurança: mover o site para a pasta `public/` e trocar
-  em Cloudflare > Settings > Builds > "Build output directory" para `public` (proposto ao Giovanni; fazer a troca ANTES do push).
+  em Cloudflare > Settings > Builds > "Build output directory" para `public` (fazer a troca ANTES do push).
+  ⏳ **PRONTO E TESTADO na branch `claude/upbeat-goodall-s0p9kt` (commit "Só a pasta public/ é publicada")**, NÃO está na produção.
+  Quando o Giovanni avisar que salvou `public` no Cloudflare: `git merge claude/upbeat-goodall-s0p9kt` na produção, push e
+  rodar o teste de 34 endereços (páginas abrem; CLAUDE.md, lib/, robo/, testes/ e truques com ".." não mostram nada interno).
+  Se ele salvar `public` e a mudança NÃO entrar, o site sai do ar na próxima publicação (index.html só existe em public/ depois do merge).
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
