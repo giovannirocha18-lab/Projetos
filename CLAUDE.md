@@ -464,6 +464,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   assets, marca, _headers, _routes.json). `/assets/*` e `/marca/*` saem direto do Cloudflare (`public/_routes.json`), com
   cabeçalhos de segurança no `public/_headers`. Testado no ar: 10 páginas públicas abrem, 24 endereços internos/truques bloqueados.
   **Nunca pôr nada interno em `public/`.** Para testar local: `npx wrangler pages dev public` (de dentro do repositório).
+- **"microondas" (17/10/2026, print do Giovanni)**: peças de conserto apareciam como produto. `PECAS` + filamento, magnetron,
+  capacitor, diodo, display, membrana, lâmpada, válvula, temporizador, prato, detector; `EM_QUALQUER_LUGAR` + reparo, conserto,
+  substituição, reposição, dedicado(a) (tradução AliExpress), magnetron, capacitor, filamento, diodo, membrana, interruptor, placa;
+  `DEPOIS` + pé(s), almofada, frigideira; sinônimo "micro ondas" = microondas. Cache v=40.
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
