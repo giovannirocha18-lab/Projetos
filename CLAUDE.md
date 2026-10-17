@@ -565,6 +565,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   1 página cada, e `precoMin` (R$ 250 bateria, R$ 300 Kindle) marca o mais barato como acessório (`separarAcessorios(…, { precoMin })`).
   Para outro produto assim: acrescentar na lista e um caso no `testes/busca.mjs`. "protetor solar": para-brisa/carro/painel em
   `OUTRO_PRODUTO` (vai para o fim). Conferido no ar: bateria = 35 baterias de verdade; Kindle = só 3–4 (a Shopee tem poucos). Cache v=51.
+  ✅ **UP Kids da Lomadee com link quebrado (17/10/2026, print)**: todos os produtos apontam para vestis.com.br, que manda para
+  upkids.com.br com o mesmo endereço = 404 (12 de 12 testados). `SITES_QUEBRADOS` em `lib/fontes/lomadee.js` tira esses produtos;
+  conferir de vez em quando se a UP Kids corrigiu (abrir um link vestis) e tirar da lista. Cache v=52.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
