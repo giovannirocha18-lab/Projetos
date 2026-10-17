@@ -6,18 +6,9 @@ import { onRequestGet as buscar } from "./buscar.js";
 import { categoriasParaPreparar } from "../../lib/categorias.js";
 import { maisBuscados } from "../../lib/buscas.js";
 import { carregarMapa } from "../../lib/mapaCategorias.js";
+import { POPULARES } from "../../lib/vocabulario.js";
 
-// Os mais procurados no Brasil (pesquisa de 16/10/2026: Mercado Livre, Google, Shopee) e os atalhos "em alta"
-const POPULARES = [
-  "air fryer", "celular", "fone bluetooth", "fone de ouvido", "smartwatch", "tênis feminino", "tênis masculino",
-  "tênis de corrida", "ventilador", "iphone", "iphone 15", "iphone 16", "iphone 17", "geladeira", "notebook",
-  "ar condicionado", "smart tv", "tv 55 polegadas", "ps5", "camiseta dry fit", "creatina", "caixa de som bluetooth",
-  "perfume árabe", "perfume masculino", "perfume feminino", "jogo de lençol casal", "projetor 4k",
-  "bicicleta ergométrica", "liquidificador", "câmera wifi", "areia para gatos", "power bank", "garrafa térmica",
-  "robô aspirador", "kit maquiagem", "labubu", "bobbie goods", "poco x7 pro", "galaxy s24", "stanley",
-  "mochila", "capinha iphone", "carregador iphone", "panela de pressão", "jogo de panelas", "cafeteira",
-  "micro-ondas", "máquina de lavar", "aspirador de pó", "secador de cabelo", "chapinha", "relógio masculino",
-];
+// Busca as categorias, os mais procurados no Brasil (POPULARES em lib/vocabulario.js) e os atalhos "em alta"
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const parte = Math.max(parseInt(new URL(request.url).searchParams.get("parte"), 10) || 0, 0);

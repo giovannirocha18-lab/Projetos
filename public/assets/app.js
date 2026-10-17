@@ -35,6 +35,7 @@ const FUNDO_CATEGORIA = Object.fromEntries(CATEGORIAS.map((c) => [c.nome, c.fund
 // em alta na Shopee). Esta lista só aparece enquanto carrega ou se a API falhar
 const EM_ALTA = ["Air fryer", "Fone bluetooth", "Smartwatch", "Tênis de corrida", "Power bank", "Garrafa térmica", "Robô aspirador", "Kit maquiagem"];
 
+// Sugestões enquanto o vocabulário (/api/vocabulario) não chega
 const SUGESTOES = [
   "air fryer", "fone bluetooth", "fone de ouvido", "smartwatch", "relógio inteligente", "tênis de corrida",
   "tênis feminino", "garrafa térmica", "mouse sem fio", "mouse gamer", "teclado mecânico", "caixa de som bluetooth",
@@ -838,7 +839,8 @@ async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
-  const resp = await fetch(`/api/buscar?v=45&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}`);
+  const exato = q && estado.exato ? "&exato=1" : "";
+  const resp = await fetch(`/api/buscar?v=46&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -983,6 +985,21 @@ function melhorOferta(lista) {
   return base.length ? base.reduce((a, b) => (b.preco < a.preco ? b : a)) : null;
 }
 
+// "Corrigimos “eletrolux” · Buscar como digitei" ou "Você quis dizer: electrolux?"
+function avisoCorrecao() {
+  if (navegandoCategoria()) return null;
+  if (estado.corrigidaDe) {
+    return el("p", { class: "resumo-categoria" }, `Corrigimos “${estado.corrigidaDe}” · `,
+      el("button", { type: "button", onclick: () => irPara(estado.corrigidaDe, { cat: estado.cat, exato: true }) },
+        "Buscar como digitei"));
+  }
+  if (estado.sugestao) {
+    return el("p", { class: "resumo-categoria" }, "Você quis dizer: ",
+      el("button", { type: "button", onclick: () => irPara(estado.sugestao, { cat: estado.cat }) }, `${estado.sugestao}?`));
+  }
+  return null;
+}
+
 // Busca de um produto que nenhuma loja parceira vende (só peças dele): "máquina de lavar eletrolux" trazia
 // só bomba, pé nivelador e embreagem. "principal" = título começa pelo produto buscado (lib/relevancia.js)
 const POUCOS_PRODUTOS = 2;
@@ -1004,6 +1021,7 @@ function desenharResumo(lista) {
     el("p", {}, lista.length
       ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"} em ${qtdLojas} ${qtdLojas === 1 ? "loja" : "lojas"}`
       : "Nenhuma oferta com esses filtros"),
+    avisoCorrecao(),
     avisoCategoria(),
     avisoSemProduto());
 
@@ -1195,6 +1213,17 @@ async function buscar(q) {
     estado.buscando = false;
     $("#aviso-teste").hidden = !dados.exemplo;
     estado.ofertas = semRepetidos(dados.ofertas);
+    // O servidor corrigiu um erro de digitação ("eletrolux" -> "electrolux"): o endereço e a caixa passam a mostrar o certo
+    estado.sugestao = dados.sugestao || null;
+    estado.corrigidaDe = null;
+    if (dados.q && normalizar(dados.q) !== normalizar(q)) {
+      estado.corrigidaDe = q;
+      estado.q = dados.q;
+      const params = new URLSearchParams(location.search);
+      params.set("q", dados.q);
+      history.replaceState(null, "", `?${params}`);
+      preencherBusca();
+    }
     // Nada na categoria: o servidor buscou em tudo, e as próximas páginas também são de tudo
     if (dados.foraDaCategoria) { estado.foraDaCategoria = estado.cat; estado.cat = null; }
     // Buscou dentro de uma categoria: começa mostrando só ela (as outras ficam para marcar).
@@ -1450,6 +1479,7 @@ function montarInicio() {
 
 function mostrar() {
   const q = (new URLSearchParams(location.search).get("q") || "").trim();
+  estado.exato = new URLSearchParams(location.search).has("exato");
   const emBusca = Boolean(q);
   document.body.classList.toggle("modo-inicio", !emBusca);
   $("#inicio").hidden = emBusca;
@@ -1467,10 +1497,10 @@ function mostrar() {
 
 // atalho = clique em "em alta" ou categoria: não conta como busca feita pelo visitante
 // cat = buscar dentro dessa categoria do menu ("invictus" em Perfumes)
-function irPara(q, { atalho = false, cat = null } = {}) {
+function irPara(q, { atalho = false, cat = null, exato = false } = {}) {
   q = (q || "").trim();
   estado.atalho = atalho;
-  const url = q ? `?q=${encodeURIComponent(q)}${cat ? `&cat=${encodeURIComponent(cat)}` : ""}` : location.pathname;
+  const url = q ? `?q=${encodeURIComponent(q)}${cat ? `&cat=${encodeURIComponent(cat)}` : ""}${exato ? "&exato=1" : ""}` : location.pathname;
   history.pushState(null, "", url);
   window.scrollTo({ top: 0, behavior: "smooth" });
   mostrar();
@@ -1480,6 +1510,109 @@ function irPara(q, { atalho = false, cat = null } = {}) {
 // Caixa de busca com sugestões
 // ---------------------------------------------------------------------
 const normalizar = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+// Sugestões enquanto digita (17/10/2026, pedido do Giovanni): entende erro de digitação ("eletrolux" -> electrolux),
+// completa com marcas ("maquina de lavar ele" -> "maquina de lavar electrolux") e com os termos mais buscados no site.
+// O vocabulário vem uma vez de /api/vocabulario (lib/vocabulario.js); a busca em si também corrige no servidor.
+const limpo = (s) => normalizar(String(s || "")).replace(/[^a-z0-9]+/g, " ").trim();
+const VAZIAS_SUGESTAO = new Set(["de", "do", "da", "dos", "das", "para", "com", "e", "a", "o"]);
+const vocab = { termos: SUGESTOES, marcas: [], erros: {}, pedido: false, aoChegar: [] };
+function prepararVocabulario() {
+  vocab.itens = vocab.termos.map((t) => ({ t, n: limpo(t), p: limpo(t).split(" ") }));
+  vocab.marcasN = vocab.marcas.map((m) => ({ m, n: limpo(m) }));
+}
+prepararVocabulario();
+function carregarVocabulario() {
+  if (vocab.pedido) return;
+  vocab.pedido = true;
+  fetch("/api/vocabulario").then((r) => (r.ok ? r.json() : null)).then((d) => {
+    if (!d?.termos?.length) return;
+    Object.assign(vocab, { termos: d.termos, marcas: d.marcas || [], erros: d.erros || {} });
+    prepararVocabulario();
+    vocab.aoChegar.forEach((f) => f());
+  }).catch(() => {});
+}
+
+// Mesma conta do servidor (lib/vocabulario.js): letra trocada, faltando, sobrando ou invertida = 1
+function distancia(a, b, limite = 2) {
+  if (Math.abs(a.length - b.length) > limite) return limite + 1;
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+    }
+  }
+  return d[a.length][b.length];
+}
+// Marca curta não aceita erro ("nivel" não é "nivea"); 7 ou 8 letras, 1; 9 ou mais, 2
+const toleranciaMarca = (m) => (m.length >= 9 ? 2 : m.length >= 7 ? 1 : 0);
+function corrigirPalavra(p) {
+  if (vocab.erros[p]) return vocab.erros[p];
+  if (p.length < 6 || /\d/.test(p) || vocab.marcasN.some((x) => x.n === p)) return null;
+  const achada = vocab.marcasN.find((x) => !x.n.includes(" ") && x.n[0] === p[0] && toleranciaMarca(x.n)
+    && distancia(p, x.n, toleranciaMarca(x.n)) <= toleranciaMarca(x.n));
+  return achada ? achada.n : null;
+}
+const bateInteira = (p, w) => w === p || w === `${p}s` || p === `${w}s` || (p.length >= 6 && distancia(p, w, 1) <= 1);
+// Começo de palavra com 1 letra errada: 4+ letras ("geladeria"), ou 3 depois de outras palavras ("air fra" -> air fryer)
+const bateComeco = (u, w, minimo = 4) => w.startsWith(u) || (u.length >= minimo && distancia(u, w.slice(0, u.length), 1) <= 1);
+
+function sugerir(texto) {
+  const bruto = texto.replace(/^\s+/, "");
+  const originais = bruto.trim().split(/\s+/).filter(Boolean);
+  if (!originais.length) return [];
+  const terminou = /\s$/.test(bruto);
+  // Cada palavra digitada já corrigida ("eletrolux" -> "electrolux"); fica do jeito digitado se não tiver erro
+  const corrigidas = originais.map((o) => corrigirPalavra(limpo(o)) || o.toLowerCase());
+  // A correção pode virar duas palavras ("airfrayer" -> "air fryer")
+  const partes = limpo(corrigidas.join(" ")).split(" ");
+  const completas = (terminou ? partes : partes.slice(0, -1)).filter((p) => p && !VAZIAS_SUGESTAO.has(p));
+  const ultima = terminou ? "" : limpo(originais.at(-1));
+  const ultimaCerta = terminou ? "" : partes.at(-1);
+  const digitado = limpo(bruto);
+  const saida = [];
+  const vistos = new Set();
+  const incluir = (s) => { const k = limpo(s); if (k && k !== digitado && !vistos.has(k) && vistos.add(k)) saida.push(s); };
+
+  // 1) O que foi digitado, corrigido ("maquina de lavar eletrolux" -> "maquina de lavar electrolux")
+  const corrigido = corrigidas.join(" ");
+  if (limpo(corrigido) !== digitado) incluir(corrigido);
+
+  // 2) Termos do vocabulário com todas as palavras digitadas (a última pode estar pela metade);
+  //    os que começam igual ao digitado vêm primeiro, depois a ordem do vocabulário (mais buscados primeiro)
+  const achados = [];
+  for (const item of vocab.itens) {
+    if (!completas.every((p) => item.p.some((w) => bateInteira(p, w)))) continue;
+    const minimo = completas.length ? 3 : 4;
+    if (ultima && !item.p.some((w) => bateComeco(ultima, w, minimo) || bateComeco(ultimaCerta, w, minimo))) continue;
+    achados.push({ t: item.t, comeca: item.n.startsWith(limpo(corrigido)) || item.n.startsWith(digitado) });
+  }
+  const primeiro = achados.filter((a) => a.comeca);
+  primeiro.slice(0, 5).forEach((a) => incluir(a.t));
+
+  // 3) Marca no fim: "maquina de lavar ele" -> "maquina de lavar electrolux"; sozinha: "sams" -> "samsung"
+  if (ultima) {
+    const antes = corrigidas.slice(0, -1).join(" ");
+    vocab.marcasN
+      .filter((x) => x.n.startsWith(ultima) || x.n === ultimaCerta || (ultima.length >= 4 && bateComeco(ultima, x.n)))
+      .slice(0, 4)
+      .forEach((x) => incluir(antes ? `${antes} ${x.m}` : x.m));
+  }
+  achados.filter((a) => !a.comeca).forEach((a) => incluir(a.t));
+  return saida.slice(0, 8);
+}
+
+// Destaca o pedaço já digitado, se a sugestão começa por ele
+function textoSugestao(s, digitado) {
+  const n = limpo(digitado);
+  if (!n || !limpo(s).startsWith(n)) return el("span", {}, s);
+  // Acha onde o digitado termina na sugestão (acentos e hífens contam como letras)
+  let fim = 0;
+  while (fim < s.length && limpo(s.slice(0, fim)).length < n.length) fim++;
+  return el("span", {}, el("mark", {}, s.slice(0, fim)), s.slice(fim));
+}
 
 let contadorBuscas = 0;
 function prepararBusca(form) {
@@ -1510,16 +1643,13 @@ function prepararBusca(form) {
   };
 
   function desenhar() {
-    const termo = normalizar(input.value.trim());
-    itens = termo ? SUGESTOES.filter((s) => normalizar(s).includes(termo)).slice(0, 6) : [];
+    if (document.activeElement !== input) return;
+    itens = sugerir(input.value);
     if (!itens.length) return fechar();
-    lista.replaceChildren(...itens.map((s, n) => {
-      const i = normalizar(s).indexOf(termo);
-      return el("li", {
-        role: "option", id: `${idLista}-${n}`, "aria-selected": "false",
-        onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual() }); },
-      }, el("span", {}, s.slice(0, i), el("mark", {}, s.slice(i, i + termo.length)), s.slice(i + termo.length)));
-    }));
+    lista.replaceChildren(...itens.map((s, n) => el("li", {
+      role: "option", id: `${idLista}-${n}`, "aria-selected": "false",
+      onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual() }); },
+    }, textoSugestao(s, input.value))));
     ativo = -1;
     lista.hidden = false;
     input.setAttribute("aria-expanded", "true");
@@ -1527,6 +1657,8 @@ function prepararBusca(form) {
   }
 
   input.addEventListener("input", desenhar);
+  input.addEventListener("focus", carregarVocabulario);
+  vocab.aoChegar.push(() => { if (input.value.trim()) desenhar(); });
   input.addEventListener("blur", fechar);
   input.addEventListener("keydown", (e) => {
     if (lista.hidden) return;

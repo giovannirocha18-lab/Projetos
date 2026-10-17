@@ -9,6 +9,7 @@
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
 import { citaAlgumaPalavra, separarAcessorios } from "../lib/relevancia.js";
 import { categoriaDoProduto } from "../lib/categorias.js";
+import { corrigirBusca } from "../lib/vocabulario.js";
 
 const CASOS = {
   // ---- Prints do Giovanni ----
@@ -178,6 +179,21 @@ for (const [q, { fica, sai }] of Object.entries(FILTRO_ALIEXPRESS)) {
   const cita = citaAlgumaPalavra(q);
   for (const t of fica) { total++; if (!cita(t)) { falhas++; console.log(`✗ filtro AliExpress "${q}": tirou "${t}"`); } }
   for (const t of sai) { total++; if (cita(t)) { falhas++; console.log(`✗ filtro AliExpress "${q}": deixou "${t}"`); } }
+}
+// Correção de digitação (17/10/2026, print "maquina de lavar eletrolux"): [digitado, q buscado, "Você quis dizer"]
+const CORRECOES = [
+  ["maquina de lavar eletrolux", "maquina de lavar electrolux", null],
+  ["samsumg galaxy", "samsung galaxy", null],
+  ["fone bluetoth", "fone bluetooth", null],
+  ["electrolox", "electrolox", "electrolux"],
+  // Palavras de verdade perto de marcas não mudam
+  ["natural", "natural", null], ["nivel a laser", "nivel a laser", null], ["cross", "cross", null],
+  ["invictus", "invictus", null], ["conversor hdmi", "conversor hdmi", null], ["stranger things", "stranger things", null],
+];
+for (const [digitado, q, sugestao] of CORRECOES) {
+  total++;
+  const r = corrigirBusca(digitado);
+  if (r.q !== q || r.sugestao !== sugestao) { falhas++; console.log(`✗ correção "${digitado}": ${JSON.stringify(r)}`); }
 }
 console.log(falhas ? `\n${falhas} problema(s) em ${total} títulos` : `\n✓ Tudo certo (${Object.keys(CASOS).length} buscas, ${total} títulos)`);
 process.exitCode = falhas ? 1 : 0;
