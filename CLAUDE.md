@@ -55,7 +55,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   o Cloudflare não deixa desligar o endereço .pages.dev). Prévias de outras branches continuam abrindo.
 - Commits que só mexem no `CLAUDE.md` (memória) levam **`[skip ci]`** na mensagem, para não gastar publicações
   do Cloudflare (limite de 500 por mês no plano grátis). **Cuidado**: o Cloudflare olha só o último commit de cada push;
-  se ele tiver `[skip ci]`, o push inteiro não é publicado. Fazer push do código ANTES do commit da memória (17/10/2026).
+  se ele tiver `[skip ci]`, o push inteiro não é publicado. Fazer push do código ANTES do commit da memória, e nunca escrever essa marca no meio de outra mensagem (17/10/2026).
 - **Production branch = `claude/inspiring-hamilton-wafagr`** (não é a `main`!). Desde 14/10/2026 ela também é a
   **branch padrão (default) do GitHub**. Se uma conversa
   nova trabalhar em outra branch, as mudanças não vão para o ar: trazer para essa branch, ou
