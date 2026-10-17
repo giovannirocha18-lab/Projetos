@@ -510,6 +510,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   em tela de 1890px a barra lateral encosta na esquerda e cabem 6 cartões por linha (eram 5).
 - **Botão no celular (17/10/2026, print do Giovanni)**: era só "Comprar →"; agora 2 linhas "Comprar" + "na Shopee" menor
   (`textoComprar` no `app.js`, `.comprar-curto` no CSS).
+- **Filtro de lojas (17/10/2026, print do Giovanni: só 3 lojas pareciam ser todas as parceiras)**: título virou "Lojas nesta lista"
+  + nota "Temos mais de N lojas parceiras; aqui aparecem as que têm ofertas nesta lista" (`#nota-lojas`, número de `/api/numeros`).
 - **Sempre tema claro (16/10/2026, pedido do Giovanni)**: removido o modo escuro automático do `estilo.css` (`color-scheme: light`).
 
 ## Análise crítica e bugs (16/10/2026, 3 revisões automáticas + conferência do Claude)
