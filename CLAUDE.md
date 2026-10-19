@@ -603,6 +603,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   palavras (`citaTodasFlexivel`: qualquer lugar, plural e masculino/feminino pela raiz, "airfryer" junto), os outros viram
   `acessorio + parecido` e vão para o botão "Ver também N acessórios e produtos parecidos". Busca de acessório e de 1 palavra não mudam.
   Conferido no ar: babuche masculino 124 só Calçados; tênis feminino 213 só Calçados; cadeira gamer 141 em Móveis. Cache v=63.
+  Print "placa de video" (Eletrodomésticos/Decoração/Automotivo): `ANTES_DE_TUDO` em `lib/categorias.js` (vale antes da ordem da
+  lista) põe placa de vídeo, placa mãe, GPU, GeForce, Radeon, RTX/GTX/RX, memória RAM, Ryzen, water cooler… em Informática.
+  ⭐ **Busca normal começa só com as categorias do que foi buscado** (`categoriasDaBusca()` vira `secoesSo` no `buscar()` do
+  app.js); as outras ficam desmarcadas em "Categorias nos resultados". Conferido: placa de video = só Informática (230);
+  invictus = Perfumes + Outros; celular = Celulares. Cache v=64.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
