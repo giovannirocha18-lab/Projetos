@@ -283,6 +283,9 @@ const CATEGORIAS_ESPERADAS = [
   // Ventilador ficava sem categoria (19/10/2026, "ventilador philco"); cooler de PC não é ventilador de casa
   ["Ventilador Philco 2 em 1 Maxx Force 150W PVT41A", "Eletrodomésticos"], ["Ventilador de Teto Philco Silencioso 145W", "Eletrodomésticos"],
   ["Climatizador de Ar Mondial 3 em 1", "Eletrodomésticos"],
+  // Placa de vídeo caía em Eletrodomésticos ("Ventilador"), Decoração ("Quadro K3000"), Games ("Gamer") (print, 19/10/2026)
+  ["Placa de vídeo Ventilador de refrigeração GPU NVIDIA GeForce RTX 2080", "Informática"], ["Placa de Vídeo Quadro K3000 GDDR5", "Informática"],
+  ["Placa De Vídeo Gamer Rtx 3070 8GB", "Informática"], ["Processador AMD Ryzen 5 5600", "Informática"],
   // Babuche com estampa "Carros" caía em Automotivo (print do Giovanni, 19/10/2026)
   ["Babuche Masculino Infantil Carros Promoção Menino", "Calçados"], ["Pantufa Feminina Pelúcia", "Calçados"], ["Ventilador Automotivo 12v Duplo Carro", "Automotivo"],
 ];

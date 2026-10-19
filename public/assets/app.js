@@ -848,7 +848,7 @@ async function consultarApi(q, mais = "") {
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
   const exato = q && estado.exato ? "&exato=1" : "";
-  const resp = await fetch(`/api/buscar?v=63&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
+  const resp = await fetch(`/api/buscar?v=64&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -1336,6 +1336,9 @@ async function buscar(q) {
     const exatos = estado.ofertas.filter((o) => o.bate && !o.acessorio);
     const naCategoria = exatos.filter((o) => o.secao === estado.cat).length;
     if (estado.cat && !navegandoCategoria() && naCategoria && naCategoria >= exatos.length * 0.3) estado.secoesSo = new Set([estado.cat]);
+    // Busca normal: começa só com as categorias do que foi buscado ("placa de video" = Informática); as outras ficam
+    // desmarcadas em "Categorias nos resultados" (pedido do Giovanni, 19/10/2026)
+    else if (!estado.cat) estado.secoesSo = categoriasDaBusca();
     estado.maisBusca = dados.mais;
     estado.temMaisBusca = Boolean(dados.mais);
     desenharFiltroLojas();
