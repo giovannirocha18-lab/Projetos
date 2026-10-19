@@ -608,6 +608,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   ⭐ **Busca normal começa só com as categorias do que foi buscado** (`categoriasDaBusca()` vira `secoesSo` no `buscar()` do
   app.js); as outras ficam desmarcadas em "Categorias nos resultados". Conferido: placa de video = só Informática (230);
   invictus = Perfumes + Outros; celular = Celulares. Cache v=64.
+  Print "notebook gamer" (mousepad em Calçados): o vendedor pôs na categoria errada da Shopee e o `catMapa` vencia. Agora
+  `marcarSecoes(ofertas, cat, daBusca)`: se o título é da categoria da busca, ele vence o catMapa. Calçados sumiu. Cache v=65.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
