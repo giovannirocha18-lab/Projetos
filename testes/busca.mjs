@@ -9,7 +9,7 @@
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
 import { separarAcessorios } from "../lib/relevancia.js";
 import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
-import { categoriaDoProduto } from "../lib/categorias.js";
+import { categoriaDoProduto, marcarSecoes } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 
 const CASOS = {
@@ -293,6 +293,13 @@ for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
   total++;
   const obtida = categoriaDoProduto(titulo)?.nome;
   if (obtida !== esperada) { falhas++; console.log(`✗ categoria de "${titulo}": ${obtida || "nenhuma"} (esperado ${esperada})`); }
+}
+
+// Categoria da loja errada perde para o título quando o título é do que foi buscado (print "notebook gamer", 19/10/2026)
+{
+  total++;
+  const [o] = marcarSecoes([{ titulo: "Deskpad Mousepad Gamer 80x30 Para Jogos Notebook", catMapa: "Calçados" }], null, categoriaDoProduto("notebook gamer"));
+  if (o.secao !== "Informática") { falhas++; console.log(`✗ categoria da loja: mousepad ficou em ${o.secao}`); }
 }
 
 // Filtro da AliExpress (busca solta): fica = passa no filtro; sai = tem que ser tirado

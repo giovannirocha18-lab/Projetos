@@ -45,7 +45,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 64;
+const VERSAO_CACHE = 65;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -226,7 +226,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       (novas) => contarNaCategoria(separarAcessorios(novas, q), categoria));
     ofertas = ordenarNaCategoria(separarAcessorios(juntas, q), categoria);
     if (!ofertas.some((o) => o.naCategoria) && desde === 1) {
-      ofertas = marcarSecoes(separarAcessorios(juntas, q));
+      ofertas = marcarSecoes(separarAcessorios(juntas, q), null, categoriaDoProduto(q));
       foraDaCategoria = ofertas.length > 0;
     }
     mais = proxima && `desde=${proxima}`;
@@ -237,7 +237,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const separar = (lista) => separarAcessorios(lista, termo, { precoMin });
     const { juntas, proxima } = await buscarAteEncher(buscas, (novas) => separar(novas).filter((o) => !o.acessorio).length,
       buscas.length > 2 ? 1 : PAGINAS_POR_LOTE);
-    ofertas = marcarSecoes(separar(juntas));
+    ofertas = marcarSecoes(separar(juntas), null, categoriaDoProduto(q));
     foraDaCategoria = outraCategoria;
     mais = proxima && `desde=${proxima}`;
   } else {
