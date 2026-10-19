@@ -596,6 +596,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   Print "Babuche Masculino" (com Automotivo aberto mostrava só 1 bandana): "babuche" não era palavra de Calçados, e os babuches
   "Carros" (desenho) caíam em Automotivo. Calçados + babuche, pantufa, tamanco, mocassim, sapatilha, alpargata, galocha, mule,
   scarpin. Agora a busca sai da categoria (`foraDaCategoria`) e mostra 141 calçados. Cache v=60.
+  "baduche" (erro comum) → "babuche" em `ERROS` (sem isso só 1 oferta). Cache v=61.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
