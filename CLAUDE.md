@@ -599,6 +599,10 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   "baduche" (erro comum) → "babuche" em `ERROS` (sem isso só 1 oferta). Cache v=61.
   "babuche masculino" trazia bandana/boné "masculino" do AliExpress: `citaAlgumaPalavra` ignora palavras de público
   (`PARA_QUEM`: masculino, feminino, infantil, unissex, adulto, kids, menino…) quando há outra palavra. Agora só Calçados. Cache v=62.
+  ⭐ **Regra das 2+ palavras (ideia do Giovanni, 19/10/2026)**: em busca de produto com 2+ palavras, se 10+ produtos têm TODAS as
+  palavras (`citaTodasFlexivel`: qualquer lugar, plural e masculino/feminino pela raiz, "airfryer" junto), os outros viram
+  `acessorio + parecido` e vão para o botão "Ver também N acessórios e produtos parecidos". Busca de acessório e de 1 palavra não mudam.
+  Conferido no ar: babuche masculino 124 só Calçados; tênis feminino 213 só Calçados; cadeira gamer 141 em Móveis. Cache v=63.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
