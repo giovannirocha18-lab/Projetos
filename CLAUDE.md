@@ -593,6 +593,9 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (`JOGO_NA_BUSCA` em `OUTRO_PRODUTO`) escavadeira, guindaste, industrial, cadeira (de rodas), keycap, teclado, aviação, drone
   vão para o fim. Ventilador, climatizador e aquecedor elétrico entraram em Eletrodomésticos (cooler/gabinete de PC não).
   Conferido no ar. Cache v=59.
+  Print "Babuche Masculino" (com Automotivo aberto mostrava só 1 bandana): "babuche" não era palavra de Calçados, e os babuches
+  "Carros" (desenho) caíam em Automotivo. Calçados + babuche, pantufa, tamanco, mocassim, sapatilha, alpargata, galocha, mule,
+  scarpin. Agora a busca sai da categoria (`foraDaCategoria`) e mostra 141 calçados. Cache v=60.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
