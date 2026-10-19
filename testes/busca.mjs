@@ -19,6 +19,15 @@ const CASOS = {
     A: ["Porta Controle Polvo Gamer Decorativo Organizador para Controle de Videogame PS5", "Suporte para Controle de Video Game Universal",
       "Grip Extensor Gamer Botão Analógico Protetor Controle Para Xbox Ps4 Ps5", "Máscara Oni - Suporte para Controle de PS5 / suporte mascara para game"],
   },
+  // 19/10/2026 (ideia do Giovanni): marca na frente. "mondial air fryer" não achava nenhum produto principal
+  "mondial air fryer": {
+    E: ["Air Fryer Mondial 4L AFN-40 Preta", "Fritadeira Air Fryer Mondial Family 5L"],
+    A: ["Cesto Air Fryer Mondial AFN-40 Original"],
+  },
+  "britania liquidificador": {
+    E: ["Liquidificador Britânia Diamante 900W 5 Velocidades"],
+    A: ["Copo Liquidificador Britânia Diamante 800 900w Preto 1,5L"],
+  },
   "joystick": {
     E: ["Controle Joystick Com Fio USB Para PC Notebook", "Joystick Sem Fio Para PS4 Bluetooth"],
     A: ["Suporte para Joystick PS5 Base de Mesa", "Capa de Silicone para Controle PS4"],
@@ -184,6 +193,8 @@ const CASOS_PRECO = [
   ["cadeira gamer", [["Cadeira Gamer PCYES Mad Racer", 950], ["Cadeira Gamer DT3 Elise", 1200], ["Cadeira Gamer ThunderX3", 900],
     ["Cadeira Gamer Husky", 700], ["Cadeira Gamer Kuromi Rosa", 600], ["Cadeira Gamer PCYES Prime Red", 1]], { "Cadeira Gamer PCYES Prime Red": "A" }],
   ["celular", [...celulares, ["Celular Usado Nokia 110 4G Dual Chip", 89]], { "Celular Usado Nokia 110 4G Dual Chip": "P" }],
+  ["mondial air fryer", [["Mondial Air Fryer AFN-40 4L", 350], ["Air Fryer Mondial Family 5L", 420]], { "Mondial Air Fryer AFN-40 4L": "P", "Air Fryer Mondial Family 5L": "P" }],
+  ["philco ventilador", [["Ventilador Philco PVT40 40cm", 180]], { "Ventilador Philco PVT40 40cm": "P" }],
 ];
 for (const [q, itens, esperado] of CASOS_PRECO) {
   const saida = separarAcessorios(itens.map(([titulo, preco], i) => ({ id: String(i), titulo, preco })), q);

@@ -577,6 +577,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   "Base Controle" logo antes do produto = acessório; não vale se a busca tem a palavra: "base líquida"). Cache v=53.
   ✅ **Busca de outra categoria com categoria aberta (19/10/2026, print "air fryer mondial" em Cabelo = só secadores)**: se
   `categoriaDoProduto(q)` é outra categoria, `buscar.js` busca em todas e responde `foraDaCategoria` (site avisa). Cache v=54.
+  ✅ **Marca x produto (19/10/2026, ideia do Giovanni)**: `lib/relevancia.js` separa a marca (lista `MARCAS` do vocabulario.js,
+  com sinônimos) do produto (`produtoDaBusca`/`produtoPrimeiro`): o nível do título usa só o produto e pula a marca no começo do
+  título ("Mondial Air Fryer…" = nível 2); a frase também vale na ordem produto+marca. "mondial air fryer": 0 → 77 produtos
+  principais; "britania liquidificador" esconde copos de reposição; buscas sem marca não mudaram (conferido em 23 buscas). Cache v=55.
+  Marca nova que aparecer nas buscas → acrescentar em `MARCAS`.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
