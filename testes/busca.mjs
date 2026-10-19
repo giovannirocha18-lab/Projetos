@@ -7,7 +7,7 @@
 // Além disso, todo E tem que vir antes de todo N/A na ordem de "Mais relevantes".
 // Fontes dos termos (pesquisa de 16/10/2026): MELI Trends 2025 (Mercado Livre), "Os Mais Desejados do Ano"
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
-import { separarAcessorios } from "../lib/relevancia.js";
+import { separarAcessorios, produtoBuscado } from "../lib/relevancia.js";
 import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
 import { categoriaDoProduto, marcarSecoes } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
@@ -300,6 +300,21 @@ for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
   total++;
   const [o] = marcarSecoes([{ titulo: "Deskpad Mousepad Gamer 80x30 Para Jogos Notebook", catMapa: "Calçados" }], null, categoriaDoProduto("notebook gamer"));
   if (o.secao !== "Informática") { falhas++; console.log(`✗ categoria da loja: mousepad ficou em ${o.secao}`); }
+}
+
+// Conferência das categorias: todo produto buscado fica na mesma categoria (print "pipoqueira eletrica" em Informática
+// pelo "Mickey Mouse" e em Limpeza/Cozinha pela categoria da loja, 19/10/2026)
+{
+  const q = "pipoqueira eletrica";
+  const titulos = ["Pipoqueira Elétrica Mallory Mickey Mouse 1200 W Sem Óleo", "Pipoqueira Elétrica Sem Óleo Ar Quente 1200w",
+    "Pipoqueira Elétrica Amvox APC 027 1200W", "PIPOQUEIRA ELETRICA COM COPO MEDIDOR MALLORY TOY STORY"];
+  const ofertas = separarAcessorios(titulos.map((titulo, i) => ({ titulo, preco: 150, ...(i === 1 && { catMapa: "Limpeza" }) })), q);
+  for (const o of marcarSecoes(ofertas, null, categoriaDoProduto(q), produtoBuscado(q))) {
+    total++;
+    if (o.secao !== "Eletroportáteis") { falhas++; console.log(`✗ conferência: "${o.titulo}" ficou em ${o.secao || "Outros"}`); }
+  }
+  total++;
+  if (categoriaDoProduto("Mouse Gamer RGB 7200 DPI")?.nome !== "Informática") { falhas++; console.log("✗ mouse gamer saiu de Informática"); }
 }
 
 // Filtro da AliExpress (busca solta): fica = passa no filtro; sai = tem que ser tirado
