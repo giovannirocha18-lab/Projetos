@@ -222,6 +222,23 @@ for (const [q, titulos, primeiro, naoBate] of [
   }
 }
 
+// Busca de 2+ palavras: só os que têm todas ficam visíveis; os outros vão para "Ver também" (ideia do Giovanni, 19/10/2026)
+{
+  const fica = ["Babuche Masculina Forrada Pelúcia", "Sandália Babuche Nuvem Masculino e Feminino", "Babuche Masculino Adulto",
+    "Babuche Masculino Leve", "Babuche Masculino EVA", "Babuche Masculino Preto", "Babuche Masculino Branco", "Babuche Masculino Azul",
+    "Babuche Masculino Cinza", "Babuche Masculino Verde"];
+  const sai = ["Babuche Unissex Plataforma", "Chinelo Slide Masculino Nuvem"];
+  const saida = separarAcessorios([...fica, ...sai].map((titulo, i) => ({ id: String(i), titulo, preco: 50 })), "babuche masculino");
+  for (const o of saida) {
+    total++;
+    if (fica.includes(o.titulo) === Boolean(o.acessorio)) { falhas++; console.log(`✗ todas as palavras: "${o.titulo}" ${o.acessorio ? "escondido" : "visível"}`); }
+  }
+  total++;
+  const fones = separarAcessorios(Array.from({ length: 10 }, (_, i) => ({ id: String(i), titulo: `Fone Bluetooth Modelo ${i}`, preco: 80 }))
+    .concat({ id: "x", titulo: "Fones de Ouvido Sem Fio Bluetooth 5.3", preco: 80 }), "fone bluetooth");
+  if (fones.find((o) => o.id === "x").acessorio) { falhas++; console.log("✗ todas as palavras: plural \"Fones\" escondido"); }
+}
+
 // Versões de nicho vêm depois das comuns, a não ser que a busca peça: [busca, títulos, o que tem que vir primeiro]
 const ORDEM = [
   ["geladeira", ["Geladeira Portátil 40L Camping Veicular", "Geladeira Frost Free Consul 340L"], "Geladeira Frost Free Consul 340L"],

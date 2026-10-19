@@ -848,7 +848,7 @@ async function consultarApi(q, mais = "") {
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
   const exato = q && estado.exato ? "&exato=1" : "";
-  const resp = await fetch(`/api/buscar?v=62&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
+  const resp = await fetch(`/api/buscar?v=63&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -1157,7 +1157,12 @@ function desenharResultados() {
   const acessorios = estado.ofertas.filter((o) => o.acessorio && lojaLigada(o)).length;
   const botao = $("#ver-acessorios");
   botao.hidden = !acessorios || $("#com-acessorios").checked || acessorios === estado.ofertas.length;
-  botao.textContent = `Ver também ${acessorios} ${acessorios === 1 ? "acessório ou peça" : "acessórios e peças"} para “${estado.q}”`;
+  // "parecido" = não tem todas as palavras de uma busca de 2+ palavras (o servidor junta com os acessórios)
+  const soParecidos = estado.ofertas.every((o) => !o.acessorio || o.parecido);
+  const temParecidos = estado.ofertas.some((o) => o.parecido);
+  const nome = soParecidos ? (acessorios === 1 ? "produto parecido" : "produtos parecidos")
+    : temParecidos ? "acessórios e produtos parecidos" : (acessorios === 1 ? "acessório ou peça" : "acessórios e peças");
+  botao.textContent = `Ver também ${acessorios} ${nome} para “${estado.q}”`;
 }
 
 // Animação enquanto busca: um personagem empurra um carrinho de um lado ao outro, olhando para os lados, e o
