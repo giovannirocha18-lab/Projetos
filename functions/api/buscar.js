@@ -18,7 +18,7 @@ import { historicoAoVivo, ehAoVivo } from "../../lib/ofertas.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias } from "../../lib/mapaCategorias.js";
 import { separarAcessorios } from "../../lib/relevancia.js";
 import { corrigirBusca, acentuarBusca, buscaNasLojas } from "../../lib/vocabulario.js";
-import { categoriaPorNome, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
+import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
 const FONTES_REAIS = [curadoria, shopee, awin, aliexpress, lomadee];
@@ -45,7 +45,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 53;
+const VERSAO_CACHE = 54;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -196,6 +196,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Abriu uma categoria: vitrine com os produtos em alta (várias buscas, mais vendidos primeiro)
   const vitrine = vitrineDaCategoria(q, categoria);
+  // O que foi buscado é claramente de outra categoria ("air fryer mondial" com Cabelo aberta mostrava só secadores
+  // Mondial; print do Giovanni, 19/10/2026): busca em todas e o site avisa
+  const daBusca = categoria && !vitrine ? categoriaDoProduto(q) : null;
+  const outraCategoria = Boolean(daBusca) && daBusca.nome !== categoria.nome;
   let ofertas;
   let foraDaCategoria = false;
   if (vitrine) {
@@ -214,7 +218,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     } while (!acabou && pag - desde < MAX_PAGINAS_VITRINE && ofertas.length < MINIMO_PRODUTOS);
     ofertas = marcarSecoes(ofertas, categoria);
     mais = acabou || pag > MAX_DESDE ? null : `desde=${pag}`;
-  } else if (categoria) {
+  } else if (categoria && !outraCategoria) {
     // Dentro de uma categoria: o que foi digitado + (se a categoria tem chave) "invictus perfume";
     // fica só o que não é de outra categoria, o que é dela primeiro. Se nada sobrar, busca em tudo (e o site avisa).
     const extra = termoNaCategoria(q, categoria);
@@ -234,6 +238,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const { juntas, proxima } = await buscarAteEncher(buscas, (novas) => separar(novas).filter((o) => !o.acessorio).length,
       buscas.length > 2 ? 1 : PAGINAS_POR_LOTE);
     ofertas = marcarSecoes(separar(juntas));
+    foraDaCategoria = outraCategoria;
     mais = proxima && `desde=${proxima}`;
   } else {
     ofertas = await consultar(q);
