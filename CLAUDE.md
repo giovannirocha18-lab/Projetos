@@ -610,6 +610,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   invictus = Perfumes + Outros; celular = Celulares. Cache v=64.
   Print "notebook gamer" (mousepad em Calçados): o vendedor pôs na categoria errada da Shopee e o `catMapa` vencia. Agora
   `marcarSecoes(ofertas, cat, daBusca)`: se o título é da categoria da busca, ele vence o catMapa. Calçados sumiu. Cache v=65.
+- ⭐ **Conferência das categorias (19/10/2026, print "pipoqueira eletrica" em Informática/Limpeza/Cozinha)**: `marcarSecoes(…, buscado)`
+  com `produtoBuscado(q)` (`lib/relevancia.js`: não acessório e `principal`, ou 2+ palavras todas no título): todos os produtos
+  buscados ficam na MESMA categoria = a da busca (`categoriaDoProduto(q)`), senão a da maioria (60%+ dos classificados, que
+  são 40%+), senão nenhuma ("Outros"). Informática ganhou `nao` (mickey/minnie mouse, monitor de bebê/cardíaco/pressão);
+  Eletroportáteis + pipoqueira elétrica, máquina de pipoca, torradeira, waffle, panela de arroz… Cache v=66.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
@@ -659,6 +664,7 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 19/10/2026, 8ª sessão)
+- Giovanni: conferir "pipoqueira eletrica" (agora só Eletroportáteis) e mandar print de outra busca com categoria errada.
 - 8ª sessão: corrigidos "joystick" (só controles no topo) e "ventilador philco" (agora em Eletrodomésticos). Giovanni: conferir no site.
 - 7ª sessão (17–19/10) fez: bateria/kindle/protetor solar, card roxo padrão, texto do cupom, cabelo cacheado do personagem,
   UP Kids fora (link 404), caixa de busca curta no celular, controle de videogame/joystick, busca de outra categoria com
