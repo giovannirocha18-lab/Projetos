@@ -636,7 +636,13 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 17/10/2026, 7ª sessão)
+## Próximos passos (atualizado 19/10/2026, fim da 7ª sessão)
+- 7ª sessão (17–19/10) fez: bateria/kindle/protetor solar, card roxo padrão, texto do cupom, cabelo cacheado do personagem,
+  UP Kids fora (link 404), caixa de busca curta no celular, controle de videogame/joystick, busca de outra categoria com
+  categoria aberta, marca x produto, regra geral do AliExpress (+116 marcas). Cache v=57.
+- Pendente (Claude): "joystick" sozinho ainda traz alavanca industrial e tecla de teclado; "ventilador philco" tem 34 sem categoria.
+- Giovanni: avisar a Lomadee/UP Kids que os links da UP Kids dão 404 (opcional); conferir "controle para video game",
+  "mondial air fryer", "air fryer mondial" e outras buscas com marca.
 - Giovanni: conferir "bateria para carro", "kindle" e "protetor solar" no site.
 - Giovanni: conferir a categoria "Eletrodomésticos" (1ª do menu).
 - Opcional (sugerido na 6ª sessão): perguntar ao suporte de Afiliados da Shopee se a API tem cupons; ligar cupons oficiais da Lomadee/Awin.
