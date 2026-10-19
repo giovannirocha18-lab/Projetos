@@ -583,6 +583,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   principais; "britania liquidificador" esconde copos de reposição; buscas sem marca não mudaram (conferido em 23 buscas). Cache v=55.
   `citaAlgumaPalavra` (filtro da AliExpress e "faltando uma" da Awin) exige palavra do produto, não só a marca
   (secador Mondial saía em "air fryer mondial"). Cache v=56. Marca nova que aparecer nas buscas → acrescentar em `MARCAS`.
+  ✅ **Regra geral do AliExpress (19/10/2026, pedido do Giovanni: "vale para todas as marcas")**: `tituloDaBusca` em
+  `lib/fontes/aliexpress.js` = cita o produto E (tem todas as palavras soltas, `citaTodasAsPalavras`, OU não é de outra
+  categoria pelo título). Pega marca fora da lista. Simulado em 23 buscas reais: só sai lixo (secador em air fryer, capa de
+  celular em smart tv, calça "com bolsos" em bolsa feminina, peça de motorhome em geladeira). `MARCAS` foi de 202 para 318.
+  Sinônimo sneakers = tênis. Cache v=57.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >

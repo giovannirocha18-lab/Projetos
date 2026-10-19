@@ -7,7 +7,8 @@
 // Além disso, todo E tem que vir antes de todo N/A na ordem de "Mais relevantes".
 // Fontes dos termos (pesquisa de 16/10/2026): MELI Trends 2025 (Mercado Livre), "Os Mais Desejados do Ano"
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
-import { citaAlgumaPalavra, separarAcessorios } from "../lib/relevancia.js";
+import { separarAcessorios } from "../lib/relevancia.js";
+import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
 import { categoriaDoProduto } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 
@@ -275,10 +276,15 @@ const FILTRO_ALIEXPRESS = {
   "smartwatch": { fica: ["Smart Watch Ultra 9 Pro Max", "Relógio Smartwatch D20"], sai: ["Pulseira de Silicone 22mm"] },
   // Com marca e produto, só a marca não basta (print de 19/10/2026)
   "air fryer mondial": { fica: ["Fritadeira Elétrica sem Óleo/Air Fryer Mondial - 110V", "Air Fryer Philco 5L"], sai: ["Secador de Cabelo Mondial Tourmaline Íon Preto - 110V"] },
+  // Sem todas as palavras e de outra categoria (vale para marca fora da lista)
+  "air fryer marcaqualquer": { fica: ["Air Fryer Marcaqualquer 5L"], sai: ["Secador de Cabelo Marcaqualquer 2000W"] },
+  "bolsa feminina": { fica: ["Bolsa Feminina Transversal Couro", "Bolsa Tiracolo Pequena Feminina"], sai: ["Calças Cargo Femininas de Cintura Alta com Bolsos"] },
+  "capinha iphone 13": { fica: ["Elegante capa protetora para iPhone 18 17 16 15 14 13 12 11 Pro Max"], sai: [] },
+  "tenis adidas": { fica: ["Adidas genuíno Superstar Unissex Minimalista Chunky Sneakers JS3027"], sai: [] },
   "mondial": { fica: ["Secador de Cabelo Mondial Tourmaline", "Air Fryer Mondial 4L"], sai: ["Air Fryer Philco 5L"] },
 };
 for (const [q, { fica, sai }] of Object.entries(FILTRO_ALIEXPRESS)) {
-  const cita = citaAlgumaPalavra(q);
+  const cita = tituloDaBusca(q);
   for (const t of fica) { total++; if (!cita(t)) { falhas++; console.log(`✗ filtro AliExpress "${q}": tirou "${t}"`); } }
   for (const t of sai) { total++; if (cita(t)) { falhas++; console.log(`✗ filtro AliExpress "${q}": deixou "${t}"`); } }
 }
