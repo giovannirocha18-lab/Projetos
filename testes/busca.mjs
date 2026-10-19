@@ -306,6 +306,7 @@ const CORRECOES = [
   ["aspirador de po", "aspirador de pó", null], ["media", "media", null],
   ["samsumg galaxy", "samsung galaxy", null],
   ["fone bluetoth", "fone bluetooth", null],
+  ["baduche masculino", "babuche masculino", null],
   ["electrolox", "electrolox", "electrolux"],
   // Palavras de verdade perto de marcas não mudam
   ["natural", "natural", null], ["nivel a laser", "nível a laser", null], ["cross", "cross", null],

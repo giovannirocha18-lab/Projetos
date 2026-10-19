@@ -45,7 +45,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 60;
+const VERSAO_CACHE = 61;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
