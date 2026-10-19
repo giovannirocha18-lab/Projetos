@@ -265,7 +265,9 @@ const CATEGORIAS_ESPERADAS = [
   ["Air Fryer / Forno Elétrico 3 em 1", "Eletroportáteis"],
   // Ventilador ficava sem categoria (19/10/2026, "ventilador philco"); cooler de PC não é ventilador de casa
   ["Ventilador Philco 2 em 1 Maxx Force 150W PVT41A", "Eletrodomésticos"], ["Ventilador de Teto Philco Silencioso 145W", "Eletrodomésticos"],
-  ["Climatizador de Ar Mondial 3 em 1", "Eletrodomésticos"], ["Ventilador Automotivo 12v Duplo Carro", "Automotivo"],
+  ["Climatizador de Ar Mondial 3 em 1", "Eletrodomésticos"],
+  // Babuche com estampa "Carros" caía em Automotivo (print do Giovanni, 19/10/2026)
+  ["Babuche Masculino Infantil Carros Promoção Menino", "Calçados"], ["Pantufa Feminina Pelúcia", "Calçados"], ["Ventilador Automotivo 12v Duplo Carro", "Automotivo"],
 ];
 for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
   total++;
