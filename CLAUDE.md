@@ -588,6 +588,11 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   categoria pelo título). Pega marca fora da lista. Simulado em 23 buscas reais: só sai lixo (secador em air fryer, capa de
   celular em smart tv, calça "com bolsos" em bolsa feminina, peça de motorhome em geladeira). `MARCAS` foi de 202 para 318.
   Sinônimo sneakers = tênis. Cache v=57.
+- **"joystick" e "ventilador philco" (19/10/2026, 8ª sessão)**: "joystick"/"gamepad" sozinhos viraram entrada de
+  `PRODUTOS_NAS_LOJAS` (pesquisa "joystick gamer", "controle video game", "controle gamer"); em busca de controle de jogo
+  (`JOGO_NA_BUSCA` em `OUTRO_PRODUTO`) escavadeira, guindaste, industrial, cadeira (de rodas), keycap, teclado, aviação, drone
+  vão para o fim. Ventilador, climatizador e aquecedor elétrico entraram em Eletrodomésticos (cooler/gabinete de PC não).
+  Conferido no ar. Cache v=59.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >
@@ -636,11 +641,11 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 19/10/2026, fim da 7ª sessão)
+## Próximos passos (atualizado 19/10/2026, 8ª sessão)
+- 8ª sessão: corrigidos "joystick" (só controles no topo) e "ventilador philco" (agora em Eletrodomésticos). Giovanni: conferir no site.
 - 7ª sessão (17–19/10) fez: bateria/kindle/protetor solar, card roxo padrão, texto do cupom, cabelo cacheado do personagem,
   UP Kids fora (link 404), caixa de busca curta no celular, controle de videogame/joystick, busca de outra categoria com
   categoria aberta, marca x produto, regra geral do AliExpress (+116 marcas). Cache v=57.
-- Pendente (Claude): "joystick" sozinho ainda traz alavanca industrial e tecla de teclado; "ventilador philco" tem 34 sem categoria.
 - Giovanni: avisar a Lomadee/UP Kids que os links da UP Kids dão 404 (opcional); conferir "controle para video game",
   "mondial air fryer", "air fryer mondial" e outras buscas com marca.
 - Giovanni: conferir "bateria para carro", "kindle" e "protetor solar" no site.
