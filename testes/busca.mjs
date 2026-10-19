@@ -236,6 +236,11 @@ const ORDEM = [
   ["tv", ["TV Stick Android 4K", "TV Samsung 50 Polegadas 4K"], "TV Samsung 50 Polegadas 4K"],
   ["geladeira portatil", ["Geladeira Frost Free Consul 340L", "Geladeira Portátil 40L Camping"], "Geladeira Portátil 40L Camping"],
   ["mini geladeira", ["Mini Geladeira Frigobar 45L", "Geladeira Mini Bar Consul"], "Mini Geladeira Frigobar 45L"],
+  // Alavanca de máquina e tecla de teclado não são joystick de videogame (19/10/2026)
+  ["joystick", ["Controle de Joystick para Plataforma Elevatória Genie 78903GT", "Joystick Gamer Controle Sem Fio USB para Xbox 360 e PC"], "Joystick Gamer Controle Sem Fio USB para Xbox 360 e PC"],
+  ["joystick", ["SJ02 Novo Joystick de Alavanca de Controle de Guindaste para Máquinas Pesadas", "Controle Joystick Gamer para PS4 Pc Bluetooth"], "Controle Joystick Gamer para PS4 Pc Bluetooth"],
+  ["joystick", ["Joystick Keycap para Teclado Mecânico - Controle Analógico Gamer 3D", "Controle Joystick USB para PC Computador PS2 Gamepad"], "Controle Joystick USB para PC Computador PS2 Gamepad"],
+  ["controle para video game", ["Joystick Industrial de Controle Remoto Hall", "Controle De Xbox 360 Com Fio Para Video Game e PC"], "Controle De Xbox 360 Com Fio Para Video Game e PC"],
   // Protetor de para-brisa não é protetor solar de pele (17/10/2026)
   ["protetor solar", ["Protetor Solar para Para-brisa de Carro Estiloso", "Protetor Solar Facial FPS 50 Neutrogena"], "Protetor Solar Facial FPS 50 Neutrogena"],
   ["protetor solar", ["Protetor Solar Personalizado para Carro com Qualquer Design", "Protetor Solar Corporal FPS 30 Sundown"], "Protetor Solar Corporal FPS 30 Sundown"],
