@@ -581,7 +581,8 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   com sinônimos) do produto (`produtoDaBusca`/`produtoPrimeiro`): o nível do título usa só o produto e pula a marca no começo do
   título ("Mondial Air Fryer…" = nível 2); a frase também vale na ordem produto+marca. "mondial air fryer": 0 → 77 produtos
   principais; "britania liquidificador" esconde copos de reposição; buscas sem marca não mudaram (conferido em 23 buscas). Cache v=55.
-  Marca nova que aparecer nas buscas → acrescentar em `MARCAS`.
+  `citaAlgumaPalavra` (filtro da AliExpress e "faltando uma" da Awin) exige palavra do produto, não só a marca
+  (secador Mondial saía em "air fryer mondial"). Cache v=56. Marca nova que aparecer nas buscas → acrescentar em `MARCAS`.
 - **Quadro "Aqui você encontra milhões…" (17/10/2026, pedido do Giovanni)**: usa o mesmo card roxo (gradiente, letra branca) do
   card de resultados da busca (`.numeros-inicio` no `estilo.css`). Padrão: quadros de destaque = esse card roxo.
 - **Visitas**: o site não guarda IP. Sugerido ligar Cloudflare Web Analytics (Workers & Pages > vaiprocarrinho > Metrics >

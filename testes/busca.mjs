@@ -273,6 +273,9 @@ const FILTRO_ALIEXPRESS = {
   "air fryer": { fica: ["Airfryer Philco 5,5L", "Fritadeira Air Fryer Mondial", "Fritadeira a Ar Dupla Ninja Mais Vendida para Casa"], sai: ["Ventilador de Ar Portátil USB"] },
   "power bank": { fica: ["Bateria Portátil Magnética Xiaomi 10000mAh", "Carregador Portátil 20000mAh"], sai: ["Lanterna LED recarregável com 5 modos"] },
   "smartwatch": { fica: ["Smart Watch Ultra 9 Pro Max", "Relógio Smartwatch D20"], sai: ["Pulseira de Silicone 22mm"] },
+  // Com marca e produto, só a marca não basta (print de 19/10/2026)
+  "air fryer mondial": { fica: ["Fritadeira Elétrica sem Óleo/Air Fryer Mondial - 110V", "Air Fryer Philco 5L"], sai: ["Secador de Cabelo Mondial Tourmaline Íon Preto - 110V"] },
+  "mondial": { fica: ["Secador de Cabelo Mondial Tourmaline", "Air Fryer Mondial 4L"], sai: ["Air Fryer Philco 5L"] },
 };
 for (const [q, { fica, sai }] of Object.entries(FILTRO_ALIEXPRESS)) {
   const cita = citaAlgumaPalavra(q);
