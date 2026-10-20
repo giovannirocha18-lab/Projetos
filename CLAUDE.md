@@ -664,6 +664,12 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 19/10/2026, 8ª sessão)
+- **Conta NOVA da Awin como PJ/MEI ativada (20/10/2026)**: o suporte disse que não dá para trocar PF→PJ (campo CNPJ travado);
+  Giovanni criou outra conta (e-mail diferente). **Conta antiga (PF, ID 3124296) continua aberta** até a nova ter as lojas.
+  Próximo: pedir afiliação às lojas na conta nova (Kabum, Spicy, Shark-Ninja + Central Ar, Dufrio e as do Grupo 1/2/3);
+  quando a 1ª aprovar, Giovanni troca o Secret `AWIN_FEED_KEY` no GitHub pelo link da "Lista de Feed" da conta nova e Claude
+  roda o robô (o awinaffid sai do link sozinho). Talvez a Awin peça verificação do site de novo (código novo na meta tag/arquivo).
+  Logo com fundo branco (a transparente aparecia preta na Awin) foi enviada a ele.
 - **MEI aberto (20/10/2026)**: Giovanni virou MEI (ocupação principal "Promotor(a) de vendas independente"; número do CNPJ NÃO
   guardar aqui). Próximo: emitir CCMEI, pagar o DAS todo mês, trocar a conta da Awin de PF para PJ (ele vai mandar print da tela
   de conta/pagamento), depois pedir de novo às lojas que recusam PF (Central Ar, Dufrio…). Texto de apresentação entregue.
