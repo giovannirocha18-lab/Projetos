@@ -671,7 +671,8 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   roda o robô (o awinaffid sai do link sozinho). Talvez a Awin peça verificação do site de novo (código novo na meta tag/arquivo).
   Logo com fundo branco (a transparente aparecia preta na Awin) foi enviada a ele.
   ✅ **Robô lê as 2 contas** (20/10/2026): Secret `AWIN_FEED_KEY` = conta antiga, `AWIN_FEED_KEY_PJ` = conta nova; loja aprovada
-  nas duas vem da nova (link com o afiliado novo). 1ª aprovação na conta nova: **Lauri Esporte** (feed Sim). Quando todas as
+  nas duas vem da nova (link com o afiliado novo). 1ª aprovação na conta nova: **Lauri Esporte** (feed Sim). Secret PJ cadastrado; execução #20 (20/10): Lauri 1.514
+  produtos (conta nova) + Kabum 4.885, Spicy 350, Shark-Ninja 18, EINSTAR 31 (conta antiga) = 6.798 no total. Quando todas as
   lojas estiverem na nova, apagar o Secret antigo. Não excluir a conta antiga antes de receber as comissões dela.
 - **MEI aberto (20/10/2026)**: Giovanni virou MEI (ocupação principal "Promotor(a) de vendas independente"; número do CNPJ NÃO
   guardar aqui). Próximo: emitir CCMEI, pagar o DAS todo mês, trocar a conta da Awin de PF para PJ (ele vai mandar print da tela
