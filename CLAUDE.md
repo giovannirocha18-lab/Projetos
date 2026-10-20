@@ -664,6 +664,9 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 19/10/2026, 8ª sessão)
+- **MEI aberto (20/10/2026)**: Giovanni virou MEI (ocupação principal "Promotor(a) de vendas independente"; número do CNPJ NÃO
+  guardar aqui). Próximo: emitir CCMEI, pagar o DAS todo mês, trocar a conta da Awin de PF para PJ (ele vai mandar print da tela
+  de conta/pagamento), depois pedir de novo às lojas que recusam PF (Central Ar, Dufrio…). Texto de apresentação entregue.
 - **Kabum BR aprovada na Awin (print 20/10/2026)**: inscritas = Shark-Ninja, Kabum, Spicy, EINSTAR. Robô de 20/10 gravou **4.899 produtos
   da Kabum** (feed 46967; total Awin 5.298). Aparecem nas buscas (notebook 36, placa de vídeo 60, monitor 60). Botão "Promover" da Awin = gerar links/banners à mão; não precisa (robô faz).
 - Giovanni: conferir "pipoqueira eletrica" (agora só Eletroportáteis) e mandar print de outra busca com categoria errada.
