@@ -664,6 +664,9 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 19/10/2026, 8ª sessão)
+- **Botão "Comprar" com cor única (20/10/2026, decisão do Giovanni: muitas lojas = "salada de frutas")**: `.botao-oferta` usa
+  `--gradiente` do site para todas as lojas; a loja aparece em destaque no selo `.loja-tag` (pílula roxo-claro, letra roxa forte)
+  acima do nome do produto. A cor de cada loja (`LOJAS`/`CORES_POR_NOME` no app.js) só vale na bolinha e nos botões de filtro.
 - **Conta NOVA da Awin como PJ/MEI ativada (20/10/2026)**: o suporte disse que não dá para trocar PF→PJ (campo CNPJ travado);
   Giovanni criou outra conta (e-mail diferente). **Conta antiga (PF, ID 3124296) continua aberta** até a nova ter as lojas.
   Próximo: pedir afiliação às lojas na conta nova (Kabum, Spicy, Shark-Ninja + Central Ar, Dufrio e as do Grupo 1/2/3);
