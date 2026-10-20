@@ -663,7 +663,11 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 19/10/2026, 8ª sessão)
+## Próximos passos (atualizado 20/10/2026, fim da 9ª sessão)
+- 9ª sessão (19–20/10) fez: conferência das categorias (pipoqueira), Kabum no ar (4.885 produtos), MEI aberto, conta nova da
+  Awin como MEI, robô lendo as 2 contas (Lauri Esporte 1.514 produtos), botão Comprar com cor única. Giovanni está pedindo
+  afiliação às lojas na conta nova (primeiro as que recusaram). Próximo: ver aprovações/recusas (print da aba Pendente/Recusado),
+  pedir o suporte sobre o imposto de empresa fora de SP, e conferir no site "pipoqueira eletrica" e "tênis puma up".
 - **Botão "Comprar" com cor única (20/10/2026, decisão do Giovanni: muitas lojas = "salada de frutas")**: `.botao-oferta` usa
   `--gradiente` do site para todas as lojas; a loja aparece em destaque no selo `.loja-tag` (pílula roxo-claro, letra roxa forte)
   acima do nome do produto. A cor de cada loja (`LOJAS`/`CORES_POR_NOME` no app.js) só vale na bolinha e nos botões de filtro.
