@@ -13,7 +13,8 @@ const LOJAS = {
 
 // Lojas fora da lista acima (as da Awin, por exemplo) chegam com o nome em lojaNome.
 // Cor própria de algumas (o nome começa por: "spicy" vale "Spicy BR"); as outras ficam roxas
-const CORES_POR_NOME = [["spicy", "#b0002a"]];
+// Cor da marca de cada loja da Awin (Kabum = azul da marca, para não ficar igual ao AliExpress; pedido do Giovanni, 20/10/2026)
+const CORES_POR_NOME = [["spicy", "#b0002a"], ["kabum", "#0060b1"]];
 const corPorNome = (nome) => CORES_POR_NOME.find(([n]) => String(nome || "").toLowerCase().trim().startsWith(n))?.[1];
 const infoLoja = (o) => LOJAS[o.loja] || { nome: o.lojaNome || o.loja, em: "na",
   cor: corPorNome(o.lojaNome) || "#6d28d9", texto: "#fff" };
