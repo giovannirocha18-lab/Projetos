@@ -23,6 +23,7 @@ jobs:
         run: node robo/awin.mjs
         env:
           AWIN_FEED_KEY: ${{ secrets.AWIN_FEED_KEY }}
+          AWIN_FEED_KEY_PJ: ${{ secrets.AWIN_FEED_KEY_PJ }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}

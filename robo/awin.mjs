@@ -7,7 +7,8 @@
 // Roda sozinho todo dia pelo GitHub (.github/workflows/robo-precos.yml).
 //
 // Segredos (GitHub > Settings > Secrets and variables > Actions):
-//   AWIN_FEED_KEY          chave que aparece nos links de feed da Awin
+//   AWIN_FEED_KEY          link da "Lista de Feed" da conta antiga da Awin (pessoa física)
+//   AWIN_FEED_KEY_PJ       o mesmo, da conta nova (empresa/MEI); loja aprovada nas duas usa a nova
 //   CLOUDFLARE_API_TOKEN   token com permissão de editar o D1
 //   CLOUDFLARE_ACCOUNT_ID  ID da conta do Cloudflare
 //   D1_DATABASE_ID         ID do banco D1 ligado ao site (binding DB)
@@ -34,9 +35,8 @@ const faixaCambio = (taxa) => Math.round(Math.log(taxa) / Math.log(1.03));
 // (tabela + índice de busca + histórico). O que passar fica para o dia seguinte.
 const LIMITE = Number(process.env.ROBO_LIMITE) || 20000;
 const DIAS_HISTORICO = 180;
-// Número de afiliado na Awin (aparece no link da "Lista de Feed": .../publisher/3124296/...)
-const ID_AFILIADO = process.env.AWIN_ID_AFILIADO
-  || ((process.env.AWIN_FEED_KEY || "").match(/publisher\/(\d+)/) || [])[1] || "";
+// Número de afiliado de cada conta da Awin (aparece no link da "Lista de Feed": .../publisher/3124296/...)
+const idAfiliado = (segredo) => process.env.AWIN_ID_AFILIADO || (segredo.match(/publisher\/(\d+)/) || [])[1] || "";
 const TAMANHO_LOTE = 90_000; // bytes de SQL por envio (o D1 aceita até 100 mil)
 
 // ---------------------------------------------------------------------
@@ -145,11 +145,11 @@ const assinar = (dados) => createHash("sha1").update(JSON.stringify(dados)).dige
 
 // Link com o código de afiliado. Feeds no formato Google às vezes trazem só o
 // link direto da loja: aí o link de rastreio da Awin é montado aqui.
-function linkAfiliado(p, lojaId) {
+function linkAfiliado(p, lojaId, afiliado) {
   const link = p.aw_deep_link || p.link || "";
   if (/awin1\.com|tidd\.ly/i.test(link)) return link;
-  if (!/^https?:\/\//i.test(link) || !ID_AFILIADO) return null;
-  return `https://www.awin1.com/cread.php?awinmid=${lojaId}&awinaffid=${ID_AFILIADO}&ued=${encodeURIComponent(link)}`;
+  if (!/^https?:\/\//i.test(link) || !afiliado) return null;
+  return `https://www.awin1.com/cread.php?awinmid=${lojaId}&awinaffid=${afiliado}&ued=${encodeURIComponent(link)}`;
 }
 
 // Aceita o formato padrão da Awin e o novo, baseado no Google
@@ -166,7 +166,7 @@ function paraOferta(p, feed = {}) {
   const promocao = converter(numero(p.sale_price));
   const cheio = converter(numero(p.search_price) || numero(p.store_price) || numero(p.price));
   const preco = promocao > 0 ? promocao : cheio;
-  const link = lojaId && linkAfiliado(p, lojaId);
+  const link = lojaId && linkAfiliado(p, lojaId, feed.afiliado ?? idAfiliado(process.env.AWIN_FEED_KEY || ""));
   if (!lojaId) return "sem loja";
   if (!produtoId) return "sem código do produto";
   if (!titulo) return "sem nome";
@@ -270,10 +270,28 @@ async function obterFeeds() {
       return { nome: caminho, lojaId, lojaNome, ler: async () => descompactar(readFileSync(caminho)) };
     });
   }
-  // O segredo pode ser: o link da "Lista de Feed" (Ferramentas > Crie um Feed, caixa
-  // "Download da Lista de Feed"), um link de download de feed, ou só a chave.
-  const segredo = (process.env.AWIN_FEED_KEY || "").trim();
-  if (!segredo) throw new Error("Falta o segredo AWIN_FEED_KEY");
+  // Duas contas da Awin: a nova (empresa/MEI, 20/10/2026) e a antiga (pessoa física). As lojas vão sendo
+  // aprovadas de novo na conta nova; enquanto isso, as que só estão na antiga continuam vindo dela.
+  // Loja aprovada nas duas usa a nova (o link do produto passa a levar o número de afiliado da empresa).
+  const contas = [["AWIN_FEED_KEY_PJ", "conta nova"], ["AWIN_FEED_KEY", "conta antiga"]]
+    .map(([nome, rotulo]) => ({ nome, rotulo, segredo: (process.env[nome] || "").trim() }))
+    .filter((c) => c.segredo);
+  if (!contas.length) throw new Error("Falta o segredo AWIN_FEED_KEY");
+  const feeds = [];
+  const lojasVistas = new Set();
+  for (const conta of contas) {
+    const daConta = await feedsDaConta(conta);
+    const novas = daConta.filter((f) => !lojasVistas.has(f.lojaId));
+    for (const f of novas) lojasVistas.add(f.lojaId);
+    if (novas.length < daConta.length) console.log(`${conta.rotulo}: ${daConta.length - novas.length} loja(s) já vêm da conta nova`);
+    feeds.push(...novas);
+  }
+  return feeds;
+}
+
+// Feeds das lojas aprovadas numa conta. O segredo pode ser: o link da "Lista de Feed" (Ferramentas >
+// Crie um Feed, caixa "Download da Lista de Feed"), um link de download de feed, ou só a chave.
+async function feedsDaConta({ nome: nomeSegredo, rotulo, segredo }) {
   const chave = (segredo.match(/apikey\/([^/?#\s]+)/i) || [])[1];
   const urlLista = /^https?:\/\/.*feedlist/i.test(segredo) ? segredo : LISTA_FEEDS + encodeURIComponent(chave || segredo);
   const esconder = (url) => url.replace(/[0-9a-f]{24,}/gi, "***");
@@ -281,11 +299,11 @@ async function obterFeeds() {
   try {
     textoLista = await baixarTexto(urlLista, chave || segredo);
   } catch (erro) {
-    throw new Error(`A Awin recusou a lista de feeds (${esconder(erro.message)}). Confira o segredo AWIN_FEED_KEY: ` +
+    throw new Error(`A Awin recusou a lista de feeds (${esconder(erro.message)}). Confira o segredo ${nomeSegredo}: ` +
       `deve ser o link da caixa "Download da Lista de Feed" (Ferramentas > Crie um Feed)`);
   }
   const lista = lerTabela(textoLista);
-  if (!lista.length) throw new Error("A lista de feeds da Awin veio vazia (o segredo AWIN_FEED_KEY está certo?)");
+  if (!lista.length) throw new Error(`A lista de feeds da Awin veio vazia (o segredo ${nomeSegredo} está certo?)`);
   // Os nomes das colunas variam entre os formatos da Awin: procura por aproximação
   const pegar = (f, ...nomes) => {
     const chaves = Object.keys(f);
@@ -325,7 +343,7 @@ async function obterFeeds() {
     const qtd = (f) => Number(pegar(f, "noofproducts", "products")) || 0;
     escolhidos.push(feedsDaLoja.sort((a, b) => nota(b) - nota(a) || qtd(b) - qtd(a))[0]);
   }
-  console.log(`Awin: ${lista.length} feeds visíveis, ${aprovados.length} de lojas aprovadas, ${escolhidos.length} usados` +
+  console.log(`Awin (${rotulo}): ${lista.length} feeds visíveis, ${aprovados.length} de lojas aprovadas, ${escolhidos.length} usados` +
     `${REGIOES.length ? ` (regiões ${REGIOES.join(", ")})` : ""}`);
   return escolhidos.map((f) => ({
     nome: `${pegar(f, "advertisername", "merchantname") || "Loja"} (feed ${pegar(f, "feedid", "id")}, ` +
@@ -333,6 +351,7 @@ async function obterFeeds() {
     lojaId: pegar(f, "advertiserid", "merchantid"),
     lojaNome: pegar(f, "advertisername", "merchantname"),
     internacional: regiao(f) && regiao(f) !== "BR" ? 1 : 0,
+    afiliado: idAfiliado(segredo),
     ler: () => baixarTexto(pegar(f, "url", "downloadurl", "feedurl"), chave),
   }));
 }

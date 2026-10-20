@@ -61,6 +61,7 @@ Precisa destes segredos em GitHub > Settings > Secrets and variables > Actions:
 | Segredo | De onde vem |
 |---|---|
 | `AWIN_FEED_KEY` | Awin > Ferramentas > Crie um Feed: o código depois de `/apikey/` no link gerado |
+| `AWIN_FEED_KEY_PJ` | O mesmo link da conta nova da Awin (empresa/MEI). Loja aprovada nas duas contas usa esta |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare > My Profile > API Tokens > Create Token, com permissão **Account > D1 > Edit** |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare > Workers & Pages (aparece como "Account ID") |
 | `D1_DATABASE_ID` | Cloudflare > Storage & Databases > D1 > o banco ligado ao site > "Database ID" |
