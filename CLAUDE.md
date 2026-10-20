@@ -664,8 +664,8 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 19/10/2026, 8ª sessão)
-- **Kabum BR aprovada na Awin (print 20/10/2026)**: inscritas = Shark-Ninja, Kabum, Spicy, EINSTAR. Produtos da Kabum entram na
-  próxima madrugada pelo robô (ou disparar o robô). Botão "Promover" da Awin = gerar links/banners à mão; não precisa (robô faz).
+- **Kabum BR aprovada na Awin (print 20/10/2026)**: inscritas = Shark-Ninja, Kabum, Spicy, EINSTAR. Robô de 20/10 gravou **4.899 produtos
+  da Kabum** (feed 46967; total Awin 5.298). Aparecem nas buscas (notebook 36, placa de vídeo 60, monitor 60). Botão "Promover" da Awin = gerar links/banners à mão; não precisa (robô faz).
 - Giovanni: conferir "pipoqueira eletrica" (agora só Eletroportáteis) e mandar print de outra busca com categoria errada.
 - 8ª sessão: corrigidos "joystick" (só controles no topo) e "ventilador philco" (agora em Eletrodomésticos). Giovanni: conferir no site.
 - 7ª sessão (17–19/10) fez: bateria/kindle/protetor solar, card roxo padrão, texto do cupom, cabelo cacheado do personagem,
