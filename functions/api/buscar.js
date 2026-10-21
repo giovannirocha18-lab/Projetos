@@ -15,7 +15,7 @@ import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { historicoAoVivo, ehAoVivo } from "../../lib/ofertas.js";
-import { carregarMapa, aplicarMapa, aprenderCategorias } from "../../lib/mapaCategorias.js";
+import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
 import { corrigirBusca, acentuarBusca, buscaNasLojas } from "../../lib/vocabulario.js";
 import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
@@ -45,7 +45,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 70;
+const VERSAO_CACHE = 71;
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -131,7 +131,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Categorias das lojas que já sabemos traduzir para as nossas (ver lib/mapaCategorias.js)
   const mapa = await carregarMapa(env);
   const lojas = {};
-  const consultar = async (termo, opcoes) => {
+  const consultar = async (termo, opcoesDaBusca) => {
+    // A loja pode buscar também dentro das categorias dela que já sabemos serem da categoria do que foi buscado
+    const catBusca = termo ? categoriaDoProduto(termo) : null;
+    const opcoes = catBusca ? { ...opcoesDaBusca, catsDaLoja: (loja) => catsDaLoja(mapa, loja, catBusca.nome) } : opcoesDaBusca;
     const resultados = await Promise.all(
       fontes.map(async (fonte) => {
         const t0 = Date.now();
