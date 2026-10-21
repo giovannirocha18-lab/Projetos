@@ -689,6 +689,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (3) `adiantarBusca` no app.js: 600 ms após parar de digitar (1ª sugestão), mouse na sugestão ou setas; até 8 por visita, com
   `atalho=1`; ao buscar usa a adiantada e manda `contar=1` (servidor só conta, 204). Testado no ar com Playwright: resultados em
   0,15 s após o Enter; busca repetida 0,3 s (nova ~5 s). Cache v=74 (`VERSAO_BUSCA` no app.js e `VERSAO_CACHE` no buscar.js).
+- **AliExpress na categoria (21/10/2026, print "celular" = 13)**: teste real: na categoria Celulares (5090301) a API devolve só
+  4–7 produtos por página que entregam no BR, mas há 30+ páginas (~66 celulares nas 17 páginas testadas). `PAGINAS_DA_CATEGORIA = 4`
+  em aliexpress.js: cada página da busca pede 4 páginas da categoria em paralelo (3 x 4 = 12). Celular: 13 → 47. Cache v=75.
 - 9ª sessão (19–20/10) fez: conferência das categorias (pipoqueira), Kabum no ar (4.885 produtos), MEI aberto, conta nova da
   Awin como MEI, robô lendo as 2 contas (Lauri Esporte 1.514 produtos), botão Comprar com cor única. Giovanni está pedindo
   afiliação às lojas na conta nova (primeiro as que recusaram). Próximo: ver aprovações/recusas (print da aba Pendente/Recusado),
