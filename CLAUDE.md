@@ -673,6 +673,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   `marcarSecoes`: busca com 2+ categorias fortes (25%+) mantém as duas ("toalha" = Mesa posta + Cama e banho; antes tudo em Outros).
   **Mapa de categorias ignora o 1º nível da loja** (Shopee "Acessórios de moda" 100009 tinha virado Óculos e levava luvas e bonés).
   Awin agora manda a categoria da loja em `catsLoja` (ensina o mapa). Cache v=69, em-alta v=5. Giovanni: conferir no site.
+- **"Ver detalhes" em todos os produtos (21/10/2026, pedido dele)**: `temDetalhes` sempre verdadeiro; na Shopee a janela usa a foto
+  original (sem `_tn`). **Busca "celular"**: celular de botão (Caterpillar, Nok'a, teclado, idoso…) vira `variante` e vai depois dos
+  smartphones (`VARIANTES_DA_CATEGORIA` em relevancia.js; não vale se a busca pede: "celular de botão"). "Menor preço" põe primeiro
+  o produto comum com preço ≥30% do típico; celular de R$ 219 vem depois dos smartphones de propósito. Cache v=70.
 - 9ª sessão (19–20/10) fez: conferência das categorias (pipoqueira), Kabum no ar (4.885 produtos), MEI aberto, conta nova da
   Awin como MEI, robô lendo as 2 contas (Lauri Esporte 1.514 produtos), botão Comprar com cor única. Giovanni está pedindo
   afiliação às lojas na conta nova (primeiro as que recusaram). Próximo: ver aprovações/recusas (print da aba Pendente/Recusado),
