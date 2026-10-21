@@ -663,7 +663,16 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 20/10/2026, fim da 9ª sessão)
+## Próximos passos (atualizado 21/10/2026, 10ª sessão)
+- **Karsten aprovada na Awin (21/10/2026)**: robô da madrugada já gravou 1.900 produtos (feed 102256). Cor `#1d3557` nos filtros.
+  Conferência das categorias (Karsten, Kabum, Lauri, Spicy, ~95 buscas reais): Cama e banho + toalha banhão/rosto/piso/lavabo,
+  fronha, porta-travesseiro, peseira, protetor/saia de colchão, pillow top (Móveis `nao` colchão de roupa de cama); Mesa posta + pano
+  de prato/trilho; Cozinha + luva térmica/avental; **categoria nova "Bonés e chapéus" 🧢** (39 categorias); "Caixa de Som…" sempre em
+  Caixas de som (`ANTES_DE_TUDO`); LED `nao` monitor/microfone/projetor; Moda fitness + top academia/esportivo.
+  Busca: "boné" não acha "Boneco" (`OUTRA_PALAVRA` em relevancia.js); "2 Peças" = quantidade, não peça de reposição.
+  `marcarSecoes`: busca com 2+ categorias fortes (25%+) mantém as duas ("toalha" = Mesa posta + Cama e banho; antes tudo em Outros).
+  **Mapa de categorias ignora o 1º nível da loja** (Shopee "Acessórios de moda" 100009 tinha virado Óculos e levava luvas e bonés).
+  Awin agora manda a categoria da loja em `catsLoja` (ensina o mapa). Cache v=69, em-alta v=5. Giovanni: conferir no site.
 - 9ª sessão (19–20/10) fez: conferência das categorias (pipoqueira), Kabum no ar (4.885 produtos), MEI aberto, conta nova da
   Awin como MEI, robô lendo as 2 contas (Lauri Esporte 1.514 produtos), botão Comprar com cor única. Giovanni está pedindo
   afiliação às lojas na conta nova (primeiro as que recusaram). Próximo: ver aprovações/recusas (print da aba Pendente/Recusado),
