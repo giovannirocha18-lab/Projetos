@@ -45,7 +45,9 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 71;
+const VERSAO_CACHE = 72;
+// Categorias da AliExpress conhecidas (além das que o mapa aprende): 5090301 = Celulares
+const CATS_ALIEXPRESS = { Celulares: ["5090301"] };
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
@@ -134,7 +136,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const consultar = async (termo, opcoesDaBusca) => {
     // A loja pode buscar também dentro das categorias dela que já sabemos serem da categoria do que foi buscado
     const catBusca = termo ? categoriaDoProduto(termo) : null;
-    const opcoes = catBusca ? { ...opcoesDaBusca, catsDaLoja: (loja) => catsDaLoja(mapa, loja, catBusca.nome) } : opcoesDaBusca;
+    const opcoes = catBusca ? { ...opcoesDaBusca, catsDaLoja: Object.assign((loja) => catsDaLoja(mapa, loja, catBusca.nome),
+      { CONHECIDAS_ALIEXPRESS: CATS_ALIEXPRESS[catBusca.nome] }) } : opcoesDaBusca;
     const resultados = await Promise.all(
       fontes.map(async (fonte) => {
         const t0 = Date.now();
