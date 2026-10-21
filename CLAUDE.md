@@ -692,6 +692,16 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 - **AliExpress na categoria (21/10/2026, print "celular" = 13)**: teste real: na categoria Celulares (5090301) a API devolve só
   4–7 produtos por página que entregam no BR, mas há 30+ páginas (~66 celulares nas 17 páginas testadas). `PAGINAS_DA_CATEGORIA = 4`
   em aliexpress.js: cada página da busca pede 4 páginas da categoria em paralelo (3 x 4 = 12). Celular: 13 → 47. Cache v=75.
+- ⭐ **Busca espelhando o site das lojas (21/10/2026, pedido do Giovanni: "nossa busca = o usuário buscando dentro da loja")**:
+  **AliExpress**: o site dela descobre a CATEGORIA da busca e mostra os produtos dela (a página de busca traz o código: celular →
+  5090301, geladeira → 60203, smart tv → 200005125…); a API só procura a palavra no título. Levantado com Playwright (cookie
+  `aep_usuc_f=site=bra&c_tp=BRL&region=BR&b_locale=pt_BR`, 78 buscas = 2 por categoria), 110 códigos conferidos na API e
+  escolhidos os certos: `CATS_ALIEXPRESS` em buscar.js (31 categorias; roupas/decoração/organização/suplementos/bonés/games de
+  fora porque misturam). Consultas extras com prazo de 5,5 s (`noPrazo`) e 1 nova tentativa no erro. Resultado (produtos AliExpress):
+  geladeira 0→275, smart tv 0→196, tênis nike 0→448, máquina de lavar 30→165, caixa de som 45→159, mouse 32→84, smartwatch 31→127.
+  Cache v=77. **Shopee**: o site pede login para robô (bloqueado) → Giovanni vai mandar prints de 6 buscas (celular, air fryer,
+  geladeira, fone bluetooth, tênis masculino, smartwatch) em "Relevância" para comparar. Lomadee: busca da própria Lomadee
+  (cada marca tem seu site); Awin: busca nossa no banco (não há site para espelhar).
 - 9ª sessão (19–20/10) fez: conferência das categorias (pipoqueira), Kabum no ar (4.885 produtos), MEI aberto, conta nova da
   Awin como MEI, robô lendo as 2 contas (Lauri Esporte 1.514 produtos), botão Comprar com cor única. Giovanni está pedindo
   afiliação às lojas na conta nova (primeiro as que recusaram). Próximo: ver aprovações/recusas (print da aba Pendente/Recusado),
