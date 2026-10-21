@@ -663,7 +663,12 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 21/10/2026, 10ª sessão)
+## Próximos passos (atualizado 21/10/2026, fim da 10ª sessão)
+- **Pendente da 10ª sessão**: (1) Giovanni mandar prints da Shopee (celular, air fryer, geladeira, fone bluetooth, tênis masculino,
+  smartwatch, ordem "Relevância") → Claude comparar com `/api/buscar` (só Shopee) e ajustar como foi feito na AliExpress.
+  (2) Conferir o log do job `prontas` da madrugada (300 buscas, timeout 80 min; ver se termina e quantas `"guardada":true`).
+  (3) Giovanni conferir no site: Karsten (toalha, jogo de cama, fronha), boné, celular (AliExpress ~47), geladeira/smart tv,
+  "Ver detalhes" na Shopee e a busca adiantada ao digitar. (4) Giovanni pedindo novas afiliações na Awin (texto entregue).
 - **Karsten aprovada na Awin (21/10/2026)**: robô da madrugada já gravou 1.900 produtos (feed 102256). Cor `#1d3557` nos filtros.
   Conferência das categorias (Karsten, Kabum, Lauri, Spicy, ~95 buscas reais): Cama e banho + toalha banhão/rosto/piso/lavabo,
   fronha, porta-travesseiro, peseira, protetor/saia de colchão, pillow top (Móveis `nao` colchão de roupa de cama); Mesa posta + pano
