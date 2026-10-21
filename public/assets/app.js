@@ -14,7 +14,7 @@ const LOJAS = {
 // Lojas fora da lista acima (as da Awin, por exemplo) chegam com o nome em lojaNome.
 // Cor própria de algumas (o nome começa por: "spicy" vale "Spicy BR"); as outras ficam roxas
 // Cor da marca de cada loja da Awin (Kabum = azul da marca, para não ficar igual ao AliExpress; pedido do Giovanni, 20/10/2026)
-const CORES_POR_NOME = [["spicy", "#b0002a"], ["kabum", "#0060b1"]];
+const CORES_POR_NOME = [["spicy", "#b0002a"], ["kabum", "#0060b1"], ["karsten", "#1d3557"]];
 const corPorNome = (nome) => CORES_POR_NOME.find(([n]) => String(nome || "").toLowerCase().trim().startsWith(n))?.[1];
 const infoLoja = (o) => LOJAS[o.loja] || { nome: o.lojaNome || o.loja, em: "na",
   cor: corPorNome(o.lojaNome) || "#6d28d9", texto: "#fff" };
@@ -849,7 +849,7 @@ async function consultarApi(q, mais = "") {
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
   const exato = q && estado.exato ? "&exato=1" : "";
-  const resp = await fetch(`/api/buscar?v=66&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
+  const resp = await fetch(`/api/buscar?v=67&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -1517,7 +1517,7 @@ function desenharEmAlta(itens) {
 
 async function carregarEmAlta() {
   try {
-    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta?v=4")).json();
+    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta?v=5")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);

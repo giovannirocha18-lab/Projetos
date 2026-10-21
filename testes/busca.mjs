@@ -13,6 +13,14 @@ import { categoriaDoProduto, marcarSecoes } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 
 const CASOS = {
+  // 21/10/2026 (Karsten): "2 Peças" é quantidade; "boné" achava "Boneco Funko Pop"
+  "fronha": {
+    E: ["Fronha 2 Peças 100% Algodão Tesso Bege", "Fronha Avulsa 200 Fios Ivy Branco"],
+  },
+  "boné": {
+    E: ["Boné Trucker Aba Curva Preto", "Boné KaBuM! Esports Aba Reta"],
+    N: ["Boneco Funko Pop! Pokemon - Squirtle"],
+  },
   // ---- Prints do Giovanni ----
   // 17/10/2026: suporte, porta-controle e adesivo apareciam no meio; joystick e gamepad são o próprio controle
   "controle para video game": {
@@ -288,6 +296,16 @@ const CATEGORIAS_ESPERADAS = [
   ["Placa De Vídeo Gamer Rtx 3070 8GB", "Informática"], ["Processador AMD Ryzen 5 5600", "Informática"],
   // Babuche com estampa "Carros" caía em Automotivo (print do Giovanni, 19/10/2026)
   ["Babuche Masculino Infantil Carros Promoção Menino", "Calçados"], ["Pantufa Feminina Pelúcia", "Calçados"], ["Ventilador Automotivo 12v Duplo Carro", "Automotivo"],
+  // Karsten (21/10/2026): toalha banhão/rosto/piso e fronha ficavam sem categoria, protetor de colchão ia para Móveis
+  ["Toalha Banhão 100% Algodão Theo Branco", "Cama e banho"], ["Toalha de Rosto Provence Branco", "Cama e banho"],
+  ["Kit 2 Toalhas de Piso Metrópole Avelã", "Cama e banho"], ["Fronha 2 Peças 200 Fios 100% Algodão Ayla", "Cama e banho"],
+  ["Porta-travesseiro Avulso 200 Fios 100% Algodão Ivy Branco", "Cama e banho"], ["Protetor de Colchão Casal Impermeável Essence Branco", "Cama e banho"],
+  ["Peseira Karsten 180 Fios Percal 100% Algodão Thom", "Cama e banho"], ["Colchão Ortobom Casal Molas", "Móveis"],
+  ["Pano de Prato Felpudo Bistrô Bege", "Mesa posta"], ["Trilho de Mesa/Caminho de Mesa Karsten Veríssimo Granizo", "Mesa posta"],
+  // Kabum (21/10/2026): "Caixa de Som Gamer" ia para Games, "Monitor … Mini LED" para Iluminação LED; boné caía em Óculos
+  ["Caixa de Som Gamer Rise Mode Aura Sound S6, RGB", "Caixas de som"], ["Caixa de Som Portátil JBL Wind 3, para Bicicleta", "Caixas de som"],
+  ["Monitor Gamer TCL Mini LED 25\", 300Hz", "Informática"], ["Fita LED 5m RGB", "Iluminação LED"],
+  ["Boné Trucker Aba Curva", "Bonés e chapéus"], ["Chapéu Bucket Preto", "Bonés e chapéus"], ["Boneco Funko Pop! Pokemon - Squirtle", "Brinquedos"],
 ];
 for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
   total++;
