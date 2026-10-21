@@ -1570,8 +1570,8 @@ try { if (localStorage.getItem("ordemCategorias") === "az") ordemCategorias = "a
 function desenharCategorias(lista = categoriasAtuais) {
   categoriasAtuais = lista;
   document.querySelectorAll("[data-ordem-cat]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.ordemCat === ordemCategorias)));
-  // Categoria fixa (Eletrodomésticos) continua em 1º também em A–Z
-  if (ordemCategorias === "az") lista = [...lista].sort((a, b) => Boolean(b.fixa) - Boolean(a.fixa) || a.nome.localeCompare(b.nome, "pt-BR"));
+  // Em A–Z vale a ordem alfabética para todas (a fixa só fica em 1º em "Mais vendidos")
+  if (ordemCategorias === "az") lista = [...lista].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
   const botoes = lista.map((c, i) =>
     el("button", { class: "cat-item", type: "button", "data-nome": c.nome,
       style: `--fundo-cat:${FUNDOS_MENU[i % FUNDOS_MENU.length]}`,
