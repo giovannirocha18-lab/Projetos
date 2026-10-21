@@ -55,7 +55,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 76;
+const VERSAO_CACHE = 77;
 // Como o site da AliExpress busca (estudado em 21/10/2026, pedido do Giovanni): ele descobre a CATEGORIA da busca
 // ("celular" -> Celulares 5090301, "geladeira" -> 60203) e mostra os produtos dela. A API de afiliados só procura a
 // palavra nos títulos ("celular" trazia capinhas, "geladeira" trazia peças). Então, como no site, pedimos também dentro
