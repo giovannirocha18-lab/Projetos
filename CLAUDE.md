@@ -677,6 +677,11 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   original (sem `_tn`). **Busca "celular"**: celular de botão (Caterpillar, Nok'a, teclado, idoso…) vira `variante` e vai depois dos
   smartphones (`VARIANTES_DA_CATEGORIA` em relevancia.js; não vale se a busca pede: "celular de botão"). "Menor preço" põe primeiro
   o produto comum com preço ≥30% do típico; celular de R$ 219 vem depois dos smartphones de propósito. Cache v=70.
+- **AliExpress "celular" só trazia 1 produto (21/10/2026, print)**: a busca da API por "celular" devolve ~140 capinhas/suportes
+  (escondidos como acessórios). Agora `aliexpress.buscar` faz uma 3ª consulta com `category_ids` = categorias da AliExpress que o mapa
+  aprendeu para a categoria buscada (`catsDaLoja` em mapaCategorias.js) + `CATS_ALIEXPRESS` em buscar.js (Celulares = 5090301),
+  com `keywords` = resto da busca sem o nome da categoria ("celular" = categoria toda; "celular samsung" = "samsung"). Esses vêm primeiro.
+  Resultado: celular 1 → 13 por lote; celular samsung 60; iphone 116. Parâmetro undefined não entra na assinatura. Cache v=73.
 - 9ª sessão (19–20/10) fez: conferência das categorias (pipoqueira), Kabum no ar (4.885 produtos), MEI aberto, conta nova da
   Awin como MEI, robô lendo as 2 contas (Lauri Esporte 1.514 produtos), botão Comprar com cor única. Giovanni está pedindo
   afiliação às lojas na conta nova (primeiro as que recusaram). Próximo: ver aprovações/recusas (print da aba Pendente/Recusado),
