@@ -55,7 +55,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 74;
+const VERSAO_CACHE = 75;
 // Categorias da AliExpress conhecidas (além das que o mapa aprende): 5090301 = Celulares
 const CATS_ALIEXPRESS = { Celulares: ["5090301"] };
 
