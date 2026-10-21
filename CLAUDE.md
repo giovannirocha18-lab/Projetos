@@ -682,6 +682,13 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   aprendeu para a categoria buscada (`catsDaLoja` em mapaCategorias.js) + `CATS_ALIEXPRESS` em buscar.js (Celulares = 5090301),
   com `keywords` = resto da busca sem o nome da categoria ("celular" = categoria toda; "celular samsung" = "samsung"). Esses vêm primeiro.
   Resultado: celular 1 → 13 por lote; celular samsung 60; iphone 116. Parâmetro undefined não entra na assinatura. Cache v=73.
+- **Buscas mais rápidas (21/10/2026, pedido dele, itens 1-2-3)**: (1) resposta fica 1 dia no cache do Cloudflare com `X-Criado`;
+  passou de 1 h (`FRESCO_MS`) é mostrada na hora e refeita por trás (`refazerPorTras`, `env.__ATUALIZAR`); busca pronta vale até
+  7 dias do mesmo jeito; navegador guarda 10 min. (2) `/api/preparar-buscas` até 300 (`MAX_PRONTAS`: categorias, populares, mais
+  buscadas, `termosBuscados` 30 dias, vitrines); robô: seq 0 320, sleep 1, timeout 80 min (cuidado com os 2.000 min/mês do GitHub).
+  (3) `adiantarBusca` no app.js: 600 ms após parar de digitar (1ª sugestão), mouse na sugestão ou setas; até 8 por visita, com
+  `atalho=1`; ao buscar usa a adiantada e manda `contar=1` (servidor só conta, 204). Testado no ar com Playwright: resultados em
+  0,15 s após o Enter; busca repetida 0,3 s (nova ~5 s). Cache v=74 (`VERSAO_BUSCA` no app.js e `VERSAO_CACHE` no buscar.js).
 - 9ª sessão (19–20/10) fez: conferência das categorias (pipoqueira), Kabum no ar (4.885 produtos), MEI aberto, conta nova da
   Awin como MEI, robô lendo as 2 contas (Lauri Esporte 1.514 produtos), botão Comprar com cor única. Giovanni está pedindo
   afiliação às lojas na conta nova (primeiro as que recusaram). Próximo: ver aprovações/recusas (print da aba Pendente/Recusado),
