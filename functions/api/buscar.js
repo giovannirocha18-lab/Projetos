@@ -24,7 +24,16 @@ import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCatego
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
 const FONTES_REAIS = [curadoria, shopee, awin, aliexpress, lomadee];
 
-const CACHE_SEGUNDOS = 60 * 60;
+// Mostrar o guardado e atualizar por trás (pedido do Giovanni, 21/10/2026): a resposta fica no cache do Cloudflare
+// por até 1 dia, mas depois de FRESCO_MS ela é refeita em segundo plano. Quem buscar recebe na hora a guardada,
+// e o próximo já recebe a nova. O navegador guarda só NAVEGADOR_SEGUNDOS (para ver a atualização logo).
+const FRESCO_MS = 60 * 60 * 1000;
+const GUARDAR_SEGUNDOS = 24 * 60 * 60;
+const NAVEGADOR_SEGUNDOS = 10 * 60;
+// Busca pronta do robô mais velha que 30 h ainda é mostrada (e refeita por trás) por até 7 dias
+const VELHA_DEMAIS_MS = 7 * 24 * 60 * 60 * 1000;
+// Mesma busca não é refeita 2 vezes ao mesmo tempo (vale dentro de cada servidor do Cloudflare)
+const atualizando = new Set();
 // Na busca digitada, cada chamada pede 3 páginas de cada loja (Shopee: 48 cada) e responde logo: o site mostra
 // esses e pede sozinho as próximas (desde=4, 7…) até ter uns 100 produtos de verdade. Antes o servidor só
 // respondia com tudo pronto e a primeira busca levava 12–14 s.
@@ -46,7 +55,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 73;
+const VERSAO_CACHE = 74;
 // Categorias da AliExpress conhecidas (além das que o mapa aprende): 5090301 = Celulares
 const CATS_ALIEXPRESS = { Celulares: ["5090301"] };
 
@@ -60,11 +69,12 @@ function intercalar(listas) {
 }
 
 function responder(dados, status = 200) {
-  return new Response(JSON.stringify(dados), {
+  // Busca pronta já vem como texto do banco: não precisa desmontar e montar de novo
+  return new Response(typeof dados === "string" ? dados : JSON.stringify(dados), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": `public, max-age=${status === 200 ? CACHE_SEGUNDOS : 0}`,
+      "Cache-Control": `public, max-age=${status === 200 ? NAVEGADOR_SEGUNDOS : 0}`,
       "X-Robots-Tag": "noindex",
     },
   });
@@ -72,6 +82,21 @@ function responder(dados, status = 200) {
 
 const comLimite = (promessa, ms) => Promise.race([promessa,
   new Promise((_, falha) => setTimeout(() => falha(new Error(`demorou mais de ${ms / 1000} s`)), ms))]);
+
+// Cópia para o cache do Cloudflare: vale 1 dia lá e leva a hora em que a busca foi feita nas lojas
+function paraGuardar(resposta, criado = Date.now()) {
+  const copia = new Response(resposta.body, resposta);
+  copia.headers.set("Cache-Control", `public, max-age=${GUARDAR_SEGUNDOS}`);
+  copia.headers.set("X-Criado", String(criado));
+  return copia;
+}
+
+// Resposta guardada indo para o navegador: ele guarda pouco tempo
+function paraNavegador(resposta) {
+  const copia = new Response(resposta.body, resposta);
+  copia.headers.set("Cache-Control", `public, max-age=${NAVEGADOR_SEGUNDOS}`);
+  return copia;
+}
 
 async function criarTabelaProntas(db) {
   await db.prepare(`CREATE TABLE IF NOT EXISTS buscas_prontas (
@@ -81,6 +106,8 @@ async function criarTabelaProntas(db) {
 export async function onRequestGet({ request, env, waitUntil }) {
   // O robô (/api/preparar-buscas) passa preparar = true: busca de novo nas lojas e guarda a resposta no banco
   const preparar = Boolean(env.__PREPARAR);
+  // Atualização por trás de uma busca guardada que passou de FRESCO_MS: busca nas lojas e regrava o cache
+  const atualizar = Boolean(env.__ATUALIZAR);
   const limiteLoja = preparar ? LIMITE_LOJA_ROBO_MS : LIMITE_LOJA_MS;
   const inicio = Date.now();
   const params = new URL(request.url).searchParams;
@@ -102,28 +129,47 @@ export async function onRequestGet({ request, env, waitUntil }) {
     return resposta;
   };
 
-  // Guarda as respostas por 1 hora para não gastar o limite das APIs
+  // Guarda as respostas (ver FRESCO_MS) para responder na hora e não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
-  const guardada = !preparar && cache && (await cache.match(chave));
-  if (guardada) return contar(guardada);
+  // Refaz a busca nas lojas em segundo plano (sem contar como busca)
+  const refazerPorTras = (criado) => {
+    if (preparar || atualizar || Date.now() - criado < FRESCO_MS || atualizando.has(chave.url)) return;
+    atualizando.add(chave.url);
+    waitUntil(onRequestGet({ request, env: { ...env, __ATUALIZAR: true }, waitUntil })
+      .catch(() => {}).finally(() => atualizando.delete(chave.url)));
+  };
+  // contar=1: o site usou a busca que adiantou enquanto a pessoa digitava; só falta contar para os "em alta"
+  const soContar = params.has("contar");
+  const guardada = !preparar && !atualizar && cache && (await cache.match(chave));
+  if (guardada) {
+    if (soContar) { contar(guardada); return new Response(null, { status: 204 }); }
+    refazerPorTras(Number(guardada.headers.get("X-Criado")) || 0);
+    return contar(paraNavegador(guardada));
+  }
   // Busca popular já preparada pelo robô: responde na hora (e guarda no cache por 1 hora)
   // Vale para as buscas populares e para as "Ofertas do dia" da página inicial (q vazio, 1ª página)
   const primeira = pagina === 1 && desde === 1;
-  if (primeira && !preparar && env.DB) {
+  if (primeira && !preparar && !atualizar && env.DB) {
     try {
       const pronta = await env.DB.prepare("SELECT resposta, total, criado FROM buscas_prontas WHERE chave = ?").bind(chave.url).first();
-      if (pronta && Date.now() - pronta.criado < VALIDADE_PRONTA_MS) {
-        const resposta = responder(JSON.parse(pronta.resposta));
+      if (pronta && Date.now() - pronta.criado < VELHA_DEMAIS_MS) {
+        const resposta = responder(pronta.resposta);
         resposta.headers.set("X-Total-Ofertas", String(pronta.total));
         resposta.headers.set("X-Pronta", "1");
-        if (cache) waitUntil(cache.put(chave, resposta.clone()).catch(() => {}));
+        if (soContar) { contar(resposta); return new Response(null, { status: 204 }); }
+        // Mais velha que 30 h (o robô não rodou): vai para o cache como vencida, então já é refeita por trás
+        const criado = Date.now() - pronta.criado < VALIDADE_PRONTA_MS ? pronta.criado : 0;
+        if (cache) waitUntil(cache.put(chave, paraGuardar(resposta.clone(), criado)).catch(() => {}));
+        refazerPorTras(criado);
         return contar(resposta);
       }
     } catch {
       // tabela ainda não existe (o robô cria): segue buscando nas lojas
     }
   }
+  // Nada guardado para contar: não vale buscar de novo nas lojas só para isso
+  if (soContar) return new Response(null, { status: 204 });
 
   const ligadas = await Promise.all(FONTES_REAIS.map((f) => f.ativa(env)));
   const reais = FONTES_REAIS.filter((_, i) => ligadas[i]);
@@ -295,7 +341,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Produtos de exemplo não contam como busca em alta
   resposta.headers.set("X-Total-Ofertas", reais.length ? String(ofertas.length) : "0");
   const todasOk = Object.values(lojas).every((l) => l.ok);
-  if (cache && todasOk) await cache.put(chave, resposta.clone());
+  if (cache && todasOk) await cache.put(chave, paraGuardar(resposta.clone()));
   // Busca pronta: guarda mesmo que uma loja pequena tenha falhado (vindo do robô do GitHub, a Lomadee às vezes
   // trava), desde que a Shopee tenha respondido
   const prontaOk = lojas.shopee?.ok && ofertas.length > 0;
@@ -304,6 +350,6 @@ export async function onRequestGet({ request, env, waitUntil }) {
     await env.DB.prepare("INSERT OR REPLACE INTO buscas_prontas (chave, resposta, total, criado) VALUES (?, ?, ?, ?)")
       .bind(chave.url, await resposta.clone().text(), ofertas.length, Date.now()).run();
   }
-  if (preparar) return resposta; // o robô não conta como busca em alta
+  if (preparar || atualizar) return resposta; // o robô e a atualização por trás não contam como busca em alta
   return contar(resposta);
 }

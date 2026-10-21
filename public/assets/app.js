@@ -843,13 +843,44 @@ function semRepetidos(lista) {
   return saida;
 }
 
+// Busca adiantada enquanto a pessoa digita (pedido do Giovanni, 21/10/2026): quando ela para de digitar ou passa
+// pela sugestão, o site já pede os resultados; ao apertar Enter eles estão prontos (ou quase).
+// Pede com atalho=1 (não conta nos "em alta": pode ser só uma sugestão que ela nem escolheu). Se ela buscar isso
+// mesmo, o site usa a resposta adiantada e só avisa o servidor para contar (contar=1).
+const VERSAO_BUSCA = 74;
+const MAX_ADIANTADAS = 8; // por visita, para não gastar as consultas às lojas à toa
+const adiantadas = new Map();
+let totalAdiantadas = 0;
+const chaveAdiantada = (q, cat) => `${q.trim().toLowerCase()}|${cat || ""}`;
+const enderecoBusca = (q, cat, extra = "") =>
+  `/api/buscar?v=${VERSAO_BUSCA}&q=${encodeURIComponent(q)}${q && cat ? `&cat=${encodeURIComponent(cat)}` : ""}${extra}`;
+function adiantarBusca(q, cat) {
+  q = (q || "").trim();
+  const chave = chaveAdiantada(q, cat);
+  if (q.length < 3 || adiantadas.has(chave) || totalAdiantadas >= MAX_ADIANTADAS) return;
+  totalAdiantadas++;
+  const pedido = fetch(enderecoBusca(q, cat, "&atalho=1"), { priority: "low" })
+    .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  adiantadas.set(chave, pedido);
+  pedido.then((dados) => { if (!dados) adiantadas.delete(chave); });
+}
+
 // mais = pedaço de endereço que a resposta anterior mandou para buscar a continuação ("desde=10", "pagina=2")
 async function consultarApi(q, mais = "") {
   const atalho = estado.atalho ? "&atalho=1" : "";
   estado.atalho = false;
-  const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
   const exato = q && estado.exato ? "&exato=1" : "";
-  const resp = await fetch(`/api/buscar?v=73&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
+  if (q && !mais && !exato) {
+    const chave = chaveAdiantada(q, estado.cat);
+    const adiantada = adiantadas.get(chave);
+    adiantadas.delete(chave);
+    const dados = adiantada && (await adiantada);
+    if (dados) {
+      if (!atalho) fetch(enderecoBusca(q, estado.cat, "&contar=1")).catch(() => {});
+      return dados;
+    }
+  }
+  const resp = await fetch(enderecoBusca(q, estado.cat, `${mais ? `&${mais}` : ""}${atalho}${exato}`));
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -1789,6 +1820,7 @@ function prepararBusca(form) {
     if (!itens.length) return fechar();
     lista.replaceChildren(...itens.map((s, n) => el("li", {
       role: "option", id: `${idLista}-${n}`, "aria-selected": "false",
+      onmouseenter: () => adiantarBusca(s, categoriaAtual()),
       onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual() }); },
     }, textoSugestao(s, input.value))));
     ativo = -1;
@@ -1797,14 +1829,20 @@ function prepararBusca(form) {
     input.removeAttribute("aria-activedescendant");
   }
 
-  input.addEventListener("input", desenhar);
+  // Parou de digitar: adianta a 1ª sugestão (se for o que está escrito, melhor ainda)
+  let timerAdiantar;
+  input.addEventListener("input", () => {
+    desenhar();
+    clearTimeout(timerAdiantar);
+    timerAdiantar = setTimeout(() => { if (document.activeElement === input && itens.length) adiantarBusca(itens[0], categoriaAtual()); }, 600);
+  });
   input.addEventListener("focus", carregarVocabulario);
   vocab.aoChegar.push(() => { if (input.value.trim()) desenhar(); });
   input.addEventListener("blur", fechar);
   input.addEventListener("keydown", (e) => {
     if (lista.hidden) return;
-    if (e.key === "ArrowDown") { ativo = (ativo + 1) % itens.length; marcar(); e.preventDefault(); }
-    else if (e.key === "ArrowUp") { ativo = (ativo - 1 + itens.length) % itens.length; marcar(); e.preventDefault(); }
+    if (e.key === "ArrowDown") { ativo = (ativo + 1) % itens.length; marcar(); adiantarBusca(itens[ativo], categoriaAtual()); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { ativo = (ativo - 1 + itens.length) % itens.length; marcar(); adiantarBusca(itens[ativo], categoriaAtual()); e.preventDefault(); }
     else if (e.key === "Escape") fechar();
     else if (e.key === "Enter" && ativo >= 0) { input.value = itens[ativo]; }
   });

@@ -3,25 +3,31 @@
 // O robô do GitHub (robo-precos.yml) chama parte por parte toda madrugada: uma busca por chamada, porque cada
 // busca consulta várias lojas e o plano grátis do Cloudflare limita as consultas de cada chamada.
 import { onRequestGet as buscar } from "./buscar.js";
-import { categoriasParaPreparar } from "../../lib/categorias.js";
-import { maisBuscados } from "../../lib/buscas.js";
+import { categoriasParaPreparar, buscasDasVitrines } from "../../lib/categorias.js";
+import { maisBuscados, termosBuscados } from "../../lib/buscas.js";
 import { carregarMapa } from "../../lib/mapaCategorias.js";
 import { POPULARES } from "../../lib/vocabulario.js";
 
-// Busca as categorias, os mais procurados no Brasil (POPULARES em lib/vocabulario.js) e os atalhos "em alta"
+// Busca as categorias, os mais procurados no Brasil (POPULARES em lib/vocabulario.js), os atalhos "em alta", o que mais
+// gente buscou no site em 30 dias e as buscas das vitrines das categorias ("smart tv", "lattafa"…), nessa ordem.
+// Eram ~90; desde 21/10/2026 (pedido do Giovanni) até MAX_PRONTAS. Cada uma leva ~5 s no robô do GitHub.
+const MAX_PRONTAS = 300;
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const parte = Math.max(parseInt(new URL(request.url).searchParams.get("parte"), 10) || 0, 0);
-  const buscados = await maisBuscados(env, { ateOntem: true }).catch(() => []);
+  const [buscados, doMes] = await Promise.all([
+    maisBuscados(env, { ateOntem: true }).catch(() => []),
+    termosBuscados(env, 200).catch(() => []),
+  ]);
   const vistos = new Set();
   const lista = [
     { q: "" }, // "Ofertas do dia" da página inicial
     ...categoriasParaPreparar().map((c) => ({ q: c.busca, cat: c.nome })),
-    ...[...POPULARES, ...buscados].map((q) => ({ q })),
+    ...[...POPULARES, ...buscados, ...doMes, ...buscasDasVitrines()].map((q) => ({ q })),
   ].filter((b) => {
     const chave = `${b.q.toLowerCase()}|${b.cat || ""}`;
     return !vistos.has(chave) && vistos.add(chave);
-  });
+  }).slice(0, MAX_PRONTAS);
   const fim = parte + 1 >= lista.length;
   if (parte >= lista.length) return Response.json({ parte, partes: lista.length, fim: true });
 
