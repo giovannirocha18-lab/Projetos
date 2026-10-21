@@ -707,14 +707,14 @@ function graficoHistorico(pontos, precoAtual) {
 // Janela "Ver detalhes": tudo o que a loja informa oficialmente sobre o
 // produto (sem ler a página da loja, o que as regras de afiliado proíbem)
 // ---------------------------------------------------------------------
-// Só vale abrir a janela quando ela mostra algo que o cartão não mostra.
-// A API de afiliados da Shopee manda 1 foto e nenhuma descrição, então
-// a janela aparece hoje só nas lojas da Awin que mandam fotos/descrição.
-const temDetalhes = (o) => Boolean(o.descricao || o.imagens?.length > 1);
+// Em todos os produtos (pedido do Giovanni, 21/10/2026: "ajuda muito"). A API de afiliados da Shopee manda
+// 1 foto e nenhuma descrição; a janela mostra a foto grande, o nome inteiro, nota, vendidos, loja e histórico.
+const temDetalhes = (o) => Boolean(o.titulo);
 
 function abrirDetalhes(o) {
   const loja = infoLoja(o);
-  const fotos = o.imagens?.length ? o.imagens : [o.imagem].filter(Boolean);
+  // Shopee: o cartão usa a miniatura ("_tn"); aqui vale a foto original, maior
+  const fotos = o.imagens?.length ? o.imagens : [o.imagem?.replace(/_tn$/, "")].filter(Boolean);
   const fotoGrande = fotos.length
     ? el("img", { src: fotos[0], alt: o.titulo, onload: (e) => { e.target.style.visibility = ""; },
       onerror: (e) => { e.target.style.visibility = "hidden"; } }) // foto quebrada: some, sem travar a galeria
@@ -849,7 +849,7 @@ async function consultarApi(q, mais = "") {
   estado.atalho = false;
   const cat = q && estado.cat ? `&cat=${encodeURIComponent(estado.cat)}` : "";
   const exato = q && estado.exato ? "&exato=1" : "";
-  const resp = await fetch(`/api/buscar?v=69&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
+  const resp = await fetch(`/api/buscar?v=70&q=${encodeURIComponent(q)}${cat}${mais ? `&${mais}` : ""}${atalho}${exato}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }

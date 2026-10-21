@@ -251,6 +251,10 @@ for (const [q, titulos, primeiro, naoBate] of [
 const ORDEM = [
   ["geladeira", ["Geladeira Portátil 40L Camping Veicular", "Geladeira Frost Free Consul 340L"], "Geladeira Frost Free Consul 340L"],
   ["celular", ["Celular Nokia 150 4G Para Idoso", "Celular Samsung Galaxy A06"], "Celular Samsung Galaxy A06"],
+  // 21/10/2026 (print): celular de botão no topo da busca "celular"
+  ["celular", ["Celular Caterpillar B30 Dual Chip 4G IP67 Celular Robusto", "Celular Xiaomi Redmi 15C 256GB"], "Celular Xiaomi Redmi 15C 256GB"],
+  ["celular", ["Celular Nok'a 125 4G Dual Chip | Teclado Fácil", "Celular Samsung Galaxy A07 128GB"], "Celular Samsung Galaxy A07 128GB"],
+  ["celular de botão", ["Celular Samsung Galaxy A07 128GB", "Celular Caterpillar B30 de Botão 4G"], "Celular Caterpillar B30 de Botão 4G"],
   ["geladeira", ["Mini Geladeira Mini Brands Com 2 Bolas Surpresa Colecionável", "Geladeira Brastemp Duplex 375L"], "Geladeira Brastemp Duplex 375L"],
   ["ar condicionado", ["Ar Condicionado Volkswagen Polo 2009 a 2014 Comando Controle do Ar Digital", "Ar Condicionado Split Philco 12000 BTUs"], "Ar Condicionado Split Philco 12000 BTUs"],
   ["ar condicionado", ["Ar Condicionado Oribreeze, Resfriador de Ar Portátil", "Ar Condicionado Split Vix 9000 BTUs"], "Ar Condicionado Split Vix 9000 BTUs"],
