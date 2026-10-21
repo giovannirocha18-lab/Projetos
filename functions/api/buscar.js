@@ -15,6 +15,7 @@ import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { historicoAoVivo, ehAoVivo } from "../../lib/ofertas.js";
+import { normalizar } from "../../lib/texto.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
 import { corrigirBusca, acentuarBusca, buscaNasLojas } from "../../lib/vocabulario.js";
@@ -45,7 +46,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 72;
+const VERSAO_CACHE = 73;
 // Categorias da AliExpress conhecidas (além das que o mapa aprende): 5090301 = Celulares
 const CATS_ALIEXPRESS = { Celulares: ["5090301"] };
 
@@ -136,8 +137,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const consultar = async (termo, opcoesDaBusca) => {
     // A loja pode buscar também dentro das categorias dela que já sabemos serem da categoria do que foi buscado
     const catBusca = termo ? categoriaDoProduto(termo) : null;
+    // resto = a busca sem o nome da categoria ("celular samsung" -> "samsung"; "celular" -> ""): dentro da categoria
+    // da loja, o produto só precisa citar o resto
+    const nomeDaCategoria = catBusca ? new Set(`${catBusca.busca} ${catBusca.chave || ""}`.split(" ").map(normalizar).filter(Boolean)) : null;
+    const resto = catBusca ? normalizar(termo).split(" ").filter((p) => p && !nomeDaCategoria.has(p) && !nomeDaCategoria.has(p.replace(/e?s$/, ""))).join(" ") : "";
     const opcoes = catBusca ? { ...opcoesDaBusca, catsDaLoja: Object.assign((loja) => catsDaLoja(mapa, loja, catBusca.nome),
-      { CONHECIDAS_ALIEXPRESS: CATS_ALIEXPRESS[catBusca.nome] }) } : opcoesDaBusca;
+      { CONHECIDAS_ALIEXPRESS: CATS_ALIEXPRESS[catBusca.nome], resto }) } : opcoesDaBusca;
     const resultados = await Promise.all(
       fontes.map(async (fonte) => {
         const t0 = Date.now();
