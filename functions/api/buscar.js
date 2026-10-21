@@ -55,9 +55,46 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 75;
-// Categorias da AliExpress conhecidas (além das que o mapa aprende): 5090301 = Celulares
-const CATS_ALIEXPRESS = { Celulares: ["5090301"] };
+const VERSAO_CACHE = 76;
+// Como o site da AliExpress busca (estudado em 21/10/2026, pedido do Giovanni): ele descobre a CATEGORIA da busca
+// ("celular" -> Celulares 5090301, "geladeira" -> 60203) e mostra os produtos dela. A API de afiliados só procura a
+// palavra nos títulos ("celular" trazia capinhas, "geladeira" trazia peças). Então, como no site, pedimos também dentro
+// das categorias dela que são da nossa categoria buscada. Códigos tirados das páginas de busca do site e conferidos na
+// API (só os que trouxeram o produto certo; categorias de roupa e decoração ficaram de fora porque misturam muito).
+// Somam-se às que o mapa aprende sozinho (lib/mapaCategorias.js).
+const CATS_ALIEXPRESS = {
+  Pets: ["200003696", "200003700"],
+  "Bebês": ["31006", "200000317", "200200150"],
+  Perfumes: ["202236605", "202236604"],
+  Maquiagem: ["200001129", "200001143"],
+  Skincare: ["200001278", "201206503", "200004021"],
+  Cabelo: ["200001211", "200263142", "201219502"],
+  "Fones de ouvido": ["63705", "202231208"],
+  Carregadores: ["410204"],
+  "Acessórios de celular": ["380230", "202229005", "200002107"],
+  "Relógios": ["200034143", "200363144"],
+  Smartwatches: ["200003487"],
+  "Joias e bijuterias": ["200000162", "200001694", "200001695", "200001700"],
+  "Óculos": ["33902", "202213405"],
+  "Calçados": ["200000963", "200000968"],
+  "Bolsas e mochilas": ["152401", "201339608", "100002856"],
+  "Moda íntima": ["200574005"],
+  "Eletroportáteis": ["100000143", "200391143", "64301"],
+  "Eletrodomésticos": ["60203", "201332907", "200005125"],
+  "Mesa posta": ["201899807"],
+  "Móveis": ["37032002", "37034002"],
+  Cozinha: ["15230303", "201169306"],
+  "Cama e banho": ["40604", "100000394", "40601"],
+  "Esporte e fitness": ["200001967"],
+  "Iluminação LED": ["390402", "200001051"],
+  Limpeza: ["151408", "201338906", "202214807", "200367156"],
+  Brinquedos: ["201270180", "2622"],
+  "Informática": ["70805"],
+  "Caixas de som": ["518"],
+  Ferramentas: ["141705", "141711"],
+  Celulares: ["5090301"],
+  Automotivo: ["200000302", "200003367"],
+};
 
 // Uma oferta de cada loja por vez (Shopee, AliExpress, Shopee…), para nenhuma loja ficar só no fim da lista
 function intercalar(listas) {
