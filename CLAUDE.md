@@ -675,6 +675,18 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   `buscas_prontas` em texto puro, sem limpeza, acumulando cada versão do cache. Agora `buscas_prontas_gz` (gzip, só a versão
   atual, apaga >7 dias; a antiga foi apagada em `criarTabelaProntas`). Banco caiu para **45 MB**. Robô mostra "Tamanho do banco"
   no resumo: conferir de vez em quando. 20 mil produtos da Posthaus entraram; os outros ~39 mil entram nas 2 próximas madrugadas.
+- **Lojas parceiras (22/10/2026, pedido do Giovanni)**: botão "🏬 Ver lojas parceiras" na caixa "Lojas nesta lista" (e link no card
+  roxo da busca) abre a janela `#janela-lojas` com todas as lojas (`/api/lojas`: Shopee, AliExpress, lojas da Awin com nº de produtos,
+  marcas da Lomadee; campo "Procurar loja…"). "Ver produtos" abre `?loja=<id>` (`mostrarLoja` no app.js; `/api/lojas?id=&pagina=`):
+  Shopee/AliExpress = mais vendidos; Awin = do banco, desconto primeiro; Lomadee = produtos da marca (`produtosDaMarca`). Conferido no
+  ar: Shopee 48, AliExpress 24, Anhanguera Ferramentas 48. ⚠️ **Muitas marcas da Lomadee voltam 0 produtos** (AmoKarité, Atlas, Bauducco…):
+  conferir se o filtro `organizationIds` com 1 marca funciona ou se essas marcas não têm catálogo; talvez esconder da lista as sem produtos.
+- ⚠️ **D1 estourou o limite grátis de LEITURAS (5 milhões de linhas/dia) em 22/10/2026** (com a Posthaus o banco foi para 48 mil ofertas;
+  volta à meia-noite UTC = 20h de Cuiabá). Até lá falham Awin na busca, histórico, login, carrinho. Corrigido: busca da Awin lê até 400
+  candidatos sem `ORDER BY rank` (`num IN (SELECT rowid … LIMIT 400)`), tabela-resumo `lojas_awin` (refeita pelo robô) no lugar de
+  `COUNT(DISTINCT loja)`, mapa de categorias no cache do Cloudflare. **Pedir ao Giovanni print de Cloudflare > D1 > vaiprocarrinho > Metrics
+  (Rows read) e aba de consultas mais pesadas, para confirmar.** Cuidado também com o limite de 100 mil GRAVAÇÕES/dia (robô grava 20 mil
+  ofertas + índice de busca). Antes de criar índice novo em `ofertas`: cada índice = +1 gravação por produto.
 - **Conta PJ da Awin (print 22/10/2026)**: 6 lojas aprovadas = Shark-Ninja, Casa Tema, Monte Carlo Jóias, Spicy, Karsten, Lauri.
   Execução #26 (22/10): a lista de feeds da conta nova só mostrava 2 como "active" (Karsten, Lauri); Casa Tema e Monte Carlo
   ainda não aparecem (a Awin demora a atualizar a lista) → devem entrar sozinhas numa próxima madrugada. Conferir no log.
