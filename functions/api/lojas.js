@@ -5,7 +5,7 @@
 // Pedido do Giovanni (22/10/2026). As mesmas lojas que /api/numeros conta.
 import { shopee } from "../../lib/fontes/shopee.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
-import { lomadee, marcasAprovadas, produtosDaMarca } from "../../lib/fontes/lomadee.js";
+import { lomadee, marcasComProdutos, produtosDaMarca } from "../../lib/fontes/lomadee.js";
 import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoVivo, nomeDaLojaAwin, lojasDaAwin } from "../../lib/ofertas.js";
 import { carregarMapa, aplicarMapa } from "../../lib/mapaCategorias.js";
 import { marcarSecoes } from "../../lib/categorias.js";
@@ -14,7 +14,7 @@ const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
 const POR_PAGINA = 48;
 const MAX_PAGINA = 20;
-const VERSAO = 1; // trocar para descartar o que está guardado
+const VERSAO = 2; // trocar para descartar o que está guardado
 
 function responder(dados, segundos) {
   return Response.json(dados, { headers: { "Cache-Control": `public, max-age=${segundos}`, "X-Robots-Tag": "noindex" } });
@@ -26,14 +26,14 @@ async function listarLojas(env) {
     aliexpress.ativa(env) && { id: "aliexpress", nome: "AliExpress", rede: "marketplace", internacional: true },
   ].filter(Boolean);
   const [marcas, daAwin] = await Promise.all([
-    lomadee.ativa(env) ? marcasAprovadas(env).catch(() => new Map()) : new Map(),
-    env.DB ? lojasDaAwin(env.DB).catch(() => []) : [],
+    lomadee.ativa(env) ? marcasComProdutos(env).catch(() => new Map()) : new Map(),
+    env.DB ? lojasDaAwin(env.DB).catch(() => null) : [],
   ]);
   const lojas = [
-    ...daAwin.map((l) => ({ id: `awin:${l.loja}`, nome: nomeDaLojaAwin(l.nome) || l.loja, rede: "awin", produtos: l.n, internacional: Boolean(l.internacional) || undefined })),
+    ...(daAwin || []).map((l) => ({ id: `awin:${l.loja}`, nome: nomeDaLojaAwin(l.nome) || l.loja, rede: "awin", produtos: l.n, internacional: Boolean(l.internacional) || undefined })),
     ...[...marcas].map(([id, m]) => ({ id: `lomadee:${id}`, nome: m.nome, rede: "lomadee" })),
   ].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
-  return { lojas: [...marketplaces, ...lojas], completo: !lomadee.ativa(env) || marcas.size > 0 };
+  return { lojas: [...marketplaces, ...lojas], completo: (!lomadee.ativa(env) || marcas.size > 0) && daAwin !== null };
 }
 
 async function produtosDaLoja(env, id, pagina) {
