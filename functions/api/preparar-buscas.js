@@ -1,5 +1,5 @@
 // GET /api/preparar-buscas?parte=0 -> faz de novo, nas lojas, as "Ofertas do dia" e as buscas mais populares e guarda as respostas
-// no banco (tabela buscas_prontas). Quem buscar esses termos recebe a resposta na hora, sem esperar as lojas.
+// no banco (tabela buscas_prontas_gz, compactada). Quem buscar esses termos recebe a resposta na hora, sem esperar as lojas.
 // O robô do GitHub (robo-precos.yml) chama parte por parte toda madrugada: uma busca por chamada, porque cada
 // busca consulta várias lojas e o plano grátis do Cloudflare limita as consultas de cada chamada.
 import { onRequestGet as buscar } from "./buscar.js";

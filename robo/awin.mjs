@@ -51,6 +51,8 @@ const caminhoSqlite = arg("--sqlite")[0];
 // ---------------------------------------------------------------------
 // Banco: D1 do Cloudflare (pela API) ou SQLite local (para testes)
 // ---------------------------------------------------------------------
+// Tamanho do banco depois da última gravação (o D1 grátis aceita até 500 MB)
+let tamanhoBanco = 0;
 async function abrirBanco() {
   if (caminhoSqlite) {
     const { DatabaseSync } = await import("node:sqlite");
@@ -73,7 +75,11 @@ async function abrirBanco() {
         body: JSON.stringify(corpo),
       });
       const json = await resp.json().catch(() => ({}));
-      if (resp.ok && json.success) return json.result;
+      if (resp.ok && json.success) {
+        const tamanho = json.result?.at(-1)?.meta?.size_after;
+        if (tamanho) tamanhoBanco = tamanho;
+        return json.result;
+      }
       const erro = `D1 respondeu ${resp.status}: ${JSON.stringify(json.errors || json).slice(0, 500)}`;
       if (tentativa >= 4 || (resp.status < 500 && resp.status !== 429)) throw new Error(erro);
       console.log(`${erro} — tentando de novo`);
@@ -572,6 +578,7 @@ async function main() {
     `Atualizados: ${gravarHoje.length - novos} (preço mudou em ${precosMudaram})`,
     `Removidos: ${removerHoje.length}`,
     pendentes ? `Ficaram para amanhã (limite diário de ${LIMITE}): ${pendentes}` : null,
+    tamanhoBanco ? `Tamanho do banco: ${Math.round(tamanhoBanco / 1e6)} MB de 500 MB` : null,
     `Tempo: ${Math.round((Date.now() - inicio) / 1000)} s`,
   ].filter(Boolean);
   resumo.forEach((l) => console.log(l));

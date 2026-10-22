@@ -135,10 +135,26 @@ function paraNavegador(resposta) {
   return copia;
 }
 
+// Buscas prontas ficam compactadas (gzip, ~10x menores) e só da versão atual. A tabela antiga (texto puro, sem
+// limpeza: cada versão nova somava ~300 buscas de até 900 KB) encheu os 500 MB do D1 em 22/10/2026 e foi apagada.
+const TABELA_PRONTAS = "buscas_prontas_gz";
+let prontasArrumadas = false;
 async function criarTabelaProntas(db) {
-  await db.prepare(`CREATE TABLE IF NOT EXISTS buscas_prontas (
-    chave TEXT PRIMARY KEY, resposta TEXT NOT NULL, total INTEGER NOT NULL, criado INTEGER NOT NULL)`).run();
+  if (prontasArrumadas) return;
+  // Apaga a tabela antiga primeiro: com o banco cheio, nem a tabela nova conseguia ser criada
+  await db.batch([
+    db.prepare("DROP TABLE IF EXISTS buscas_prontas"),
+    db.prepare(`CREATE TABLE IF NOT EXISTS ${TABELA_PRONTAS} (chave TEXT PRIMARY KEY, resposta BLOB NOT NULL,
+      total INTEGER NOT NULL, criado INTEGER NOT NULL, versao INTEGER NOT NULL)`),
+    db.prepare(`DELETE FROM ${TABELA_PRONTAS} WHERE versao <> ? OR criado < ?`).bind(VERSAO_CACHE, Date.now() - VELHA_DEMAIS_MS),
+  ]);
+  prontasArrumadas = true;
 }
+
+const compactar = async (texto) =>
+  new Uint8Array(await new Response(new Blob([texto]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
+const descompactar = (bytes) =>
+  new Response(new Blob([new Uint8Array(bytes)]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
 
 export async function onRequestGet({ request, env, waitUntil }) {
   // O robô (/api/preparar-buscas) passa preparar = true: busca de novo nas lojas e guarda a resposta no banco
@@ -189,9 +205,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const primeira = pagina === 1 && desde === 1;
   if (primeira && !preparar && !atualizar && env.DB) {
     try {
-      const pronta = await env.DB.prepare("SELECT resposta, total, criado FROM buscas_prontas WHERE chave = ?").bind(chave.url).first();
+      const pronta = await env.DB.prepare(`SELECT resposta, total, criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
       if (pronta && Date.now() - pronta.criado < VELHA_DEMAIS_MS) {
-        const resposta = responder(pronta.resposta);
+        const resposta = responder(await descompactar(pronta.resposta));
         resposta.headers.set("X-Total-Ofertas", String(pronta.total));
         resposta.headers.set("X-Pronta", "1");
         if (soContar) { contar(resposta); return new Response(null, { status: 204 }); }
@@ -384,8 +400,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const prontaOk = lojas.shopee?.ok && ofertas.length > 0;
   if (preparar && primeira && prontaOk && reais.length && env.DB) {
     await criarTabelaProntas(env.DB);
-    await env.DB.prepare("INSERT OR REPLACE INTO buscas_prontas (chave, resposta, total, criado) VALUES (?, ?, ?, ?)")
-      .bind(chave.url, await resposta.clone().text(), ofertas.length, Date.now()).run();
+    await env.DB.prepare(`INSERT OR REPLACE INTO ${TABELA_PRONTAS} (chave, resposta, total, criado, versao) VALUES (?, ?, ?, ?, ?)`)
+      .bind(chave.url, await compactar(await resposta.clone().text()), ofertas.length, Date.now(), VERSAO_CACHE).run();
   }
   if (preparar || atualizar) return resposta; // o robô e a atualização por trás não contam como busca em alta
   return contar(resposta);
