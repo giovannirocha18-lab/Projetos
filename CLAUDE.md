@@ -679,8 +679,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   roxo da busca) abre a janela `#janela-lojas` com todas as lojas (`/api/lojas`: Shopee, AliExpress, lojas da Awin com nº de produtos,
   marcas da Lomadee; campo "Procurar loja…"). "Ver produtos" abre `?loja=<id>` (`mostrarLoja` no app.js; `/api/lojas?id=&pagina=`):
   Shopee/AliExpress = mais vendidos; Awin = do banco, desconto primeiro; Lomadee = produtos da marca (`produtosDaMarca`). Conferido no
-  ar: Shopee 48, AliExpress 24, Anhanguera Ferramentas 48. ⚠️ **Muitas marcas da Lomadee voltam 0 produtos** (AmoKarité, Atlas, Bauducco…):
-  conferir se o filtro `organizationIds` com 1 marca funciona ou se essas marcas não têm catálogo; talvez esconder da lista as sem produtos.
+  ar: Shopee 48, AliExpress 24, Anhanguera Ferramentas 48. **Só lojas com produtos aparecem e contam** (pedido do Giovanni: "site
+  fidedigno"): das 105 marcas da Lomadee só 24 mandam produtos (as outras 80 nem na busca normal aparecem). `marcasComProdutos`
+  (lomadee.js) usa a tabela D1 `marcas_lomadee`, preenchida pelo job `lomadee` do robô (`/api/conferir-lojas?parte=N`, 20 marcas por
+  parte); sem tabela, vale a lista `COM_PRODUTOS_EM_22_10`. Total real: 2 marketplaces + 24 Lomadee + 7 Awin = 33 ("mais de 30 lojas").
 - ⚠️ **D1 estourou o limite grátis de LEITURAS (5 milhões de linhas/dia) em 22/10/2026** (com a Posthaus o banco foi para 48 mil ofertas;
   volta à meia-noite UTC = 20h de Cuiabá). Até lá falham Awin na busca, histórico, login, carrinho. Corrigido: busca da Awin lê até 400
   candidatos sem `ORDER BY rank` (`num IN (SELECT rowid … LIMIT 400)`), tabela-resumo `lojas_awin` (refeita pelo robô) no lugar de
