@@ -672,6 +672,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (520 vezes): mapa pronto numa linha da tabela `resumos` (`lib/resumos.js`, refeito a cada 3 h); (4) `maisBuscados`/`termosBuscados`
   leram 1,8 M (2.600 vezes, chamados a cada busca preparada): também em `resumos`, refeitos a cada 1 h. **Conferir em 23/10 à noite**
   (print do painel D1) se ficou abaixo dos dois limites. Próximos da lista se precisar: `precos WHERE oferta_id IN` (231 mil).
+  (5) Pedido do Giovanni: índice `ofertas_loja_desconto` (loja, desconto) no lugar do `ofertas_gtin` (não usado) → página da loja
+  (`/api/lojas`, consulta com `+fonte`) lê só a página. O robô cria na madrugada de 23/10 e desconta do limite do dia (~48 mil linhas
+  para montar = ~9,6 mil produtos → **nesse dia o robô quase não grava produtos**; normal). Conferir no log "Índice … criado".
 - **12ª sessão (22/10/2026) — conferir na próxima conversa:**
   (1) Log do robô da madrugada de 23/10: Casa Tema, Monte Carlo Jóias e Polishop (aprovada na conta PF) entraram? Posthaus restante
   (~38 mil) entrando; job novo `lomadee` (conferência das marcas) rodou e quantas têm produtos; tamanho do banco.
