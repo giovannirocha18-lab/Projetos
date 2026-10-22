@@ -1031,6 +1031,9 @@ const AVISO_CUPOM = "💸 Produtos que têm cupom na loja podem sair ainda mais 
 
 // Lojas desta busca dentro do card de resultados (pedido do Giovanni, 17/10/2026): o visitante vê na hora quais lojas
 // têm o produto e liga/desliga cada uma; "Limpar" desliga todas (para escolher só uma) e "Marcar todas" volta tudo
+// Mesmo botão "Limpar filtros" da barra lateral, no card roxo (pedido do Giovanni, 22/10/2026: no card ele fica à vista)
+const botaoLimparFiltros = () => el("button", { type: "button", class: "chip-acao chip-limpar", onclick: limparFiltros }, "✕ Limpar filtros");
+
 function lojasNoResumo() {
   const contagem = contarLojas();
   const ids = Object.keys(contagem);
@@ -1148,7 +1151,8 @@ function desenharResumo(lista) {
     avisoCorrecao(),
     avisoCategoria(),
     avisoSemProduto(),
-    lojasNoResumo());
+    lojasNoResumo(),
+    el("div", { class: "resumo-acoes" }, botaoLimparFiltros()));
 
   $("#resumo").replaceChildren(titulo);
 }
@@ -1454,7 +1458,8 @@ function desenharResumoLoja(lista) {
       : total ? "Nenhum produto com esses filtros"
         : "Esta loja ainda não enviou a lista de produtos dela para a nossa rede de parceiros. Volte em breve!"),
     el("small", { class: "resumo-lojas-nota" },
-      el("button", { type: "button", class: "botao-link-claro", onclick: abrirLojas }, "Ver outras lojas parceiras"), " ", AVISO_CUPOM)));
+      el("button", { type: "button", class: "botao-link-claro", onclick: abrirLojas }, "Ver outras lojas parceiras"), " ", AVISO_CUPOM),
+    el("div", { class: "resumo-acoes" }, botaoLimparFiltros())));
 }
 
 async function pedirLoja(id, pagina) {
@@ -2057,12 +2062,13 @@ function zerarFiltros() {
   estado.lojasDesmarcadas.clear();
   zerarSecoes();
 }
-$("#limpar-filtros").addEventListener("click", () => {
+function limparFiltros() {
   zerarFiltros();
   $("input[name=ordem][value=relevancia]").checked = true;
   desenharFiltroLojas();
   desenharResultados();
-});
+}
+$("#limpar-filtros").addEventListener("click", limparFiltros);
 
 // Atualizar a página (F5) volta ao começo: sem busca, sem categoria e sem filtros
 // (o navegador guardaria o que estava marcado). Link compartilhado com ?q= continua abrindo a busca.

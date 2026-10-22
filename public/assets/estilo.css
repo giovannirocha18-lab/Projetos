@@ -323,6 +323,8 @@ a { color: inherit; }
 .chip-loja:hover { opacity: 1; }
 .chip-acao { color: #fff; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35); }
 .chip-acao:hover { background: rgba(255, 255, 255, .3); }
+.resumo-acoes { margin-top: 10px; }
+.chip-limpar { font-weight: 700; }
 .resumo .resumo-lojas-nota { flex-basis: 100%; font-size: .78rem; opacity: .85; }
 
 /* Animação "buscando": boneco empurrando o carrinho da esquerda para a direita, olhando para os lados */
