@@ -40,7 +40,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   houver ofertas `fonte='awin'` no banco. Ofertas de lojas fora da lista `LOJAS` do `app.js` levam `lojaNome`.
 - `lib/ofertas.js` = criação das tabelas `ofertas`, `ofertas_fts` (com gatilhos) e `precos` (histórico de preço por dia).
 - `robo/awin.mjs` = **robô de preços**: baixa a lista de feeds da Awin (chave `AWIN_FEED_KEY`), pega os das lojas aprovadas
-  (região BR) e atualiza o D1 pela API do Cloudflare (só grava o que mudou; limite 20 mil/dia; não apaga nada se o feed
+  (região BR) e atualiza o D1 pela API do Cloudflare (só grava o que mudou; limite 8 mil/dia desde 22/10/2026; não apaga nada se o feed
   falhar ou encolher mais da metade). Roda pelo GitHub Actions (`.github/workflows/robo-precos.yml`, 02:30 de Cuiabá desde 16/10/2026).
   Teste local: `node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite`. Ver README.
 - `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br`, que **ainda não existe**.
@@ -663,7 +663,15 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 22/10/2026, fim da 12ª sessão: lojas parceiras, limite de leituras do D1, só lojas com produtos)
+## Próximos passos (atualizado 22/10/2026, 13ª sessão: lojas parceiras, limite de leituras do D1, só lojas com produtos)
+- **13ª sessão (22/10/2026): limites do D1 conferidos no painel** (Storage & databases > D1 SQL database; o painel lateral mostra
+  o uso do dia; clicar no banco > aba **Queries** ordena por Rows read/written). Em 22/10: **5,78 M leituras (limite 5 M) e 144 mil
+  gravações (limite 100 mil)**. Culpados e correções (publicado): (1) cada produto do robô = ~5 linhas gravadas (produto + índices + FTS):
+  `LIMITE` do robô 20 mil → **8 mil/dia** (Posthaus restante entra em ~5 madrugadas); (2) `cat_loja_votos` gravava 16 mil/dia: agora só
+  as buscas do robô (`preparar`) ensinam o mapa e o 1º nível da categoria da loja não vota; (3) `SELECT … FROM cat_loja_votos` leu 3,2 M
+  (520 vezes): mapa pronto numa linha da tabela `resumos` (`lib/resumos.js`, refeito a cada 3 h); (4) `maisBuscados`/`termosBuscados`
+  leram 1,8 M (2.600 vezes, chamados a cada busca preparada): também em `resumos`, refeitos a cada 1 h. **Conferir em 23/10 à noite**
+  (print do painel D1) se ficou abaixo dos dois limites. Próximos da lista se precisar: `precos WHERE oferta_id IN` (231 mil).
 - **12ª sessão (22/10/2026) — conferir na próxima conversa:**
   (1) Log do robô da madrugada de 23/10: Casa Tema, Monte Carlo Jóias e Polishop (aprovada na conta PF) entraram? Posthaus restante
   (~38 mil) entrando; job novo `lomadee` (conferência das marcas) rodou e quantas têm produtos; tamanho do banco.
