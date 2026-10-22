@@ -607,10 +607,6 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         maisVendido && el("span", { class: "selo selo-vendido" }, ...longoCurto("⭐ Mais vendido", "⭐ Top")),
         o.desconto && el("span", { class: "selo selo-desconto" }, `-${o.desconto}%`),
         ...selosHistorico(o))),
-    el("button", {
-      class: "favoritar", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
-      "aria-label": "Guardar no carrinho", onclick: () => alternarFavorito(o),
-    }, ICONE_CARRINHO()),
     el("div", { class: "oferta-corpo" },
       el("div", { class: "loja-linha" },
         el("span", { class: "loja-tag" }, el("span", { class: "loja-ponto" }), loja.nome),
@@ -634,9 +630,15 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       }, o.moeda ? `🌎 Internacional · valor aproximado` : "🌎 Internacional"),
       o.envioNacional && el("span", { class: "internacional nacional", title: "Sai de um armazém no Brasil: chega mais rápido e sem impostos de importação." },
         el("span", { class: "bandeira-br", "aria-hidden": "true" }), " Envio do Brasil"),
-      el("div", { class: "links-oferta" },
-        temDetalhes(o) && el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
-        o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico")),
+      // Botão do carrinho logo acima do "Comprar" (pedido do Giovanni, 22/10/2026: em cima da foto ficava escondido)
+      el("div", { class: "acoes-oferta" },
+        el("div", { class: "links-oferta" },
+          temDetalhes(o) && el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
+          o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico")),
+        el("button", {
+          class: "favoritar", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
+          "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: () => alternarFavorito(o),
+        }, ICONE_CARRINHO())),
       el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
         ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
 }
