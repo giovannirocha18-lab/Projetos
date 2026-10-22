@@ -56,8 +56,8 @@ async function produtosDaLoja(env, id, pagina) {
     // Primeiro os com desconto (maior primeiro), depois o resto
     const { results } = await env.DB.prepare(
       `SELECT ${COLUNAS_OFERTA} FROM ofertas WHERE fonte = 'awin' AND loja = ?
-       ORDER BY COALESCE(desconto, 0) DESC, num LIMIT ? OFFSET ?`,
-    ).bind(chave, POR_PAGINA + 1, (pagina - 1) * POR_PAGINA).all();
+       ORDER BY COALESCE(desconto, 0) DESC, num LIMIT ${POR_PAGINA + 1} OFFSET ${(pagina - 1) * POR_PAGINA}`,
+    ).bind(chave).all();
     if (!results.length && pagina === 1) return null;
     const ofertas = await comHistorico(env.DB, results.slice(0, POR_PAGINA).map(linhaParaOferta));
     return { nome: ofertas[0]?.lojaNome || chave, ofertas, temMais: results.length > POR_PAGINA && pagina < MAX_PAGINA };
@@ -83,8 +83,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
     let dados;
     try {
       dados = await produtosDaLoja(env, id, pagina);
-    } catch {
-      return Response.json({ erro: "Não foi possível carregar os produtos desta loja agora" }, { status: 502 });
+    } catch (erro) {
+      // 500 (o Cloudflare troca a resposta 502 pela página dele)
+      return Response.json({ erro: "Não foi possível carregar os produtos desta loja agora", detalhe: String(erro?.message || erro).slice(0, 200) }, { status: 500 });
     }
     if (!dados) return Response.json({ erro: "Loja não encontrada" }, { status: 404 });
     const mapa = await carregarMapa(env).catch(() => null);
