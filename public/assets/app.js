@@ -2062,9 +2062,16 @@ function zerarFiltros() {
   estado.lojasDesmarcadas.clear();
   zerarSecoes();
 }
+// A categoria aberta também conta como filtro (pedido do Giovanni, 22/10/2026): vendo uma categoria, volta à página
+// inicial (como o logo); buscando dentro de uma categoria, refaz a busca em todas
 function limparFiltros() {
   zerarFiltros();
   $("input[name=ordem][value=relevancia]").checked = true;
+  if (categoriaAtual()) {
+    const q = navegandoCategoria() ? "" : estado.q;
+    if (!q) document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
+    return irPara(q);
+  }
   desenharFiltroLojas();
   desenharResultados();
 }
