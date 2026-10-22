@@ -669,6 +669,12 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (2) Conferir o log do job `prontas` da madrugada (300 buscas, timeout 80 min; ver se termina e quantas `"guardada":true`).
   (3) Giovanni conferir no site: Karsten (toalha, jogo de cama, fronha), boné, celular (AliExpress ~47), geladeira/smart tv,
   "Ver detalhes" na Shopee e a busca adiantada ao digitar. (4) Giovanni pedindo novas afiliações na Awin (texto entregue).
+- **Posthaus aprovada na Awin (conta PF, 22/10/2026)**: feed 79509 com 59.045 produtos. 1º problema: robô estourou a memória
+  (lia o feed inteiro) → agora lê aos pedaços (`criarLeitorCsv`/`pedacosDeTexto` em `robo/awin.mjs`) + Node com 6 GB.
+  2º problema: **banco D1 cheio (500 MB, "Exceeded maximum DB size")** — travava gravações (login, carrinho). Causa: tabela
+  `buscas_prontas` em texto puro, sem limpeza, acumulando cada versão do cache. Agora `buscas_prontas_gz` (gzip, só a versão
+  atual, apaga >7 dias; a antiga foi apagada em `criarTabelaProntas`). Banco caiu para **45 MB**. Robô mostra "Tamanho do banco"
+  no resumo: conferir de vez em quando. 20 mil produtos da Posthaus entraram; os outros ~39 mil entram nas 2 próximas madrugadas.
 - **Karsten aprovada na Awin (21/10/2026)**: robô da madrugada já gravou 1.900 produtos (feed 102256). Cor `#1d3557` nos filtros.
   Conferência das categorias (Karsten, Kabum, Lauri, Spicy, ~95 buscas reais): Cama e banho + toalha banhão/rosto/piso/lavabo,
   fronha, porta-travesseiro, peseira, protetor/saia de colchão, pillow top (Móveis `nao` colchão de roupa de cama); Mesa posta + pano
