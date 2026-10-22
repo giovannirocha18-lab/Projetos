@@ -663,7 +663,7 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 21/10/2026, fim da 10ª sessão)
+## Próximos passos (atualizado 22/10/2026, fim da 11ª sessão: A–Z sem Eletrodomésticos fixa, Posthaus, banco cheio resolvido)
 - **Pendente da 10ª sessão**: (1) Giovanni mandar prints da Shopee (celular, air fryer, geladeira, fone bluetooth, tênis masculino,
   smartwatch, ordem "Relevância") → Claude comparar com `/api/buscar` (só Shopee) e ajustar como foi feito na AliExpress.
   (2) Conferir o log do job `prontas` da madrugada (300 buscas, timeout 80 min; ver se termina e quantas `"guardada":true`).
