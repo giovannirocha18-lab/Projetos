@@ -109,6 +109,7 @@
         <legend>Lojas nesta lista</legend>
         <p class="nota-lojas" id="nota-lojas" hidden></p>
         <div id="filtro-lojas"></div>
+        <button type="button" class="botao-secundario botao-ver-lojas" data-ver-lojas>🏬 Ver lojas parceiras</button>
       </fieldset>
 
       <fieldset>
@@ -176,6 +177,15 @@
   <dialog class="janela" id="janela-conta" aria-labelledby="conta-titulo">
     <button type="button" class="fechar janela-fechar" id="fechar-conta" aria-label="Fechar">✕</button>
     <div id="conta-conteudo"></div>
+  </dialog>
+
+  <!-- ============ LOJAS PARCEIRAS (todas, com "Ver produtos") ============ -->
+  <dialog class="janela janela-lojas" id="janela-lojas" aria-labelledby="lojas-titulo">
+    <button type="button" class="fechar janela-fechar" id="fechar-lojas" aria-label="Fechar">✕</button>
+    <h2 id="lojas-titulo">🏬 Lojas parceiras</h2>
+    <p id="lojas-total">Carregando…</p>
+    <input type="search" id="lojas-filtro" placeholder="Procurar loja…" aria-label="Procurar loja" autocomplete="off">
+    <div class="lojas-lista" id="lojas-lista"></div>
   </dialog>
 
   <!-- ============ DETALHES de um produto ============ -->

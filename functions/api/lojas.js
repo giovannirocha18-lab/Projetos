@@ -1,0 +1,106 @@
+// GET /api/lojas              -> lojas parceiras ativas agora (janela "Lojas parceiras" do site)
+//                                { lojas: [{ id, nome, rede, produtos?, internacional? }] }
+// GET /api/lojas?id=X&pagina=N -> produtos de uma loja ("Ver produtos"): { nome, ofertas, temMais }
+//   id = "shopee" | "aliexpress" | "awin:<loja>" | "lomadee:<marca>"
+// Pedido do Giovanni (22/10/2026). As mesmas lojas que /api/numeros conta.
+import { shopee } from "../../lib/fontes/shopee.js";
+import { aliexpress } from "../../lib/fontes/aliexpress.js";
+import { lomadee, marcasAprovadas, produtosDaMarca } from "../../lib/fontes/lomadee.js";
+import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoVivo, nomeDaLojaAwin } from "../../lib/ofertas.js";
+import { carregarMapa, aplicarMapa } from "../../lib/mapaCategorias.js";
+import { marcarSecoes } from "../../lib/categorias.js";
+
+const LISTA_SEGUNDOS = 6 * 60 * 60;
+const PRODUTOS_SEGUNDOS = 60 * 60;
+const POR_PAGINA = 48;
+const MAX_PAGINA = 20;
+const VERSAO = 1; // trocar para descartar o que está guardado
+
+function responder(dados, segundos) {
+  return Response.json(dados, { headers: { "Cache-Control": `public, max-age=${segundos}`, "X-Robots-Tag": "noindex" } });
+}
+
+async function listarLojas(env) {
+  const marketplaces = [
+    shopee.ativa(env) && { id: "shopee", nome: "Shopee", rede: "marketplace" },
+    aliexpress.ativa(env) && { id: "aliexpress", nome: "AliExpress", rede: "marketplace", internacional: true },
+  ].filter(Boolean);
+  const [marcas, daAwin] = await Promise.all([
+    lomadee.ativa(env) ? marcasAprovadas(env).catch(() => new Map()) : new Map(),
+    env.DB
+      ? env.DB.prepare(`SELECT loja, MAX(loja_nome) AS nome, COUNT(*) AS n, MAX(internacional) AS internacional
+          FROM ofertas WHERE fonte = 'awin' GROUP BY loja`).all().then((r) => r.results).catch(() => [])
+      : [],
+  ]);
+  const lojas = [
+    ...daAwin.map((l) => ({ id: `awin:${l.loja}`, nome: nomeDaLojaAwin(l.nome) || l.loja, rede: "awin", produtos: l.n, internacional: Boolean(l.internacional) || undefined })),
+    ...[...marcas].map(([id, m]) => ({ id: `lomadee:${id}`, nome: m.nome, rede: "lomadee" })),
+  ].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
+  return { lojas: [...marketplaces, ...lojas], completo: !lomadee.ativa(env) || marcas.size > 0 };
+}
+
+async function produtosDaLoja(env, id, pagina) {
+  if (id === "shopee" || id === "aliexpress") {
+    const fonte = id === "shopee" ? shopee : aliexpress;
+    if (!fonte.ativa(env)) return null;
+    const ofertas = await fonte.destaques(env, pagina);
+    return { nome: id === "shopee" ? "Shopee" : "AliExpress", ofertas, temMais: ofertas.length >= 10 && pagina < MAX_PAGINA };
+  }
+  const [rede, ...resto] = id.split(":");
+  const chave = resto.join(":");
+  if (rede === "lomadee" && chave && lomadee.ativa(env)) {
+    const r = await produtosDaMarca(env, chave, pagina, POR_PAGINA);
+    return r.nome ? { ...r, temMais: r.temMais && pagina < MAX_PAGINA } : null;
+  }
+  if (rede === "awin" && chave && env.DB) {
+    // Primeiro os com desconto (maior primeiro), depois o resto
+    const { results } = await env.DB.prepare(
+      `SELECT ${COLUNAS_OFERTA} FROM ofertas WHERE fonte = 'awin' AND loja = ?
+       ORDER BY COALESCE(desconto, 0) DESC, num LIMIT ? OFFSET ?`,
+    ).bind(chave, POR_PAGINA + 1, (pagina - 1) * POR_PAGINA).all();
+    if (!results.length && pagina === 1) return null;
+    const ofertas = await comHistorico(env.DB, results.slice(0, POR_PAGINA).map(linhaParaOferta));
+    return { nome: ofertas[0]?.lojaNome || chave, ofertas, temMais: results.length > POR_PAGINA && pagina < MAX_PAGINA };
+  }
+  return null;
+}
+
+export async function onRequestGet({ request, env, waitUntil }) {
+  const params = new URL(request.url).searchParams;
+  const id = (params.get("id") || "").slice(0, 120);
+  const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), MAX_PAGINA);
+  const cache = typeof caches !== "undefined" ? caches.default : null;
+  const chave = new Request(new URL(`/api/lojas?v=${VERSAO}${id ? `&id=${encodeURIComponent(id)}&pagina=${pagina}` : ""}`, request.url));
+  const guardada = cache && (await cache.match(chave));
+  if (guardada) return guardada;
+
+  let resposta;
+  if (!id) {
+    const { lojas, completo } = await listarLojas(env);
+    resposta = responder({ lojas }, completo ? LISTA_SEGUNDOS : 300);
+    if (!completo) return resposta; // Lomadee fora do ar: não guarda
+  } else {
+    let dados;
+    try {
+      dados = await produtosDaLoja(env, id, pagina);
+    } catch {
+      return Response.json({ erro: "Não foi possível carregar os produtos desta loja agora" }, { status: 502 });
+    }
+    if (!dados) return Response.json({ erro: "Loja não encontrada" }, { status: 404 });
+    const mapa = await carregarMapa(env).catch(() => null);
+    let ofertas = marcarSecoes(mapa ? aplicarMapa(dados.ofertas, mapa) : dados.ofertas);
+    // Shopee, AliExpress e Lomadee: histórico de preço como na busca (e guarda o preço de hoje, no máx. 60)
+    if (env.DB && ofertas.some(ehAoVivo)) {
+      try {
+        const vivo = await historicoAoVivo(env.DB, ofertas, { gravarAte: 60 });
+        ofertas = vivo.ofertas;
+        waitUntil(vivo.gravar().catch(() => {}));
+      } catch {
+        // D1 indisponível: segue sem histórico
+      }
+    }
+    resposta = responder({ nome: dados.nome, ofertas, temMais: dados.temMais }, PRODUTOS_SEGUNDOS);
+  }
+  if (cache) waitUntil(cache.put(chave, resposta.clone()));
+  return resposta;
+}

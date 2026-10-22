@@ -812,7 +812,7 @@ function esqueletos(qtd) {
 // Busca
 // ---------------------------------------------------------------------
 // A mesma lista de filtros serve para as "Ofertas do dia" (q vazio) e para a busca
-const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), secoesSo: null, secoesFora: new Set(), pedido: 0 };
+const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), secoesSo: null, secoesFora: new Set(), pedido: 0, loja: null, paginaLoja: 1 };
 
 // Anúncios repetidos: na Shopee vários vendedores publicam o mesmo produto (mesmo título, foto e preço)
 // com códigos diferentes. Fica um só, o que vendeu mais, na posição em que apareceu primeiro.
@@ -1054,7 +1054,8 @@ function lojasNoResumo() {
     }, algumaDesligada ? "Marcar todas" : "Limpar"),
     el("small", { class: "resumo-lojas-nota" },
       estado.qtdParceiras ? `Temos ${estado.qtdParceiras} parceiras; aqui aparecem as que têm ofertas nesta busca. ` : "",
-      AVISO_CUPOM));
+      el("button", { type: "button", class: "botao-link-claro", onclick: abrirLojas }, "Ver lojas parceiras"),
+      " ", AVISO_CUPOM));
 }
 
 function desenharFiltroLojas() {
@@ -1136,6 +1137,7 @@ function avisoSemProduto() {
 }
 
 function desenharResumo(lista) {
+  if (estado.loja) return desenharResumoLoja(lista);
   const qtdLojas = new Set(lista.map((o) => o.loja)).size;
   const cat = navegandoCategoria();
   const titulo = el("div", {},
@@ -1167,11 +1169,11 @@ function desenharBotaoFrete() {
 
 function desenharResultados() {
   desenharBotaoFrete();
-  if (estado.q && estado.buscando) return; // filtro mexido enquanto a busca carrega: espera a resposta
+  if ((estado.q || estado.loja) && estado.buscando) return; // filtro mexido enquanto a busca carrega: espera a resposta
   const lista = filtrar();
   // Na busca as lojas ficam no card de resultados; a lista da barra lateral só vale nas "Ofertas do dia"
-  $("#caixa-lojas").hidden = Boolean(estado.q);
-  if (!estado.q) return desenharInicio(lista);
+  $("#caixa-lojas").hidden = Boolean(estado.q || estado.loja);
+  if (!estado.q && !estado.loja) return desenharInicio(lista);
   const idMelhor = lista.length > 1 ? melhorOferta(lista)?.id : null;
   desenharResumo(lista);
   $("#total").textContent = `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}`;
@@ -1383,6 +1385,141 @@ async function buscar(q) {
     $("#grade").replaceChildren();
     $("#vazio").hidden = true; // o "Ops!" do topo já explica
     $("#resumo").replaceChildren(el("div", {}, el("h1", {}, "Ops! Não conseguimos buscar agora"), el("p", {}, "Verifique sua conexão e tente de novo.")));
+  }
+}
+
+// ---------------------------------------------------------------------
+// Lojas parceiras (pedido do Giovanni, 22/10/2026): janela com todas as lojas (/api/lojas) e, em cada uma,
+// "Ver produtos" abre ?loja=<id> com os produtos só dela (Shopee/AliExpress: mais vendidos; Awin: do banco,
+// com desconto primeiro; Lomadee: os da marca)
+// ---------------------------------------------------------------------
+let lojasParceiras = null;
+const corDaLoja = (l) => LOJAS[l.id]?.cor || corPorNome(l.nome) || "#6d28d9";
+
+async function abrirLojas() {
+  abrirFiltros(false);
+  const janela = $("#janela-lojas");
+  $("#lojas-filtro").value = "";
+  janela.showModal();
+  if (!lojasParceiras) {
+    try {
+      const r = await fetch("/api/lojas");
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      lojasParceiras = (await r.json()).lojas || [];
+    } catch {
+      $("#lojas-total").textContent = "Não foi possível carregar as lojas agora. Tente de novo em instantes.";
+      return;
+    }
+  }
+  desenharListaLojas();
+}
+
+function desenharListaLojas() {
+  const filtro = limpo($("#lojas-filtro").value);
+  const todas = lojasParceiras || [];
+  const lista = filtro ? todas.filter((l) => limpo(l.nome).includes(filtro)) : todas;
+  $("#lojas-total").textContent = `${todas.length} lojas com produtos no Vai pro Carrinho. Escolha uma para ver os produtos dela.`;
+  const linha = (l) => el("li", { class: "lp-linha", style: `--cor-loja:${corDaLoja(l)}` },
+    el("span", { class: "loja-ponto" }),
+    el("span", { class: "lp-nome" }, l.nome,
+      el("small", {}, l.rede === "marketplace" ? "Milhões de produtos" : l.produtos ? `${l.produtos.toLocaleString("pt-BR")} produtos` : "",
+        l.internacional ? " · 🌎 Internacional" : "")),
+    el("button", { type: "button", class: "botao-secundario", onclick: () => { $("#janela-lojas").close(); irParaLoja(l.id); } }, "Ver produtos"));
+  const grandes = lista.filter((l) => l.rede === "marketplace");
+  const outras = lista.filter((l) => l.rede !== "marketplace");
+  $("#lojas-lista").replaceChildren(
+    ...(grandes.length ? [el("h3", {}, "Marketplaces"), el("ul", {}, ...grandes.map(linha))] : []),
+    ...(outras.length ? [el("h3", {}, "Lojas e marcas"), el("ul", {}, ...outras.map(linha))] : []),
+    ...(lista.length ? [] : [el("p", { class: "vazio" }, "Nenhuma loja com esse nome.")]));
+}
+
+function irParaLoja(id) {
+  history.pushState(null, "", `?loja=${encodeURIComponent(id)}`);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  mostrar();
+}
+
+const nomeDaLojaVista = () => estado.loja?.nome || lojasParceiras?.find((l) => l.id === estado.loja?.id)?.nome || "loja";
+
+function desenharResumoLoja(lista) {
+  const total = estado.ofertas.length;
+  // Lojas da Awin: o total do catálogo vem da lista de lojas (o site carrega 48 por vez)
+  const doCatalogo = lojasParceiras?.find((l) => l.id === estado.loja.id)?.produtos || 0;
+  $("#resumo").replaceChildren(el("div", {},
+    el("h1", {}, `🏬 ${nomeDaLojaVista()}`),
+    el("p", {}, lista.length
+      ? (doCatalogo > total
+        ? `Mostrando ${lista.length} de ${doCatalogo.toLocaleString("pt-BR")} produtos desta loja`
+        : `${lista.length} ${lista.length === 1 ? "produto" : "produtos"}${lista.length < total ? ` de ${total}` : ""} desta loja`)
+      : "Nenhum produto com esses filtros"),
+    el("small", { class: "resumo-lojas-nota" },
+      el("button", { type: "button", class: "botao-link-claro", onclick: abrirLojas }, "Ver outras lojas parceiras"), " ", AVISO_CUPOM)));
+}
+
+async function pedirLoja(id, pagina) {
+  const r = await fetch(`/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}`);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+async function mostrarLoja(id) {
+  const pedido = ++estado.pedido;
+  estado.q = "";
+  estado.loja = { id, nome: lojasParceiras?.find((l) => l.id === id)?.nome || null };
+  estado.paginaLoja = 1;
+  estado.lojasDesmarcadas.clear();
+  zerarSecoes();
+  estado.ofertas = [];
+  estado.buscando = true;
+  document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
+  document.title = `${estado.loja.nome || "Loja parceira"} — Vai pro Carrinho`;
+  $("#resumo").replaceChildren(el("div", {}, el("h1", {}, `🏬 ${estado.loja.nome || "Carregando loja"}…`), el("p", {}, "Buscando os produtos desta loja 🛒")));
+  $("#total").textContent = "";
+  $("#caixa-secoes").hidden = true;
+  $("#caixa-lojas").hidden = true;
+  $("#vazio").hidden = true;
+  $("#grade").replaceChildren(...esqueletos(8));
+  $("#mais-resultados").hidden = true;
+  $("#ver-acessorios").hidden = true;
+  try {
+    const dados = await pedirLoja(id, 1);
+    if (pedido !== estado.pedido) return;
+    estado.buscando = false;
+    estado.loja.nome = dados.nome || estado.loja.nome;
+    document.title = `${estado.loja.nome} — Vai pro Carrinho`;
+    estado.ofertas = semRepetidos(dados.ofertas || []);
+    estado.temMaisBusca = Boolean(dados.temMais);
+    desenharFiltroLojas();
+    desenharResultados();
+  } catch {
+    if (pedido !== estado.pedido) return;
+    estado.buscando = false;
+    $("#grade").replaceChildren();
+    $("#resumo").replaceChildren(el("div", {}, el("h1", {}, "Ops! Não conseguimos abrir esta loja agora"),
+      el("p", {}, "Tente de novo em instantes ou ", el("button", { type: "button", class: "botao-link-claro", onclick: abrirLojas }, "escolha outra loja"), ".")));
+  }
+}
+
+async function carregarMaisDaLoja() {
+  const botao = $("#mais-resultados");
+  const pedido = estado.pedido;
+  const id = estado.loja.id;
+  botao.disabled = true;
+  botao.textContent = "Carregando…";
+  try {
+    const dados = await pedirLoja(id, estado.paginaLoja + 1);
+    if (pedido !== estado.pedido || estado.loja?.id !== id) return;
+    const antes = estado.ofertas.length;
+    estado.ofertas = semRepetidos([...estado.ofertas, ...(dados.ofertas || [])]);
+    estado.paginaLoja += 1;
+    estado.temMaisBusca = Boolean(dados.temMais && estado.ofertas.length > antes);
+    desenharFiltroLojas();
+    desenharResultados();
+  } catch {
+    if (pedido === estado.pedido) toast("Não foi possível carregar mais produtos agora");
+  } finally {
+    botao.disabled = false;
+    botao.textContent = "Ver mais resultados";
   }
 }
 
@@ -1651,7 +1788,17 @@ function montarInicio() {
 
 function mostrar() {
   const q = (new URLSearchParams(location.search).get("q") || "").trim();
+  const loja = (new URLSearchParams(location.search).get("loja") || "").trim();
   estado.exato = new URLSearchParams(location.search).has("exato");
+  estado.loja = null;
+  if (loja && !q) {
+    document.body.classList.remove("modo-inicio");
+    $("#inicio").hidden = true;
+    $("#resultados").hidden = false;
+    estado.cat = null;
+    marcarCategoria();
+    return mostrarLoja(loja);
+  }
   const emBusca = Boolean(q);
   document.body.classList.toggle("modo-inicio", !emBusca);
   $("#inicio").hidden = emBusca;
@@ -1927,7 +2074,7 @@ if (performance.getEntriesByType?.("navigation")[0]?.type === "reload") {
 }
 
 $("#mais-ofertas").addEventListener("click", carregarMaisOfertas);
-$("#mais-resultados").addEventListener("click", () => carregarMaisResultados());
+$("#mais-resultados").addEventListener("click", () => (estado.loja ? carregarMaisDaLoja() : carregarMaisResultados()));
 document.querySelectorAll("[data-abrir-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(true)));
 document.querySelectorAll("[data-fechar-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(false)));
 $("#abrir-favoritos").addEventListener("click", () => abrirPainel(true));
@@ -1937,6 +2084,13 @@ $("#abrir-conta").addEventListener("click", abrirConta);
 $("#fechar-conta").addEventListener("click", () => $("#janela-conta").close());
 $("#fechar-historico").addEventListener("click", () => $("#janela-historico").close());
 $("#fechar-detalhes").addEventListener("click", () => $("#janela-detalhes").close());
+$("#fechar-lojas").addEventListener("click", () => $("#janela-lojas").close());
+$("#lojas-filtro").addEventListener("input", () => lojasParceiras && desenharListaLojas());
+document.querySelectorAll("[data-ver-lojas]").forEach((b) => b.addEventListener("click", abrirLojas));
+$("#janela-lojas").addEventListener("click", (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
+});
 $("#janela-detalhes").addEventListener("click", (e) => {
   const r = e.currentTarget.getBoundingClientRect();
   if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();

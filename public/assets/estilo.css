@@ -665,3 +665,20 @@ a { color: inherit; }
   display: inline-block; width: 1.3em; height: .9em; border-radius: 2px; vertical-align: -.12em; flex: none;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 14'%3E%3Crect width='20' height='14' fill='%23009c3b'/%3E%3Cpath d='M10 1.6 18.4 7 10 12.4 1.6 7z' fill='%23ffdf00'/%3E%3Ccircle cx='10' cy='7' r='3.1' fill='%23002776'/%3E%3C/svg%3E") center / cover no-repeat;
 }
+
+/* Lojas parceiras (22/10/2026): botão na barra lateral, link no card roxo e janela com todas as lojas */
+.botao-ver-lojas { width: 100%; margin-top: 8px; padding: 9px 12px; font-size: .88rem; color: var(--roxo); border-color: var(--roxo); }
+.botao-ver-lojas:hover { background: color-mix(in srgb, var(--roxo) 8%, transparent); }
+.botao-link-claro { border: 0; background: none; padding: 0; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.resumo small.resumo-lojas-nota { display: block; margin-top: 8px; }
+.janela-lojas { width: min(560px, calc(100% - 24px)); max-height: min(86vh, 760px); flex-direction: column; overflow: hidden; }
+.janela-lojas[open] { display: flex; }
+.janela-lojas input { width: 100%; flex: none; margin-bottom: 8px; }
+.lojas-lista { overflow-y: auto; margin: 0 -24px -24px; padding: 0 24px 24px; }
+.lojas-lista h3 { margin: 14px 0 6px; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--suave); }
+.lojas-lista ul { list-style: none; margin: 0; padding: 0; }
+.lp-linha { display: flex; align-items: center; gap: 12px; padding: 10px 2px; border-bottom: 1px solid var(--borda); }
+.lp-nome { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+.lp-nome small { display: block; font-weight: 500; font-size: .78rem; color: var(--suave); }
+.lp-linha .botao-secundario { flex: none; width: auto; margin: 0; padding: 7px 14px; font-size: .85rem; font-weight: 700; color: var(--roxo); border-color: var(--roxo); border-radius: 999px; }
+.lp-linha .botao-secundario:hover { background: var(--roxo); color: #fff; }
