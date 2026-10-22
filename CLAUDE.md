@@ -663,7 +663,15 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 22/10/2026, fim da 11ª sessão: A–Z sem Eletrodomésticos fixa, Posthaus, banco cheio resolvido)
+## Próximos passos (atualizado 22/10/2026, fim da 12ª sessão: lojas parceiras, limite de leituras do D1, só lojas com produtos)
+- **12ª sessão (22/10/2026) — conferir na próxima conversa:**
+  (1) Log do robô da madrugada de 23/10: Casa Tema, Monte Carlo Jóias e Polishop (aprovada na conta PF) entraram? Posthaus restante
+  (~38 mil) entrando; job novo `lomadee` (conferência das marcas) rodou e quantas têm produtos; tamanho do banco.
+  (2) Giovanni mandar print de Cloudflare > D1 > vaiprocarrinho > **Metrics (Rows read)** para ver se as correções seguraram as
+  leituras abaixo de 5 milhões/dia. Se ainda alto: reduzir `MAX_PRONTAS` (300 buscas prontas/noite) e/ou o limite do robô.
+  (3) `/api/numeros` deve dar 33 lojas ("mais de 30") com o banco no ar; conferir a janela "Lojas parceiras" e a página das lojas
+  da Awin (`?loja=awin:karsten`), que deram erro só por causa do limite do banco.
+  (4) Giovanni: pedir a Polishop também na conta PJ da Awin. Decisão: **sem gastar** (nada de plano pago nem Oracle por enquanto).
 - **Pendente da 10ª sessão**: (1) Giovanni mandar prints da Shopee (celular, air fryer, geladeira, fone bluetooth, tênis masculino,
   smartwatch, ordem "Relevância") → Claude comparar com `/api/buscar` (só Shopee) e ajustar como foi feito na AliExpress.
   (2) Conferir o log do job `prontas` da madrugada (300 buscas, timeout 80 min; ver se termina e quantas `"guardada":true`).
