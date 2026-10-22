@@ -1451,7 +1451,8 @@ function desenharResumoLoja(lista) {
       ? (doCatalogo > total
         ? `Mostrando ${lista.length} de ${doCatalogo.toLocaleString("pt-BR")} produtos desta loja`
         : `${lista.length} ${lista.length === 1 ? "produto" : "produtos"}${lista.length < total ? ` de ${total}` : ""} desta loja`)
-      : "Nenhum produto com esses filtros"),
+      : total ? "Nenhum produto com esses filtros"
+        : "Esta loja ainda não enviou a lista de produtos dela para a nossa rede de parceiros. Volte em breve!"),
     el("small", { class: "resumo-lojas-nota" },
       el("button", { type: "button", class: "botao-link-claro", onclick: abrirLojas }, "Ver outras lojas parceiras"), " ", AVISO_CUPOM)));
 }
@@ -1491,6 +1492,7 @@ async function mostrarLoja(id) {
     estado.temMaisBusca = Boolean(dados.temMais);
     desenharFiltroLojas();
     desenharResultados();
+    if (!estado.ofertas.length) $("#vazio").hidden = true; // o card de cima já explica
   } catch {
     if (pedido !== estado.pedido) return;
     estado.buscando = false;
