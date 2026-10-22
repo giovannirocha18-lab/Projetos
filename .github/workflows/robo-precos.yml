@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 22
       - name: Atualizar ofertas da Awin
-        run: node robo/awin.mjs
+        run: node --max-old-space-size=6144 robo/awin.mjs
         env:
           AWIN_FEED_KEY: ${{ secrets.AWIN_FEED_KEY }}
           AWIN_FEED_KEY_PJ: ${{ secrets.AWIN_FEED_KEY_PJ }}

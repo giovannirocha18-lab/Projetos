@@ -18,7 +18,8 @@
 //   node robo/awin.mjs --feed robo/exemplo-awin-google.csv --loja 105615:Leveros --sqlite /tmp/teste.sqlite
 // =====================================================================
 import { createHash } from "node:crypto";
-import { gunzipSync } from "node:zlib";
+import { gunzipSync, createGunzip } from "node:zlib";
+import { Readable } from "node:stream";
 import { readFileSync, appendFileSync } from "node:fs";
 import { normalizar } from "../lib/texto.js";
 import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, juntarMilhares } from "../lib/ofertas.js";
@@ -88,29 +89,79 @@ async function abrirBanco() {
 // ---------------------------------------------------------------------
 // Leitura de CSV (aceita aspas, vírgula, ponto e vírgula, barra ou tab)
 // ---------------------------------------------------------------------
+// Lê o CSV aos pedaços: cada linha vira um objeto e é entregue a aoLinha. Assim um feed grande
+// (Posthaus, 22/10/2026) não precisa caber inteiro na memória.
+function criarLeitorCsv(aoLinha) {
+  let sep = null, chaves = null, inicio = "", linha = [], campo = "", aspas = false, fechou = false;
+  const terminarLinha = () => {
+    if (!chaves) chaves = linha.map((c) => c.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, ""));
+    else if (linha.length > 1 || linha[0]) aoLinha(Object.fromEntries(chaves.map((k, i) => [k, (linha[i] ?? "").trim()])));
+    linha = [];
+  };
+  const processar = (s) => {
+    let ini = 0;
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i];
+      if (aspas) {
+        if (c === '"') { campo += s.slice(ini, i); aspas = false; fechou = true; ini = i + 1; }
+        continue;
+      }
+      // Aspas logo depois de fechar aspas = aspas dentro do texto ("")
+      if (c === '"') { campo += s.slice(ini, i) + (fechou ? '"' : ""); aspas = true; fechou = false; ini = i + 1; continue; }
+      fechou = false;
+      if (c === sep) { linha.push(campo + s.slice(ini, i)); campo = ""; ini = i + 1; }
+      else if (c === "\n") { linha.push((campo + s.slice(ini, i)).replace(/\r$/, "")); campo = ""; ini = i + 1; terminarLinha(); }
+    }
+    campo += s.slice(ini);
+  };
+  const comecar = () => {
+    inicio = inicio.replace(/^﻿/, "");
+    const primeira = inicio.slice(0, inicio.indexOf("\n") >>> 0);
+    sep = [",", ";", "|", "\t"].reduce((a, b) => (primeira.split(b).length > primeira.split(a).length ? b : a));
+    const t = inicio; inicio = "";
+    processar(t);
+  };
+  return {
+    parte(texto) {
+      if (sep) return processar(texto);
+      inicio += texto;
+      if (inicio.includes("\n")) comecar();
+    },
+    fim() {
+      if (!sep) comecar();
+      if (campo || linha.length) { linha.push(campo); terminarLinha(); }
+    },
+  };
+}
+
 function lerCsv(texto) {
-  texto = texto.replace(/^﻿/, "");
-  const primeira = texto.slice(0, texto.indexOf("\n") >>> 0);
-  const sep = [",", ";", "|", "\t"].reduce((a, b) => (primeira.split(b).length > primeira.split(a).length ? b : a));
   const linhas = [];
-  let linha = [], campo = "", aspas = false;
-  for (let i = 0; i < texto.length; i++) {
-    const c = texto[i];
-    if (aspas) {
-      if (c === '"' && texto[i + 1] === '"') { campo += '"'; i++; }
-      else if (c === '"') aspas = false;
-      else campo += c;
-    } else if (c === '"') aspas = true;
-    else if (c === sep) { linha.push(campo); campo = ""; }
-    else if (c === "\n") { linha.push(campo.replace(/\r$/, "")); linhas.push(linha); linha = []; campo = ""; }
-    else campo += c;
+  const leitor = criarLeitorCsv((l) => linhas.push(l));
+  leitor.parte(texto);
+  leitor.fim();
+  return linhas;
+}
+
+// Pedaços de texto de um arquivo (compactado ou não), sem juntar tudo na memória
+async function* pedacosDeTexto(bytes) {
+  const iterador = bytes[Symbol.asyncIterator]();
+  const primeiro = await iterador.next();
+  if (primeiro.done) return;
+  const b = Buffer.from(primeiro.value);
+  async function* tudo() { yield b; for (let r; !(r = await iterador.next()).done;) yield Buffer.from(r.value); }
+  let fluxo = Readable.from(tudo());
+  if (b[0] === 0x1f && b[1] === 0x8b) fluxo = fluxo.pipe(createGunzip());
+  fluxo.setEncoding("utf8");
+  yield* fluxo;
+}
+
+async function baixarPedacos(url, esconder = "") {
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    const corpo = (await resp.text().catch(() => "")).replaceAll(esconder || "\0", "***").slice(0, 300);
+    throw new Error(`HTTP ${resp.status} ${corpo.replace(/\s+/g, " ").trim()}`);
   }
-  if (campo || linha.length) { linha.push(campo); linhas.push(linha); }
-  const [cabecalho = [], ...dados] = linhas;
-  const chaves = cabecalho.map((c) => c.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, ""));
-  return dados
-    .filter((l) => l.length > 1 || l[0])
-    .map((l) => Object.fromEntries(chaves.map((k, i) => [k, (l[i] ?? "").trim()])));
+  return pedacosDeTexto(resp.body);
 }
 
 async function baixarTexto(url, esconder = "") {
@@ -267,7 +318,7 @@ async function obterFeeds() {
     const lojas = arg("--loja");
     return arquivosFeed.map((caminho, i) => {
       const [lojaId, lojaNome] = (lojas[i] || "").split(":");
-      return { nome: caminho, lojaId, lojaNome, ler: async () => descompactar(readFileSync(caminho)) };
+      return { nome: caminho, lojaId, lojaNome, ler: async () => pedacosDeTexto(Readable.from([readFileSync(caminho)])) };
     });
   }
   // Duas contas da Awin: a nova (empresa/MEI, 20/10/2026) e a antiga (pessoa física). As lojas vão sendo
@@ -352,7 +403,7 @@ async function feedsDaConta({ nome: nomeSegredo, rotulo, segredo }) {
     lojaNome: pegar(f, "advertisername", "merchantname"),
     internacional: regiao(f) && regiao(f) !== "BR" ? 1 : 0,
     afiliado: idAfiliado(segredo),
-    ler: () => baixarTexto(pegar(f, "url", "downloadurl", "feedurl"), chave),
+    ler: () => baixarPedacos(pegar(f, "url", "downloadurl", "feedurl"), chave),
   }));
 }
 
@@ -425,23 +476,28 @@ async function main() {
   const relatorio = [];
   for (const feed of feeds) {
     try {
-      const produtos = lerCsv(await feed.ler());
-      let aceitos = 0;
+      let aceitos = 0, total = 0, colunas = "";
       const recusas = {};
-      for (const p of produtos) {
+      const daLoja = new Map();
+      const leitor = criarLeitorCsv((p) => {
+        if (!total++) colunas = Object.keys(p).join(", ");
         const o = paraOferta(p, feed);
         // paraOferta devolve o motivo (texto) quando o produto fica de fora
-        if (typeof o === "string") { recusas[o] = (recusas[o] || 0) + 1; continue; }
-        novas.set(o.id, o);
-        lojasBaixadas.add(lojaDoId(o.id));
-        lojasAtivas.add(lojaDoId(o.id));
+        if (typeof o === "string") { recusas[o] = (recusas[o] || 0) + 1; return; }
+        daLoja.set(o.id, o);
         aceitos++;
+      });
+      for await (const pedaco of await feed.ler()) leitor.parte(pedaco);
+      leitor.fim();
+      // Só conta a loja como baixada se o feed chegou inteiro (erro no meio não apaga nada)
+      for (const [id, o] of daLoja) {
+        novas.set(id, o);
+        lojasBaixadas.add(lojaDoId(id));
+        lojasAtivas.add(lojaDoId(id));
       }
       const motivos = Object.entries(recusas).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${m}: ${n}`).join(", ");
-      relatorio.push(`✅ ${feed.nome}: ${aceitos} de ${produtos.length} produtos aceitos${motivos ? ` (fora: ${motivos})` : ""}`);
-      if (produtos.length && aceitos < produtos.length / 2) {
-        console.log(`Colunas do feed ${feed.nome}: ${Object.keys(produtos[0]).join(", ")}`);
-      }
+      relatorio.push(`✅ ${feed.nome}: ${aceitos} de ${total} produtos aceitos${motivos ? ` (fora: ${motivos})` : ""}`);
+      if (total && aceitos < total / 2) console.log(`Colunas do feed ${feed.nome}: ${colunas}`);
     } catch (erro) {
       relatorio.push(`❌ ${feed.nome}: ${erro.message}`);
     }
