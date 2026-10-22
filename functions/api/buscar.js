@@ -369,13 +369,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
     }
   }
 
-  // Toda busca feita nas lojas ensina o mapa de categorias (catsLoja e catMapa ficam na resposta para conferência).
-  // Quanto mais buscas diferentes, menos o mapa erra (uma categoria da loja vista só em buscas de óculos virava "Óculos")
-  if (env.DB) {
-    const aprender = aprenderCategorias(env.DB, ofertas).catch(() => {});
-    if (preparar) await aprender;
-    else waitUntil(aprender);
-  }
+  // As buscas do robô ensinam o mapa de categorias (catsLoja e catMapa ficam na resposta para conferência).
+  // Antes toda busca ensinava, e o mapa gravava 16 mil linhas por dia (limite grátis do D1 = 100 mil, 22/10/2026);
+  // o robô já prepara as mais buscadas dos últimos 30 dias, então o mapa continua vendo buscas variadas
+  if (env.DB && preparar) await aprenderCategorias(env.DB, ofertas).catch(() => {});
   ofertas = ofertas.map(({ catLojaNome, ...o }) => o);
 
   const resposta = responder({

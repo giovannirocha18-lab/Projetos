@@ -34,7 +34,9 @@ const faixaCambio = (taxa) => Math.round(Math.log(taxa) / Math.log(1.03));
 // Limite de produtos novos/alterados/removidos por dia. O plano grátis do D1
 // aceita 100 mil linhas gravadas por dia, e cada produto grava mais de uma
 // (tabela + índice de busca + histórico). O que passar fica para o dia seguinte.
-const LIMITE = Number(process.env.ROBO_LIMITE) || 20000;
+// Cada produto gravado = ~5 linhas no D1 (produto, índices e busca): 20 mil produtos estouraram o limite grátis de
+// 100 mil gravações por dia (22/10/2026). 8 mil = ~40 mil linhas, sobrando o resto para o site
+const LIMITE = Number(process.env.ROBO_LIMITE) || 8000;
 const DIAS_HISTORICO = 180;
 // Número de afiliado de cada conta da Awin (aparece no link da "Lista de Feed": .../publisher/3124296/...)
 const idAfiliado = (segredo) => process.env.AWIN_ID_AFILIADO || (segredo.match(/publisher\/(\d+)/) || [])[1] || "";
