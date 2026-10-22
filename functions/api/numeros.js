@@ -6,6 +6,7 @@
 import { shopee } from "../../lib/fontes/shopee.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee, marcasAprovadas } from "../../lib/fontes/lomadee.js";
+import { lojasDaAwin } from "../../lib/ofertas.js";
 
 const CACHE_SEGUNDOS = 6 * 60 * 60;
 
@@ -21,7 +22,7 @@ export async function onRequestGet({ request, env }) {
   const marketplaces = [shopee, aliexpress].filter((f) => f.ativa(env)).length;
   const [daLomadee, daAwin] = await Promise.all([
     lomadee.ativa(env) ? marcasAprovadas(env).then((m) => m.size).catch(() => 0) : 0,
-    env.DB ? env.DB.prepare("SELECT COUNT(DISTINCT loja) AS n FROM ofertas WHERE fonte = 'awin'").first("n").catch(() => 0) : 0,
+    env.DB ? lojasDaAwin(env.DB).then((l) => l.length).catch(() => 0) : 0,
   ]);
   const lojas = marketplaces + daLomadee + (daAwin || 0);
   const completo = !lomadee.ativa(env) || daLomadee > 0; // Lomadee fora do ar: guarda só 5 minutos

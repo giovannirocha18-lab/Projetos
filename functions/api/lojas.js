@@ -6,7 +6,7 @@
 import { shopee } from "../../lib/fontes/shopee.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee, marcasAprovadas, produtosDaMarca } from "../../lib/fontes/lomadee.js";
-import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoVivo, nomeDaLojaAwin } from "../../lib/ofertas.js";
+import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoVivo, nomeDaLojaAwin, lojasDaAwin } from "../../lib/ofertas.js";
 import { carregarMapa, aplicarMapa } from "../../lib/mapaCategorias.js";
 import { marcarSecoes } from "../../lib/categorias.js";
 
@@ -27,10 +27,7 @@ async function listarLojas(env) {
   ].filter(Boolean);
   const [marcas, daAwin] = await Promise.all([
     lomadee.ativa(env) ? marcasAprovadas(env).catch(() => new Map()) : new Map(),
-    env.DB
-      ? env.DB.prepare(`SELECT loja, MAX(loja_nome) AS nome, COUNT(*) AS n, MAX(internacional) AS internacional
-          FROM ofertas WHERE fonte = 'awin' GROUP BY loja`).all().then((r) => r.results).catch(() => [])
-      : [],
+    env.DB ? lojasDaAwin(env.DB).catch(() => []) : [],
   ]);
   const lojas = [
     ...daAwin.map((l) => ({ id: `awin:${l.loja}`, nome: nomeDaLojaAwin(l.nome) || l.loja, rede: "awin", produtos: l.n, internacional: Boolean(l.internacional) || undefined })),
@@ -53,10 +50,11 @@ async function produtosDaLoja(env, id, pagina) {
     return r.nome ? { ...r, temMais: r.temMais && pagina < MAX_PAGINA } : null;
   }
   if (rede === "awin" && chave && env.DB) {
-    // Primeiro os com desconto (maior primeiro), depois o resto
+    // Primeiro os com desconto (maior primeiro), depois o resto. "ORDER BY desconto DESC" segue o índice (fonte, desconto)
+    // e para ao juntar a página: com COALESCE ou outra coluna na ordem, o D1 leria as 60+ mil ofertas a cada página
     const { results } = await env.DB.prepare(
       `SELECT ${COLUNAS_OFERTA} FROM ofertas WHERE fonte = 'awin' AND loja = ?
-       ORDER BY COALESCE(desconto, 0) DESC, num LIMIT ${POR_PAGINA + 1} OFFSET ${(pagina - 1) * POR_PAGINA}`,
+       ORDER BY desconto DESC LIMIT ${POR_PAGINA + 1} OFFSET ${(pagina - 1) * POR_PAGINA}`,
     ).bind(chave).all();
     if (!results.length && pagina === 1) return null;
     const ofertas = await comHistorico(env.DB, results.slice(0, POR_PAGINA).map(linhaParaOferta));

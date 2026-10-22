@@ -22,7 +22,7 @@ import { gunzipSync, createGunzip } from "node:zlib";
 import { Readable } from "node:stream";
 import { readFileSync, appendFileSync } from "node:fs";
 import { normalizar } from "../lib/texto.js";
-import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, juntarMilhares } from "../lib/ofertas.js";
+import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, RESUMO_LOJAS_AWIN, juntarMilhares } from "../lib/ofertas.js";
 
 const LISTA_FEEDS = "https://productdata.awin.com/datafeed/list/apikey/";
 // Regiões aceitas (ex.: "BR" ou "BR,US"). Vazio = todas. Lojas de fora entram marcadas como internacionais.
@@ -568,6 +568,7 @@ async function main() {
   // o preço muda, então num produto de preço estável esse registro é o preço atual (sem ele, o histórico some)
   comandos.push(`DELETE FROM precos WHERE dia < ${sql(limiteHistorico)} AND dia < (SELECT MAX(p2.dia) FROM precos p2
     WHERE p2.oferta_id = precos.oferta_id AND p2.dia < ${sql(limiteHistorico)})`);
+  comandos.push(...RESUMO_LOJAS_AWIN);
   await enviarEmLotes(banco, comandos);
 
   const novos = gravarHoje.filter((o) => !atuais.has(o.id)).length;
