@@ -675,6 +675,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   `buscas_prontas` em texto puro, sem limpeza, acumulando cada versão do cache. Agora `buscas_prontas_gz` (gzip, só a versão
   atual, apaga >7 dias; a antiga foi apagada em `criarTabelaProntas`). Banco caiu para **45 MB**. Robô mostra "Tamanho do banco"
   no resumo: conferir de vez em quando. 20 mil produtos da Posthaus entraram; os outros ~39 mil entram nas 2 próximas madrugadas.
+- **Conta PJ da Awin (print 22/10/2026)**: 6 lojas aprovadas = Shark-Ninja, Casa Tema, Monte Carlo Jóias, Spicy, Karsten, Lauri.
+  Execução #26 (22/10): a lista de feeds da conta nova só mostrava 2 como "active" (Karsten, Lauri); Casa Tema e Monte Carlo
+  ainda não aparecem (a Awin demora a atualizar a lista) → devem entrar sozinhas numa próxima madrugada. Conferir no log.
+  #26 gravou 20 mil novos (Posthaus), ficaram 38.768 para os próximos dias; banco 45 MB.
 - **Karsten aprovada na Awin (21/10/2026)**: robô da madrugada já gravou 1.900 produtos (feed 102256). Cor `#1d3557` nos filtros.
   Conferência das categorias (Karsten, Kabum, Lauri, Spicy, ~95 buscas reais): Cama e banho + toalha banhão/rosto/piso/lavabo,
   fronha, porta-travesseiro, peseira, protetor/saia de colchão, pillow top (Móveis `nao` colchão de roupa de cama); Mesa posta + pano
