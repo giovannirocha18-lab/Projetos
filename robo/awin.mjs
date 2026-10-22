@@ -22,7 +22,7 @@ import { gunzipSync, createGunzip } from "node:zlib";
 import { Readable } from "node:stream";
 import { readFileSync, appendFileSync } from "node:fs";
 import { normalizar } from "../lib/texto.js";
-import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, RESUMO_LOJAS_AWIN, juntarMilhares } from "../lib/ofertas.js";
+import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, RESUMO_LOJAS_AWIN, INDICE_LOJA, CRIAR_INDICE_LOJA, juntarMilhares } from "../lib/ofertas.js";
 
 const LISTA_FEEDS = "https://productdata.awin.com/datafeed/list/apikey/";
 // Regiões aceitas (ex.: "BR" ou "BR,US"). Vazio = todas. Lojas de fora entram marcadas como internacionais.
@@ -469,6 +469,15 @@ async function main() {
   const banco = await abrirBanco();
   for (const comando of TABELAS_OFERTAS) await banco.executar(comando);
   for (const comando of MIGRACOES_OFERTAS) await banco.executar(comando).catch(() => {}); // coluna já existe
+  // Índice novo: montar grava 1 linha por oferta já no banco (MAX(num) lê 1 linha; COUNT(*) leria todas).
+  // Esse gasto sai do orçamento de hoje (~5 linhas por produto), para não passar das 100 mil gravações do D1
+  let gastoIndice = 0;
+  const temIndice = (await banco.consultar("SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = ?", [INDICE_LOJA])).length;
+  if (!temIndice) {
+    gastoIndice = (await banco.consultar("SELECT MAX(num) AS n FROM ofertas"))[0]?.n || 0;
+    await banco.executar(CRIAR_INDICE_LOJA);
+    console.log(`Índice ${INDICE_LOJA} criado (~${gastoIndice} linhas gravadas)`);
+  }
   COTACOES = { ...COTACOES, ...(await buscarCotacoes()) };
 
   // 1. Baixa os feeds
@@ -543,7 +552,7 @@ async function main() {
   const gravarLista = [...novas.values()].filter((o) => atuais.get(o.id)?.assinatura !== o.assinatura);
 
   // 3. Grava, respeitando o limite diário
-  let orcamento = LIMITE;
+  let orcamento = LIMITE - Math.ceil(gastoIndice / 5);
   const removerHoje = remover.slice(0, orcamento);
   orcamento -= removerHoje.length;
   // Primeiro os que já existem (preço mudou), depois os novos

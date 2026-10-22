@@ -50,10 +50,11 @@ async function produtosDaLoja(env, id, pagina) {
     return r.nome ? { ...r, temMais: r.temMais && pagina < MAX_PAGINA } : null;
   }
   if (rede === "awin" && chave && env.DB) {
-    // Primeiro os com desconto (maior primeiro), depois o resto. "ORDER BY desconto DESC" segue o índice (fonte, desconto)
-    // e para ao juntar a página: com COALESCE ou outra coluna na ordem, o D1 leria as 60+ mil ofertas a cada página
+    // Primeiro os com desconto (maior primeiro), depois o resto. "ORDER BY desconto DESC" segue o índice (loja, desconto)
+    // e para ao juntar a página: com COALESCE ou outra coluna na ordem, o D1 leria todas as ofertas da loja a cada página.
+    // "+fonte" impede o banco de preferir o índice (fonte, desconto), que percorre as ofertas de todas as lojas da Awin
     const { results } = await env.DB.prepare(
-      `SELECT ${COLUNAS_OFERTA} FROM ofertas WHERE fonte = 'awin' AND loja = ?
+      `SELECT ${COLUNAS_OFERTA} FROM ofertas WHERE loja = ? AND +fonte = 'awin'
        ORDER BY desconto DESC LIMIT ${POR_PAGINA + 1} OFFSET ${(pagina - 1) * POR_PAGINA}`,
     ).bind(chave).all();
     if (!results.length && pagina === 1) return null;
