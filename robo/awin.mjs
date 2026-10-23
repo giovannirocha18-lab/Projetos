@@ -35,8 +35,9 @@ const faixaCambio = (taxa) => Math.round(Math.log(taxa) / Math.log(1.03));
 // aceita 100 mil linhas gravadas por dia, e cada produto grava mais de uma
 // (tabela + índice de busca + histórico). O que passar fica para o dia seguinte.
 // Cada produto gravado = ~5 linhas no D1 (produto, índices e busca). No plano grátis (100 mil gravações por dia) eram
-// 8 mil; com o Workers Paid (23/10/2026: 50 milhões de gravações por mês) 60 mil = ~300 mil linhas, folgado
-const LIMITE = Number(process.env.ROBO_LIMITE) || 60000;
+// 8 mil; com o Workers Paid (23/10/2026: 50 milhões de gravações por mês) grava tudo de uma vez. O limite fica só
+// como trava de segurança (300 mil = ~1,5 milhão de linhas, 3% do mês)
+const LIMITE = Number(process.env.ROBO_LIMITE) || 300000;
 const DIAS_HISTORICO = 180;
 // Número de afiliado de cada conta da Awin (aparece no link da "Lista de Feed": .../publisher/3124296/...)
 const idAfiliado = (segredo) => process.env.AWIN_ID_AFILIADO || (segredo.match(/publisher\/(\d+)/) || [])[1] || "";

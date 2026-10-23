@@ -7,6 +7,11 @@ on:
   schedule:
     - cron: "30 6 * * *" # 02:30 no horário de Cuiabá (03:30 de Brasília), pedido do Giovanni, 16/10/2026
   workflow_dispatch:
+    inputs:
+      so_awin:
+        description: "Só a Awin (gravar produtos das lojas), sem Shopee, buscas prontas e Lomadee"
+        type: boolean
+        default: false
 
 jobs:
   awin:
@@ -31,6 +36,7 @@ jobs:
   # Shopee: o site guarda o preço de hoje dos produtos das vitrines e dos mais buscados
   # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
   shopee:
+    if: ${{ !inputs.so_awin }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -47,6 +53,7 @@ jobs:
 
   # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
   prontas:
+    if: ${{ !inputs.so_awin }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
     steps:
@@ -63,6 +70,7 @@ jobs:
 
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
   lomadee:
+    if: ${{ !inputs.so_awin }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
