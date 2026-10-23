@@ -92,7 +92,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Shopee, AliExpress e Lomadee: histórico de preço como na busca (e guarda o preço de hoje, no máx. 60)
     if (env.DB && ofertas.some(ehAoVivo)) {
       try {
-        const vivo = await historicoAoVivo(env.DB, ofertas, { gravarAte: 60 });
+        const vivo = await historicoAoVivo(env.DB, ofertas);
         ofertas = vivo.ofertas;
         waitUntil(vivo.gravar().catch(() => {}));
       } catch {

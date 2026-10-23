@@ -52,9 +52,6 @@ const VALIDADE_PRONTA_MS = 30 * 60 * 60 * 1000;
 // Até onde o "Ver mais" vai (pagina= nas "Ofertas do dia", desde= na busca e na vitrine)
 const MAX_PAGINA = 20;
 const MAX_DESDE = 100;
-// Histórico ao vivo: grava o preço de no máximo tantos produtos por busca (sem acessórios), para uma
-// busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
-const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
 const VERSAO_CACHE = 78;
 // Como o site da AliExpress busca (estudado em 21/10/2026, pedido do Giovanni): ele descobre a CATEGORIA da busca
@@ -363,7 +360,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // É o que permite o selo "Desconto real" (ex.: na Black Friday). Banco fora do ar não derruba a busca.
   if (env.DB && ofertas.some(ehAoVivo)) {
     try {
-      const vivo = await historicoAoVivo(env.DB, ofertas, { gravarAte: GRAVAR_POR_BUSCA });
+      // Guarda o preço de hoje de todos os produtos que mudaram (eram só 60 por busca no plano grátis do D1; com o
+      // Workers Paid, 23/10/2026, todos: mais produtos ganham histórico e o selo "Desconto real" a tempo da Black Friday)
+      const vivo = await historicoAoVivo(env.DB, ofertas);
       ofertas = vivo.ofertas;
       waitUntil(vivo.gravar().catch(() => {}));
     } catch {
