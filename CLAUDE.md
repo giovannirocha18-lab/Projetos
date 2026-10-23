@@ -664,6 +664,16 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 22/10/2026, 13ª sessão: lojas parceiras, limite de leituras do D1, só lojas com produtos)
+- ⭐ **Otimizações com o Workers Paid (23/10/2026, pedido do Giovanni: "faça todos na ordem")**: (1) busca: 1ª resposta com 3
+  páginas por loja (`PRIMEIRO_LOTE`, ~4 s como antes; com 6 a AliExpress deixava a 1ª tela ~2 s mais lenta), as seguintes com 6
+  (`PAGINAS_POR_LOTE`; 2ª chamada traz +300–400 produtos em 2–4 s); AliExpress até a 6ª página (`MAX_PAGINAS`), páginas 4–6 só com
+  a consulta principal (`PAGINAS_COM_EXTRAS = 3`); Lomadee 1 consulta por 6 páginas (`PAGINAS_POR_CONSULTA`; 2 ao mesmo tempo passavam
+  de 8 s); vitrine 2 páginas por chamada (`PAGINAS_VITRINE`). Cache v=78. (2) histórico ao vivo grava o preço de TODOS os produtos
+  da busca que mudaram (era 60). (3) buscas prontas até 1000 (`MAX_PRONTAS`; + tudo de `termosParaSugestoes` + 600 buscados no mês);
+  job `prontas` faz 2 ao mesmo tempo (xargs -P 2; mais que isso passa do limite da Lomadee). (4) mapa de categorias volta a aprender
+  com as buscas dos visitantes. (5) senha: PBKDF2 em 6 rodadas encadeadas de 100 mil (o Cloudflare não aceita mais de 100 mil por
+  chamada em nenhum plano), formato `pbkdf2x$100000$6$sal$hash`; senhas antigas (`pbkdf2$…`) valem e são regravadas no próximo login
+  (`senhaPrecisaAtualizar` em lib/conta.js). Testado: login falso 401 em ~0,8 s no ar.
 - **Fotos quebradas da Awin (23/10/2026, print "anel prata")**: algumas lojas mandam fotos que não existem (404 no site delas).
   `conferirFotos` em `robo/awin.mjs`: testa a foto principal (HEAD, 64 ao mesmo tempo; 403/erro de rede = "não sei", não tira),
   troca pela 1ª extra que abre ou deixa o produto de fora. Resultado em `.cache/fotos.json` (cache do GitHub Actions, salvo mesmo se
