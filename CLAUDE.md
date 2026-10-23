@@ -670,6 +670,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   campos novos `acessorio` (nenhum/fone/mochila/sacola/gorro) e `jeito` (andando/correndo/patins; classes `.anim-correndo`/`.anim-patins`);
   botão "🎲 Sortear" (`sortearPersonagem`); prévia com o personagem parado no meio (antes atravessava e aparecia cortado).
   Personagem salvo antes vale (`PERSONAGEM_PADRAO` no app.js / `PADRAO_PERSONAGEM` em lib/conta.js). Opções nos DOIS arquivos.
+  No computador o editor abre largo (classe `janela-larga`, prévia à esquerda e opções em 2 colunas), sem rolar.
+- ❓ **PENDENTE (23/10/2026, pergunta do Giovanni sem resposta): "Amakha Paris só tem 10 produtos mesmo?"** (página da loja
+  `?loja=lomadee:2e12febc-de9f-4d9f-924c-741f13e41cb7`). Conferir `/api/lojas?id=…&pagina=1` e 2 contra a API da Lomadee
+  (`produtosDaMarca` em lomadee.js tira link quebrado e preço < `PRECO_MINIMO`; ver se a marca manda só ~10 ou se o filtro corta).
 - **Frete (23/10/2026, print do Giovanni: filtro "Frete grátis" deixava a lista vazia)**: nenhuma loja informa frete (Shopee,
   AliExpress, Lomadee não mandam; 10 lojas da Awin conferidas, ~1.200 produtos, 0 com frete grátis — os feeds vêm sem
   delivery_cost/shipping). A opção da barra lateral agora só aparece se algum produto da lista tiver `freteGratis`
