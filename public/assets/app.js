@@ -322,17 +322,21 @@ function editorPersonagem(erro) {
         type: "button", class: `chip-personagem${r[campo] === valor ? " ativa" : ""}`, "aria-pressed": String(r[campo] === valor),
         onclick: () => escolher(campo, valor),
       }, nome)))));
+  // No computador a janela fica larga, em colunas (prévia e botões à esquerda, opções à direita), para caber tudo sem
+  // rolar (pedido do Giovanni, 23/10/2026); no celular continua uma coluna só
   return [
     el("h2", { id: "conta-titulo" }, "🎨 Meu personagem"),
     el("p", {}, "É ele que empurra o carrinho enquanto o site busca as ofertas para você."),
-    previa,
-    el("button", { class: "botao-secundario botao-sortear", type: "button", onclick: () => { conta.rascunho = sortearPersonagem(); desenharConta(); } }, "🎲 Sortear um personagem"),
-    ...grupos,
-    erro,
-    el("button", { class: "botao-primario", type: "button", onclick: () => salvarPersonagem() }, "Salvar meu personagem"),
-    el("div", { class: "links-conta" },
-      el("button", { class: "botao-link", type: "button", onclick: () => { conta.etapa = "entrar"; conta.erro = ""; desenharConta(); } }, "Voltar"),
-      conta.usuario.personagem && el("button", { class: "botao-link", type: "button", onclick: () => salvarPersonagem(null) }, "Usar os personagens do site")),
+    el("div", { class: "editor-personagem" },
+      el("div", { class: "editor-lado" },
+        previa,
+        el("button", { class: "botao-secundario botao-sortear", type: "button", onclick: () => { conta.rascunho = sortearPersonagem(); desenharConta(); } }, "🎲 Sortear um personagem"),
+        erro,
+        el("button", { class: "botao-primario", type: "button", onclick: () => salvarPersonagem() }, "Salvar meu personagem"),
+        el("div", { class: "links-conta" },
+          el("button", { class: "botao-link", type: "button", onclick: () => { conta.etapa = "entrar"; conta.erro = ""; desenharConta(); } }, "Voltar"),
+          conta.usuario.personagem && el("button", { class: "botao-link", type: "button", onclick: () => salvarPersonagem(null) }, "Usar os personagens do site"))),
+      el("div", { class: "editor-opcoes" }, ...grupos)),
   ];
 }
 
@@ -419,6 +423,7 @@ function desenharConta() {
     ];
   }
   $("#conta-conteudo").replaceChildren(...conteudo.filter(Boolean));
+  $("#janela-conta").classList.toggle("janela-larga", Boolean(conta.usuario && conta.etapa === "personagem"));
 }
 
 async function comEspera(form, acao) {
