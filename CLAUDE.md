@@ -664,6 +664,13 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 22/10/2026, 13ª sessão: lojas parceiras, limite de leituras do D1, só lojas com produtos)
+- **13ª sessão, 23/10/2026**: botão "✕ Limpar filtros" no card roxo (categoria/loja aberta → volta ao início, como o logo; busca dentro
+  de categoria → busca em todas); ícone do carrinho saiu de cima da foto e foi para a linha acima do "Comprar" (`.acoes-oferta`).
+  Workers Paid assinado; execução #27 (disparada pelo Claude): índice `ofertas_loja_desconto` criado, **lojas novas: Monte Carlo
+  Jóias 8.254, Casa Tema 7.748, Elements 45, Polishop 187** (Polishop ficou entre os 11.316 pendentes → entra na próxima), Posthaus
+  47.552; 54 mil gravados em 245 s; banco 123 MB. Conferência da Lomadee falhou em 3 partes (limite 60/min) e as marcas não vistas
+  sumiam (33 → 22 lojas): corrigido (não vistas valem pela lista de 22/10; robô espera 60 s entre partes) e partes refeitas à mão:
+  24 marcas com produtos. Total esperado ~36 lojas ("mais de 30") quando o cache de 6 h de `/api/numeros` vencer.
 - **13ª sessão (22/10/2026): limites do D1 conferidos no painel** (Storage & databases > D1 SQL database; o painel lateral mostra
   o uso do dia; clicar no banco > aba **Queries** ordena por Rows read/written). Em 22/10: **5,78 M leituras (limite 5 M) e 144 mil
   gravações (limite 100 mil)**. Culpados e correções (publicado): (1) cada produto do robô = ~5 linhas gravadas (produto + índices + FTS):
@@ -814,7 +821,7 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 7. Pendências do Giovanni: trocar a senha do Registro.br; INPI (pagar GRU antes de ~21/01/2027).
 
 ## Decisões do Giovanni
-- **23/10/2026: Giovanni decidiu assinar o Workers Paid (US$ 5/mês)** por causa dos limites do D1 (link entregue: dash.cloudflare.com > Workers & Pages > Plans). Depois de confirmado: subir o `LIMITE` do robô (8 mil → 20 mil+) e conferir os limites novos.
+- ✅ **23/10/2026: Workers Paid (US$ 5/mês) ASSINADO** (limites D1: 25 bi leituras e 50 mi gravações/mês). `LIMITE` do robô → **60 mil/dia**.
 - (Antes) **Ficar no plano grátis do Cloudflare por enquanto** (22/10/2026: sem reserva financeira). Hospedar no computador dele foi
   desaconselhado (queda de luz/internet, segurança, reescrever o site). Manter o D1 dentro dos limites grátis; Workers Paid (US$ 5/mês) só quando der.
 - **Aceitar lojas internacionais** (15/10/2026), com preço convertido para reais e selo "Internacional".
