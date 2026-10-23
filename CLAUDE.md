@@ -674,6 +674,8 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   com as buscas dos visitantes. (5) senha: PBKDF2 em 6 rodadas encadeadas de 100 mil (o Cloudflare não aceita mais de 100 mil por
   chamada em nenhum plano), formato `pbkdf2x$100000$6$sal$hash`; senhas antigas (`pbkdf2$…`) valem e são regravadas no próximo login
   (`senhaPrecisaAtualizar` em lib/conta.js). Testado: login falso 401 em ~0,8 s no ar.
+  Execução #33: **446 buscas prontas em 18 min** (eram 300 em ~28 min), todas guardadas; Awin com o cache das fotos em 2 min.
+  Curiosidade a conferir: "categoriasAprendidas" sempre 500 (em #27 e #33) — ver se há algum limite escondido no mapa.
 - **Fotos quebradas da Awin (23/10/2026, print "anel prata")**: algumas lojas mandam fotos que não existem (404 no site delas).
   `conferirFotos` em `robo/awin.mjs`: testa a foto principal (HEAD, 64 ao mesmo tempo; 403/erro de rede = "não sei", não tira),
   troca pela 1ª extra que abre ou deixa o produto de fora. Resultado em `.cache/fotos.json` (cache do GitHub Actions, salvo mesmo se
