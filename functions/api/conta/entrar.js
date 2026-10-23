@@ -1,6 +1,6 @@
 // POST /api/conta/entrar  { email, senha }  -> confere a senha e conecta a pessoa
 import {
-  banco, erro, SEM_BANCO, lerJson, validarEmail, conferirSenha, SENHA_FALSA, dentroDoLimite, ipDe, respostaConectado,
+  banco, erro, SEM_BANCO, lerJson, validarEmail, conferirSenha, SENHA_FALSA, senhaPrecisaAtualizar, embaralharSenha, dentroDoLimite, ipDe, respostaConectado,
 } from "../../../lib/conta.js";
 
 // Mesma mensagem para todo erro de login (não revela se o e-mail tem conta ou se a conta é do Google)
@@ -30,5 +30,10 @@ export async function onRequestPost({ request, env }) {
   if (!usuario?.hash || !certa) return erro(ERRO_LOGIN, 401);
 
   await db.prepare("DELETE FROM limites WHERE chave = ?").bind(chaveEmail).run();
+  // Senha guardada no formato antigo (1 rodada): troca pela mais forte agora que sabemos a senha (23/10/2026)
+  if (senhaPrecisaAtualizar(usuario.hash)) {
+    const novo = await embaralharSenha(dados.senha.slice(0, 128));
+    await db.prepare("UPDATE senhas SET hash = ? WHERE usuario_id = ?").bind(novo, usuario.id).run().catch(() => {});
+  }
   return respostaConectado(db, usuario);
 }
