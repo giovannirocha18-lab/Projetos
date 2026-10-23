@@ -39,8 +39,10 @@ const atualizando = new Set();
 // respondia com tudo pronto e a primeira busca levava 12–14 s. Eram 3 páginas no plano grátis (50 consultas externas
 // por chamada); com o Workers Paid (23/10/2026) o limite é 1000.
 const PAGINAS_POR_LOTE = 6;
+// A 1ª resposta continua com 3 páginas: com 6, a AliExpress deixava a 1ª tela ~2 s mais lenta (23/10/2026). As
+// seguintes (o site pede sozinho enquanto a pessoa já vê os produtos) vêm com 6
+const PRIMEIRO_LOTE = 3;
 const MINIMO_PRODUTOS = 100;
-const MAX_PAGINAS = PAGINAS_POR_LOTE;
 // Vitrine das categorias: cada busca (4 a 6) pede 2 páginas ao mesmo tempo por chamada (o site pede as próximas sozinho)
 const PAGINAS_VITRINE = 2;
 // Loja que demora mais que isso fica de fora desta resposta (as outras não esperam por ela)
@@ -282,7 +284,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // termos = o que foi digitado (e, na categoria, "invictus perfume"); contar = quantos produtos de verdade
   // há entre os que chegaram nesta rodada (conta só os novos: refazer a lista toda a cada rodada gastava CPU)
   // porLote: páginas de cada termo por rodada (3+ buscas juntas, como "bateria carro", pedem 1 cada)
-  const buscarAteEncher = async (termos, contar, porLote = PAGINAS_POR_LOTE) => {
+  const buscarAteEncher = async (termos, contar, porLote = desde === 1 ? PRIMEIRO_LOTE : PAGINAS_POR_LOTE) => {
     const juntas = [];
     const vistos = new Set();
     let produtos = 0;
@@ -297,7 +299,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       produtos += contar(novas);
       pag += porLote;
       acabou = !fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina);
-    } while (!acabou && pag - desde < MAX_PAGINAS && produtos < MINIMO_PRODUTOS);
+    } while (!acabou && pag - desde < porLote && produtos < MINIMO_PRODUTOS);
     return { juntas, proxima: acabou || pag > MAX_DESDE ? null : pag };
   };
   let mais = null;
@@ -345,7 +347,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const { buscas, termo, precoMin } = buscaNasLojas(q);
     const separar = (lista) => separarAcessorios(lista, termo, { precoMin });
     const { juntas, proxima } = await buscarAteEncher(buscas, (novas) => separar(novas).filter((o) => !o.acessorio).length,
-      buscas.length > 2 ? 1 : PAGINAS_POR_LOTE);
+      buscas.length > 2 ? 1 : undefined);
     ofertas = marcarSecoes(separar(juntas), null, categoriaDoProduto(q), produtoBuscado(termo));
     foraDaCategoria = outraCategoria;
     mais = proxima && `desde=${proxima}`;
