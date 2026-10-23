@@ -664,6 +664,12 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 22/10/2026, 13ª sessão: lojas parceiras, limite de leituras do D1, só lojas com produtos)
+- **Fotos quebradas da Awin (23/10/2026, print "anel prata")**: algumas lojas mandam fotos que não existem (404 no site delas).
+  `conferirFotos` em `robo/awin.mjs`: testa a foto principal (HEAD, 64 ao mesmo tempo; 403/erro de rede = "não sei", não tira),
+  troca pela 1ª extra que abre ou deixa o produto de fora. Resultado em `.cache/fotos.json` (cache do GitHub Actions, salvo mesmo se
+  falhar; boas refeitas a cada ~14 dias com dia sorteado, ruins a cada 3). 1ª vez (#32): 83 mil fotos em 11 min; **fora: Monte Carlo
+  2.454 (~30%!), Lauri 314, Karsten 11**; conferido: as 17 que saíram de "anel prata" dão 404 e as 43 que ficaram abrem.
+  Job `awin` com `concurrency: robo-awin` (uma por vez) e limite de 60 min. Sugerir ao Giovanni avisar a Monte Carlo pela Awin.
 - **13ª sessão, 23/10/2026**: botão "✕ Limpar filtros" no card roxo (categoria/loja aberta → volta ao início, como o logo; busca dentro
   de categoria → busca em todas); ícone do carrinho saiu de cima da foto e foi para a linha acima do "Comprar" (`.acoes-oferta`).
   Workers Paid assinado; execução #27 (disparada pelo Claude): índice `ofertas_loja_desconto` criado, **lojas novas: Monte Carlo
