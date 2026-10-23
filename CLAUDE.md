@@ -671,6 +671,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   botão "🎲 Sortear" (`sortearPersonagem`); prévia com o personagem parado no meio (antes atravessava e aparecia cortado).
   Personagem salvo antes vale (`PERSONAGEM_PADRAO` no app.js / `PADRAO_PERSONAGEM` em lib/conta.js). Opções nos DOIS arquivos.
   No computador o editor abre largo (classe `janela-larga`, prévia à esquerda e opções em 2 colunas), sem rolar.
+- **Lojas por conta da Awin (23/10/2026, execução #33)**: conta PJ = Casa Tema, Shark-Ninja, Kabum, Monte Carlo, Spicy, Karsten,
+  **Animale (nova, 10.665 produtos)**, Elements, Lauri. Só na conta PF (faltam pedir na PJ): **Posthaus, Polishop, EINSTAR**.
+  Total: 12 lojas, 91.516 produtos nos feeds; banco 115 MB.
 - ❓ **PENDENTE (23/10/2026, pergunta do Giovanni sem resposta): "Amakha Paris só tem 10 produtos mesmo?"** (página da loja
   `?loja=lomadee:2e12febc-de9f-4d9f-924c-741f13e41cb7`). Conferir `/api/lojas?id=…&pagina=1` e 2 contra a API da Lomadee
   (`produtosDaMarca` em lomadee.js tira link quebrado e preço < `PRECO_MINIMO`; ver se a marca manda só ~10 ou se o filtro corta).
