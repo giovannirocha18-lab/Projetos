@@ -49,7 +49,7 @@ Sem o banco, o botão de entrar some e o carrinho fica só no aparelho.
 `robo/awin.mjs` roda todo dia às 02:30 (horário de Cuiabá) pelo GitHub (`.github/workflows/robo-precos.yml`). Ele baixa o
 catálogo de todas as lojas da Awin em que a conta foi aprovada e atualiza a tabela `ofertas` do banco D1:
 produto novo entra, preço que mudou é atualizado (e guardado na tabela `precos`, o histórico), produto
-que saiu da loja é removido. Grava no máximo 8 mil produtos por dia (cada um = ~5 linhas; limite grátis do D1 = 100 mil gravações/dia);
+que saiu da loja é removido. Grava no máximo 60 mil produtos por dia (cada um = ~5 linhas no D1; plano Workers Paid);
 o resto fica para o dia seguinte.
 
 Lojas de fora do Brasil também entram, marcadas como **"🌎 Internacional"** no site. Preços em outra moeda
