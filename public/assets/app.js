@@ -1176,6 +1176,9 @@ const FRETE_MINIMO = 8;
 function desenharBotaoFrete() {
   const qtd = estado.ofertas.filter((o) => o.freteGratis).length;
   const ligado = $("#so-frete").checked;
+  // Nenhuma loja parceira informa frete hoje (Shopee, AliExpress e Lomadee não mandam; os feeds da Awin vêm sem; conferido
+  // em 23/10/2026): a opção da barra lateral só aparece quando há produto com frete grátis informado pela loja
+  $("#so-frete").closest("label").style.display = qtd || ligado ? "" : "none";
   document.querySelectorAll("[data-frete]").forEach((b) => {
     b.hidden = qtd < FRETE_MINIMO && !ligado;
     b.setAttribute("aria-pressed", String(ligado));
