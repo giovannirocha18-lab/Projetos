@@ -814,7 +814,8 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 7. Pendências do Giovanni: trocar a senha do Registro.br; INPI (pagar GRU antes de ~21/01/2027).
 
 ## Decisões do Giovanni
-- **Ficar no plano grátis do Cloudflare por enquanto** (22/10/2026: sem reserva financeira). Hospedar no computador dele foi
+- **23/10/2026: Giovanni decidiu assinar o Workers Paid (US$ 5/mês)** por causa dos limites do D1 (link entregue: dash.cloudflare.com > Workers & Pages > Plans). Depois de confirmado: subir o `LIMITE` do robô (8 mil → 20 mil+) e conferir os limites novos.
+- (Antes) **Ficar no plano grátis do Cloudflare por enquanto** (22/10/2026: sem reserva financeira). Hospedar no computador dele foi
   desaconselhado (queda de luz/internet, segurança, reescrever o site). Manter o D1 dentro dos limites grátis; Workers Paid (US$ 5/mês) só quando der.
 - **Aceitar lojas internacionais** (15/10/2026), com preço convertido para reais e selo "Internacional".
 - **Mantém o nome "Vai Pro Carrinho"** (14/10/2026), ciente dos perfis com o mesmo nome e dos riscos de marca.
