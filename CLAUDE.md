@@ -664,6 +664,12 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 22/10/2026, 13ª sessão: lojas parceiras, limite de leituras do D1, só lojas com produtos)
+- **Meu personagem ampliado (23/10/2026, pedido do Giovanni: "faça todos")**: cabelos coque/black/trança/moicano/boné; cores de
+  cabelo rosa/azul/roxo; rostos rindo/língua/estrela/óculos escuros/bigode/sardas; carrinhos cestinha/corrida (chamas `.anim-chama`)/
+  foguete (fumaça `.anim-fumaca`)/presentes/blackfriday (`grade()` reaproveitada, `PRESENTES`/`ETIQUETAS` caem no lugar dos produtos);
+  campos novos `acessorio` (nenhum/fone/mochila/sacola/gorro) e `jeito` (andando/correndo/patins; classes `.anim-correndo`/`.anim-patins`);
+  botão "🎲 Sortear" (`sortearPersonagem`); prévia com o personagem parado no meio (antes atravessava e aparecia cortado).
+  Personagem salvo antes vale (`PERSONAGEM_PADRAO` no app.js / `PADRAO_PERSONAGEM` em lib/conta.js). Opções nos DOIS arquivos.
 - **Frete (23/10/2026, print do Giovanni: filtro "Frete grátis" deixava a lista vazia)**: nenhuma loja informa frete (Shopee,
   AliExpress, Lomadee não mandam; 10 lojas da Awin conferidas, ~1.200 produtos, 0 com frete grátis — os feeds vêm sem
   delivery_cost/shipping). A opção da barra lateral agora só aparece se algum produto da lista tiver `freteGratis`
