@@ -74,5 +74,5 @@ jobs:
             echo "parte $parte: $r"
             echo "- $r" >> "$GITHUB_STEP_SUMMARY"
             echo "$r" | grep -q '"fim":true' && break
-            sleep 25
+            sleep 60 # a Lomadee aceita 60 consultas por minuto; com 25 s partes inteiras falhavam (23/10/2026)
           done
