@@ -42,6 +42,17 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+      # Alertas de preço: com os preços da Awin já atualizados, confere os produtos com alerta e manda os e-mails
+      - name: Conferir alertas de preço
+        if: ${{ !cancelled() }}
+        run: |
+          echo "### Alertas de preço" >> "$GITHUB_STEP_SUMMARY"
+          for parte in $(seq 0 200); do
+            r=$(curl -sS --retry 2 --max-time 90 "https://vaiprocarrinho.com.br/api/conferir-alertas?parte=$parte") || { echo "parte $parte: falhou"; continue; }
+            echo "parte $parte: $r"
+            echo "- $r" >> "$GITHUB_STEP_SUMMARY"
+            echo "$r" | grep -q '"fim":true' && break
+          done
       # Guarda o teste das fotos mesmo se o robô falhar ou passar do tempo (o que já foi testado não se perde)
       - uses: actions/cache/save@v4
         if: always()

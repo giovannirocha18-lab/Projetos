@@ -45,6 +45,13 @@ e `https://vaiprocarrinho.pages.dev/api/conta/google/retorno`.
 
 Sem o banco, o botão de entrar some e o carrinho fica só no aparelho.
 
+**Alertas de preço** ("🔔 Me avise quando baixar", `lib/alertas.js`): quem tem conta escolhe um produto e, se quiser,
+um preço. Todo dia, depois da Awin, o robô chama `/api/conferir-alertas?parte=N` (preço de hoje: Awin do banco,
+Shopee e AliExpress pela API, Lomadee pelo último preço visto) e manda um e-mail por pessoa pelo Resend (mesmas chaves
+acima; para chegar ao e-mail dos visitantes, o domínio precisa estar verificado no Resend). O link "Parar este alerta"
+do e-mail abre `/api/alertas/parar`. A janela do alerta, a do histórico e a de detalhes mostram também o
+"Vale a pena comprar agora?" (🟢/🟡/🔴, com 14+ dias de histórico de preço).
+
 ## Robô de preços (Awin)
 `robo/awin.mjs` roda todo dia às 02:30 (horário de Cuiabá) pelo GitHub (`.github/workflows/robo-precos.yml`). Ele baixa o
 catálogo de todas as lojas da Awin em que a conta foi aprovada e atualiza a tabela `ofertas` do banco D1:

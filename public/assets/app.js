@@ -246,7 +246,10 @@ async function carregarConta() {
   try { juntar = localStorage.getItem(CHAVE_JUNTAR) === "1"; localStorage.removeItem(CHAVE_JUNTAR); } catch { /* sem armazenamento */ }
   try {
     const dados = await lerSessao();
-    if (conta.usuario) (juntar ? juntarCarrinho : usarCarrinhoDaConta)(dados.carrinho);
+    if (conta.usuario) {
+      (juntar ? juntarCarrinho : usarCarrinhoDaConta)(dados.carrinho);
+      carregarAlertas();
+    }
   } catch {
     conta.ativo = false;
   }
@@ -349,6 +352,144 @@ function salvarPersonagem(personagem = conta.rascunho) {
   });
 }
 
+// ---------------------------------------------------------------------
+// Alertas de preço: "🔔 Me avise quando baixar" (e-mail; o robô confere os preços uma vez por dia, lib/alertas.js)
+// ---------------------------------------------------------------------
+const alertas = new Map(); // código do produto -> alerta da conta
+const temAlerta = (id) => alertas.has(id);
+
+function guardarAlertas(lista = []) {
+  alertas.clear();
+  for (const a of lista) alertas.set(a.id, a);
+  document.querySelectorAll(".alertar").forEach((b) => b.setAttribute("aria-pressed", temAlerta(b.dataset.id)));
+}
+
+async function carregarAlertas() {
+  if (!conta.usuario) return guardarAlertas([]);
+  try {
+    guardarAlertas((await chamarConta("GET", "/alertas")).alertas);
+  } catch { /* sem internet: os sinos ficam como estão */ }
+}
+
+// Sem conta: pede para entrar e, depois de entrar, volta direto para o alerta deste produto
+function abrirAlerta(o) {
+  if (!conta.ativo) return toast("Os alertas de preço ainda não estão ligados");
+  conta.alertaOferta = o;
+  conta.erro = "";
+  conta.etapa = conta.usuario ? "alerta" : "entrar";
+  desenharConta();
+  const janela = $("#janela-conta");
+  if (!janela.open) janela.showModal();
+  $("input", janela)?.focus();
+}
+
+function janelaAlerta(erro) {
+  const o = conta.alertaOferta;
+  const existente = alertas.get(o.id);
+  const sugestao = Math.floor(o.preco * 0.9);
+  const valor = el("input", { name: "alvo", inputmode: "decimal", autocomplete: "off", "aria-label": "Preço desejado em reais",
+    value: existente?.alvo ? brl(existente.alvo) : brl(sugestao),
+    onfocus: () => { $("#alvo-preco").checked = true; } });
+  const opcao = (id, nome, checked, ...conteudo) => el("label", { class: "opcao-alerta" },
+    el("input", { type: "radio", name: "tipo", id, value: nome, checked }), ...conteudo);
+  return [
+    el("h2", { id: "conta-titulo" }, existente ? "🔔 Seu alerta de preço" : "🔔 Me avise quando baixar"),
+    el("div", { class: "alerta-produto" },
+      o.imagem && el("img", { src: o.imagem, alt: "", loading: "lazy" }),
+      el("div", {}, el("strong", {}, o.titulo), el("span", {}, `Hoje: R$ ${brl(o.preco)} · ${infoLoja(o).nome}`))),
+    caixaMomento(o),
+    el("form", { onsubmit: salvarAlerta },
+      el("fieldset", { class: "opcoes-alerta" },
+        el("legend", {}, "Quando avisar?"),
+        opcao("alvo-qualquer", "qualquer", !existente?.alvo, "Quando o preço baixar"),
+        opcao("alvo-preco", "preco", Boolean(existente?.alvo), "Quando chegar a R$", valor)),
+      erro,
+      el("button", { class: "botao-primario", type: "submit" }, existente ? "Salvar alerta" : "Criar alerta"),
+      el("p", { class: "legal" }, `Mandamos um e-mail para ${conta.usuario.email}. Conferimos o preço uma vez por dia.`),
+      el("div", { class: "links-conta" },
+        existente && el("button", { class: "botao-link perigo", type: "button", onclick: () => pararAlerta(o.id) }, "Parar este alerta"),
+        el("button", { class: "botao-link", type: "button", onclick: () => { conta.etapa = "meus-alertas"; conta.erro = ""; desenharConta(); } },
+          `Meus alertas (${alertas.size})`))),
+  ];
+}
+
+function salvarAlerta(e) {
+  e.preventDefault();
+  const form = e.target;
+  const o = conta.alertaOferta;
+  const alvo = form.tipo.value === "preco" ? lerPreco(form.alvo.value) : null;
+  if (alvo !== null && !(alvo > 0 && alvo < o.preco)) {
+    conta.erro = `O preço do alerta precisa ser menor que o de hoje (R$ ${brl(o.preco)}).`;
+    return desenharConta();
+  }
+  return comEspera(form, async () => {
+    const dados = await chamarConta("POST", "/alertas", {
+      oferta: { id: o.id, titulo: o.titulo, preco: o.preco, loja: o.loja, lojaNome: infoLoja(o).nome, link: o.link, imagem: o.imagem },
+      alvo,
+    });
+    guardarAlertas(dados.alertas);
+    conta.alertaOferta = null;
+    $("#janela-conta").close();
+    toast(alvo ? `🔔 Pronto! Avisamos quando chegar a R$ ${brl(alvo)}` : "🔔 Pronto! Avisamos por e-mail quando o preço baixar");
+  });
+}
+
+function pararAlerta(id) {
+  return comEspera(null, async () => {
+    guardarAlertas((await chamarConta("DELETE", "/alertas", { id })).alertas);
+    if (conta.etapa === "alerta") { conta.alertaOferta = null; conta.etapa = "meus-alertas"; }
+    toast("Alerta parado");
+  });
+}
+
+function meusAlertas(erro) {
+  const lista = [...alertas.values()];
+  return [
+    el("h2", { id: "conta-titulo" }, "🔔 Meus alertas de preço"),
+    el("p", {}, lista.length
+      ? "Avisamos por e-mail quando o preço baixar. Conferimos uma vez por dia."
+      : "Você ainda não tem alertas. Toque no 🔔 de um produto para acompanhar o preço dele."),
+    erro,
+    lista.length > 0 && el("ul", { class: "lista-alertas" }, ...lista.map((a) => el("li", {},
+      a.imagem && el("img", { src: a.imagem, alt: "", loading: "lazy" }),
+      el("div", {},
+        el("a", { href: a.link, target: "_blank", rel: "sponsored noopener" }, a.titulo),
+        el("span", {}, `${a.alvo ? `Avisar em R$ ${brl(a.alvo)}` : "Avisar quando baixar"} · era R$ ${brl(a.precoInicial)}`
+          + `${a.ultimoPreco && a.ultimoPreco !== a.precoInicial ? ` · hoje R$ ${brl(a.ultimoPreco)}` : ""}`)),
+      el("button", { class: "botao-link perigo", type: "button", onclick: () => pararAlerta(a.id) }, "Parar")))),
+    el("div", { class: "links-conta" },
+      el("button", { class: "botao-link", type: "button", onclick: () => {
+        conta.etapa = conta.alertaOferta ? "alerta" : "entrar"; conta.erro = ""; desenharConta();
+      } }, "Voltar")),
+  ];
+}
+
+// "Vale a pena comprar agora?" (ideia do Zoom e do Keepa): uma frase a partir do nosso histórico de preço.
+// Só com 14+ dias de acompanhamento; antes disso não dá para dizer nada com honestidade.
+const DIAS_PARA_OPINAR = 14;
+function momentoDeCompra(o) {
+  const h = o.historico;
+  if (!h || !(h.dias >= DIAS_PARA_OPINAR) || !h.habitual) return null;
+  const variou = h.maior30 > h.menor30 * 1.02;
+  if (h.descontoReal) return { cor: "verde", titulo: "🟢 Bom momento para comprar", texto: `Está ${h.descontoReal}% abaixo do preço de costume (R$ ${brl(h.habitual)}).` };
+  if (variou && o.preco <= h.menor30) return { cor: "verde", titulo: "🟢 Bom momento para comprar", texto: "É o menor preço dos últimos 30 dias." };
+  if (o.preco >= h.habitual * 1.05) {
+    return { cor: "vermelho", titulo: "🔴 Se puder, espere", texto: `Está ${Math.round((o.preco / h.habitual - 1) * 100)}% acima do preço de costume (R$ ${brl(h.habitual)}).` };
+  }
+  if (!variou) return { cor: "amarelo", titulo: "🟡 Preço estável", texto: "Não mudou nos últimos 30 dias." };
+  return { cor: "amarelo", titulo: "🟡 Preço normal", texto: `Perto do preço de costume. Nos últimos 30 dias já custou R$ ${brl(h.menor30)}.` };
+}
+
+function caixaMomento(o) {
+  const m = momentoDeCompra(o);
+  if (!m) {
+    return o.historico && el("div", { class: "momento momento-cedo" },
+      el("strong", {}, "⏳ Vale a pena comprar agora?"),
+      el("span", {}, `Acompanhamos este preço há ${o.historico.dias || 0} dia(s). Com ${DIAS_PARA_OPINAR} dias dizemos se é um bom momento.`));
+  }
+  return el("div", { class: `momento momento-${m.cor}` }, el("strong", {}, m.titulo), el("span", {}, m.texto));
+}
+
 function abrirConta() {
   conta.erro = "";
   if (!conta.usuario && conta.etapa !== "nova-senha") conta.etapa = "entrar";
@@ -364,6 +505,10 @@ function desenharConta() {
 
   if (conta.usuario && conta.etapa === "personagem") {
     conteudo = editorPersonagem(erro);
+  } else if (conta.usuario && conta.etapa === "alerta" && conta.alertaOferta) {
+    conteudo = janelaAlerta(erro);
+  } else if (conta.usuario && conta.etapa === "meus-alertas") {
+    conteudo = meusAlertas(erro);
   } else if (conta.usuario) {
     conteudo = [
       el("h2", { id: "conta-titulo" }, `Olá, ${conta.usuario.nome.split(" ")[0]}! 👋`),
@@ -371,6 +516,8 @@ function desenharConta() {
       el("p", {}, `Você tem ${favoritos.length} ${favoritos.length === 1 ? "item" : "itens"} no carrinho, salvos na sua conta.`),
       erro,
       el("button", { class: "botao-primario", type: "button", onclick: () => { $("#janela-conta").close(); abrirPainel(true); } }, "🛒 Ver meu carrinho"),
+      el("button", { class: "botao-secundario botao-personagem", type: "button", onclick: () => { conta.etapa = "meus-alertas"; conta.erro = ""; desenharConta(); } },
+        `🔔 Meus alertas de preço (${alertas.size})`),
       el("button", { class: "botao-secundario botao-personagem", type: "button", onclick: abrirEditorPersonagem },
         conta.usuario.personagem ? "🎨 Mudar meu personagem" : "🎨 Montar meu personagem"),
       el("div", { class: "links-conta" },
@@ -405,7 +552,9 @@ function desenharConta() {
     const cadastro = conta.etapa === "cadastrar";
     conteudo = [
       el("h2", { id: "conta-titulo" }, cadastro ? "Criar conta" : "Entrar"),
-      el("p", {}, "Assim o seu carrinho fica salvo em qualquer aparelho."),
+      el("p", { class: conta.alertaOferta ? "aviso-alerta" : null }, conta.alertaOferta
+        ? "🔔 Entre na sua conta para receber um e-mail quando o preço baixar."
+        : "Assim o seu carrinho fica salvo em qualquer aparelho."),
       conta.google && el("button", { class: "botao-google", type: "button", onclick: entrarComGoogle },
         el("img", { src: "assets/google.svg", alt: "", width: "18", height: "18" }), "Entrar com Google"),
       conta.google && el("p", { class: "separador" }, cadastro ? "ou crie com e-mail e senha" : "ou entre com e-mail e senha"),
@@ -418,7 +567,7 @@ function desenharConta() {
         el("div", { class: "links-conta" }, cadastro
           ? [linkEtapa("entrar", "Já tenho conta")]
           : [linkEtapa("cadastrar", "Criar conta"), linkEtapa("esqueci", "Esqueci minha senha")]),
-        el("p", { class: "legal" }, "Guardamos só o seu nome, e-mail, os itens do carrinho e o personagem, se você montar um. Ao continuar, você concorda com a ",
+        el("p", { class: "legal" }, "Guardamos só o seu nome, e-mail, os itens do carrinho, os alertas de preço que você criar e o personagem, se você montar um. Ao continuar, você concorda com a ",
           el("a", { href: "privacidade", target: "_blank" }, "Política de Privacidade"), ".")),
     ];
   }
@@ -469,9 +618,15 @@ function conectou(dados, mensagem) {
   conta.usuario = dados.usuario;
   juntarCarrinho(dados.carrinho);
   desenharContaTopo();
+  toast(mensagem);
+  // Entrou para criar um alerta: continua nele (e só depois de saber quais alertas a conta já tem)
+  if (conta.alertaOferta) {
+    conta.etapa = "alerta";
+    return carregarAlertas().then(desenharConta);
+  }
+  carregarAlertas();
   // Depois de entrar, fecha a janela; os dados da conta (sair, excluir) ficam no ícone da conta
   $("#janela-conta").close();
-  toast(mensagem);
 }
 
 function entrar(e) {
@@ -522,6 +677,7 @@ function esquecerAqui() {
   favoritos = [];
   salvarFavoritos();
   atualizarFavoritos();
+  guardarAlertas([]);
   desenharContaTopo();
   $("#janela-conta").close();
 }
@@ -642,6 +798,10 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
           temDetalhes(o) && el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
           o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico")),
         el("button", {
+          class: "alertar", type: "button", "data-id": o.id, "aria-pressed": temAlerta(o.id),
+          "aria-label": "Me avise quando baixar", title: "Me avise quando o preço baixar", onclick: () => abrirAlerta(o),
+        }, "🔔"),
+        el("button", {
           class: "favoritar", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
           "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: () => alternarFavorito(o),
         }, ICONE_CARRINHO())),
@@ -757,8 +917,12 @@ function abrirDetalhes(o) {
         o.moeda ? `🌎 Internacional · valor convertido de ${o.moeda}` : "🌎 Internacional"),
       o.envioNacional && el("span", { class: "internacional nacional" }, el("span", { class: "bandeira-br", "aria-hidden": "true" }), " Envio do Brasil")),
     o.descricao && el("div", { class: "detalhes-descricao" }, el("h3", {}, "Descrição"), el("p", {}, o.descricao)),
-    o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => { $("#janela-detalhes").close(); abrirHistorico(o); } },
-      "📈 Ver histórico de preço"),
+    caixaMomento(o),
+    el("div", { class: "links-oferta" },
+      o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => { $("#janela-detalhes").close(); abrirHistorico(o); } },
+        "📈 Ver histórico de preço"),
+      el("button", { class: "ver-historico", type: "button", onclick: () => { $("#janela-detalhes").close(); abrirAlerta(o); } },
+        temAlerta(o.id) ? "🔔 Ver meu alerta" : "🔔 Me avise quando baixar")),
     el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener",
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}`, onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
       `Comprar ${loja.em} ${loja.nome.length <= 16 ? loja.nome : "loja"}`, el("span", { class: "flecha", "aria-hidden": "true" }, "→")),
@@ -793,6 +957,7 @@ async function abrirHistorico(o) {
   conteudo.replaceChildren(
     el("h2", { id: "historico-titulo" }, "Histórico de preço"),
     el("p", {}, `${o.titulo} · ${loja.nome}`),
+    caixaMomento(o),
     el("div", { class: "historico-numeros" },
       el("div", {}, el("small", {}, "Hoje"), el("strong", {}, `R$ ${brl(o.preco)}`)),
       el("div", {}, el("small", {}, "Menor"), el("strong", {}, `R$ ${brl(Math.min(...precos))}`)),
@@ -801,6 +966,8 @@ async function abrirHistorico(o) {
     el("p", { class: "historico-nota" }, diasAcompanhando < 7
       ? "Começamos a acompanhar este preço há pouco tempo. O gráfico fica mais completo a cada dia."
       : `Preço acompanhado há ${diasAcompanhando} dias.${o.moeda ? ` Valores convertidos de ${o.moeda} para reais.` : ""}`),
+    el("button", { class: "botao-secundario botao-alerta", type: "button", onclick: () => { janela.close(); abrirAlerta(o); } },
+      temAlerta(o.id) ? "🔔 Ver meu alerta" : "🔔 Me avise quando baixar"),
     el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener",
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}` },
       ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→")));
@@ -855,7 +1022,7 @@ function semRepetidos(lista) {
 // pela sugestão, o site já pede os resultados; ao apertar Enter eles estão prontos (ou quase).
 // Pede com atalho=1 (não conta nos "em alta": pode ser só uma sugestão que ela nem escolheu). Se ela buscar isso
 // mesmo, o site usa a resposta adiantada e só avisa o servidor para contar (contar=1).
-const VERSAO_BUSCA = 78;
+const VERSAO_BUSCA = 79;
 const MAX_ADIANTADAS = 8; // por visita, para não gastar as consultas às lojas à toa
 const adiantadas = new Map();
 let totalAdiantadas = 0;
@@ -2252,6 +2419,11 @@ $("#janela-detalhes").addEventListener("click", (e) => {
 $("#janela-historico").addEventListener("click", (e) => {
   const r = e.currentTarget.getBoundingClientRect();
   if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
+});
+// Ao fechar, a próxima vez abre na tela principal da conta (e esquece o alerta que ia criar)
+$("#janela-conta").addEventListener("close", () => {
+  conta.alertaOferta = null;
+  if (conta.usuario) conta.etapa = "entrar";
 });
 // Clique fora da janela fecha
 $("#janela-conta").addEventListener("click", (e) => {
