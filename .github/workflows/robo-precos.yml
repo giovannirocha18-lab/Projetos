@@ -24,6 +24,12 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      # Resultado do teste das fotos dos produtos (o robô só testa de novo depois de alguns dias)
+      - uses: actions/cache@v4
+        with:
+          path: .cache/fotos.json
+          key: fotos-${{ github.run_id }}
+          restore-keys: fotos-
       - name: Atualizar ofertas da Awin
         run: node --max-old-space-size=6144 robo/awin.mjs
         env:

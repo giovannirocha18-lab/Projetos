@@ -20,7 +20,8 @@
 import { createHash } from "node:crypto";
 import { gunzipSync, createGunzip } from "node:zlib";
 import { Readable } from "node:stream";
-import { readFileSync, appendFileSync } from "node:fs";
+import { readFileSync, appendFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { dirname } from "node:path";
 import { normalizar } from "../lib/texto.js";
 import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, RESUMO_LOJAS_AWIN, INDICE_LOJA, CRIAR_INDICE_LOJA, juntarMilhares } from "../lib/ofertas.js";
 
@@ -286,6 +287,89 @@ function paraOferta(p, feed = {}) {
 const lojaDoId = (id) => id.split("-")[1];
 
 // ---------------------------------------------------------------------
+// Fotos quebradas: algumas lojas mandam no feed endereços de foto que não existem mais (23/10/2026: ~1 em 3 na
+// Lauri Esporte, ~5% na Monte Carlo; o site mostrava o desenho padrão). O robô testa cada foto e fica com as que
+// abrem; produto sem nenhuma foto que abra fica de fora. O resultado fica guardado (cache do GitHub Actions) e só é
+// testado de novo depois de alguns dias, para não pedir dezenas de milhares de fotos às lojas toda madrugada.
+// ---------------------------------------------------------------------
+const ARQUIVO_FOTOS = process.env.ROBO_CACHE_FOTOS || ".cache/fotos.json";
+const DIAS_FOTO_BOA = 14;
+const DIAS_FOTO_RUIM = 3;
+const TESTES_AO_MESMO_TEMPO = 32;
+const NAVEGADOR = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
+
+function lerFotosGuardadas() {
+  try { return new Map(Object.entries(JSON.parse(readFileSync(ARQUIVO_FOTOS, "utf8")))); } catch { return new Map(); }
+}
+
+// true = abre, false = não existe (404, 410, não é imagem…), null = não deu para saber (tempo esgotado, rede)
+async function fotoAbre(url) {
+  const pedir = (metodo) => fetch(url, {
+    method: metodo, redirect: "follow", signal: AbortSignal.timeout(10000),
+    headers: { "User-Agent": NAVEGADOR, ...(metodo === "GET" ? { Range: "bytes=0-1023" } : {}) },
+  });
+  try {
+    let r = await pedir("HEAD");
+    // Alguns servidores não aceitam HEAD: tenta um pedacinho com GET
+    if ([403, 405, 501].includes(r.status)) r = await pedir("GET");
+    if (r.body) r.body.cancel().catch(() => {});
+    // 403: alguns servidores barram robôs mas abrem no navegador (o imgur dá 403 para o Node e 200 para o curl).
+    // Só 404/410 e "não é imagem" contam como foto quebrada
+    if (r.status >= 500 || r.status === 429 || r.status === 403 || r.status === 401) return null;
+    const tipo = r.headers.get("content-type") || "";
+    return r.ok && (!tipo || tipo.startsWith("image/"));
+  } catch {
+    return null;
+  }
+}
+
+async function conferirFotos(ofertas) {
+  const guardadas = lerFotosGuardadas();
+  const hoje = Math.floor(Date.now() / 864e5);
+  const vencida = (g) => !g || hoje - g.dia > (g.ok ? DIAS_FOTO_BOA : DIAS_FOTO_RUIM);
+  const testar = new Set();
+  const fotosDe = (o) => (o.imagens ? JSON.parse(o.imagens) : [o.imagem]).filter(Boolean);
+  // Primeiro só a foto principal; as extras só de quem teve a principal quebrada
+  const rodada = async (urls) => {
+    const fila = [...urls].filter((u) => vencida(guardadas.get(u)));
+    let i = 0;
+    await Promise.all(Array.from({ length: TESTES_AO_MESMO_TEMPO }, async () => {
+      while (i < fila.length) {
+        const url = fila[i++];
+        const ok = await fotoAbre(url);
+        if (ok !== null) guardadas.set(url, { ok, dia: hoje });
+      }
+    }));
+    return fila.length;
+  };
+  const boa = (u) => guardadas.get(u)?.ok !== false; // sem resposta conta como boa (não tira produto por falha de rede)
+  for (const o of ofertas) if (o.imagem) testar.add(o.imagem);
+  let testadas = await rodada(testar);
+  const extras = new Set(ofertas.filter((o) => o.imagem && !boa(o.imagem)).flatMap(fotosDe));
+  testadas += await rodada(extras);
+  try {
+    mkdirSync(dirname(ARQUIVO_FOTOS), { recursive: true });
+    writeFileSync(ARQUIVO_FOTOS, JSON.stringify(Object.fromEntries(guardadas)));
+  } catch (erro) {
+    console.log(`Não deu para guardar o teste das fotos: ${erro.message}`);
+  }
+  const semFoto = new Map(); // loja -> quantos ficaram de fora
+  const resultado = [];
+  for (const o of ofertas) {
+    const fotos = fotosDe(o).filter(boa);
+    if (!o.imagem || !fotos.length) {
+      semFoto.set(o.loja_nome, (semFoto.get(o.loja_nome) || 0) + 1);
+      continue;
+    }
+    if (fotos[0] === o.imagem && fotos.length === fotosDe(o).length) { resultado.push(o); continue; }
+    // Foto principal trocada pela 1ª extra que abre: a assinatura muda para o produto ser regravado
+    const imagens = fotos.length > 1 ? JSON.stringify(fotos) : null;
+    resultado.push({ ...o, imagem: fotos[0], imagens, assinatura: assinar({ a: o.assinatura, fotos }) });
+  }
+  return { resultado, semFoto, testadas };
+}
+
+// ---------------------------------------------------------------------
 // Escrita no banco, em lotes
 // ---------------------------------------------------------------------
 function sql(v) {
@@ -520,8 +604,21 @@ async function main() {
       relatorio.push(`❌ ${feed.nome}: ${erro.message}`);
     }
   }
+  if (!lojasBaixadas.size) {
+    relatorio.forEach((l) => console.log(l));
+    throw new Error("Nenhum feed foi baixado com sucesso; nada foi alterado");
+  }
+  // Teste local com arquivo de exemplo (--feed): as fotos são de mentira, não testa
+  if (!arquivosFeed.length && !process.env.ROBO_SEM_TESTE_FOTOS) {
+    const inicioFotos = Date.now();
+    const { resultado, semFoto, testadas } = await conferirFotos([...novas.values()]);
+    novas.clear();
+    for (const o of resultado) novas.set(o.id, o);
+    const fora = [...semFoto].map(([loja, n]) => `${loja} ${n}`).join(", ");
+    relatorio.push(`📷 Fotos: ${testadas} testadas em ${Math.round((Date.now() - inicioFotos) / 1000)} s; ` +
+      (fora ? `produtos sem foto que abre (ficam de fora): ${fora}` : "nenhum produto sem foto"));
+  }
   relatorio.forEach((l) => console.log(l));
-  if (!lojasBaixadas.size) throw new Error("Nenhum feed foi baixado com sucesso; nada foi alterado");
 
   // 2. Compara com o que já está no banco
   const atuais = new Map();
