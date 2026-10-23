@@ -664,6 +664,10 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 22/10/2026, 13ª sessão: lojas parceiras, limite de leituras do D1, só lojas com produtos)
+- **Frete (23/10/2026, print do Giovanni: filtro "Frete grátis" deixava a lista vazia)**: nenhuma loja informa frete (Shopee,
+  AliExpress, Lomadee não mandam; 10 lojas da Awin conferidas, ~1.200 produtos, 0 com frete grátis — os feeds vêm sem
+  delivery_cost/shipping). A opção da barra lateral agora só aparece se algum produto da lista tiver `freteGratis`
+  (`desenharBotaoFrete` no app.js). Volta sozinha quando uma loja mandar frete no feed.
 - ⭐ **Oferta de verdade (23/10/2026, pedido do Giovanni: "se é oferta, trazer a informação real")**: `ehOfertaDeVerdade` e
   `semDescontoFalso` em `lib/ofertas.js`. "Ofertas do dia" só com desconto da loja de 5% a 75%; produto com 21+ dias de histórico
   (`historico.verificavel`) só entra com `descontoReal` (esses primeiro). Awin `destaques`: até 3 por loja (índice loja+desconto),
