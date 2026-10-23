@@ -16,6 +16,10 @@ on:
 jobs:
   awin:
     runs-on: ubuntu-latest
+    # Uma gravação por vez: duas ao mesmo tempo (madrugada atrasada + Run workflow) gravam por cima uma da outra
+    concurrency:
+      group: robo-awin
+      cancel-in-progress: false
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
