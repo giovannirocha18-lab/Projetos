@@ -34,14 +34,15 @@ const NAVEGADOR_SEGUNDOS = 10 * 60;
 const VELHA_DEMAIS_MS = 7 * 24 * 60 * 60 * 1000;
 // Mesma busca não é refeita 2 vezes ao mesmo tempo (vale dentro de cada servidor do Cloudflare)
 const atualizando = new Set();
-// Na busca digitada, cada chamada pede 3 páginas de cada loja (Shopee: 48 cada) e responde logo: o site mostra
-// esses e pede sozinho as próximas (desde=4, 7…) até ter uns 100 produtos de verdade. Antes o servidor só
-// respondia com tudo pronto e a primeira busca levava 12–14 s.
-const PAGINAS_POR_LOTE = 3;
+// Na busca digitada, cada chamada pede 6 páginas de cada loja ao mesmo tempo (Shopee: 48 cada) e responde logo: o site
+// mostra esses e pede sozinho as próximas (desde=7, 13…) até ter uns 100 produtos de verdade. Antes o servidor só
+// respondia com tudo pronto e a primeira busca levava 12–14 s. Eram 3 páginas no plano grátis (50 consultas externas
+// por chamada); com o Workers Paid (23/10/2026) o limite é 1000.
+const PAGINAS_POR_LOTE = 6;
 const MINIMO_PRODUTOS = 100;
 const MAX_PAGINAS = PAGINAS_POR_LOTE;
-// Vitrine das categorias: cada busca (4 ou 5) pede 1 página por chamada (o site pede as próximas sozinho)
-const MAX_PAGINAS_VITRINE = 1;
+// Vitrine das categorias: cada busca (4 a 6) pede 2 páginas ao mesmo tempo por chamada (o site pede as próximas sozinho)
+const PAGINAS_VITRINE = 2;
 // Loja que demora mais que isso fica de fora desta resposta (as outras não esperam por ela)
 const LIMITE_LOJA_MS = 8000;
 // Para o robô que prepara as buscas populares ninguém está esperando: as lojas têm mais tempo
@@ -55,7 +56,7 @@ const MAX_DESDE = 100;
 // busca nova não gastar centenas de gravações no D1. A coleta diária (/api/coletar-precos) cobre o resto
 const GRAVAR_POR_BUSCA = 60;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 77;
+const VERSAO_CACHE = 78;
 // Como o site da AliExpress busca (estudado em 21/10/2026, pedido do Giovanni): ele descobre a CATEGORIA da busca
 // ("celular" -> Celulares 5090301, "geladeira" -> 60203) e mostra os produtos dela. A API de afiliados só procura a
 // palavra nos títulos ("celular" trazia capinhas, "geladeira" trazia peças). Então, como no site, pedimos também dentro
@@ -320,12 +321,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
     let acabou = false;
     do {
       for (const l of Object.values(lojas)) l.total = 0;
-      const novas = await Promise.all(vitrine.buscas.map((termo) => consultar(termo, { maisVendidos: true, paginas: [pag] })));
+      const paginas = Array.from({ length: PAGINAS_VITRINE }, (_, i) => pag + i);
+      const novas = await Promise.all(vitrine.buscas.map((termo) => consultar(termo, { maisVendidos: true, paginas })));
       novas.forEach((lista, i) => marcadas[i].push(...separarAcessorios(lista, vitrine.buscas[i])));
-      pag += 1;
+      pag += PAGINAS_VITRINE;
       acabou = !fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina);
       ofertas = montarVitrine(marcadas, vitrine, categoria);
-    } while (!acabou && pag - desde < MAX_PAGINAS_VITRINE && ofertas.length < MINIMO_PRODUTOS);
+    } while (!acabou && pag - desde < PAGINAS_VITRINE && ofertas.length < MINIMO_PRODUTOS);
     ofertas = marcarSecoes(ofertas, categoria);
     mais = acabou || pag > MAX_DESDE ? null : `desde=${pag}`;
   } else if (categoria && !outraCategoria) {
