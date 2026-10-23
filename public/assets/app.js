@@ -938,22 +938,27 @@ function precoTipico(lista) {
   return precos.length >= 5 ? precos[Math.floor(precos.length / 2)] : 0;
 }
 
-function filtrar() {
+// Todos os filtros menos o de lojas: a contagem de cada loja (botões do card e da barra lateral) usa o mesmo, para
+// bater com o que aparece na tela (contava também o que outros filtros escondiam; print do Giovanni, 23/10/2026)
+function passaNosFiltros() {
   const min = lerPreco($("#preco-min").value);
   const max = lerPreco($("#preco-max").value);
   const frete = $("#so-frete").checked;
   const desconto = $("#so-desconto").checked;
   const envio = $("input[name=envio]:checked")?.value || "todos";
   const semAcessorios = escondeAcessorios();
-  const lista = estado.ofertas.filter((o) =>
-    !estado.lojasDesmarcadas.has(o.loja)
-    && secaoVisivel(o)
+  return (o) => secaoVisivel(o)
     && !(semAcessorios && o.acessorio)
     && !(min >= 0 && o.preco < min)
     && !(max >= 0 && o.preco > max)
     && (!frete || o.freteGratis)
     && (!desconto || o.desconto)
-    && (envio === "todos" || (envio === "internacional") === Boolean(o.internacional)));
+    && (envio === "todos" || (envio === "internacional") === Boolean(o.internacional));
+}
+
+function filtrar() {
+  const passa = passaNosFiltros();
+  const lista = estado.ofertas.filter((o) => !estado.lojasDesmarcadas.has(o.loja) && passa(o));
 
   const ordem = $("input[name=ordem]:checked").value;
   const ordenar = {
@@ -1017,9 +1022,9 @@ function desenharFiltroSecoes() {
 
 // Ofertas de cada loja na lista (acessórios escondidos não entram)
 function contarLojas() {
-  const semAcessorios = escondeAcessorios();
+  const passa = passaNosFiltros();
   const contagem = {};
-  for (const o of estado.ofertas) if (!(semAcessorios && o.acessorio)) contagem[o.loja] = (contagem[o.loja] || 0) + 1;
+  for (const o of estado.ofertas) if (passa(o)) contagem[o.loja] = (contagem[o.loja] || 0) + 1;
   return contagem;
 }
 
@@ -1065,6 +1070,11 @@ function lojasNoResumo() {
 
 function desenharFiltroLojas() {
   desenharFiltroSecoes();
+  desenharLojasDaLista();
+}
+
+// Lojas da barra lateral com a quantidade de cada uma (refeita a cada filtro mexido, para o número bater com a tela)
+function desenharLojasDaLista() {
   const contagem = contarLojas();
   $("#filtro-lojas").replaceChildren(...Object.keys(contagem).map((id) => {
     const loja = infoLoja(estado.ofertas.find((o) => o.loja === id));
@@ -1179,7 +1189,10 @@ function desenharResultados() {
   const lista = filtrar();
   // Na busca as lojas ficam no card de resultados; a lista da barra lateral só vale nas "Ofertas do dia"
   $("#caixa-lojas").hidden = Boolean(estado.q || estado.loja);
-  if (!estado.q && !estado.loja) return desenharInicio(lista);
+  if (!estado.q && !estado.loja) {
+    desenharLojasDaLista();
+    return desenharInicio(lista);
+  }
   const idMelhor = lista.length > 1 ? melhorOferta(lista)?.id : null;
   desenharResumo(lista);
   $("#total").textContent = `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}`;
