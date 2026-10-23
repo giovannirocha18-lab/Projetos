@@ -671,6 +671,18 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   botão "🎲 Sortear" (`sortearPersonagem`); prévia com o personagem parado no meio (antes atravessava e aparecia cortado).
   Personagem salvo antes vale (`PERSONAGEM_PADRAO` no app.js / `PADRAO_PERSONAGEM` em lib/conta.js). Opções nos DOIS arquivos.
   No computador o editor abre largo (classe `janela-larga`, prévia à esquerda e opções em 2 colunas), sem rolar.
+- ⭐ **Alerta de preço + "Vale a pena comprar agora?" (23/10/2026, itens 1 e 2 da 2ª análise de concorrentes, pedido do Giovanni)**:
+  🔔 em cada cartão (e nas janelas de histórico/detalhes) → janela na conta (etapa "alerta"; sem conta pede para entrar e volta ao
+  alerta): "Quando o preço baixar" (2%+) ou "Quando chegar a R$ X". "🔔 Meus alertas de preço" na conta. `lib/alertas.js`, tabela
+  `alertas` (em lib/conta.js; apagada com a conta; some em 180 dias; máx. 50 por pessoa), API `/api/conta/alertas`. Robô: passo
+  "Conferir alertas de preço" no job `awin` chama `/api/conferir-alertas?parte=N` (Awin do banco; Shopee `ofertaShopeePorId` e
+  AliExpress `ofertasAliExpressPorIds` (productdetail.get) — ✅ testados no ar; Lomadee = último preço em `precos`); 1 e-mail por pessoa
+  via Resend, só avisa de novo se baixar mais; link "Parar este alerta" (`/api/alertas/parar`, GET mostra botão, POST para).
+  Termômetro (`momentoDeCompra` no app.js, 14+ dias de histórico; `resumirHistorico` ganhou dias/menor30/maior30): 🟢 desconto real ou
+  menor em 30 dias, 🔴 5%+ acima do preço de costume, 🟡 estável/normal; antes de 14 dias "⏳ …". Política cita os alertas. Cache v=79.
+  ❗ **Para o e-mail chegar aos visitantes falta verificar o domínio no Resend** (resend.com > Domains; registros DNS no Cloudflare)
+  e criar a variável `EMAIL_REMETENTE`; até lá o Resend só entrega para o e-mail dono da conta Resend.
+  Bug antigo visto (não corrigido): `limparCarrinho` recusa link relativo, então produtos da Lomadee (`/api/ir?…`) não sincronizam no carrinho da conta.
 - **Lojas por conta da Awin (23/10/2026, execução #33)**: conta PJ = Casa Tema, Shark-Ninja, Kabum, Monte Carlo, Spicy, Karsten,
   **Animale (nova, 10.665 produtos)**, Elements, Lauri. Só na conta PF (faltam pedir na PJ): **Posthaus, Polishop, EINSTAR**.
   Total: 12 lojas, 91.516 produtos nos feeds; banco 115 MB.
