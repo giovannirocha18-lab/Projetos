@@ -298,6 +298,15 @@ const DIAS_FOTO_RUIM = 3;
 const TESTES_AO_MESMO_TEMPO = 32;
 const NAVEGADOR = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
 
+function guardarFotos(guardadas) {
+  try {
+    mkdirSync(dirname(ARQUIVO_FOTOS), { recursive: true });
+    writeFileSync(ARQUIVO_FOTOS, JSON.stringify(Object.fromEntries(guardadas)));
+  } catch (erro) {
+    console.log(`Não deu para guardar o teste das fotos: ${erro.message}`);
+  }
+}
+
 function lerFotosGuardadas() {
   try { return new Map(Object.entries(JSON.parse(readFileSync(ARQUIVO_FOTOS, "utf8")))); } catch { return new Map(); }
 }
@@ -332,12 +341,17 @@ async function conferirFotos(ofertas) {
   // Primeiro só a foto principal; as extras só de quem teve a principal quebrada
   const rodada = async (urls) => {
     const fila = [...urls].filter((u) => vencida(guardadas.get(u)));
-    let i = 0;
+    let i = 0, feitas = 0;
     await Promise.all(Array.from({ length: TESTES_AO_MESMO_TEMPO }, async () => {
       while (i < fila.length) {
         const url = fila[i++];
         const ok = await fotoAbre(url);
         if (ok !== null) guardadas.set(url, { ok, dia: hoje });
+        // De tempos em tempos grava o que já testou: se o robô passar do tempo, a próxima vez continua daqui
+        if (++feitas % 5000 === 0) {
+          guardarFotos(guardadas);
+          console.log(`Fotos testadas: ${feitas} de ${fila.length}`);
+        }
       }
     }));
     return fila.length;
@@ -347,12 +361,7 @@ async function conferirFotos(ofertas) {
   let testadas = await rodada(testar);
   const extras = new Set(ofertas.filter((o) => o.imagem && !boa(o.imagem)).flatMap(fotosDe));
   testadas += await rodada(extras);
-  try {
-    mkdirSync(dirname(ARQUIVO_FOTOS), { recursive: true });
-    writeFileSync(ARQUIVO_FOTOS, JSON.stringify(Object.fromEntries(guardadas)));
-  } catch (erro) {
-    console.log(`Não deu para guardar o teste das fotos: ${erro.message}`);
-  }
+  guardarFotos(guardadas);
   const semFoto = new Map(); // loja -> quantos ficaram de fora
   const resultado = [];
   for (const o of ofertas) {

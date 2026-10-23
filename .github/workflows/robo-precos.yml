@@ -20,7 +20,7 @@ jobs:
     concurrency:
       group: robo-awin
       cancel-in-progress: false
-    timeout-minutes: 30
+    timeout-minutes: 60 # 1ª vez testa ~83 mil fotos
     steps:
       - uses: actions/checkout@v5
         with:
@@ -29,7 +29,7 @@ jobs:
         with:
           node-version: 22
       # Resultado do teste das fotos dos produtos (o robô só testa de novo depois de alguns dias)
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
         with:
           path: .cache/fotos.json
           key: fotos-${{ github.run_id }}
@@ -42,6 +42,12 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+      # Guarda o teste das fotos mesmo se o robô falhar ou passar do tempo (o que já foi testado não se perde)
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .cache/fotos.json
+          key: fotos-${{ github.run_id }}
 
   # Shopee: o site guarda o preço de hoje dos produtos das vitrines e dos mais buscados
   # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
