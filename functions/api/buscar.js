@@ -14,7 +14,7 @@ import { awin } from "../../lib/fontes/awin.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
 import { registrarBusca } from "../../lib/buscas.js";
-import { historicoAoVivo, ehAoVivo } from "../../lib/ofertas.js";
+import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
 import { normalizar } from "../../lib/texto.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
@@ -370,6 +370,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
     } catch {
       // tabela precos ainda não existe (o robô cria) ou D1 indisponível
     }
+  }
+  // "Ofertas do dia" só com oferta de verdade (ver ehOfertaDeVerdade em lib/ofertas.js): desconto confirmado pelo nosso
+  // histórico primeiro, depois o desconto da loja entre 5% e 75%. Os mais vendidos sem desconto ficam de fora
+  if (!q && reais.length) {
+    const deVerdade = ofertas.filter(ehOfertaDeVerdade);
+    ofertas = [...deVerdade.filter((o) => o.historico?.descontoReal), ...deVerdade.filter((o) => !o.historico?.descontoReal)];
   }
 
   // Toda busca feita nas lojas ensina o mapa de categorias (catsLoja e catMapa ficam na resposta para conferência).
