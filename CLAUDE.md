@@ -40,7 +40,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   houver ofertas `fonte='awin'` no banco. Ofertas de lojas fora da lista `LOJAS` do `app.js` levam `lojaNome`.
 - `lib/ofertas.js` = criação das tabelas `ofertas`, `ofertas_fts` (com gatilhos) e `precos` (histórico de preço por dia).
 - `robo/awin.mjs` = **robô de preços**: baixa a lista de feeds da Awin (chave `AWIN_FEED_KEY`), pega os das lojas aprovadas
-  (região BR) e atualiza o D1 pela API do Cloudflare (só grava o que mudou; limite 8 mil/dia desde 22/10/2026; não apaga nada se o feed
+  (região BR) e atualiza o D1 pela API do Cloudflare (só grava o que mudou; trava de 300 mil por vez desde 23/10/2026, plano pago; não apaga nada se o feed
   falhar ou encolher mais da metade). Roda pelo GitHub Actions (`.github/workflows/robo-precos.yml`, 02:30 de Cuiabá desde 16/10/2026).
   Teste local: `node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite`. Ver README.
 - `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br`, que **ainda não existe**.
@@ -821,7 +821,7 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 7. Pendências do Giovanni: trocar a senha do Registro.br; INPI (pagar GRU antes de ~21/01/2027).
 
 ## Decisões do Giovanni
-- ✅ **23/10/2026: Workers Paid (US$ 5/mês) ASSINADO** (limites D1: 25 bi leituras e 50 mi gravações/mês). `LIMITE` do robô → **60 mil/dia**.
+- ✅ **23/10/2026: Workers Paid (US$ 5/mês) ASSINADO** (limites D1: 25 bi leituras e 50 mi gravações/mês). `LIMITE` do robô → **300 mil (trava de segurança; grava tudo de uma vez)**. Run workflow tem a opção `so_awin` (roda só a gravação dos produtos). Execução #28: entraram os 11.316 que faltavam (Polishop e resto da Posthaus); **83.615 produtos da Awin no site, 11 lojas**; banco 140 MB.
 - (Antes) **Ficar no plano grátis do Cloudflare por enquanto** (22/10/2026: sem reserva financeira). Hospedar no computador dele foi
   desaconselhado (queda de luz/internet, segurança, reescrever o site). Manter o D1 dentro dos limites grátis; Workers Paid (US$ 5/mês) só quando der.
 - **Aceitar lojas internacionais** (15/10/2026), com preço convertido para reais e selo "Internacional".
