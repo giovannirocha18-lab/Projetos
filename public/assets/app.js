@@ -490,6 +490,106 @@ function caixaMomento(o) {
   return el("div", { class: `momento momento-${m.cor}` }, el("strong", {}, m.titulo), el("span", {}, m.texto));
 }
 
+// ---------------------------------------------------------------------
+// Compartilhar no WhatsApp (ideia do Pelando/Promobit): o link abre o próprio produto no nosso site
+// (?produto=<código>, janela "Ver detalhes"; a prévia do WhatsApp mostra a foto e o preço, ver _middleware.js).
+// Lomadee não tem busca por código: vai o link de uma busca pelo nome.
+// ---------------------------------------------------------------------
+const ICONE_WHATSAPP = () => {
+  const span = el("span", { class: "icone-whatsapp", "aria-hidden": "true" });
+  span.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.3.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.5-.2z"/></svg>';
+  return span;
+};
+
+function linkDoProduto(o) {
+  if (/^(awin|shopee|aliexpress)-/.test(o.id)) return `${location.origin}/?produto=${encodeURIComponent(o.id)}`;
+  return `${location.origin}/?q=${encodeURIComponent(o.titulo.split(/\s+/).slice(0, 6).join(" "))}`;
+}
+
+function compartilharWhatsApp(o) {
+  const texto = `Olha essa oferta que achei no Vai pro Carrinho 🛒\n${o.titulo}\n💰 R$ ${brl(o.preco)} ${infoLoja(o).em} ${infoLoja(o).nome}\n${linkDoProduto(o)}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
+}
+
+// Link compartilhado aberto: mostra a página inicial e, por cima, a janela do produto
+async function abrirProdutoDoLink() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get("produto");
+  if (!id) return;
+  params.delete("produto");
+  history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
+  try {
+    const r = await fetch(`/api/produto?id=${encodeURIComponent(id)}`);
+    const { oferta } = await r.json();
+    if (oferta) abrirDetalhes(oferta);
+    else toast("Essa oferta não está mais disponível 😕");
+  } catch {
+    toast("Não foi possível abrir essa oferta agora");
+  }
+}
+
+// ---------------------------------------------------------------------
+// Comparar lado a lado (ideia do PriceRunner/Buscapé): marca até 4 produtos e vê tudo numa tabela
+// ---------------------------------------------------------------------
+const MAX_COMPARAR = 4;
+const comparando = new Map(); // código -> oferta
+
+function alternarComparar(o) {
+  if (comparando.has(o.id)) comparando.delete(o.id);
+  else if (comparando.size >= MAX_COMPARAR) return toast(`Dá para comparar até ${MAX_COMPARAR} produtos de cada vez`);
+  else comparando.set(o.id, o);
+  atualizarComparar();
+}
+
+function atualizarComparar() {
+  document.querySelectorAll(".comparar").forEach((b) => b.setAttribute("aria-pressed", comparando.has(b.dataset.id)));
+  let barra = $("#barra-comparar");
+  document.body.classList.toggle("com-comparar", comparando.size > 0);
+  if (!comparando.size) { barra?.remove(); return; }
+  if (!barra) { barra = el("div", { class: "barra-comparar", id: "barra-comparar", role: "region", "aria-label": "Produtos para comparar" }); document.body.append(barra); }
+  const lista = [...comparando.values()];
+  barra.replaceChildren(
+    el("div", { class: "barra-comparar-fotos" }, ...lista.map((o) => el("button", {
+      type: "button", class: "barra-comparar-item", title: `Tirar: ${o.titulo}`, "aria-label": `Tirar da comparação: ${o.titulo}`,
+      onclick: () => alternarComparar(o),
+    }, o.imagem ? el("img", { src: o.imagem, alt: "" }) : el("span", {}, o.emoji || "🛍️"), el("span", { class: "tirar", "aria-hidden": "true" }, "✕")))),
+    el("button", { class: "botao-primario", type: "button", disabled: lista.length < 2, onclick: abrirComparacao },
+      ...(lista.length < 2 ? longoCurto("Escolha mais 1 produto", "Escolha mais 1") : longoCurto(`⚖️ Comparar ${lista.length} produtos`, `⚖️ Comparar (${lista.length})`))),
+    el("button", { class: "botao-link", type: "button", onclick: () => { comparando.clear(); atualizarComparar(); } }, "Limpar"));
+}
+
+function abrirComparacao() {
+  const lista = [...comparando.values()];
+  const menor = Math.min(...lista.map((o) => o.preco));
+  const melhorNota = Math.max(...lista.map((o) => o.avaliacao || 0));
+  const maisVendido = Math.max(...lista.map((o) => o.vendidos || 0));
+  const linha = (titulo, celula) => el("tr", {}, el("th", { scope: "row" }, titulo), ...lista.map((o) => el("td", {}, celula(o))));
+  const tabela = el("table", { class: "tabela-comparar" },
+    el("thead", {}, el("tr", {}, el("th", {}, ""), ...lista.map((o) => el("th", { scope: "col" },
+      el("div", { class: "comparar-foto" }, o.imagem ? el("img", { src: o.imagem, alt: "", onerror: fotoQuebrada(o) }) : el("span", { class: "foto-emoji" }, o.emoji || "🛍️")),
+      el("button", { class: "titulo-botao", type: "button", onclick: () => { $("#janela-comparar").close(); abrirDetalhes(o); } }, o.titulo))))),
+    el("tbody", {},
+      linha("Loja", (o) => el("span", { class: "loja-tag", style: `--cor-loja:${infoLoja(o).cor}` }, el("span", { class: "loja-ponto" }), infoLoja(o).nome)),
+      linha("Preço", (o) => el("div", { class: o.preco === menor ? "comparar-melhor" : null },
+        el("strong", { class: "comparar-preco" }, `R$ ${brl(o.preco)}`),
+        o.preco === menor && el("small", {}, "🏆 Menor preço"),
+        o.preco > menor && el("small", {}, `+R$ ${brl(o.preco - menor)}`))),
+      linha("Desconto", (o) => (o.desconto ? `-${o.desconto}%${o.precoAntigo ? ` (era R$ ${brl(o.precoAntigo)})` : ""}` : "—")),
+      linha("Vale a pena?", (o) => { const m = momentoDeCompra(o); return m ? m.titulo : "—"; }),
+      linha("Avaliação", (o) => (o.avaliacao ? el("span", { class: o.avaliacao === melhorNota && lista.length > 1 ? "comparar-melhor" : null },
+        `★ ${String(o.avaliacao).replace(".", ",")}`) : "—")),
+      linha("Vendidos", (o) => (o.vendidos ? el("span", { class: o.vendidos === maisVendido ? "comparar-melhor" : null }, vendidosTexto(o.vendidos)) : "—")),
+      linha("Envio", (o) => (o.envioNacional ? "🇧🇷 Do Brasil" : o.internacional ? "🌎 Internacional" : o.freteGratis ? "🚚 Frete grátis" : "Nacional")),
+      el("tr", {}, el("th", {}, ""), ...lista.map((o) => el("td", {},
+        el("a", { class: classeBotao(infoLoja(o)), href: o.link, target: "_blank", rel: "sponsored noopener" }, ...textoComprar(infoLoja(o))),
+        el("button", { class: "botao-link", type: "button", onclick: () => { alternarComparar(o); comparando.size >= 2 ? abrirComparacao() : $("#janela-comparar").close(); } }, "Tirar"))))));
+  $("#comparar-conteudo").replaceChildren(
+    el("h2", { id: "comparar-titulo" }, "⚖️ Comparar produtos"),
+    el("p", {}, "Preços de hoje. Confira na loja antes de comprar."),
+    el("div", { class: "comparar-rolagem" }, tabela));
+  if (!$("#janela-comparar").open) $("#janela-comparar").showModal();
+}
+
 function abrirConta() {
   conta.erro = "";
   if (!conta.usuario && conta.etapa !== "nova-senha") conta.etapa = "entrar";
@@ -759,6 +859,10 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
     class: `oferta${melhor ? " melhor" : ""}`,
     style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto};--fundo-cat:${FUNDO_CATEGORIA[o.categoria] || "linear-gradient(135deg,#ede9fe,#fce7f3)"}`,
   },
+    // "Comparar" fica fora do link da foto (botão dentro de link não vale), desenhado no canto de baixo da foto
+    el("div", { class: "oferta-topo" },
+    el("button", { class: "comparar", type: "button", "data-id": o.id, "aria-pressed": comparando.has(o.id), title: "Comparar com outros produtos",
+      onclick: () => alternarComparar(o) }, ...longoCurto("⚖️ Comparar", "⚖️")),
     el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored noopener", tabindex: "-1", "aria-hidden": "true", onclick: abrir },
       o.imagem
         // Foto que não carrega (link quebrado da loja) vira o desenho padrão
@@ -768,7 +872,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         melhor && el("span", { class: "selo selo-melhor" }, ...longoCurto("🏆 Menor preço da busca", "🏆 Menor preço")),
         maisVendido && el("span", { class: "selo selo-vendido" }, ...longoCurto("⭐ Mais vendido", "⭐ Top")),
         o.desconto && el("span", { class: "selo selo-desconto" }, `-${o.desconto}%`),
-        ...selosHistorico(o))),
+        ...selosHistorico(o)))),
     el("div", { class: "oferta-corpo" },
       el("div", { class: "loja-linha" },
         el("span", { class: "loja-tag" }, el("span", { class: "loja-ponto" }), loja.nome),
@@ -797,6 +901,9 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         el("div", { class: "links-oferta" },
           temDetalhes(o) && el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
           o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico")),
+        el("div", { class: "botoes-oferta" },
+        el("button", { class: "whatsapp", type: "button", "aria-label": "Enviar no WhatsApp", title: "Enviar no WhatsApp",
+          onclick: () => compartilharWhatsApp(o) }, ICONE_WHATSAPP()),
         el("button", {
           class: "alertar", type: "button", "data-id": o.id, "aria-pressed": temAlerta(o.id),
           "aria-label": "Me avise quando baixar", title: "Me avise quando o preço baixar", onclick: () => abrirAlerta(o),
@@ -804,7 +911,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         el("button", {
           class: "favoritar", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
           "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: () => alternarFavorito(o),
-        }, ICONE_CARRINHO())),
+        }, ICONE_CARRINHO()))),
       el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
         ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
 }
@@ -922,7 +1029,10 @@ function abrirDetalhes(o) {
       o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => { $("#janela-detalhes").close(); abrirHistorico(o); } },
         "📈 Ver histórico de preço"),
       el("button", { class: "ver-historico", type: "button", onclick: () => { $("#janela-detalhes").close(); abrirAlerta(o); } },
-        temAlerta(o.id) ? "🔔 Ver meu alerta" : "🔔 Me avise quando baixar")),
+        temAlerta(o.id) ? "🔔 Ver meu alerta" : "🔔 Me avise quando baixar"),
+      el("button", { class: "ver-historico", type: "button", onclick: () => { alternarComparar(o); $("#janela-detalhes").close(); } },
+        comparando.has(o.id) ? "⚖️ Tirar da comparação" : "⚖️ Comparar")),
+    el("button", { class: "botao-whatsapp", type: "button", onclick: () => compartilharWhatsApp(o) }, ICONE_WHATSAPP(), "Enviar no WhatsApp"),
     el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener",
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}`, onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
       `Comprar ${loja.em} ${loja.nome.length <= 16 ? loja.nome : "loja"}`, el("span", { class: "flecha", "aria-hidden": "true" }, "→")),
@@ -2405,6 +2515,11 @@ $("#abrir-conta").addEventListener("click", abrirConta);
 $("#fechar-conta").addEventListener("click", () => $("#janela-conta").close());
 $("#fechar-historico").addEventListener("click", () => $("#janela-historico").close());
 $("#fechar-detalhes").addEventListener("click", () => $("#janela-detalhes").close());
+$("#fechar-comparar").addEventListener("click", () => $("#janela-comparar").close());
+$("#janela-comparar").addEventListener("click", (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
+});
 $("#fechar-lojas").addEventListener("click", () => $("#janela-lojas").close());
 $("#lojas-filtro").addEventListener("input", () => lojasParceiras && desenharListaLojas());
 document.querySelectorAll("[data-ver-lojas]").forEach((b) => b.addEventListener("click", abrirLojas));
@@ -2443,7 +2558,9 @@ window.addEventListener("popstate", () => {
 
 $("#ano").textContent = new Date().getFullYear();
 
+const linkDeProduto = new URLSearchParams(location.search).has("produto");
 montarInicio();
 atualizarFavoritos();
 mostrar();
 carregarConta();
+if (linkDeProduto) abrirProdutoDoLink();

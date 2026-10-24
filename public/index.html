@@ -8,6 +8,12 @@
   <!-- Remover ao lançar o site (junto com o arquivo _headers) -->
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#6d28d9">
+  <!-- Prévia do link no WhatsApp e redes sociais (num link de produto, ?produto=…, o _middleware.js troca pelos dados dele) -->
+  <meta property="og:site_name" content="Vai pro Carrinho">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Vai pro Carrinho — Compare preços e economize">
+  <meta property="og:description" content="Busque um produto e compare os preços de várias lojas num só lugar.">
+  <meta property="og:image" content="https://vaiprocarrinho.com.br/marca/vaiprocarrinho-logo-icone.png">
   <!-- Verificação do site na Awin (Conta > Espaços Promocionais) -->
   <meta name="verification" content="2e195e3c8c68351f1709348e09eae77d" />
   <meta name="lomadee" content="2324685" />
@@ -198,6 +204,12 @@
   <dialog class="janela janela-historico" id="janela-historico" aria-labelledby="historico-titulo">
     <button type="button" class="fechar janela-fechar" id="fechar-historico" aria-label="Fechar">✕</button>
     <div id="historico-conteudo"></div>
+  </dialog>
+
+  <!-- ============ COMPARAR produtos lado a lado ============ -->
+  <dialog class="janela janela-comparar" id="janela-comparar" aria-labelledby="comparar-titulo">
+    <button type="button" class="fechar janela-fechar" id="fechar-comparar" aria-label="Fechar">✕</button>
+    <div id="comparar-conteudo"></div>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>

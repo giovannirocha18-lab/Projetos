@@ -3,6 +3,8 @@
 // LISTA DO QUE PODE ABRIR (segunda camada): qualquer outro endereço dá 404. Também põe cabeçalhos de segurança.
 // /assets/ e /marca/ não passam por aqui (public/_routes.json): saem direto do Cloudflare, mais rápido e sem gastar o
 // limite de chamadas, com os cabeçalhos de segurança do public/_headers. Só é seguro porque NADA interno fica em public/.
+import { produtoPorId } from "../lib/produto.js";
+
 const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
 
 const VERIFICACAO_AWIN = "2e195e3c8c68351f1709348e09eae77d";
@@ -78,9 +80,27 @@ async function comVersaoNosArquivos(resposta, env, origem) {
   return new HTMLRewriter().on("script[src]", trocar("src")).on("link[href]", trocar("href")).transform(resposta);
 }
 
+// Link de produto compartilhado (?produto=shopee-123): a prévia do WhatsApp mostra a foto, o nome e o preço dele
+async function comPreviaDoProduto(resposta, env, url) {
+  const id = url.searchParams.get("produto");
+  if (!id || !/^\/(index(\.html)?)?$/.test(url.pathname) || !(resposta.headers.get("Content-Type") || "").includes("text/html")) return resposta;
+  const o = await produtoPorId(env, id).catch(() => null);
+  if (!o) return resposta;
+  const preco = Number(o.preco).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const titulo = `${o.titulo.slice(0, 90)} por ${preco}`;
+  const meta = (valor) => ({ element(el) { el.setAttribute("content", valor); } });
+  let rewriter = new HTMLRewriter()
+    .on("title", { element(el) { el.setInnerContent(`${titulo} · Vai pro Carrinho`); } })
+    .on('meta[property="og:title"]', meta(titulo))
+    .on('meta[property="og:description"]', meta(`${o.lojaNome || o.loja} · compare preços no Vai pro Carrinho`));
+  if (/^https:\/\//.test(o.imagem || "")) rewriter = rewriter.on('meta[property="og:image"]', meta(o.imagem.replace(/_tn$/, "")));
+  return rewriter.transform(resposta);
+}
+
 export async function onRequest(contexto) {
-  const resposta = await responder(contexto);
-  return comSeguranca(await comVersaoNosArquivos(resposta, contexto.env, new URL(contexto.request.url).origin));
+  const url = new URL(contexto.request.url);
+  const resposta = await comPreviaDoProduto(await responder(contexto), contexto.env, url);
+  return comSeguranca(await comVersaoNosArquivos(resposta, contexto.env, url.origin));
 }
 
 async function responder({ request, next }) {

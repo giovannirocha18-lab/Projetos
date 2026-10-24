@@ -206,7 +206,7 @@ a { color: inherit; }
   background: var(--fundo-cat); transition: transform .3s;
 }
 
-.selos { position: absolute; top: 10px; left: 10px; max-width: calc(100% - 64px); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.selos { position: absolute; top: 10px; left: 10px; max-width: calc(100% - 20px); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .selo {
   font-size: .74rem; font-weight: 800; padding: 4px 10px; border-radius: 999px;
   color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
@@ -214,7 +214,12 @@ a { color: inherit; }
 .selo-desconto { background: #dc2626; }
 .selo-melhor { background: #15803d; }
 
-.acoes-oferta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.acoes-oferta { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; row-gap: 6px; }
+/* Os links ficam ao lado dos botões redondos quando cabem; se não, vão para a linha de cima (sem quebrar "Ver detalhes") */
+.acoes-oferta .links-oferta { flex: 1 1 100px; }
+.acoes-oferta .links-oferta .ver-historico { white-space: nowrap; }
+.botoes-oferta { display: flex; gap: 6px; margin-left: auto; flex: none; }
+.botoes-oferta > * { margin-left: 0 !important; }
 .favoritar {
   flex: none; margin-left: auto;
   width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--roxo);
@@ -237,6 +242,55 @@ a { color: inherit; }
 .alertar:hover { transform: scale(1.12); filter: none; opacity: 1; }
 .alertar[aria-pressed="true"] { filter: none; opacity: 1; background: #fef3c7; border-color: #d97706; }
 .alertar + .favoritar { margin-left: 0; }
+.whatsapp {
+  flex: none; margin-left: auto;
+  width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid #16a34a; background: #fff; color: #16a34a;
+  display: grid; place-items: center; cursor: pointer; transition: transform .15s, background .15s, color .15s;
+}
+.whatsapp:hover { transform: scale(1.12); background: #16a34a; color: #fff; }
+.whatsapp + .alertar { margin-left: 0; }
+.botao-whatsapp {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin: 10px 0 0;
+  padding: 11px 16px; border: 0; border-radius: 12px; background: #16a34a; color: #fff; font: inherit; font-weight: 800; cursor: pointer;
+}
+.botao-whatsapp:hover { background: #15803d; }
+.icone-whatsapp { display: inline-grid; place-items: center; }
+
+/* Comparar: pílula no canto da foto, barra no rodapé e janela com tabela */
+.oferta-topo { position: relative; }
+.comparar {
+  position: absolute; bottom: 8px; right: 8px; z-index: 2;
+  padding: 4px 10px; border-radius: 999px; border: 1.5px solid var(--roxo); background: rgba(255, 255, 255, .92);
+  color: var(--roxo); font: inherit; font-size: .74rem; font-weight: 800; cursor: pointer;
+}
+.comparar:hover { background: var(--roxo-claro); }
+.comparar[aria-pressed="true"] { background: var(--roxo); color: #fff; }
+.barra-comparar {
+  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 40;
+  display: flex; align-items: center; gap: 12px; max-width: calc(100% - 32px);
+  background: var(--card); border: 1px solid var(--borda); border-radius: 16px; padding: 10px 14px; box-shadow: var(--sombra-forte);
+}
+.barra-comparar .botao-primario { width: auto; margin: 0; padding: 10px 18px; white-space: nowrap; }
+.barra-comparar .botao-primario[disabled] { opacity: .6; cursor: default; }
+.barra-comparar-fotos { display: flex; gap: 6px; }
+.barra-comparar-item { position: relative; width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--borda); background: #fff; padding: 0; cursor: pointer; overflow: hidden; display: grid; place-items: center; }
+.barra-comparar-item img { width: 100%; height: 100%; object-fit: contain; }
+.barra-comparar-item .tirar { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(26, 21, 48, .55); color: #fff; font-weight: 800; opacity: 0; transition: opacity .15s; }
+.barra-comparar-item:hover .tirar { opacity: 1; }
+body.com-comparar .rodape { padding-bottom: 96px; }
+.janela.janela-comparar { width: min(1000px, calc(100vw - 32px)); max-width: none; max-height: calc(100vh - 32px); overflow-y: auto; }
+.comparar-rolagem { overflow-x: auto; }
+.tabela-comparar { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.tabela-comparar th, .tabela-comparar td { padding: 10px 8px; border-bottom: 1px solid var(--borda); text-align: left; vertical-align: top; min-width: 150px; }
+.tabela-comparar tbody th { min-width: 90px; width: 100px; color: var(--suave); font-weight: 700; position: sticky; left: 0; background: var(--card); }
+.tabela-comparar thead th:first-child { position: sticky; left: 0; background: var(--card); min-width: 90px; }
+.tabela-comparar .titulo-botao { font-weight: 700; font-size: .85rem; text-align: left; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.comparar-foto { width: 100%; aspect-ratio: 1 / 1; max-width: 140px; border-radius: 10px; background: #fff; border: 1px solid var(--borda); display: grid; place-items: center; overflow: hidden; margin-bottom: 8px; }
+.comparar-foto img { width: 100%; height: 100%; object-fit: contain; }
+.comparar-preco { font-size: 1.1rem; display: block; }
+.comparar-melhor { color: var(--verde); font-weight: 800; }
+.comparar-melhor small, .tabela-comparar small { display: block; font-weight: 700; }
+.tabela-comparar td .botao-oferta { display: flex; margin-bottom: 6px; }
 
 /* "Vale a pena comprar agora?" (janelas de histórico, detalhes e alerta) */
 .momento { display: flex; flex-direction: column; gap: 2px; border-radius: 12px; padding: 10px 12px; margin: 0 0 12px; font-size: .88rem; border: 1px solid; }
@@ -646,7 +700,13 @@ a { color: inherit; }
   .oferta-titulo { font-size: .86rem; }
   .preco { font-size: 1.25rem; }
   .botao-oferta { font-size: .82rem; padding: 10px 6px; }
-  .favoritar, .alertar { width: 34px; height: 34px; }
+  .favoritar, .alertar, .whatsapp { width: 34px; height: 34px; }
+  .comparar { bottom: 6px; right: 6px; padding: 3px 8px; }
+  .barra-comparar { bottom: 10px; gap: 8px; padding: 8px 10px; }
+  .barra-comparar-item { width: 36px; height: 36px; }
+  .barra-comparar .botao-primario { padding: 9px 12px; font-size: .85rem; }
+  .tabela-comparar th, .tabela-comparar td { min-width: 130px; padding: 8px 6px; }
+  .tabela-comparar tbody th, .tabela-comparar thead th:first-child { min-width: 72px; width: 72px; }
   /* Com o sino e o carrinho lado a lado, os links ("Ver detalhes", "Histórico") ficam numa linha só, em cima */
   .acoes-oferta { flex-wrap: wrap; row-gap: 6px; }
   .acoes-oferta .links-oferta { flex: 1 0 100%; }
