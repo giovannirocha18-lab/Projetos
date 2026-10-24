@@ -1318,12 +1318,22 @@ const MARCAS_AMBIGUAS = new Set(["golden", "premier", "growth", "fame", "gama", 
   "honor", "poco", "mac", "creamy", "estrela", "hercules", "pioneiro", "skala", "democrata", "pegada", "moleca", "ipanema",
   "melissa", "kappa", "oxo", "fischer", "darkness", "dux", "hp", "ninja", "fila", "positivo", "alexa", "tip top", "galaxy"]);
 const MARCAS_SIGLAS = { lg: "LG", hp: "HP", jbl: "JBL", tcl: "TCL", aoc: "AOC", wap: "WAP", qcy: "QCY", msi: "MSI", "3m": "3M",
-  dji: "DJI", mac: "MAC", "tp link": "TP-Link", oxo: "OXO" };
+  dji: "DJI", mac: "MAC", "tp link": "TP-Link", oxo: "OXO", hyperx: "HyperX", aiwa: "AIWA", wap: "WAP" };
+// Lojas que vendem só a própria marca: o produto sem marca no título fica com a marca da loja
+const LOJAS_QUE_SAO_MARCA = { karsten: "Karsten", polishop: "Polishop", "monte carlo": "Monte Carlo", animale: "Animale",
+  "shark ninja": "Ninja", arno: "Arno", malwee: "Malwee", brinox: "Brinox", rovitex: "Rovitex" };
+const marcaDaLoja = (o) => {
+  const loja = limpo(o.lojaNome || "");
+  const chave = Object.keys(LOJAS_QUE_SAO_MARCA).find((k) => loja === k || loja.startsWith(`${k} `));
+  return chave ? { n: limpo(LOJAS_QUE_SAO_MARCA[chave]), nome: LOJAS_QUE_SAO_MARCA[chave] } : null;
+};
 const nomeDaMarca = (m) => MARCAS_SIGLAS[limpo(m)] || m.replace(/(^|\s)(\S)/g, (_, e, l) => e + l.toUpperCase());
 let marcasDoTitulo = null; // [{ chave: " samsung ", n: "samsung", nome: "Samsung", amb }], montada quando o vocabulário chega
 function prepararMarcas() {
   if (!vocab.marcas.length) return null;
-  const nomes = new Map(vocab.marcas.map((m) => [limpo(m), m]));
+  // A lista tem "britânia" e "britania": fica a 1ª (com acento) para o nome que aparece
+  const nomes = new Map();
+  for (const m of vocab.marcas) if (!nomes.has(limpo(m))) nomes.set(limpo(m), m);
   marcasDoTitulo = [...nomes].map(([n]) => {
     const dona = limpo(MARCA_APELIDOS[n] || n);
     return { chave: ` ${n} `, n: dona, nome: nomeDaMarca(nomes.get(dona) || MARCA_APELIDOS[n] || n), amb: MARCAS_AMBIGUAS.has(n) };
@@ -1343,7 +1353,7 @@ function marcaDe(o) {
     if (!melhor || posicao < melhor.posicao) melhor = { n: m.n, nome: m.nome, posicao };
   }
   o._marcaDe = marcasDoTitulo;
-  o._marca = melhor && { n: melhor.n, nome: melhor.nome };
+  o._marca = melhor ? { n: melhor.n, nome: melhor.nome } : marcaDaLoja(o);
   return o._marca;
 }
 
@@ -1359,7 +1369,9 @@ function desenharFiltroMarcas() {
   // Marca marcada que sumiu da lista (outro filtro) continua aparecendo, para dar para desmarcar
   for (const n of estado.marcasSo) if (!contagem.has(n)) contagem.set(n, { nome: marcasDoTitulo?.find((m) => m.n === n)?.nome || n, qtd: 0 });
   const caixa = $("#caixa-marcas");
-  caixa.hidden = contagem.size < 2;
+  // Nas "Ofertas do dia" quase tudo é produto sem marca no nome (calça cargo, suporte de celular…): o filtro só vale
+  // na busca, na categoria e na página de uma loja (print do Giovanni, 24/10/2026: só 3 marcas na página inicial)
+  caixa.hidden = contagem.size < 2 || (!estado.q && !estado.loja);
   if (caixa.hidden) return;
   const ordem = [...contagem].sort(([a, x], [b, y]) => estado.marcasSo.has(b) - estado.marcasSo.has(a) || y.qtd - x.qtd || x.nome.localeCompare(y.nome, "pt-BR"));
   const mostrar = estado.todasMarcas ? ordem : ordem.slice(0, Math.max(MARCAS_VISIVEIS, estado.marcasSo.size));
