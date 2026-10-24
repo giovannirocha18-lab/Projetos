@@ -384,7 +384,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   se a lista tem 8+ ofertas com frete grátis (`FRETE_MINIMO`). **A API de afiliados da Shopee não informa frete** (depende do
   CEP e dos cupons; ler a página da Shopee é proibido). Giovanni preocupado em frustrar o visitante: botão quase sempre
   escondido até haver mais lojas da Awin.
-- **Mais opções no topo da barra lateral (16/10/2026, pedido do Giovanni)**: "Frete grátis / Com desconto / Mostrar acessórios e
+- **Mais opções no topo da barra lateral (16/10/2026, pedido do Giovanni; 24/10: "Com desconto" removido, pedido dele — já há "Maior desconto" em Ordenar por; o quadro some quando não há frete grátis)**: "Frete grátis / Com desconto / Mostrar acessórios e
   peças" logo abaixo de "Ordenar por". (Testado e desfeito a pedido dele: quadro de resultados preso no topo com botão de acessórios.)
 - **F5 volta ao começo (16/10/2026, pedido do Giovanni)**: atualizar a página tira busca/categoria do endereço, zera filtros e
   ordem e volta ao topo (`performance.getEntriesByType("navigation")[0].type === "reload"`). Link com `?q=` aberto direto continua funcionando.
