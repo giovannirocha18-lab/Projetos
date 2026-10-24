@@ -836,7 +836,9 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .cupom-acoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .cupom-codigo { display: inline-flex; align-items: stretch; border: 2px dashed #b45309; border-radius: 10px; overflow: hidden; background: #fffbeb; }
 .cupom-codigo code { padding: 6px 12px; font-size: .95rem; font-weight: 800; letter-spacing: .04em; color: #92400e; user-select: all; }
-.cupom-copiar { border: 0; border-left: 2px dashed #b45309; background: #fef3c7; color: #92400e; font: inherit; font-size: .82rem; font-weight: 800;
-  padding: 0 12px; cursor: pointer; }
+.cupom-codigo code { letter-spacing: .12em; }
+.cupom-codigo.revelado { background: #dcfce7; border-color: #16a34a; }
+.cupom-codigo.revelado code { color: #166534; user-select: all; letter-spacing: .04em; }
+.cupom-aviso { color: #166534; font-weight: 700; font-size: .82rem; }
 .cupom-sem-codigo { font-size: .85rem; color: var(--suave); }
 .cupom-ir { width: auto; margin: 0 0 0 auto; padding: 8px 16px; font-size: .88rem; text-decoration: none; }

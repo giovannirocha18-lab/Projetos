@@ -1943,22 +1943,28 @@ function desenharCupons() {
   $("#cupons-total").replaceChildren(loja
     ? el("span", {}, `Cupons de ${cuponsDaLoja(loja)[0]?.lojaNome || "esta loja"}. `,
       el("button", { type: "button", class: "botao-link", onclick: () => abrirCupons() }, "Ver cupons de todas as lojas"))
-    : `${estado.cupons.length} ${estado.cupons.length === 1 ? "cupom" : "cupons"} de ${lojas} ${lojas === 1 ? "loja" : "lojas"}. Copie o código e use na loja.`);
+    : `${estado.cupons.length} ${estado.cupons.length === 1 ? "cupom" : "cupons"} de ${lojas} ${lojas === 1 ? "loja" : "lojas"}. Clique em “Pegar cupom”: o código aparece e a loja abre.`);
   $("#cupons-lista").replaceChildren(...(lista.length ? lista.map(itemCupom) : [el("p", { class: "vazio" }, "Nenhum cupom encontrado.")]));
 }
 
+// O código só aparece depois do clique em "Pegar cupom", que abre a loja pelo link com comissão (pedido do Giovanni,
+// 24/10/2026: quem copiasse o código e fosse direto à loja compraria sem o link). O clique copia o código e marca a
+// visita na loja; mesmo se a pessoa voltar à loja depois, o cookie da Lomadee já ficou no navegador.
+const codigoEscondido = (codigo) => `${codigo.slice(0, Math.min(3, Math.ceil(codigo.length / 3)))}${"•".repeat(Math.max(codigo.length - 3, 4))}`;
 function itemCupom(c) {
   const loja = infoLoja(c);
-  const copiar = el("button", { type: "button", class: "cupom-copiar", onclick: async (e) => {
-    const botao = e.currentTarget;
-    try {
-      await navigator.clipboard.writeText(c.codigo);
-      botao.textContent = "Copiado ✓";
-    } catch {
-      botao.textContent = "Selecione e copie";
-    }
-    setTimeout(() => { botao.textContent = "Copiar"; }, 2000);
-  } }, "Copiar");
+  const codigo = c.codigo && el("code", {}, codigoEscondido(c.codigo));
+  const aviso = el("small", { class: "cupom-aviso", hidden: true });
+  const pegar = el("a", { class: "botao-oferta cupom-ir", href: c.link, target: "_blank", rel: "sponsored noopener",
+    onclick: () => {
+      if (!c.codigo) return;
+      codigo.textContent = c.codigo;
+      codigo.parentElement.classList.add("revelado");
+      navigator.clipboard?.writeText(c.codigo).then(
+        () => { aviso.textContent = "✓ Código copiado. Cole no carrinho da loja que abriu."; },
+        () => { aviso.textContent = "Use este código no carrinho da loja que abriu."; },
+      ).finally(() => { aviso.hidden = false; });
+    } }, c.codigo ? "🎟️ Pegar cupom e ir para a loja" : "Ativar desconto na loja →");
   return el("li", { class: "cupom" },
     el("div", { class: "cupom-topo" },
       el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
@@ -1966,10 +1972,9 @@ function itemCupom(c) {
     el("strong", { class: "cupom-titulo" }, c.titulo),
     c.descricao && c.descricao !== c.titulo && el("p", { class: "cupom-descricao" }, c.descricao),
     el("div", { class: "cupom-acoes" },
-      c.codigo
-        ? el("span", { class: "cupom-codigo" }, el("code", {}, c.codigo), copiar)
-        : el("span", { class: "cupom-sem-codigo" }, "Sem código: o desconto aparece na loja"),
-      el("a", { class: "botao-oferta cupom-ir", href: c.link, target: "_blank", rel: "sponsored noopener" }, "Ir para a loja →")));
+      c.codigo ? el("span", { class: "cupom-codigo" }, codigo) : el("span", { class: "cupom-sem-codigo" }, "Sem código: o desconto aparece na loja"),
+      pegar),
+    aviso);
 }
 
 // ---------------------------------------------------------------------
