@@ -6,7 +6,7 @@
 import { shopee } from "../../lib/fontes/shopee.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee, marcasComProdutos, produtosDaMarca } from "../../lib/fontes/lomadee.js";
-import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoVivo, nomeDaLojaAwin, lojasDaAwin } from "../../lib/ofertas.js";
+import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoVivo, nomeDaLojaAwin, lojasDaAwin, lojaPequena } from "../../lib/ofertas.js";
 import { carregarMapa, aplicarMapa } from "../../lib/mapaCategorias.js";
 import { marcarSecoes } from "../../lib/categorias.js";
 
@@ -14,7 +14,7 @@ const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
 const POR_PAGINA = 48;
 const MAX_PAGINA = 20;
-const VERSAO = 5; // trocar para descartar o que está guardado
+const VERSAO = 6; // trocar para descartar o que está guardado
 
 function responder(dados, segundos) {
   return Response.json(dados, { headers: { "Cache-Control": `public, max-age=${segundos}`, "X-Robots-Tag": "noindex" } });
@@ -32,7 +32,7 @@ async function listarLojas(env) {
   const lojas = [
     ...(daAwin || []).map((l) => ({ id: `awin:${l.loja}`, nome: nomeDaLojaAwin(l.nome) || l.loja, rede: "awin", produtos: l.n, internacional: Boolean(l.internacional) || undefined })),
     ...[...marcas].map(([id, m]) => ({ id: `lomadee:${id}`, nome: m.nome, rede: "lomadee", produtos: m.produtos, produtosMais: m.produtosMais })),
-  ].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
+  ].filter((l) => !lojaPequena(l.produtos, l.produtosMais)).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
   return { lojas: [...marketplaces, ...lojas], completo: (!lomadee.ativa(env) || marcas.size > 0) && daAwin !== null };
 }
 
