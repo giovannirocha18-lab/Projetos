@@ -683,6 +683,15 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   ❗ **Para o e-mail chegar aos visitantes falta verificar o domínio no Resend** (resend.com > Domains; registros DNS no Cloudflare)
   e criar a variável `EMAIL_REMETENTE`; até lá o Resend só entrega para o e-mail dono da conta Resend.
   Bug antigo visto (não corrigido): `limparCarrinho` recusa link relativo, então produtos da Lomadee (`/api/ir?…`) não sincronizam no carrinho da conta.
+- ⭐ **WhatsApp + Comparar (24/10/2026, itens 3 e 4 da 2ª análise de concorrentes, pedido do Giovanni)**: botão redondo verde do
+  WhatsApp no cartão (grupo `.botoes-oferta` com 🔔 e carrinho) e "Enviar no WhatsApp" na janela de detalhes (`compartilharWhatsApp`,
+  wa.me). Link = `vaiprocarrinho.com.br/?produto=<código>` (`lib/produto.js` + `/api/produto`: Awin do banco, Shopee/AliExpress pela API;
+  Lomadee manda link de busca pelo nome); o site abre a janela "Ver detalhes" (`abrirProdutoDoLink`) e o `_middleware.js`
+  (`comPreviaDoProduto`) troca título e tags og: (foto, nome, preço) para a prévia do WhatsApp; `index.html` ganhou og: padrão.
+  "⚖️ Comparar" no canto de baixo da foto (`.oferta-topo`): até 4 (`MAX_COMPARAR`), barra fixa no rodapé (`#barra-comparar`) e
+  janela `#janela-comparar` com tabela (loja, preço com menor em verde, desconto, vale a pena?, avaliação, vendidos, envio, Comprar).
+  Shopee pelo código: o número vai escrito na consulta (`ofertaShopeePorId`; como variável Int64 a Shopee dava "wrong type" — isso
+  também fazia os alertas da Shopee usarem só o último preço visto até 24/10). Conferido no ar: links de Shopee, AliExpress e Awin.
 - **Lojas por conta da Awin (23/10/2026, execução #33)**: conta PJ = Casa Tema, Shark-Ninja, Kabum, Monte Carlo, Spicy, Karsten,
   **Animale (nova, 10.665 produtos)**, Elements, Lauri. Só na conta PF (faltam pedir na PJ): **Posthaus, Polishop, EINSTAR**.
   Total: 12 lojas, 91.516 produtos nos feeds; banco 115 MB.
