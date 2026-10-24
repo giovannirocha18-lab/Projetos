@@ -14,7 +14,7 @@ const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
 const POR_PAGINA = 48;
 const MAX_PAGINA = 20;
-const VERSAO = 3; // trocar para descartar o que está guardado
+const VERSAO = 4; // trocar para descartar o que está guardado
 
 function responder(dados, segundos) {
   return Response.json(dados, { headers: { "Cache-Control": `public, max-age=${segundos}`, "X-Robots-Tag": "noindex" } });
@@ -31,7 +31,7 @@ async function listarLojas(env) {
   ]);
   const lojas = [
     ...(daAwin || []).map((l) => ({ id: `awin:${l.loja}`, nome: nomeDaLojaAwin(l.nome) || l.loja, rede: "awin", produtos: l.n, internacional: Boolean(l.internacional) || undefined })),
-    ...[...marcas].map(([id, m]) => ({ id: `lomadee:${id}`, nome: m.nome, rede: "lomadee", produtos: m.produtos })),
+    ...[...marcas].map(([id, m]) => ({ id: `lomadee:${id}`, nome: m.nome, rede: "lomadee", produtos: m.produtos, produtosMais: m.produtosMais })),
   ].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
   return { lojas: [...marketplaces, ...lojas], completo: (!lomadee.ativa(env) || marcas.size > 0) && daAwin !== null };
 }

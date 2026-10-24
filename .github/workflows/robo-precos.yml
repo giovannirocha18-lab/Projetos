@@ -106,7 +106,7 @@ jobs:
         run: |
           echo "### Marcas da Lomadee com produtos" >> "$GITHUB_STEP_SUMMARY"
           for parte in $(seq 0 20); do
-            r=$(curl -sS --retry 2 --max-time 90 "https://vaiprocarrinho.com.br/api/conferir-lojas?parte=$parte") || { echo "parte $parte: falhou"; continue; }
+            r=$(curl -sS --retry 2 --max-time 300 "https://vaiprocarrinho.com.br/api/conferir-lojas?parte=$parte") || { echo "parte $parte: falhou"; continue; }
             echo "parte $parte: $r"
             echo "- $r" >> "$GITHUB_STEP_SUMMARY"
             echo "$r" | grep -q '"fim":true' && break
