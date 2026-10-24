@@ -80,6 +80,19 @@ async function comVersaoNosArquivos(resposta, env, origem) {
   return new HTMLRewriter().on("script[src]", trocar("src")).on("link[href]", trocar("href")).transform(resposta);
 }
 
+// Prévia do link /black-friday no WhatsApp e nas redes
+function comPreviaDaBlackFriday(resposta) {
+  const titulo = "Black Friday de verdade: só desconto conferido";
+  const descricao = "Acompanhamos o preço de cada produto todos os dias. Se a loja subiu o preço antes, a oferta não aparece.";
+  const meta = (valor) => ({ element(el) { el.setAttribute("content", valor); } });
+  return new HTMLRewriter()
+    .on("title", { element(el) { el.setInnerContent(`${titulo} · Vai pro Carrinho`); } })
+    .on('meta[property="og:title"]', meta(titulo))
+    .on('meta[property="og:description"]', meta(descricao))
+    .on('meta[name="description"]', meta(descricao))
+    .transform(resposta);
+}
+
 // Link de produto compartilhado (?produto=shopee-123): a prévia do WhatsApp mostra a foto, o nome e o preço dele
 async function comPreviaDoProduto(resposta, env, url) {
   const id = url.searchParams.get("produto");
@@ -103,7 +116,7 @@ export async function onRequest(contexto) {
   return comSeguranca(await comVersaoNosArquivos(resposta, contexto.env, url.origin));
 }
 
-async function responder({ request, next }) {
+async function responder({ request, next, env }) {
   const url = new URL(request.url);
   // O endereço vaiprocarrinho.pages.dev (do Cloudflare) não pode ser desligado: leva para o domínio
   // oficial. As prévias de outras branches (algo.vaiprocarrinho.pages.dev) continuam abrindo.
@@ -120,6 +133,11 @@ async function responder({ request, next }) {
   // O comparador ficava em /previa antes do lançamento: leva para a página principal
   if (/^\/previa(\.html)?\/?$/i.test(url.pathname)) {
     return Response.redirect(`${url.origin}/${url.search}`, 301);
+  }
+  // Página da Black Friday: é a página principal (o site vê o endereço e abre as ofertas da Black Friday)
+  if (/^\/black-friday\/?$/i.test(url.pathname) && env.ASSETS) {
+    const pagina = await env.ASSETS.fetch(new Request(new URL("/", url.origin)));
+    return comPreviaDaBlackFriday(pagina);
   }
   // Só os endereços públicos (página principal, Política de Privacidade e API); o resto não existe para o visitante
   const caminho = caminhoNormal(url.pathname);

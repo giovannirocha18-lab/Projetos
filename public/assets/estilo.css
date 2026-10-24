@@ -842,3 +842,14 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .cupom-aviso { color: #166534; font-weight: 700; font-size: .82rem; }
 .cupom-sem-codigo { font-size: .85rem; color: var(--suave); }
 .cupom-ir { width: auto; margin: 0 0 0 auto; padding: 8px 16px; font-size: .88rem; text-decoration: none; }
+
+/* Black Friday (24/10/2026): botão preto no card da página inicial, chip nos "em alta" e legenda no card roxo */
+.botoes-inicio { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.botoes-inicio .botao-cupons-inicio { margin-top: 0; }
+.botao-bf { background: #111827; color: #fff; }
+.botao-bf:hover { background: #000; color: #facc15; }
+.chip-bf { background: #111827 !important; color: #fff !important; border-color: #111827 !important; font-weight: 800; }
+.bf-explica { font-size: .92rem; opacity: .95; }
+.bf-legendas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.bf-legenda { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.16); border-radius: 999px; padding: 4px 10px; font-size: .8rem; font-weight: 700; }
+.bf-legenda .qtd { background: rgba(255,255,255,.25); border-radius: 999px; padding: 0 7px; }

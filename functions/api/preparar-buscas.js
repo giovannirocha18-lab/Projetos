@@ -6,6 +6,7 @@ import { categoriasParaPreparar, buscasDasVitrines } from "../../lib/categorias.
 import { maisBuscados, termosBuscados } from "../../lib/buscas.js";
 import { carregarMapa } from "../../lib/mapaCategorias.js";
 import { POPULARES, termosParaSugestoes } from "../../lib/vocabulario.js";
+import { guardarDaBusca } from "../../lib/blackfriday.js";
 
 // Busca as categorias, os mais procurados no Brasil (POPULARES em lib/vocabulario.js), os atalhos "em alta", o que mais
 // gente buscou no site em 30 dias e tudo o que a caixa de busca sugere (vitrines das categorias, produto + marca…),
@@ -39,9 +40,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const resposta = await buscar({ request: new Request(url), env: { ...env, __PREPARAR: true }, waitUntil });
   const dados = await resposta.json().catch(() => ({}));
   const falhou = Object.entries(dados.lojas || {}).filter(([, l]) => !l.ok).map(([nome, l]) => `${nome}: ${l.erro}`);
+  // Página da Black Friday: guarda os produtos desta busca com desconto que dá para conferir (lib/blackfriday.js)
+  const blackFriday = await guardarDaBusca(env.DB, dados.ofertas).catch(() => 0);
   return Response.json({
     parte, partes: lista.length, fim, busca: cat ? `${cat} (${q})` : q || "Ofertas do dia",
     produtos: dados.ofertas?.length || 0, guardada: Boolean(dados.lojas?.shopee?.ok && dados.ofertas?.length), falhou,
-    segundos: (Date.now() - inicio) / 1000, categoriasAprendidas: (await carregarMapa(env)).size,
+    blackFriday, segundos: (Date.now() - inicio) / 1000, categoriasAprendidas: (await carregarMapa(env)).size,
   }, { headers: { "Cache-Control": "no-store" } });
 }

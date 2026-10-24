@@ -2032,7 +2032,7 @@ function botaoCupomLoja(l) {
 }
 
 function irParaLoja(id) {
-  history.pushState(null, "", `?loja=${encodeURIComponent(id)}`);
+  history.pushState(null, "", `/?loja=${encodeURIComponent(id)}`);
   window.scrollTo({ top: 0, behavior: "smooth" });
   mostrar();
 }
@@ -2040,6 +2040,7 @@ function irParaLoja(id) {
 const nomeDaLojaVista = () => estado.loja?.nome || lojasParceiras?.find((l) => l.id === estado.loja?.id)?.nome || "loja";
 
 function desenharResumoLoja(lista) {
+  if (estado.loja.id === BLACK_FRIDAY) return desenharResumoBlackFriday(lista);
   const total = estado.ofertas.length;
   // Lojas da Awin: o total do catálogo vem da lista de lojas (o site carrega 48 por vez)
   const doCatalogo = lojasParceiras?.find((l) => l.id === estado.loja.id)?.produtos || 0;
@@ -2056,8 +2057,50 @@ function desenharResumoLoja(lista) {
     el("div", { class: "resumo-acoes" }, botaoLimparFiltros())));
 }
 
+// ---------------------------------------------------------------------
+// Black Friday (pedido do Giovanni, 24/10/2026): vaiprocarrinho.com.br/black-friday mostra só descontos que dá para
+// conferir (lib/blackfriday.js, montada toda madrugada a partir das buscas do robô). Funciona como a página de uma
+// loja (mostrarLoja), com o id BLACK_FRIDAY. Sem contagem regressiva falsa: a data é a da Black Friday de verdade.
+// ---------------------------------------------------------------------
+const BLACK_FRIDAY = "black-friday";
+const DIA_BLACK_FRIDAY = new Date("2026-11-27T00:00:00-03:00");
+const naBlackFriday = () => /^\/black-friday\/?$/i.test(location.pathname);
+
+function irParaBlackFriday() {
+  history.pushState(null, "", "/black-friday");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  mostrar();
+}
+
+function contagemBlackFriday() {
+  const dias = Math.ceil((DIA_BLACK_FRIDAY - Date.now()) / 864e5);
+  if (dias > 1) return `Faltam ${dias} dias para a Black Friday (27/11).`;
+  if (dias === 1) return "A Black Friday é amanhã (27/11)!";
+  if (dias > -4) return "É Black Friday! 🖤";
+  return "";
+}
+
+function desenharResumoBlackFriday(lista) {
+  const t = estado.loja.totais || {};
+  const legenda = (texto, qtd) => el("span", { class: "bf-legenda" }, texto, qtd ? el("span", { class: "qtd" }, qtd) : "");
+  $("#resumo").replaceChildren(el("div", {},
+    el("h1", {}, "🖤 Black Friday de verdade"),
+    el("p", {}, contagemBlackFriday(), " ", lista.length
+      ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"} com desconto que dá para conferir.`
+      : estado.ofertas.length ? "Nenhuma oferta com esses filtros." : "As ofertas aparecem aqui assim que o nosso robô conferir os preços. Volte amanhã!"),
+    el("p", { class: "bf-explica" }, "Aqui só entra desconto de verdade: acompanhamos o preço de cada produto todos os dias. ",
+      "Se a loja subiu o preço antes para depois dar “desconto”, o produto não aparece."),
+    el("div", { class: "bf-legendas" },
+      legenda("✅ Desconto real: abaixo do preço de costume dos últimos 30 dias", t.real),
+      legenda("📉 Baixou: o preço caiu nos últimos dias", t.baixou),
+      legenda("🏷️ Desconto da loja: ainda em acompanhamento", t.loja)),
+    el("small", { class: "resumo-lojas-nota" }, "🔔 Toque no sininho de um produto e avisamos quando o preço baixar. ",
+      estado.cupons.length ? el("button", { type: "button", class: "botao-link-claro", onclick: () => abrirCupons() }, `🎟️ Ver ${estado.cupons.length} cupons de desconto`) : ""),
+    el("div", { class: "resumo-acoes" }, botaoLimparFiltros())));
+}
+
 async function pedirLoja(id, pagina) {
-  const r = await fetch(`/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}`);
+  const r = await fetch(id === BLACK_FRIDAY ? `/api/black-friday?pagina=${pagina}` : `/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}`);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
@@ -2065,7 +2108,7 @@ async function pedirLoja(id, pagina) {
 async function mostrarLoja(id) {
   const pedido = ++estado.pedido;
   estado.q = "";
-  estado.loja = { id, nome: lojasParceiras?.find((l) => l.id === id)?.nome || null };
+  estado.loja = { id, nome: id === BLACK_FRIDAY ? "Black Friday" : lojasParceiras?.find((l) => l.id === id)?.nome || null };
   estado.paginaLoja = 1;
   estado.lojasDesmarcadas.clear();
   zerarSecoes();
@@ -2073,7 +2116,9 @@ async function mostrarLoja(id) {
   estado.buscando = true;
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
   document.title = `${estado.loja.nome || "Loja parceira"} — Vai pro Carrinho`;
-  $("#resumo").replaceChildren(el("div", {}, el("h1", {}, `🏬 ${estado.loja.nome || "Carregando loja"}…`), el("p", {}, "Buscando os produtos desta loja 🛒")));
+  $("#resumo").replaceChildren(id === BLACK_FRIDAY
+    ? el("div", {}, el("h1", {}, "🖤 Black Friday de verdade"), el("p", {}, "Buscando os descontos conferidos 🛒"))
+    : el("div", {}, el("h1", {}, `🏬 ${estado.loja.nome || "Carregando loja"}…`), el("p", {}, "Buscando os produtos desta loja 🛒")));
   $("#total").textContent = "";
   $("#caixa-secoes").hidden = true;
   $("#caixa-marcas").hidden = true;
@@ -2087,7 +2132,8 @@ async function mostrarLoja(id) {
     if (pedido !== estado.pedido) return;
     estado.buscando = false;
     estado.loja.nome = dados.nome || estado.loja.nome;
-    document.title = `${estado.loja.nome} — Vai pro Carrinho`;
+    estado.loja.totais = dados.totais;
+    document.title = id === BLACK_FRIDAY ? "Black Friday de verdade — Vai pro Carrinho" : `${estado.loja.nome} — Vai pro Carrinho`;
     estado.ofertas = semRepetidos(dados.ofertas || []);
     estado.temMaisBusca = Boolean(dados.temMais);
     desenharFiltroLojas();
@@ -2235,8 +2281,10 @@ async function mostrarNumeros() {
     const inicio = $("#numeros-inicio");
     inicio.replaceChildren("🛒 Aqui você encontra ", el("strong", {}, produtos), " de ", el("strong", {}, qtdLojas),
       " e compara os preços num só lugar.", el("small", { class: "aviso-cupom" }, AVISO_CUPOM),
-      estado.cupons.length ? el("button", { type: "button", class: "botao-cupons-inicio", onclick: () => abrirCupons() },
-        `🎟️ Ver ${estado.cupons.length} cupons de desconto`) : "");
+      el("span", { class: "botoes-inicio" },
+        el("button", { type: "button", class: "botao-cupons-inicio botao-bf", onclick: irParaBlackFriday }, "🖤 Black Friday de verdade"),
+        estado.cupons.length ? el("button", { type: "button", class: "botao-cupons-inicio", onclick: () => abrirCupons() },
+          `🎟️ Ver ${estado.cupons.length} cupons de desconto`) : ""));
     inicio.hidden = false;
     // Filtro de lojas: deixa claro que ali só estão as lojas da lista atual, não todas as parceiras
     const nota = $("#nota-lojas");
@@ -2281,7 +2329,7 @@ async function carregarDestaques() {
 
 // itens: [{ nome: "Moda masculina", busca: "roupa masculina" }] ou textos simples
 function desenharEmAlta(itens) {
-  $("#em-alta").replaceChildren(...itens.map((i) => {
+  $("#em-alta").replaceChildren(el("button", { class: "chip-alta chip-bf", type: "button", onclick: irParaBlackFriday }, "🖤 Black Friday"), ...itens.map((i) => {
     const { nome, busca } = typeof i === "string" ? { nome: i, busca: i } : i;
     return el("button", { class: "chip-alta", type: "button", onclick: () => irPara(busca, { atalho: true, cat: categoriaPeloNome(nome)?.nome }) }, nome);
   }));
@@ -2395,13 +2443,14 @@ function mostrar() {
   const loja = (new URLSearchParams(location.search).get("loja") || "").trim();
   estado.exato = new URLSearchParams(location.search).has("exato");
   estado.loja = null;
-  if (loja && !q) {
+  const blackFriday = !q && !loja && naBlackFriday();
+  if (blackFriday || (loja && !q)) {
     document.body.classList.remove("modo-inicio");
     $("#inicio").hidden = true;
     $("#resultados").hidden = false;
     estado.cat = null;
     marcarCategoria();
-    return mostrarLoja(loja);
+    return mostrarLoja(blackFriday ? BLACK_FRIDAY : loja);
   }
   const emBusca = Boolean(q);
   document.body.classList.toggle("modo-inicio", !emBusca);
@@ -2423,7 +2472,7 @@ function mostrar() {
 function irPara(q, { atalho = false, cat = null, exato = false } = {}) {
   q = (q || "").trim();
   estado.atalho = atalho;
-  const url = q ? `?q=${encodeURIComponent(q)}${cat ? `&cat=${encodeURIComponent(cat)}` : ""}${exato ? "&exato=1" : ""}` : location.pathname;
+  const url = q ? `/?q=${encodeURIComponent(q)}${cat ? `&cat=${encodeURIComponent(cat)}` : ""}${exato ? "&exato=1" : ""}` : "/";
   history.pushState(null, "", url);
   window.scrollTo({ top: 0, behavior: "smooth" });
   mostrar();
@@ -2663,7 +2712,8 @@ function zerarFiltros() {
 function limparFiltros() {
   zerarFiltros();
   $("input[name=ordem][value=relevancia]").checked = true;
-  if (estado.loja || categoriaAtual()) {
+  // Na Black Friday, "Limpar filtros" só limpa os filtros (a página é o próprio assunto, não um filtro)
+  if ((estado.loja && estado.loja.id !== BLACK_FRIDAY) || categoriaAtual()) {
     const q = estado.loja || navegandoCategoria() ? "" : estado.q;
     if (!q) document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
     return irPara(q);
@@ -2704,6 +2754,7 @@ $("#fechar-lojas").addEventListener("click", () => $("#janela-lojas").close());
 $("#fechar-cupons").addEventListener("click", () => $("#janela-cupons").close());
 $("#cupons-filtro").addEventListener("input", desenharCupons);
 document.querySelectorAll("[data-ver-cupons]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); abrirCupons(); }));
+document.querySelectorAll("[data-black-friday]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); irParaBlackFriday(); }));
 carregarCupons();
 // A lista de marcas (filtro "Marcas") vem do vocabulário da busca: baixa logo e redesenha quando chegar
 vocab.aoChegar.push(() => { if (!estado.buscando) { desenharFiltroMarcas(); } });
