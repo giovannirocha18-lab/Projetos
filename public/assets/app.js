@@ -1228,7 +1228,6 @@ function passaNosFiltros() {
   const min = lerPreco($("#preco-min").value);
   const max = lerPreco($("#preco-max").value);
   const frete = $("#so-frete").checked;
-  const desconto = $("#so-desconto").checked;
   const envio = $("input[name=envio]:checked")?.value || "todos";
   const semAcessorios = escondeAcessorios();
   return (o) => secaoVisivel(o)
@@ -1236,7 +1235,6 @@ function passaNosFiltros() {
     && !(min >= 0 && o.preco < min)
     && !(max >= 0 && o.preco > max)
     && (!frete || o.freteGratis)
-    && (!desconto || o.desconto)
     && (envio === "todos" || (envio === "internacional") === Boolean(o.internacional));
 }
 
@@ -1462,7 +1460,8 @@ function desenharBotaoFrete() {
   const ligado = $("#so-frete").checked;
   // Nenhuma loja parceira informa frete hoje (Shopee, AliExpress e Lomadee não mandam; os feeds da Awin vêm sem; conferido
   // em 23/10/2026): a opção da barra lateral só aparece quando há produto com frete grátis informado pela loja
-  $("#so-frete").closest("label").style.display = qtd || ligado ? "" : "none";
+  // ("Com desconto" saiu em 24/10/2026: "Maior desconto" em "Ordenar por" já faz isso; sem frete, "Mais opções" some)
+  $("#mais-opcoes").hidden = !qtd && !ligado;
   document.querySelectorAll("[data-frete]").forEach((b) => {
     b.hidden = qtd < FRETE_MINIMO && !ligado;
     b.setAttribute("aria-pressed", String(ligado));
@@ -2461,7 +2460,7 @@ let timerPreco;
   clearTimeout(timerPreco);
   timerPreco = setTimeout(desenharResultados, 300);
 }));
-["#so-frete", "#so-desconto"].forEach((s) => $(s).addEventListener("change", desenharResultados));
+$("#so-frete").addEventListener("change", desenharResultados);
 // Mostrar/esconder acessórios muda também a contagem de cada loja
 $("#com-acessorios").addEventListener("change", () => { desenharFiltroLojas(); desenharResultados(); });
 document.querySelectorAll("[data-frete]").forEach((b) => b.addEventListener("click", () => {
@@ -2474,7 +2473,6 @@ function zerarFiltros() {
   $("#preco-min").value = "";
   $("#preco-max").value = "";
   $("#so-frete").checked = false;
-  $("#so-desconto").checked = false;
   $("#com-acessorios").checked = false;
   $("input[name=envio][value=todos]").checked = true;
   estado.lojasDesmarcadas.clear();
