@@ -83,7 +83,7 @@ node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite
 
 ## Testar no computador
 ```
-npx wrangler pages dev . --d1 DB=teste
+npx wrangler pages dev public --d1 DB=teste
 ```
 e abrir http://localhost:8788 (no computador, o link de "Esqueci minha senha" aparece no terminal).
 

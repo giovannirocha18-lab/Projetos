@@ -682,7 +682,7 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   menor em 30 dias, 🔴 5%+ acima do preço de costume, 🟡 estável/normal; antes de 14 dias "⏳ …". Política cita os alertas. Cache v=79.
   ❗ **Para o e-mail chegar aos visitantes falta verificar o domínio no Resend** (resend.com > Domains; registros DNS no Cloudflare)
   e criar a variável `EMAIL_REMETENTE`; até lá o Resend só entrega para o e-mail dono da conta Resend.
-  Bug antigo visto (não corrigido): `limparCarrinho` recusa link relativo, então produtos da Lomadee (`/api/ir?…`) não sincronizam no carrinho da conta.
+  ✅ 24/10/2026: `limparCarrinho` aceita o link `/api/ir?…` (produtos da Lomadee agora salvam no carrinho da conta).
 - ⭐ **WhatsApp + Comparar (24/10/2026, itens 3 e 4 da 2ª análise de concorrentes, pedido do Giovanni)**: botão redondo verde do
   WhatsApp no cartão (grupo `.botoes-oferta` com 🔔 e carrinho) e "Enviar no WhatsApp" na janela de detalhes (`compartilharWhatsApp`,
   wa.me). Link = `vaiprocarrinho.com.br/?produto=<código>` (`lib/produto.js` + `/api/produto`: Awin do banco, Shopee/AliExpress pela API;
