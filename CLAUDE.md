@@ -720,6 +720,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Some quem nenhuma busca viu em 36 h. `/api/black-friday?pagina=N` (48 por página, guardada 15 min, lista vazia não é guardada).
   Entradas: link "🖤 Black Friday" no topo, chip preto 1º dos "em alta", botão preto no card roxo da página inicial.
   Links internos agora usam "/?q=" e "/?loja=" (para sair da /black-friday). "Limpar filtros" na Black Friday só limpa os filtros.
+  1º enchimento (24/10, Claude rodou as 448 buscas à mão) mostrou "baixou" falso: Smart TV 32 R$ 2.500 por 1 semana → R$ 907
+  ("baixou 64%"), lençol 36 → 119 → 36 ("69%"). Corrigido em `caiuDeVerdade` (lib/ofertas.js, vale para o selo "📉 Baixou X%" do site
+  todo): 7+ dias de histórico, preço de hoje = o menor já visto, queda até 50%. Nível 3 (desconto da loja) só até 60%. `REGRAS_DESDE`
+  em lib/blackfriday.js esconde o que foi guardado antes da regra nova. `/api/black-friday` v=3.
 - **Lojas pequenas fora da janela (24/10/2026, pedido do Giovanni: Ferramentas Kennedy com 1 produto)**: loja com menos de 5
   produtos contados (`MIN_PRODUTOS_LOJA`/`lojaPequena` em lib/ofertas.js) não aparece em "Lojas parceiras" nem conta em `/api/numeros`;
   os produtos continuam nas buscas. Saíram Ferramentas Kennedy e Hunter Fan (1 cada): 39 → 37 lojas. `/api/lojas` VERSAO=6, numeros v=3.
