@@ -92,7 +92,7 @@ async function comPreviaDoProduto(resposta, env, url) {
   let rewriter = new HTMLRewriter()
     .on("title", { element(el) { el.setInnerContent(`${titulo} · Vai pro Carrinho`); } })
     .on('meta[property="og:title"]', meta(titulo))
-    .on('meta[property="og:description"]', meta(`${o.lojaNome || o.loja} · compare preços no Vai pro Carrinho`));
+    .on('meta[property="og:description"]', meta(`${o.lojaNome || { shopee: "Shopee", aliexpress: "AliExpress" }[o.loja] || o.loja} · compare preços no Vai pro Carrinho`));
   if (/^https:\/\//.test(o.imagem || "")) rewriter = rewriter.on('meta[property="og:image"]', meta(o.imagem.replace(/_tn$/, "")));
   return rewriter.transform(resposta);
 }
