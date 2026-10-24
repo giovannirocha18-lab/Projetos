@@ -2443,7 +2443,7 @@ prepararVocabulario();
 function carregarVocabulario() {
   if (vocab.pedido) return;
   vocab.pedido = true;
-  fetch("/api/vocabulario").then((r) => (r.ok ? r.json() : null)).then((d) => {
+  fetch("/api/vocabulario?v=2").then((r) => (r.ok ? r.json() : null)).then((d) => {
     if (!d?.termos?.length) return;
     Object.assign(vocab, { termos: d.termos, marcas: d.marcas || [], erros: d.erros || {} });
     prepararVocabulario();
