@@ -697,9 +697,11 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Total: 12 lojas, 91.516 produtos nos feeds; banco 115 MB.
   24/10: **Arno** aprovada na conta PF (feed 100096, 124 produtos; 37 sem foto que abre → 87 no site). Pedir também na PJ.
   13 lojas da Awin, 39 lojas no total; banco 121 MB.
-- ❓ **PENDENTE (23/10/2026, pergunta do Giovanni sem resposta): "Amakha Paris só tem 10 produtos mesmo?"** (página da loja
-  `?loja=lomadee:2e12febc-de9f-4d9f-924c-741f13e41cb7`). Conferir `/api/lojas?id=…&pagina=1` e 2 contra a API da Lomadee
-  (`produtosDaMarca` em lomadee.js tira link quebrado e preço < `PRECO_MINIMO`; ver se a marca manda só ~10 ou se o filtro corta).
+- ✅ **Amakha Paris tem só 10 produtos mesmo** (24/10/2026: pedindo 48 a Lomadee manda 10; Malwee/Friopeças/Toymania mandam 48).
+  **Quantidade nas lojas da Lomadee** (pergunta do Giovanni: "por que umas mostram e outras não?"): o `count` da Lomadee é só o da
+  página (não há total). `conferirMarcas` pede 1 página de 100 (`CONTAGEM`) e guarda em `marcas_lomadee` (`produtos` + coluna nova
+  `mais`); a janela mostra "N produtos" ou "Mais de 100 produtos" (`produtosMais`). Contagens antes de `CONTA_TOTAL_DESDE` (24/10 12:20 UTC)
+  não aparecem. Job `lomadee` com curl de até 300 s por parte. `/api/lojas` VERSAO=5.
 - **Frete (23/10/2026, print do Giovanni: filtro "Frete grátis" deixava a lista vazia)**: nenhuma loja informa frete (Shopee,
   AliExpress, Lomadee não mandam; 10 lojas da Awin conferidas, ~1.200 produtos, 0 com frete grátis — os feeds vêm sem
   delivery_cost/shipping). A opção da barra lateral agora só aparece se algum produto da lista tiver `freteGratis`
