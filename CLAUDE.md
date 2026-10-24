@@ -702,6 +702,8 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   do canal liberado; só marcas aprovadas; guardado 3 h, não guarda se alguma página falhar; VERSAO=2). No ar: 81 cupons de 45 lojas.
   Site: janela `#janela-cupons` (código + "Copiar", validade, "Ir para a loja"), botão "🎟️ Ver N cupons" no card roxo da página inicial,
   link "🎟️ Cupons de desconto" na faixa do topo, selo "🎟️ Cupom" no cartão/detalhes/janela de lojas das lojas com cupom (`botaoCupom`).
+  **Código escondido** (pedido do Giovanni: quem copiasse e fosse direto à loja compraria sem o link): mostra só "BRI•••" e o botão
+  "🎟️ Pegar cupom e ir para a loja" (link de afiliado) revela, copia e abre a loja (`itemCupom`/`codigoEscondido`). Testado: abre com lmdeeTracking.
   Awin ("Minhas Ofertas") não entrou: a API de promoções da Awin pede outro token (OAuth). **Filtro "Marcas"** (`#caixa-marcas`,
   `marcaDe`/`desenharFiltroMarcas` no app.js): marca tirada do título pela lista `MARCAS` (vem de `/api/vocabulario`), com apelidos
   (iphone→Apple, galaxy→Samsung, redmi/poco→Xiaomi) e `MARCAS_AMBIGUAS` (golden, estrela, reserva, hp… só nas 3 primeiras palavras);
