@@ -3,7 +3,7 @@
 import { cuponsLomadee } from "../../lib/cupons.js";
 
 const CACHE_SEGUNDOS = 3 * 60 * 60;
-const VERSAO = 1; // trocar para descartar o que está guardado
+const VERSAO = 2; // trocar para descartar o que está guardado
 
 export async function onRequestGet({ request, env }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;

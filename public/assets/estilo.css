@@ -818,3 +818,25 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .lp-nome small { display: block; font-weight: 500; font-size: .78rem; color: var(--suave); }
 .lp-linha .botao-secundario { flex: none; width: auto; margin: 0; padding: 7px 14px; font-size: .85rem; font-weight: 700; color: var(--roxo); border-color: var(--roxo); border-radius: 999px; }
 .lp-linha .botao-secundario:hover { background: var(--roxo); color: #fff; }
+
+/* Cupons (24/10/2026): selo nos cartões, botão no card roxo da página inicial e janela com os cupons */
+.selo-cupom { border: 1px dashed #b45309; background: #fffbeb; color: #b45309; font: inherit; font-size: .68rem; font-weight: 800;
+  padding: 1px 6px; border-radius: 6px; cursor: pointer; }
+.selo-cupom:hover { background: #fef3c7; }
+.lp-nome .selo-cupom { margin-top: 3px; }
+.botao-cupons-inicio { display: inline-block; margin-top: 10px; border: 0; border-radius: 999px; padding: 7px 16px; background: #fff;
+  color: var(--roxo); font: inherit; font-size: .88rem; font-weight: 800; cursor: pointer; }
+.botao-cupons-inicio:hover { background: #fef3c7; }
+.cupons-lista { list-style: none; }
+.cupom { padding: 12px 2px; border-bottom: 1px solid var(--borda); display: flex; flex-direction: column; gap: 6px; }
+.cupom-topo { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.cupom-validade { color: var(--suave); font-size: .78rem; }
+.cupom-titulo { font-size: 1rem; }
+.cupom-descricao { margin: 0; font-size: .85rem; color: var(--suave); }
+.cupom-acoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cupom-codigo { display: inline-flex; align-items: stretch; border: 2px dashed #b45309; border-radius: 10px; overflow: hidden; background: #fffbeb; }
+.cupom-codigo code { padding: 6px 12px; font-size: .95rem; font-weight: 800; letter-spacing: .04em; color: #92400e; user-select: all; }
+.cupom-copiar { border: 0; border-left: 2px dashed #b45309; background: #fef3c7; color: #92400e; font: inherit; font-size: .82rem; font-weight: 800;
+  padding: 0 12px; cursor: pointer; }
+.cupom-sem-codigo { font-size: .85rem; color: var(--suave); }
+.cupom-ir { width: auto; margin: 0 0 0 auto; padding: 8px 16px; font-size: .88rem; text-decoration: none; }

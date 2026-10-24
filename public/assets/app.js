@@ -876,7 +876,8 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
     el("div", { class: "oferta-corpo" },
       el("div", { class: "loja-linha" },
         el("span", { class: "loja-tag" }, el("span", { class: "loja-ponto" }), loja.nome),
-        o.lojaOficial && el("span", { class: "selo-oficial", title: o.vendedor ? `Vendido por ${o.vendedor}` : null }, "✔ Oficial")),
+        o.lojaOficial && el("span", { class: "selo-oficial", title: o.vendedor ? `Vendido por ${o.vendedor}` : null }, "✔ Oficial"),
+        botaoCupom(o.loja)),
       el("h3", { class: "oferta-titulo", title: o.titulo }, temDetalhes(o)
         ? el("button", { class: "titulo-botao", type: "button", onclick: () => abrirDetalhes(o) }, o.titulo)
         : o.titulo),
@@ -1008,6 +1009,7 @@ function abrirDetalhes(o, { doLink = false } = {}) {
     el("div", { class: "detalhes-loja" },
       el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
       o.lojaOficial && el("span", { class: "selo-oficial" }, "✔ Loja oficial"),
+      botaoCupom(o.loja),
       o.vendedor && el("span", { class: "detalhes-vendedor" }, `Vendido por ${o.vendedor}`)),
     el("h2", { id: "detalhes-titulo" }, o.titulo),
     (o.avaliacao || o.vendidos) && el("div", { class: "nota" },
@@ -1098,7 +1100,7 @@ function esqueletos(qtd) {
 // Busca
 // ---------------------------------------------------------------------
 // A mesma lista de filtros serve para as "Ofertas do dia" (q vazio) e para a busca
-const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), secoesSo: null, secoesFora: new Set(), pedido: 0, loja: null, paginaLoja: 1 };
+const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInicio: false, vistosInicio: new Set(), lojasDesmarcadas: new Set(), secoesSo: null, secoesFora: new Set(), marcasSo: new Set(), todasMarcas: false, cupons: [], pedido: 0, loja: null, paginaLoja: 1 };
 
 // Anúncios repetidos: na Shopee vários vendedores publicam o mesmo produto (mesmo título, foto e preço)
 // com códigos diferentes. Fica um só, o que vendeu mais, na posição em que apareceu primeiro.
@@ -1224,13 +1226,14 @@ function precoTipico(lista) {
 
 // Todos os filtros menos o de lojas: a contagem de cada loja (botões do card e da barra lateral) usa o mesmo, para
 // bater com o que aparece na tela (contava também o que outros filtros escondiam; print do Giovanni, 23/10/2026)
-function passaNosFiltros() {
+function passaNosFiltros(comMarca = true) {
   const min = lerPreco($("#preco-min").value);
   const max = lerPreco($("#preco-max").value);
   const frete = $("#so-frete").checked;
   const envio = $("input[name=envio]:checked")?.value || "todos";
   const semAcessorios = escondeAcessorios();
   return (o) => secaoVisivel(o)
+    && !(comMarca && estado.marcasSo.size && !estado.marcasSo.has(marcaDe(o)?.n))
     && !(semAcessorios && o.acessorio)
     && !(min >= 0 && o.preco < min)
     && !(max >= 0 && o.preco > max)
@@ -1280,6 +1283,8 @@ const secaoVisivel = (o) => (estado.secoesSo ? estado.secoesSo.has(o.secao || ""
 function zerarSecoes() {
   estado.secoesSo = null;
   estado.secoesFora.clear();
+  estado.marcasSo.clear();
+  estado.todasMarcas = false;
 }
 
 function marcarSecao(secao, marcada) {
@@ -1300,6 +1305,76 @@ function desenharFiltroSecoes() {
     el("input", { type: "checkbox", checked: secaoVisivel({ secao }), onchange: (e) => marcarSecao(secao, e.target.checked) }),
     secao ? `${categoriaPeloNome(secao)?.emoji || ""} ${secao}` : "Outros",
     el("span", { class: "qtd", title: `${contagem.get(secao)} ofertas desta categoria na lista` }, contagem.get(secao)))));
+}
+
+// Filtro por marca (pedido do Giovanni, 24/10/2026): a marca sai do título, pela mesma lista de marcas da busca
+// (MARCAS em lib/vocabulario.js, que chega por /api/vocabulario). As lojas não mandam a marca separada (Shopee e
+// AliExpress não têm o campo). Marca que também é palavra comum ("Golden", "Estrela", "Reserva", "5 HP") só vale nas
+// 3 primeiras palavras do título. Sem marca reconhecida, o produto some quando alguma marca está marcada.
+const MARCA_APELIDOS = { iphone: "apple", ipad: "apple", macbook: "apple", airpods: "apple", galaxy: "samsung", redmi: "xiaomi",
+  poco: "xiaomi", eletrolux: "electrolux", britania: "britânia", boticario: "o boticário", kindle: "amazon", alexa: "amazon",
+  chromecast: "google" };
+const MARCAS_AMBIGUAS = new Set(["golden", "premier", "growth", "fame", "gama", "atlas", "continental", "reserva", "tomate",
+  "honor", "poco", "mac", "creamy", "estrela", "hercules", "pioneiro", "skala", "democrata", "pegada", "moleca", "ipanema",
+  "melissa", "kappa", "oxo", "fischer", "darkness", "dux", "hp", "ninja", "fila", "positivo", "alexa", "tip top", "galaxy"]);
+const MARCAS_SIGLAS = { lg: "LG", hp: "HP", jbl: "JBL", tcl: "TCL", aoc: "AOC", wap: "WAP", qcy: "QCY", msi: "MSI", "3m": "3M",
+  dji: "DJI", mac: "MAC", "tp link": "TP-Link", oxo: "OXO" };
+const nomeDaMarca = (m) => MARCAS_SIGLAS[limpo(m)] || m.replace(/(^|\s)(\S)/g, (_, e, l) => e + l.toUpperCase());
+let marcasDoTitulo = null; // [{ chave: " samsung ", n: "samsung", nome: "Samsung", amb }], montada quando o vocabulário chega
+function prepararMarcas() {
+  if (!vocab.marcas.length) return null;
+  const nomes = new Map(vocab.marcas.map((m) => [limpo(m), m]));
+  marcasDoTitulo = [...nomes].map(([n]) => {
+    const dona = limpo(MARCA_APELIDOS[n] || n);
+    return { chave: ` ${n} `, n: dona, nome: nomeDaMarca(nomes.get(dona) || MARCA_APELIDOS[n] || n), amb: MARCAS_AMBIGUAS.has(n) };
+  });
+  return marcasDoTitulo;
+}
+function marcaDe(o) {
+  if (!marcasDoTitulo && !prepararMarcas()) return null;
+  if (o._marcaDe === marcasDoTitulo) return o._marca;
+  const t = ` ${limpo(o.titulo)} `;
+  let melhor = null;
+  for (const m of marcasDoTitulo) {
+    const i = t.indexOf(m.chave);
+    if (i < 0) continue;
+    const posicao = t.slice(0, i).split(" ").length - 1; // 0 = 1ª palavra do título
+    if (m.amb && posicao > 2) continue;
+    if (!melhor || posicao < melhor.posicao) melhor = { n: m.n, nome: m.nome, posicao };
+  }
+  o._marcaDe = marcasDoTitulo;
+  o._marca = melhor && { n: melhor.n, nome: melhor.nome };
+  return o._marca;
+}
+
+const MARCAS_VISIVEIS = 10;
+function desenharFiltroMarcas() {
+  const passa = passaNosFiltros(false);
+  const contagem = new Map();
+  for (const o of estado.ofertas) {
+    if (estado.lojasDesmarcadas.has(o.loja) || !passa(o)) continue;
+    const m = marcaDe(o);
+    if (m) contagem.set(m.n, { nome: m.nome, qtd: (contagem.get(m.n)?.qtd || 0) + 1 });
+  }
+  // Marca marcada que sumiu da lista (outro filtro) continua aparecendo, para dar para desmarcar
+  for (const n of estado.marcasSo) if (!contagem.has(n)) contagem.set(n, { nome: marcasDoTitulo?.find((m) => m.n === n)?.nome || n, qtd: 0 });
+  const caixa = $("#caixa-marcas");
+  caixa.hidden = contagem.size < 2;
+  if (caixa.hidden) return;
+  const ordem = [...contagem].sort(([a, x], [b, y]) => estado.marcasSo.has(b) - estado.marcasSo.has(a) || y.qtd - x.qtd || x.nome.localeCompare(y.nome, "pt-BR"));
+  const mostrar = estado.todasMarcas ? ordem : ordem.slice(0, Math.max(MARCAS_VISIVEIS, estado.marcasSo.size));
+  $("#filtro-marcas").replaceChildren(...mostrar.map(([n, m]) => el("label", { class: "opcao" },
+    el("input", { type: "checkbox", checked: estado.marcasSo.has(n), onchange: (e) => {
+      if (e.target.checked) estado.marcasSo.add(n); else estado.marcasSo.delete(n);
+      desenharFiltroLojas();
+      desenharResultados();
+    } }),
+    m.nome,
+    el("span", { class: "qtd", title: `${m.qtd} ofertas desta marca na lista` }, m.qtd))),
+  ordem.length > mostrar.length || estado.todasMarcas
+    ? el("button", { type: "button", class: "botao-link", onclick: () => { estado.todasMarcas = !estado.todasMarcas; desenharFiltroMarcas(); } },
+      estado.todasMarcas ? "Ver menos" : `Ver todas (${ordem.length})`)
+    : "");
 }
 
 // Ofertas de cada loja na lista (acessórios escondidos não entram)
@@ -1352,6 +1427,7 @@ function lojasNoResumo() {
 
 function desenharFiltroLojas() {
   desenharFiltroSecoes();
+  desenharFiltroMarcas();
   desenharLojasDaLista();
 }
 
@@ -1758,6 +1834,7 @@ async function buscar(q) {
   $("#total").textContent = "";
   $("#filtro-lojas").replaceChildren();
   $("#caixa-secoes").hidden = true;
+  $("#caixa-marcas").hidden = true;
   $("#vazio").hidden = true;
   $("#grade").replaceChildren(...esqueletos(8));
   estado.temMaisBusca = false;
@@ -1809,6 +1886,81 @@ async function buscar(q) {
 }
 
 // ---------------------------------------------------------------------
+// Cupons (pedido do Giovanni, 24/10/2026): cupons oficiais das lojas parceiras (/api/cupons, hoje da Lomadee).
+// Janela "🎟️ Cupons de desconto" com código, validade, "Copiar" e o link da loja (com comissão); nos cartões das lojas
+// que têm cupom, um selo "🎟️ Cupom" abre a janela só com os cupons dela. Nada inventado: texto e código são da loja.
+// ---------------------------------------------------------------------
+const cuponsDaLoja = (loja) => estado.cupons.filter((c) => c.loja === loja);
+function botaoCupom(loja) {
+  const qtd = cuponsDaLoja(loja).length;
+  if (!qtd) return null;
+  return el("button", { type: "button", class: "selo-cupom", title: `${qtd} ${qtd === 1 ? "cupom" : "cupons"} desta loja`,
+    onclick: (e) => { e.stopPropagation(); abrirCupons(loja); } }, "🎟️ Cupom");
+}
+
+async function carregarCupons() {
+  try {
+    const r = await fetch("/api/cupons");
+    if (!r.ok) return;
+    estado.cupons = (await r.json()).cupons || [];
+  } catch {
+    return;
+  }
+  if (!estado.cupons.length) return;
+  document.querySelectorAll("[data-ver-cupons]").forEach((b) => { b.hidden = false; });
+  mostrarNumeros(); // o card roxo da página inicial ganha o botão dos cupons
+  if (!estado.buscando) desenharResultados(); // selos "Cupom" nos cartões já desenhados
+}
+
+function abrirCupons(loja = "") {
+  abrirFiltros(false);
+  const janela = $("#janela-cupons");
+  janela.dataset.loja = typeof loja === "string" ? loja : "";
+  $("#cupons-filtro").value = "";
+  desenharCupons();
+  if (!janela.open) janela.showModal();
+}
+
+const validadeCupom = (iso) => new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" });
+function desenharCupons() {
+  const loja = $("#janela-cupons").dataset.loja;
+  const filtro = limpo($("#cupons-filtro").value);
+  let lista = loja ? cuponsDaLoja(loja) : estado.cupons;
+  if (filtro) lista = lista.filter((c) => limpo(`${c.lojaNome} ${c.titulo} ${c.descricao || ""}`).includes(filtro));
+  const lojas = new Set(estado.cupons.map((c) => c.loja)).size;
+  $("#cupons-total").replaceChildren(loja
+    ? el("span", {}, `Cupons de ${cuponsDaLoja(loja)[0]?.lojaNome || "esta loja"}. `,
+      el("button", { type: "button", class: "botao-link", onclick: () => abrirCupons() }, "Ver cupons de todas as lojas"))
+    : `${estado.cupons.length} ${estado.cupons.length === 1 ? "cupom" : "cupons"} de ${lojas} ${lojas === 1 ? "loja" : "lojas"}. Copie o código e use na loja.`);
+  $("#cupons-lista").replaceChildren(...(lista.length ? lista.map(itemCupom) : [el("p", { class: "vazio" }, "Nenhum cupom encontrado.")]));
+}
+
+function itemCupom(c) {
+  const loja = infoLoja(c);
+  const copiar = el("button", { type: "button", class: "cupom-copiar", onclick: async (e) => {
+    const botao = e.currentTarget;
+    try {
+      await navigator.clipboard.writeText(c.codigo);
+      botao.textContent = "Copiado ✓";
+    } catch {
+      botao.textContent = "Selecione e copie";
+    }
+    setTimeout(() => { botao.textContent = "Copiar"; }, 2000);
+  } }, "Copiar");
+  return el("li", { class: "cupom" },
+    el("div", { class: "cupom-topo" },
+      el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
+      c.ate && el("small", { class: "cupom-validade" }, `Válido até ${validadeCupom(c.ate)}`)),
+    el("strong", { class: "cupom-titulo" }, c.titulo),
+    c.descricao && c.descricao !== c.titulo && el("p", { class: "cupom-descricao" }, c.descricao),
+    el("div", { class: "cupom-acoes" },
+      c.codigo
+        ? el("span", { class: "cupom-codigo" }, el("code", {}, c.codigo), copiar)
+        : el("span", { class: "cupom-sem-codigo" }, "Sem código: o desconto aparece na loja"),
+      el("a", { class: "botao-oferta cupom-ir", href: c.link, target: "_blank", rel: "sponsored noopener" }, "Ir para a loja →")));
+}
+
+// ---------------------------------------------------------------------
 // Lojas parceiras (pedido do Giovanni, 22/10/2026): janela com todas as lojas (/api/lojas) e, em cada uma,
 // "Ver produtos" abre ?loja=<id> com os produtos só dela (Shopee/AliExpress: mais vendidos; Awin: do banco,
 // com desconto primeiro; Lomadee: os da marca)
@@ -1844,7 +1996,8 @@ function desenharListaLojas() {
     el("span", { class: "lp-nome" }, l.nome,
       el("small", {}, l.rede === "marketplace" ? "Milhões de produtos" : l.produtos ? (l.produtosMais ? `Mais de ${Math.max(Math.floor(l.produtos / 10) * 10, 10)} produtos`
         : `${l.produtos.toLocaleString("pt-BR")} ${l.produtos === 1 ? "produto" : "produtos"}`) : "",
-        l.internacional ? " · 🌎 Internacional" : "")),
+        l.internacional ? " · 🌎 Internacional" : ""),
+      botaoCupomLoja(l)),
     el("button", { type: "button", class: "botao-secundario", onclick: () => { $("#janela-lojas").close(); irParaLoja(l.id); } }, "Ver produtos"));
   const grandes = lista.filter((l) => l.rede === "marketplace");
   const outras = lista.filter((l) => l.rede !== "marketplace");
@@ -1852,6 +2005,13 @@ function desenharListaLojas() {
     ...(grandes.length ? [el("h3", {}, "Marketplaces"), el("ul", {}, ...grandes.map(linha))] : []),
     ...(outras.length ? [el("h3", {}, "Lojas e marcas"), el("ul", {}, ...outras.map(linha))] : []),
     ...(lista.length ? [] : [el("p", { class: "vazio" }, "Nenhuma loja com esse nome.")]));
+}
+
+// Na janela de lojas, as marcas da Lomadee com cupom ganham o selo (a chave da loja vem do nome, como no servidor)
+function botaoCupomLoja(l) {
+  if (l.rede !== "lomadee") return null;
+  const c = estado.cupons.find((x) => x.lojaNome === l.nome);
+  return c ? botaoCupom(c.loja) : null;
 }
 
 function irParaLoja(id) {
@@ -1899,6 +2059,7 @@ async function mostrarLoja(id) {
   $("#resumo").replaceChildren(el("div", {}, el("h1", {}, `🏬 ${estado.loja.nome || "Carregando loja"}…`), el("p", {}, "Buscando os produtos desta loja 🛒")));
   $("#total").textContent = "";
   $("#caixa-secoes").hidden = true;
+  $("#caixa-marcas").hidden = true;
   $("#caixa-lojas").hidden = true;
   $("#vazio").hidden = true;
   $("#grade").replaceChildren(...esqueletos(8));
@@ -2056,7 +2217,9 @@ async function mostrarNumeros() {
     document.querySelectorAll("[data-numeros]").forEach((e) => { e.textContent = `${produtos[0].toUpperCase()}${produtos.slice(1)} de ${qtdLojas}`; e.hidden = false; });
     const inicio = $("#numeros-inicio");
     inicio.replaceChildren("🛒 Aqui você encontra ", el("strong", {}, produtos), " de ", el("strong", {}, qtdLojas),
-      " e compara os preços num só lugar.", el("small", { class: "aviso-cupom" }, AVISO_CUPOM));
+      " e compara os preços num só lugar.", el("small", { class: "aviso-cupom" }, AVISO_CUPOM),
+      estado.cupons.length ? el("button", { type: "button", class: "botao-cupons-inicio", onclick: () => abrirCupons() },
+        `🎟️ Ver ${estado.cupons.length} cupons de desconto`) : "");
     inicio.hidden = false;
     // Filtro de lojas: deixa claro que ali só estão as lojas da lista atual, não todas as parceiras
     const nota = $("#nota-lojas");
@@ -2521,6 +2684,13 @@ $("#janela-comparar").addEventListener("click", (e) => {
   if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
 });
 $("#fechar-lojas").addEventListener("click", () => $("#janela-lojas").close());
+$("#fechar-cupons").addEventListener("click", () => $("#janela-cupons").close());
+$("#cupons-filtro").addEventListener("input", desenharCupons);
+document.querySelectorAll("[data-ver-cupons]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); abrirCupons(); }));
+carregarCupons();
+// A lista de marcas (filtro "Marcas") vem do vocabulário da busca: baixa logo e redesenha quando chegar
+vocab.aoChegar.push(() => { if (!estado.buscando) { desenharFiltroMarcas(); } });
+carregarVocabulario();
 $("#lojas-filtro").addEventListener("input", () => lojasParceiras && desenharListaLojas());
 document.querySelectorAll("[data-ver-lojas]").forEach((b) => b.addEventListener("click", abrirLojas));
 $("#janela-lojas").addEventListener("click", (e) => {
