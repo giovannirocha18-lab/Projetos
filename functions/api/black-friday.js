@@ -10,7 +10,7 @@ export async function onRequestGet({ request, env }) {
   if (!env.DB) return Response.json({ ofertas: [], temMais: false, totais: { real: 0, baixou: 0, loja: 0 } });
   const pagina = Math.min(Math.max(parseInt(new URL(request.url).searchParams.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/black-friday?v=2&pagina=${pagina}`, request.url));
+  const chave = new Request(new URL(`/api/black-friday?v=3&pagina=${pagina}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
   const dados = await listarBlackFriday(env.DB, pagina, POR_PAGINA);
