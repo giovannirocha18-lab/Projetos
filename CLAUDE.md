@@ -706,6 +706,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   `marcaDe`/`desenharFiltroMarcas` no app.js): marca tirada do título pela lista `MARCAS` (vem de `/api/vocabulario`), com apelidos
   (iphone→Apple, galaxy→Samsung, redmi/poco→Xiaomi) e `MARCAS_AMBIGUAS` (golden, estrela, reserva, hp… só nas 3 primeiras palavras);
   10 visíveis + "Ver todas"; zera junto com as categorias (`zerarSecoes`). Marca nova → acrescentar em `MARCAS` (lib/vocabulario.js).
+  Ajuste (print do Giovanni: só 3 marcas na página inicial): o filtro some nas "Ofertas do dia" (quase tudo sem marca no nome) e
+  só aparece na busca/categoria/página de loja; `LOJAS_QUE_SAO_MARCA` (Karsten, Polishop, Monte Carlo, Animale, Shark-Ninja→Ninja,
+  Arno, Malwee, Brinox, Rovitex) dá a marca da loja ao produto sem marca no título. `/api/vocabulario` v=2 (trocar ao mudar MARCAS).
 - **Lojas pequenas fora da janela (24/10/2026, pedido do Giovanni: Ferramentas Kennedy com 1 produto)**: loja com menos de 5
   produtos contados (`MIN_PRODUTOS_LOJA`/`lojaPequena` em lib/ofertas.js) não aparece em "Lojas parceiras" nem conta em `/api/numeros`;
   os produtos continuam nas buscas. Saíram Ferramentas Kennedy e Hunter Fan (1 cada): 39 → 37 lojas. `/api/lojas` VERSAO=6, numeros v=3.
