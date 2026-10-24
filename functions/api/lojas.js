@@ -31,7 +31,7 @@ async function listarLojas(env) {
   ]);
   const lojas = [
     ...(daAwin || []).map((l) => ({ id: `awin:${l.loja}`, nome: nomeDaLojaAwin(l.nome) || l.loja, rede: "awin", produtos: l.n, internacional: Boolean(l.internacional) || undefined })),
-    ...[...marcas].map(([id, m]) => ({ id: `lomadee:${id}`, nome: m.nome, rede: "lomadee" })),
+    ...[...marcas].map(([id, m]) => ({ id: `lomadee:${id}`, nome: m.nome, rede: "lomadee", produtos: m.produtos })),
   ].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
   return { lojas: [...marketplaces, ...lojas], completo: (!lomadee.ativa(env) || marcas.size > 0) && daAwin !== null };
 }

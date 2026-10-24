@@ -1843,7 +1843,7 @@ function desenharListaLojas() {
   const linha = (l) => el("li", { class: "lp-linha", style: `--cor-loja:${corDaLoja(l)}` },
     el("span", { class: "loja-ponto" }),
     el("span", { class: "lp-nome" }, l.nome,
-      el("small", {}, l.rede === "marketplace" ? "Milhões de produtos" : l.produtos ? `${l.produtos.toLocaleString("pt-BR")} produtos` : "",
+      el("small", {}, l.rede === "marketplace" ? "Milhões de produtos" : l.produtos ? `${l.produtos.toLocaleString("pt-BR")} ${l.produtos === 1 ? "produto" : "produtos"}` : "",
         l.internacional ? " · 🌎 Internacional" : "")),
     el("button", { type: "button", class: "botao-secundario", onclick: () => { $("#janela-lojas").close(); irParaLoja(l.id); } }, "Ver produtos"));
   const grandes = lista.filter((l) => l.rede === "marketplace");
