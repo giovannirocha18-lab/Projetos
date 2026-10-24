@@ -697,6 +697,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Total: 12 lojas, 91.516 produtos nos feeds; banco 115 MB.
   24/10: **Arno** aprovada na conta PF (feed 100096, 124 produtos; 37 sem foto que abre → 87 no site). Pedir também na PJ.
   13 lojas da Awin, 39 lojas no total; banco 121 MB.
+- **Lojas pequenas fora da janela (24/10/2026, pedido do Giovanni: Ferramentas Kennedy com 1 produto)**: loja com menos de 5
+  produtos contados (`MIN_PRODUTOS_LOJA`/`lojaPequena` em lib/ofertas.js) não aparece em "Lojas parceiras" nem conta em `/api/numeros`;
+  os produtos continuam nas buscas. Saíram Ferramentas Kennedy e Hunter Fan (1 cada): 39 → 37 lojas. `/api/lojas` VERSAO=6, numeros v=3.
 - ✅ **Amakha Paris tem só 10 produtos mesmo** (24/10/2026: pedindo 48 a Lomadee manda 10; Malwee/Friopeças/Toymania mandam 48).
   **Quantidade nas lojas da Lomadee** (pergunta do Giovanni: "por que umas mostram e outras não?"): o `count` da Lomadee é só o da
   página (não há total). `conferirMarcas` pede 1 página de 100 (`CONTAGEM`) e guarda em `marcas_lomadee` (`produtos` + coluna nova
