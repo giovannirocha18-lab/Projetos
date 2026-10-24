@@ -521,7 +521,7 @@ async function abrirProdutoDoLink() {
   try {
     const r = await fetch(`/api/produto?id=${encodeURIComponent(id)}`);
     const { oferta } = await r.json();
-    if (oferta) abrirDetalhes(oferta);
+    if (oferta) abrirDetalhes(oferta, { doLink: true });
     else toast("Essa oferta não está mais disponível 😕");
   } catch {
     toast("Não foi possível abrir essa oferta agora");
@@ -986,7 +986,8 @@ function graficoHistorico(pontos, precoAtual) {
 // 1 foto e nenhuma descrição; a janela mostra a foto grande, o nome inteiro, nota, vendidos, loja e histórico.
 const temDetalhes = (o) => Boolean(o.titulo);
 
-function abrirDetalhes(o) {
+// doLink = aberto por um link compartilhado no WhatsApp: sem o botão de enviar de novo (pedido do Giovanni, 24/10/2026)
+function abrirDetalhes(o, { doLink = false } = {}) {
   const loja = infoLoja(o);
   // Shopee: o cartão usa a miniatura ("_tn"); aqui vale a foto original, maior
   const fotos = o.imagens?.length ? o.imagens : [o.imagem?.replace(/_tn$/, "")].filter(Boolean);
@@ -1032,7 +1033,7 @@ function abrirDetalhes(o) {
         temAlerta(o.id) ? "🔔 Ver meu alerta" : "🔔 Me avise quando baixar"),
       el("button", { class: "ver-historico", type: "button", onclick: () => { alternarComparar(o); $("#janela-detalhes").close(); } },
         comparando.has(o.id) ? "⚖️ Tirar da comparação" : "⚖️ Comparar")),
-    el("button", { class: "botao-whatsapp", type: "button", onclick: () => compartilharWhatsApp(o) }, ICONE_WHATSAPP(), "Enviar no WhatsApp"),
+    !doLink && el("button", { class: "botao-whatsapp", type: "button", onclick: () => compartilharWhatsApp(o) }, ICONE_WHATSAPP(), "Enviar no WhatsApp"),
     el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener",
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}`, onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
       `Comprar ${loja.em} ${loja.nome.length <= 16 ? loja.nome : "loja"}`, el("span", { class: "flecha", "aria-hidden": "true" }, "→")),
