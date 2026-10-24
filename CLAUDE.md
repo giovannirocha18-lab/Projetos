@@ -695,6 +695,8 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 - **Lojas por conta da Awin (23/10/2026, execução #33)**: conta PJ = Casa Tema, Shark-Ninja, Kabum, Monte Carlo, Spicy, Karsten,
   **Animale (nova, 10.665 produtos)**, Elements, Lauri. Só na conta PF (faltam pedir na PJ): **Posthaus, Polishop, EINSTAR**.
   Total: 12 lojas, 91.516 produtos nos feeds; banco 115 MB.
+  24/10: **Arno** aprovada na conta PF (feed 100096, 124 produtos; 37 sem foto que abre → 87 no site). Pedir também na PJ.
+  13 lojas da Awin, 39 lojas no total; banco 121 MB.
 - ❓ **PENDENTE (23/10/2026, pergunta do Giovanni sem resposta): "Amakha Paris só tem 10 produtos mesmo?"** (página da loja
   `?loja=lomadee:2e12febc-de9f-4d9f-924c-741f13e41cb7`). Conferir `/api/lojas?id=…&pagina=1` e 2 contra a API da Lomadee
   (`produtosDaMarca` em lomadee.js tira link quebrado e preço < `PRECO_MINIMO`; ver se a marca manda só ~10 ou se o filtro corta).
