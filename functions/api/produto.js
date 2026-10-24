@@ -15,7 +15,8 @@ export async function onRequestGet({ request, env }) {
   try {
     const oferta = await produtoPorId(env, id);
     return oferta ? responder({ oferta }) : responder({ erro: "Produto não encontrado" }, 404);
-  } catch {
-    return responder({ erro: "A loja não respondeu agora" }, 502);
+  } catch (e) {
+    // 503 (e não 502: o Cloudflare troca a resposta 502 pela página de erro dele)
+    return responder({ erro: "A loja não respondeu agora", detalhe: String(e?.message || e).slice(0, 200) }, 503);
   }
 }
