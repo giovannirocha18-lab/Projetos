@@ -711,6 +711,15 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Ajuste (print do Giovanni: só 3 marcas na página inicial): o filtro some nas "Ofertas do dia" (quase tudo sem marca no nome) e
   só aparece na busca/categoria/página de loja; `LOJAS_QUE_SAO_MARCA` (Karsten, Polishop, Monte Carlo, Animale, Shark-Ninja→Ninja,
   Arno, Malwee, Brinox, Rovitex) dá a marca da loja ao produto sem marca no título. `/api/vocabulario` v=2 (trocar ao mudar MARCAS).
+- ⭐ **Black Friday de verdade (24/10/2026, item 1 da lista de ideias, pedido do Giovanni)**: `vaiprocarrinho.com.br/black-friday`
+  (`_middleware.js` serve a página principal com título/og: próprios; o `app.js` abre como uma "loja" de id `BLACK_FRIDAY` em
+  `mostrarLoja`, resumo em `desenharResumoBlackFriday` com contagem até 27/11 e legenda). Dados: `lib/blackfriday.js`, tabela D1
+  `bf_ofertas`, preenchida por `/api/preparar-buscas` (cada busca pronta guarda os seus produtos com desconto e tira os que perderam).
+  Níveis: 1 = ✅ desconto real (21+ dias de histórico), 2 = 📉 baixou (caiu nos últimos 7 dias vs. habitual), 3 = desconto da loja
+  10–75% sem histórico suficiente (máx. 8 por busca); com 21+ dias e sem desconto real NUNCA entra (preço subido antes). Sem acessórios.
+  Some quem nenhuma busca viu em 36 h. `/api/black-friday?pagina=N` (48 por página, guardada 15 min, lista vazia não é guardada).
+  Entradas: link "🖤 Black Friday" no topo, chip preto 1º dos "em alta", botão preto no card roxo da página inicial.
+  Links internos agora usam "/?q=" e "/?loja=" (para sair da /black-friday). "Limpar filtros" na Black Friday só limpa os filtros.
 - **Lojas pequenas fora da janela (24/10/2026, pedido do Giovanni: Ferramentas Kennedy com 1 produto)**: loja com menos de 5
   produtos contados (`MIN_PRODUTOS_LOJA`/`lojaPequena` em lib/ofertas.js) não aparece em "Lojas parceiras" nem conta em `/api/numeros`;
   os produtos continuam nas buscas. Saíram Ferramentas Kennedy e Hunter Fan (1 cada): 39 → 37 lojas. `/api/lojas` VERSAO=6, numeros v=3.
