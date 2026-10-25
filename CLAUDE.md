@@ -682,6 +682,8 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   arno.com.br). Ajuste: loja da Awin com até 3 mil produtos (`TESTAR_TODOS_ATE`) e 2+ quebrados na amostra → testa TODOS os
   produtos (8 ao mesmo tempo, `linksQuebrados`) e tira só os quebrados; loja maior segue a regra da loja inteira.
   Sugerir ao Giovanni avisar Arno e Elements pela Awin (links do feed dão 404). Ponto de restauração #38 apareceu no log ✅.
+  #39: Elements 39 de 45 quebrados (6 voltaram), Arno 50 de 87; mas a trava "feed caiu mais da metade" não deixou remover os da
+  Arno → produtos tirados por link (`foraPorLink`) agora contam como presentes nessa trava.
   (7) D1 Time Travel (30 dias no plano pago): passo "Ponto de restauração do banco" no job `awin` anota o bookmark no resumo
   (API `/d1/database/<id>/time_travel/bookmark`); README "Cópia do banco (restaurar)" com o comando `wrangler d1 time-travel restore`.
   (9) `public/como-funciona.html` (+ `PUBLICOS` no middleware, link no topo, rodapé e na Política): o que é, de onde vêm os
