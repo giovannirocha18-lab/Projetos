@@ -1,0 +1,25 @@
+# Testes automáticos: rodam a cada envio de código ao GitHub (25/10/2026). Se algum falhar, o GitHub manda e-mail
+# e o envio aparece com um X vermelho. O Cloudflare publica do mesmo jeito: o teste avisa, não segura a publicação.
+name: Testes
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Código sem erro de escrita (todos os .js)
+        run: git ls-files '*.js' '*.mjs' | xargs -n 1 node --check
+      - name: Arquivos do servidor abrem (imports certos)
+        run: node testes/modulos.mjs
+      - name: Teste da busca (casos reais e prints do Giovanni)
+        run: node testes/busca.mjs
+      - name: Robô de preços com o feed de exemplo
+        run: node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite "$RUNNER_TEMP/teste.sqlite"

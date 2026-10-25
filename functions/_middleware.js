@@ -5,7 +5,7 @@
 // limite de chamadas, com os cabeçalhos de segurança do public/_headers. Só é seguro porque NADA interno fica em public/.
 import { produtoPorId } from "../lib/produto.js";
 
-const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
+const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|como-funciona(\.html)?\/?|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
 
 const VERIFICACAO_AWIN = "2e195e3c8c68351f1709348e09eae77d";
 

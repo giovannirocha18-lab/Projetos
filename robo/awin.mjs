@@ -23,6 +23,7 @@ import { Readable } from "node:stream";
 import { readFileSync, appendFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 import { normalizar } from "../lib/texto.js";
+import { lojaComLinksQuebrados, sortear } from "../lib/links.js";
 import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, RESUMO_LOJAS_AWIN, INDICE_LOJA, CRIAR_INDICE_LOJA, juntarMilhares } from "../lib/ofertas.js";
 
 const LISTA_FEEDS = "https://productdata.awin.com/datafeed/list/apikey/";
@@ -281,7 +282,11 @@ function paraOferta(p, feed = {}) {
   // Para moeda estrangeira, a assinatura usa o preço original + a faixa do câmbio
   const base = moeda === "BRL" ? dados : { ...dados, preco: numero(p.sale_price) || numero(p.search_price)
     || numero(p.store_price) || numero(p.price), preco_antigo: null, desconto: null, cambio: faixaCambio(taxa) };
-  return { ...dados, assinatura: assinar(base) };
+  // Endereço do produto direto na loja, sem o rastreio da Awin: só para a conferência dos links (não vai para o banco)
+  const daAwin = /awin1\.com|tidd\.ly/i.test(p.link || "");
+  const destino = httpsOuNada(p.merchant_deep_link) || (!daAwin && httpsOuNada(p.link))
+    || httpsOuNada((() => { try { return new URL(link).searchParams.get("ued"); } catch { return null; } })());
+  return { ...dados, assinatura: assinar(base), destino };
 }
 
 const lojaDoId = (id) => id.split("-")[1];
@@ -377,6 +382,27 @@ async function conferirFotos(ofertas) {
     resultado.push({ ...o, imagem: fotos[0], imagens, assinatura: assinar({ a: o.assinatura, fotos }) });
   }
   return { resultado, semFoto, testadas };
+}
+
+// ---------------------------------------------------------------------
+// Links "Comprar" quebrados (25/10/2026): de cada loja, abre alguns produtos direto no site dela (endereço sem o
+// rastreio da Awin, para não contar clique falso). Se quase todos dão "página não encontrada", a loja sai do site
+// até o feed voltar a apontar para páginas que existem (a conferência é refeita toda madrugada).
+// ---------------------------------------------------------------------
+const LINKS_POR_LOJA = 8;
+
+async function conferirLinks(ofertas) {
+  const porLoja = new Map();
+  for (const o of ofertas) if (o.destino) porLoja.set(o.loja_nome, [...(porLoja.get(o.loja_nome) || []), o.destino]);
+  const quebradas = new Set();
+  const linhas = [];
+  for (const [loja, urls] of porLoja) {
+    const r = await lojaComLinksQuebrados(sortear(urls, LINKS_POR_LOJA), { minimo: 5 });
+    if (r.quebrada) quebradas.add(loja);
+    if (r.quebrada) linhas.push(`⚠️ ${loja}: ${r.quebrados} de ${r.testados} produtos dão "página não encontrada" na loja; fora do site hoje`);
+    else if (r.quebrados) linhas.push(`${loja}: ${r.quebrados} de ${r.testados} produtos testados não abrem (loja continua)`);
+  }
+  return { resultado: ofertas.filter((o) => !quebradas.has(o.loja_nome)), quebradas, linhas, lojas: porLoja.size };
 }
 
 // ---------------------------------------------------------------------
@@ -627,6 +653,12 @@ async function main() {
     const fora = [...semFoto].map(([loja, n]) => `${loja} ${n}`).join(", ");
     relatorio.push(`📷 Fotos: ${testadas} testadas em ${Math.round((Date.now() - inicioFotos) / 1000)} s; ` +
       (fora ? `produtos sem foto que abre (ficam de fora): ${fora}` : "nenhum produto sem foto"));
+    const links = await conferirLinks([...novas.values()]);
+    novas.clear();
+    for (const o of links.resultado) novas.set(o.id, o);
+    relatorio.push(`🔗 Links: ${LINKS_POR_LOJA} produtos testados em cada uma das ${links.lojas} lojas; ` +
+      (links.quebradas.size ? `${links.quebradas.size} loja(s) com links quebrados` : "todas abrem"));
+    relatorio.push(...links.linhas);
   }
   relatorio.forEach((l) => console.log(l));
 

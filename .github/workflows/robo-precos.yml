@@ -34,6 +34,27 @@ jobs:
           path: .cache/fotos.json
           key: fotos-${{ github.run_id }}
           restore-keys: fotos-
+      # Cópia do banco: o Cloudflare guarda o banco minuto a minuto por 30 dias (D1 Time Travel, plano pago). Aqui só
+      # anotamos o "ponto de restauração" de antes do robô gravar, para voltar a ele se algo der errado (ver README)
+      - name: Ponto de restauração do banco
+        continue-on-error: true
+        run: |
+          r=$(curl -sS --max-time 30 -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database/$D1_DATABASE_ID/time_travel/bookmark")
+          b=$(echo "$r" | grep -o '"bookmark":"[^"]*"' | cut -d'"' -f4)
+          echo "### Banco antes do robô" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$b" ]; then
+            echo "Ponto de restauração: $b"
+            echo "- Ponto de restauração (Time Travel): \`$b\` ($(date -u '+%d/%m/%Y %H:%M') UTC)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Não deu para pegar o ponto de restauração: $r"
+            echo "- ⚠️ Não deu para pegar o ponto de restauração" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
       - name: Atualizar ofertas da Awin
         run: node --max-old-space-size=6144 robo/awin.mjs
         env:

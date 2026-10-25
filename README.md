@@ -81,6 +81,27 @@ Teste no computador, com um feed de exemplo e um banco local:
 node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite
 ```
 
+`CHAVE_ROBO` (no GitHub e no Cloudflare, o mesmo valor) é a chave que o robô manda para os endereços que só ele pode
+chamar (`/api/preparar-buscas`, `/api/coletar-precos`, `/api/conferir-alertas`, `/api/conferir-lojas`; ver `lib/robo.js`).
+
+**Links "Comprar"**: toda madrugada o robô abre 8 produtos de cada loja da Awin direto no site da loja (sem o rastreio
+da Awin), e a conferência da Lomadee abre 4 de cada marca. Loja em que quase todos dão "página não encontrada" sai do
+site até voltar a abrir (`lib/links.js`). O resultado aparece no resumo do robô (🔗 Links) e em `linksQuebrados`.
+
+## Cópia do banco (restaurar)
+O Cloudflare guarda o banco D1 minuto a minuto por 30 dias (Time Travel; 7 dias no plano grátis). Toda madrugada o
+robô anota no resumo da execução o **ponto de restauração** de antes de gravar. Para voltar o banco a um ponto
+(apaga tudo o que mudou depois, inclusive contas e carrinhos novos; o próprio comando mostra o ponto para desfazer):
+```
+CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... npx wrangler d1 time-travel restore vaiprocarrinho --bookmark=<ponto>
+```
+ou `--timestamp=2026-10-25T06:00:00Z` no lugar de `--bookmark`. Para ver o ponto de agora: `npx wrangler d1 time-travel info vaiprocarrinho`.
+
+## Testes automáticos
+A cada envio ao GitHub, `.github/workflows/testes.yml` confere: todos os `.js` sem erro de escrita, todos os arquivos do
+servidor abrindo (`testes/modulos.mjs`), o teste da busca (`testes/busca.mjs`) e o robô com o feed de exemplo. Se falhar,
+o GitHub manda e-mail (o Cloudflare publica do mesmo jeito).
+
 ## Testar no computador
 ```
 npx wrangler pages dev public --d1 DB=teste
