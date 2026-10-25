@@ -663,7 +663,18 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 22/10/2026, 13ª sessão: lojas parceiras, limite de leituras do D1, só lojas com produtos)
+## Próximos passos (atualizado 25/10/2026, fim da 14ª sessão)
+- **14ª sessão (24–25/10/2026) fez**: carrinho da conta com produtos da Lomadee; tirado o filtro "Com desconto"; lojas com menos
+  de 5 produtos fora da janela "Lojas parceiras" (37 lojas); **cupons** (81 de 45 lojas, código escondido até "Pegar cupom");
+  **filtro por marca**; **página /black-friday** (3.523 ofertas no 1º enchimento: 458 "baixou", 3.065 "desconto da loja");
+  regra nova do "📉 Baixou X%" (`caiuDeVerdade`).
+- **Conferir na próxima conversa**: (1) log do robô da madrugada de 25/10: job `prontas` deve mostrar `"blackFriday": N` em cada
+  parte; (2) `/api/black-friday` com ofertas e sem "baixou" estranho (ver histórico dos primeiros com `/api/historico?id=`);
+  (3) por volta de 07/11 começam os "✅ Desconto real" (21 dias de histórico).
+- **Giovanni**: conferir no site a Black Friday, os cupons e o filtro de marcas (mandar print do que estiver estranho);
+  verificar o domínio no Resend (alertas de preço por e-mail); pedir Posthaus, Polishop, EINSTAR e Arno também na conta PJ da Awin.
+
+### Antes (atualizado 22/10/2026, 13ª sessão: lojas parceiras, limite de leituras do D1, só lojas com produtos)
 - **Meu personagem ampliado (23/10/2026, pedido do Giovanni: "faça todos")**: cabelos coque/black/trança/moicano/boné; cores de
   cabelo rosa/azul/roxo; rostos rindo/língua/estrela/óculos escuros/bigode/sardas; carrinhos cestinha/corrida (chamas `.anim-chama`)/
   foguete (fumaça `.anim-fumaca`)/presentes/blackfriday (`grade()` reaproveitada, `PRESENTES`/`ETIQUETAS` caem no lugar dos produtos);
