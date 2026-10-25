@@ -664,6 +664,13 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 25/10/2026, fim da 14ª sessão)
+- ✅ **15ª sessão (25/10/2026): chave do robô (`lib/robo.js`), publicada**. `/api/preparar-buscas`, `/api/coletar-precos`,
+  `/api/conferir-alertas` e `/api/conferir-lojas` estavam abertos a qualquer um; agora exigem `Authorization: Bearer <chave>`.
+  Secret **`CHAVE_ROBO`** no Cloudflare (Giovanni cadastrou com esse nome); no GitHub ele cadastrou como `ROBO_CHAVE` ou `CHAVE_ROBO`
+  (o workflow aceita os dois). Sem a chave no Cloudflare = 503; chave errada = 401 (conferido no ar). Robô falha visível (exit 1)
+  se a chave for recusada. Trocar a chave = trocar nos dois lugares e publicar de novo (o Cloudflare só lê Secret novo em deploy novo).
+  Resto da lista de melhorias sugerida (25/10): 2FA nas contas, senha do Registro.br, teste da busca automático no GitHub,
+  UptimeRobot, conferência diária dos links "Comprar", cópia do banco (Time Travel do D1), contato@, página "Quem somos".
 - **14ª sessão (24–25/10/2026) fez**: carrinho da conta com produtos da Lomadee; tirado o filtro "Com desconto"; lojas com menos
   de 5 produtos fora da janela "Lojas parceiras" (37 lojas); **cupons** (81 de 45 lojas, código escondido até "Pegar cupom");
   **filtro por marca**; **página /black-friday** (3.523 ofertas no 1º enchimento: 458 "baixou", 3.065 "desconto da loja");
