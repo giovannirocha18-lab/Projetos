@@ -692,6 +692,29 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   preços, selos (Desconto real, Baixou, Menor em 30 dias, termômetro, Internacional), links conferidos, alertas. Sem falar de
   comissão (decisão de 13/10). Sem contato (contato@ ainda não existe).
   Falta (com o Giovanni): 2FA nas contas, senha do Registro.br, UptimeRobot, contato@.
+- ✅ **Teste de invasão (25/10/2026, pedido do Giovanni: "seja um agente externo e tente burlar o site")**. Sem problema: login
+  (10 senhas erradas = bloqueio 1 h), cookies (HttpOnly/Secure/SameSite), proteção contra outro site agir pelo visitante (Origin
+  em todo POST/PUT/DELETE), Google (state, aud, iss, email_verified), SQL (tudo com bind), XSS (el() só texto; CSP sem inline),
+  arquivos internos (/.git, /functions, ../ = 404/400), cabeçalhos de segurança, CORS fechado. **Corrigido:**
+  (1) **Alertas mandavam e-mail para quem não confirmou o e-mail**: qualquer um criava conta com o e-mail de outra pessoa e um
+  alerta com título/link falsos, e o robô mandaria "📉 Baixou!" do nosso domínio com link de golpe (só não acontecia porque o
+  Resend ainda não está verificado). Agora `emailConfirmado` (lib/conta.js; Google ou link aberto) é exigido em `conferirAlertas`;
+  o 1º alerta de conta com senha manda "Confirme seu e-mail" (`enviarConfirmacao`, link `/#confirmar=<token>` 1 dia, tabela
+  `redefinicoes`, máx. 3/h), `POST /api/conta/confirmar` ({token} ou {reenviar:true}), aviso amarelo em "Meus alertas" com
+  "Mandar o link de novo". O botão do e-mail vai para `/?produto=<id>` (ou /api/ir), nunca para o link que veio do navegador.
+  (2) **/api/ir aceitava qualquer endereço** (`u=https://site-falso` ia para o encurtador da Lomadee: possível redirecionamento
+  com o nosso domínio + gasto do limite de 60/min). Agora os links da Lomadee levam assinatura `&s=` (HMAC derivado do
+  LOMADEE_API_KEY, `assinaturaValida`/`comLinksAssinados` em lomadee.js); sem assinatura válida não gera link novo: só usa link
+  já guardado ou manda para o site da própria marca, senão volta à página inicial. Cache v=80, /api/lojas VERSAO=7.
+  (3) **/api/cupons mandava todos os códigos inteiros** (furava o "código escondido"): a lista agora manda `codigoMascara` e o
+  código vem de `/api/cupons?codigo=<id>` só no clique em "Pegar cupom" (VERSAO=3). Quem chamar esse endereço à mão ainda vê o
+  código de um cupom por vez (igual a clicar).
+  **Falta (Giovanni)**: regra de limite de pedidos no Cloudflare (Security > WAF > Rate limiting rules: caminho começa com /api/,
+  por IP, 60 pedidos em 10 s → bloquear 10 s); hoje não há limite em /api/buscar, /api/produto, /api/lojas (custo e limites
+  das lojas se alguém disparar milhares de buscas). Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
+  login dele por 1 h (ele ainda entra por Google ou "Esqueci minha senha"). Conferido no ar (commit 0374bd8): lista de cupons
+  sem código inteiro, /api/ir com site falso volta à página inicial, link real assinado gera o lmdee.link. Buscas prontas
+  voltam na madrugada (v=80); até lá a busca nova leva ~4 s.
 - **14ª sessão (24–25/10/2026) fez**: carrinho da conta com produtos da Lomadee; tirado o filtro "Com desconto"; lojas com menos
   de 5 produtos fora da janela "Lojas parceiras" (37 lojas); **cupons** (81 de 45 lojas, código escondido até "Pegar cupom");
   **filtro por marca**; **página /black-friday** (3.523 ofertas no 1º enchimento: 458 "baixou", 3.065 "desconto da loja");
