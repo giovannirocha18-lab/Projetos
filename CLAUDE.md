@@ -669,8 +669,21 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Secret **`CHAVE_ROBO`** no Cloudflare (Giovanni cadastrou com esse nome); no GitHub ele cadastrou como `ROBO_CHAVE` ou `CHAVE_ROBO`
   (o workflow aceita os dois). Sem a chave no Cloudflare = 503; chave errada = 401 (conferido no ar). Execução #37: robô entrou com a chave ✅. Robô falha visível (exit 1)
   se a chave for recusada. Trocar a chave = trocar nos dois lugares e publicar de novo (o Cloudflare só lê Secret novo em deploy novo).
-  Resto da lista de melhorias sugerida (25/10): 2FA nas contas, senha do Registro.br, teste da busca automático no GitHub,
-  UptimeRobot, conferência diária dos links "Comprar", cópia do banco (Time Travel do D1), contato@, página "Quem somos".
+- ✅ **15ª sessão (25/10/2026, itens 4, 6, 7 e 9 da lista de melhorias, pedido do Giovanni)**:
+  (4) `.github/workflows/testes.yml`: a cada push roda `node --check` em todos os .js, `testes/modulos.mjs` (importa todos os
+  arquivos de functions/ e lib/: pega import quebrado), `testes/busca.mjs` e o robô com o feed de exemplo. Falha = e-mail do GitHub
+  (não segura a publicação do Cloudflare). 1ª execução ✅.
+  (6) `lib/links.js` (`linkAbre`: true/false(404/410)/null; `lojaComLinksQuebrados`): robô da Awin abre 8 produtos de cada loja
+  pelo endereço direto (`destino` = merchant_deep_link / link do formato Google / `ued`; nunca o link de afiliado = clique falso);
+  5+ em 404 e 80%+ → loja fora do site naquele dia (linha "🔗 Links" no resumo). Lomadee: `conferirMarcas` abre 4 por marca (6 s),
+  coluna `quebrado` em `marcas_lomadee`; marca quebrada sai de "Lojas parceiras" e da busca (`marcasQuebradas`); resposta do
+  `/api/conferir-lojas` ganhou `linksQuebrados`. Testado com lojas simuladas; UP Kids real dá false (404).
+  (7) D1 Time Travel (30 dias no plano pago): passo "Ponto de restauração do banco" no job `awin` anota o bookmark no resumo
+  (API `/d1/database/<id>/time_travel/bookmark`); README "Cópia do banco (restaurar)" com o comando `wrangler d1 time-travel restore`.
+  (9) `public/como-funciona.html` (+ `PUBLICOS` no middleware, link no topo, rodapé e na Política): o que é, de onde vêm os
+  preços, selos (Desconto real, Baixou, Menor em 30 dias, termômetro, Internacional), links conferidos, alertas. Sem falar de
+  comissão (decisão de 13/10). Sem contato (contato@ ainda não existe).
+  Falta (com o Giovanni): 2FA nas contas, senha do Registro.br, UptimeRobot, contato@.
 - **14ª sessão (24–25/10/2026) fez**: carrinho da conta com produtos da Lomadee; tirado o filtro "Com desconto"; lojas com menos
   de 5 produtos fora da janela "Lojas parceiras" (37 lojas); **cupons** (81 de 45 lojas, código escondido até "Pegar cupom");
   **filtro por marca**; **página /black-friday** (3.523 ofertas no 1º enchimento: 458 "baixou", 3.065 "desconto da loja");
