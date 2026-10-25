@@ -9,6 +9,7 @@ import { shopee } from "../../lib/fontes/shopee.js";
 import { buscasDasVitrines } from "../../lib/categorias.js";
 import { maisBuscados } from "../../lib/buscas.js";
 import { historicoAoVivo } from "../../lib/ofertas.js";
+import { recusarSeNaoForRobo } from "../../lib/robo.js";
 
 const BUSCAS_POR_PARTE = 5; // poucas por chamada: o plano grátis do Cloudflare limita o tempo de cada uma
 
@@ -18,6 +19,8 @@ const responder = (dados, status = 200) => new Response(JSON.stringify(dados), {
 });
 
 export async function onRequestGet({ request, env }) {
+  const recusa = await recusarSeNaoForRobo(request, env);
+  if (recusa) return recusa;
   if (!env.DB || !shopee.ativa(env)) return responder({ erro: "Shopee ou banco não configurados" }, 503);
   const parte = Math.max(parseInt(new URL(request.url).searchParams.get("parte"), 10) || 0, 0);
 

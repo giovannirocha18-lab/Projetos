@@ -7,6 +7,7 @@ import { maisBuscados, termosBuscados } from "../../lib/buscas.js";
 import { carregarMapa } from "../../lib/mapaCategorias.js";
 import { POPULARES, termosParaSugestoes } from "../../lib/vocabulario.js";
 import { guardarDaBusca } from "../../lib/blackfriday.js";
+import { recusarSeNaoForRobo } from "../../lib/robo.js";
 
 // Busca as categorias, os mais procurados no Brasil (POPULARES em lib/vocabulario.js), os atalhos "em alta", o que mais
 // gente buscou no site em 30 dias e tudo o que a caixa de busca sugere (vitrines das categorias, produto + marca…),
@@ -15,6 +16,8 @@ const MAX_PRONTAS = 1000;
 const BUSCADOS_NO_MES = 600;
 
 export async function onRequestGet({ request, env, waitUntil }) {
+  const recusa = await recusarSeNaoForRobo(request, env);
+  if (recusa) return recusa;
   const parte = Math.max(parseInt(new URL(request.url).searchParams.get("parte"), 10) || 0, 0);
   const [buscados, doMes] = await Promise.all([
     maisBuscados(env, { ateOntem: true }).catch(() => []),

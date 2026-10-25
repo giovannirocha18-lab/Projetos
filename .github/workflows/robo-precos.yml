@@ -45,11 +45,14 @@ jobs:
       # Alertas de preço: com os preços da Awin já atualizados, confere os produtos com alerta e manda os e-mails
       - name: Conferir alertas de preço
         if: ${{ !cancelled() }}
+        env:
+          ROBO_CHAVE: ${{ secrets.ROBO_CHAVE }} # só o robô pode chamar esses endereços (lib/robo.js)
         run: |
           echo "### Alertas de preço" >> "$GITHUB_STEP_SUMMARY"
           for parte in $(seq 0 200); do
-            r=$(curl -sS --retry 2 --max-time 90 "https://vaiprocarrinho.com.br/api/conferir-alertas?parte=$parte") || { echo "parte $parte: falhou"; continue; }
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $ROBO_CHAVE" --max-time 90 "https://vaiprocarrinho.com.br/api/conferir-alertas?parte=$parte") || { echo "parte $parte: falhou"; continue; }
             echo "parte $parte: $r"
+            echo "$r" | grep -q ROBO_CHAVE && exit 1 # chave recusada: falha visível (e-mail do GitHub)
             echo "- $r" >> "$GITHUB_STEP_SUMMARY"
             echo "$r" | grep -q '"fim":true' && break
           done
@@ -68,11 +71,14 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Guardar preços da Shopee
+        env:
+          ROBO_CHAVE: ${{ secrets.ROBO_CHAVE }} # só o robô pode chamar esses endereços (lib/robo.js)
         run: |
           echo "### Preços da Shopee" >> "$GITHUB_STEP_SUMMARY"
           for parte in $(seq 0 80); do
-            r=$(curl -sS --retry 2 --max-time 60 "https://vaiprocarrinho.com.br/api/coletar-precos?parte=$parte") || { echo "parte $parte: falhou"; continue; }
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $ROBO_CHAVE" --max-time 60 "https://vaiprocarrinho.com.br/api/coletar-precos?parte=$parte") || { echo "parte $parte: falhou"; continue; }
             echo "parte $parte: $r"
+            echo "$r" | grep -q ROBO_CHAVE && exit 1 # chave recusada: falha visível (e-mail do GitHub)
             echo "- parte $parte: $r" >> "$GITHUB_STEP_SUMMARY"
             echo "$r" | grep -q '"fim":true' && break
             sleep 2
@@ -85,15 +91,17 @@ jobs:
     timeout-minutes: 80
     steps:
       - name: Preparar buscas populares
+        env:
+          ROBO_CHAVE: ${{ secrets.ROBO_CHAVE }} # só o robô pode chamar esses endereços (lib/robo.js)
         # A 1ª chamada diz quantas são ("partes"); as outras vão de 2 em 2 ao mesmo tempo (até ~1000 buscas;
         # mais que 2 passaria do limite da Lomadee, 60 consultas por minuto)
         run: |
           echo "### Buscas prontas" >> "$GITHUB_STEP_SUMMARY"
-          r=$(curl -sS --retry 2 --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-buscas?parte=0")
+          r=$(curl -sS --retry 2 -H "Authorization: Bearer $ROBO_CHAVE" --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-buscas?parte=0")
           echo "parte 0: $r"
           partes=$(echo "$r" | grep -o '"partes":[0-9]*' | cut -d: -f2)
           [ -z "$partes" ] && { echo "Não deu para saber quantas buscas são"; exit 1; }
-          seq 1 $((partes - 1)) | xargs -P 2 -I{} sh -c 'r=$(curl -sS --retry 2 --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-buscas?parte={}") || r="falhou"; echo "parte {}: $r"'
+          seq 1 $((partes - 1)) | xargs -P 2 -I{} sh -c 'r=$(curl -sS --retry 2 -H "Authorization: Bearer $ROBO_CHAVE" --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-buscas?parte={}") || r="falhou"; echo "parte {}: $r"'
           echo "- $partes buscas preparadas" >> "$GITHUB_STEP_SUMMARY"
 
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
@@ -103,11 +111,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Conferir marcas da Lomadee
+        env:
+          ROBO_CHAVE: ${{ secrets.ROBO_CHAVE }} # só o robô pode chamar esses endereços (lib/robo.js)
         run: |
           echo "### Marcas da Lomadee com produtos" >> "$GITHUB_STEP_SUMMARY"
           for parte in $(seq 0 20); do
-            r=$(curl -sS --retry 2 --max-time 300 "https://vaiprocarrinho.com.br/api/conferir-lojas?parte=$parte") || { echo "parte $parte: falhou"; continue; }
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $ROBO_CHAVE" --max-time 300 "https://vaiprocarrinho.com.br/api/conferir-lojas?parte=$parte") || { echo "parte $parte: falhou"; continue; }
             echo "parte $parte: $r"
+            echo "$r" | grep -q ROBO_CHAVE && exit 1 # chave recusada: falha visível (e-mail do GitHub)
             echo "- $r" >> "$GITHUB_STEP_SUMMARY"
             echo "$r" | grep -q '"fim":true' && break
             sleep 60 # a Lomadee aceita 60 consultas por minuto; com 25 s partes inteiras falhavam (23/10/2026)

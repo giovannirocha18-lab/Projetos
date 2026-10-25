@@ -1,8 +1,11 @@
 // GET /api/conferir-lojas?parte=N -> confere quais marcas da Lomadee mandam produtos (20 por parte).
 // Chamado pelo robô da madrugada (.github/workflows/robo-precos.yml). Resposta: { parte, conferidas, comProdutos, fim }
 import { lomadee, conferirMarcas } from "../../lib/fontes/lomadee.js";
+import { recusarSeNaoForRobo } from "../../lib/robo.js";
 
 export async function onRequestGet({ request, env }) {
+  const recusa = await recusarSeNaoForRobo(request, env);
+  if (recusa) return recusa;
   if (!lomadee.ativa(env) || !env.DB) return Response.json({ fim: true, erro: "Lomadee ou banco desligados" });
   const parte = Math.min(Math.max(parseInt(new URL(request.url).searchParams.get("parte"), 10) || 0, 0), 50);
   try {
