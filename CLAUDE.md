@@ -667,7 +667,7 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 - ✅ **15ª sessão (25/10/2026): chave do robô (`lib/robo.js`), publicada**. `/api/preparar-buscas`, `/api/coletar-precos`,
   `/api/conferir-alertas` e `/api/conferir-lojas` estavam abertos a qualquer um; agora exigem `Authorization: Bearer <chave>`.
   Secret **`CHAVE_ROBO`** no Cloudflare (Giovanni cadastrou com esse nome); no GitHub ele cadastrou como `ROBO_CHAVE` ou `CHAVE_ROBO`
-  (o workflow aceita os dois). Sem a chave no Cloudflare = 503; chave errada = 401 (conferido no ar). Robô falha visível (exit 1)
+  (o workflow aceita os dois). Sem a chave no Cloudflare = 503; chave errada = 401 (conferido no ar). Execução #37: robô entrou com a chave ✅. Robô falha visível (exit 1)
   se a chave for recusada. Trocar a chave = trocar nos dois lugares e publicar de novo (o Cloudflare só lê Secret novo em deploy novo).
   Resto da lista de melhorias sugerida (25/10): 2FA nas contas, senha do Registro.br, teste da busca automático no GitHub,
   UptimeRobot, conferência diária dos links "Comprar", cópia do banco (Time Travel do D1), contato@, página "Quem somos".
