@@ -23,7 +23,7 @@ import { Readable } from "node:stream";
 import { readFileSync, appendFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 import { normalizar } from "../lib/texto.js";
-import { lojaComLinksQuebrados, sortear } from "../lib/links.js";
+import { lojaComLinksQuebrados, linksQuebrados, sortear } from "../lib/links.js";
 import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, RESUMO_LOJAS_AWIN, INDICE_LOJA, CRIAR_INDICE_LOJA, juntarMilhares } from "../lib/ofertas.js";
 
 const LISTA_FEEDS = "https://productdata.awin.com/datafeed/list/apikey/";
@@ -390,19 +390,36 @@ async function conferirFotos(ofertas) {
 // até o feed voltar a apontar para páginas que existem (a conferência é refeita toda madrugada).
 // ---------------------------------------------------------------------
 const LINKS_POR_LOJA = 8;
+// Loja pequena com algum link quebrado na amostra: testa todos os produtos dela e tira só os quebrados
+// (25/10/2026: na Arno, 6 de 8 davam 404 e o resto abria). Loja grande: só a regra da loja inteira
+const TESTAR_TODOS_ATE = 3000;
 
 async function conferirLinks(ofertas) {
   const porLoja = new Map();
-  for (const o of ofertas) if (o.destino) porLoja.set(o.loja_nome, [...(porLoja.get(o.loja_nome) || []), o.destino]);
-  const quebradas = new Set();
+  for (const o of ofertas) {
+    if (!o.destino) continue;
+    if (!porLoja.has(o.loja_nome)) porLoja.set(o.loja_nome, []);
+    porLoja.get(o.loja_nome).push(o.destino);
+  }
+  const quebradas = new Set(); // lojas inteiras fora
+  const urlsRuins = new Set(); // produtos fora
   const linhas = [];
   for (const [loja, urls] of porLoja) {
     const r = await lojaComLinksQuebrados(sortear(urls, LINKS_POR_LOJA), { minimo: 5 });
-    if (r.quebrada) quebradas.add(loja);
-    if (r.quebrada) linhas.push(`⚠️ ${loja}: ${r.quebrados} de ${r.testados} produtos dão "página não encontrada" na loja; fora do site hoje`);
-    else if (r.quebrados) linhas.push(`${loja}: ${r.quebrados} de ${r.testados} produtos testados não abrem (loja continua)`);
+    if (r.quebrados >= 2 && urls.length <= TESTAR_TODOS_ATE) {
+      const ruins = await linksQuebrados(urls);
+      for (const u of ruins) urlsRuins.add(u);
+      linhas.push(`${ruins.size ? "⚠️ " : ""}${loja}: todos os ${urls.length} produtos testados; ${ruins.size} dão "página não encontrada" na loja` +
+        (ruins.size ? " e ficam fora do site hoje" : ""));
+    } else if (r.quebrada) {
+      quebradas.add(loja);
+      linhas.push(`⚠️ ${loja}: ${r.quebrados} de ${r.testados} produtos dão "página não encontrada" na loja; loja fora do site hoje`);
+    } else if (r.quebrados) {
+      linhas.push(`${loja}: ${r.quebrados} de ${r.testados} produtos testados não abrem (loja continua)`);
+    }
   }
-  return { resultado: ofertas.filter((o) => !quebradas.has(o.loja_nome)), quebradas, linhas, lojas: porLoja.size };
+  const resultado = ofertas.filter((o) => !quebradas.has(o.loja_nome) && !urlsRuins.has(o.destino));
+  return { resultado, quebradas, produtosFora: urlsRuins.size, linhas, lojas: porLoja.size };
 }
 
 // ---------------------------------------------------------------------
@@ -657,7 +674,8 @@ async function main() {
     novas.clear();
     for (const o of links.resultado) novas.set(o.id, o);
     relatorio.push(`🔗 Links: ${LINKS_POR_LOJA} produtos testados em cada uma das ${links.lojas} lojas; ` +
-      (links.quebradas.size ? `${links.quebradas.size} loja(s) com links quebrados` : "todas abrem"));
+      (links.quebradas.size || links.produtosFora
+        ? `${links.quebradas.size} loja(s) inteira(s) e ${links.produtosFora} produto(s) fora por links quebrados` : "todas abrem"));
     relatorio.push(...links.linhas);
   }
   relatorio.forEach((l) => console.log(l));

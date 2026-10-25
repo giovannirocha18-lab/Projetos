@@ -85,8 +85,9 @@ node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite
 chamar (`/api/preparar-buscas`, `/api/coletar-precos`, `/api/conferir-alertas`, `/api/conferir-lojas`; ver `lib/robo.js`).
 
 **Links "Comprar"**: toda madrugada o robô abre 8 produtos de cada loja da Awin direto no site da loja (sem o rastreio
-da Awin), e a conferência da Lomadee abre 4 de cada marca. Loja em que quase todos dão "página não encontrada" sai do
-site até voltar a abrir (`lib/links.js`). O resultado aparece no resumo do robô (🔗 Links) e em `linksQuebrados`.
+da Awin), e a conferência da Lomadee abre 4 de cada marca. Loja da Awin com até 3 mil produtos e 2+ links quebrados na
+amostra tem todos os produtos testados, e só os quebrados saem; loja maior (ou marca da Lomadee) em que quase todos dão
+"página não encontrada" sai inteira até voltar a abrir (`lib/links.js`). O resultado aparece no resumo do robô (🔗 Links) e em `linksQuebrados`.
 
 ## Cópia do banco (restaurar)
 O Cloudflare guarda o banco D1 minuto a minuto por 30 dias (Time Travel; 7 dias no plano grátis). Toda madrugada o

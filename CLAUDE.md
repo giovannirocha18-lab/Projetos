@@ -678,6 +678,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   5+ em 404 e 80%+ → loja fora do site naquele dia (linha "🔗 Links" no resumo). Lomadee: `conferirMarcas` abre 4 por marca (6 s),
   coluna `quebrado` em `marcas_lomadee`; marca quebrada sai de "Lojas parceiras" e da busca (`marcasQuebradas`); resposta do
   `/api/conferir-lojas` ganhou `linksQuebrados`. Testado com lojas simuladas; UP Kids real dá false (404).
+  Execução #38 (1ª real): Elements 7/8 em 404 (saiu inteira, 45 produtos) e **Arno 6/8** (conferido à mão: 5 de 6 dão 404 no
+  arno.com.br). Ajuste: loja da Awin com até 3 mil produtos (`TESTAR_TODOS_ATE`) e 2+ quebrados na amostra → testa TODOS os
+  produtos (8 ao mesmo tempo, `linksQuebrados`) e tira só os quebrados; loja maior segue a regra da loja inteira.
+  Sugerir ao Giovanni avisar Arno e Elements pela Awin (links do feed dão 404). Ponto de restauração #38 apareceu no log ✅.
   (7) D1 Time Travel (30 dias no plano pago): passo "Ponto de restauração do banco" no job `awin` anota o bookmark no resumo
   (API `/d1/database/<id>/time_travel/bookmark`); README "Cópia do banco (restaurar)" com o comando `wrangler d1 time-travel restore`.
   (9) `public/como-funciona.html` (+ `PUBLICOS` no middleware, link no topo, rodapé e na Política): o que é, de onde vêm os
