@@ -664,6 +664,12 @@ Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.ba
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
 ## Próximos passos (atualizado 25/10/2026, fim da 14ª sessão)
+- ⏳ **15ª sessão (25/10/2026): chave do robô (`lib/robo.js`)**. `/api/preparar-buscas`, `/api/coletar-precos`, `/api/conferir-alertas`
+  e `/api/conferir-lojas` estavam abertos a qualquer um; agora exigem `Authorization: Bearer <ROBO_CHAVE>` (sem a chave no
+  Cloudflare = 503, ninguém entra). Commit 065ce70 **ainda NÃO publicado** (guardado na branch `claude/amazing-franklin-j2l4fv`).
+  Ordem: Giovanni cria o Secret `ROBO_CHAVE` (mesmo valor, 40 letras/números) no Cloudflare (Settings > Variables and Secrets)
+  e no GitHub (Settings > Secrets and variables > Actions) → Claude publica na `claude/inspiring-hamilton-wafagr` → testa
+  (endereço sem chave = 401) e dispara o robô. Publicar antes dos Secrets faria a madrugada falhar.
 - **14ª sessão (24–25/10/2026) fez**: carrinho da conta com produtos da Lomadee; tirado o filtro "Com desconto"; lojas com menos
   de 5 produtos fora da janela "Lojas parceiras" (37 lojas); **cupons** (81 de 45 lojas, código escondido até "Pegar cupom");
   **filtro por marca**; **página /black-friday** (3.523 ofertas no 1º enchimento: 458 "baixou", 3.065 "desconto da loja");
