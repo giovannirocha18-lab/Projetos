@@ -1,7 +1,9 @@
 // GET    /api/conta/alertas                     -> alertas de preço da pessoa conectada
 // POST   /api/conta/alertas  { oferta, alvo }   -> cria (ou muda o preço-alvo de) um alerta
 // DELETE /api/conta/alertas  { id }             -> para um alerta (id = código do produto)
-import { banco, responder, erro, SEM_BANCO, lerJson, usuarioDaSessao, tokenAleatorio, dentroDoLimite } from "../../../lib/conta.js";
+import {
+  banco, responder, erro, SEM_BANCO, lerJson, usuarioDaSessao, tokenAleatorio, dentroDoLimite, emailConfirmado, enviarConfirmacao,
+} from "../../../lib/conta.js";
 import { limparAlerta, lerAlertas, MAX_ALERTAS } from "../../../lib/alertas.js";
 
 async function conectado(env, request) {
@@ -15,7 +17,7 @@ async function conectado(env, request) {
 export async function onRequestGet({ request, env }) {
   const { db, usuario, resposta } = await conectado(env, request);
   if (resposta) return resposta;
-  return responder({ alertas: await lerAlertas(db, usuario.id) });
+  return responder({ alertas: await lerAlertas(db, usuario.id), confirmado: await emailConfirmado(db, usuario.id) });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -36,7 +38,11 @@ export async function onRequestPost({ request, env }) {
      ON CONFLICT(usuario_id, oferta_id) DO UPDATE SET
        alvo = excluded.alvo, preco_inicial = excluded.preco_inicial, avisado_preco = NULL`,
   ).bind(usuario.id, a.oferta_id, a.titulo, a.loja_nome, a.link, a.imagem, a.preco_inicial, a.alvo, tokenAleatorio(), Date.now()).run();
-  return responder({ ok: true, alertas: await lerAlertas(db, usuario.id) });
+  // Conta com e-mail ainda não confirmado: o alerta fica guardado, mas os avisos só saem depois da confirmação.
+  // O link de confirmação vai sozinho no 1º alerta; depois, pelo botão "Reenviar" em "Meus alertas de preço"
+  const confirmado = await emailConfirmado(db, usuario.id);
+  if (!confirmado && n === 0) await enviarConfirmacao(env, request, db, usuario).catch(() => false);
+  return responder({ ok: true, alertas: await lerAlertas(db, usuario.id), confirmado });
 }
 
 export async function onRequestDelete({ request, env }) {

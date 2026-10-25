@@ -256,9 +256,10 @@ async function carregarConta() {
   desenharContaTopo();
   // Volta do Google com erro, ou link de nova senha do e-mail: abre a janela na etapa certa
   const hash = location.hash;
-  if (hash !== "#erro-google" && !hash.startsWith("#nova-senha=")) return;
+  if (hash !== "#erro-google" && !hash.startsWith("#nova-senha=") && !hash.startsWith("#confirmar=")) return;
   history.replaceState(null, "", location.pathname + location.search);
   if (!conta.ativo) return;
+  if (hash.startsWith("#confirmar=")) return confirmarEmail(hash.slice("#confirmar=".length));
   if (hash.startsWith("#nova-senha=")) {
     conta.token = hash.slice("#nova-senha=".length);
     conta.usuario = null; // a nova senha vale para a conta do link, mesmo se outra estiver aberta aqui
@@ -367,7 +368,9 @@ function guardarAlertas(lista = []) {
 async function carregarAlertas() {
   if (!conta.usuario) return guardarAlertas([]);
   try {
-    guardarAlertas((await chamarConta("GET", "/alertas")).alertas);
+    const dados = await chamarConta("GET", "/alertas");
+    conta.emailConfirmado = dados.confirmado !== false;
+    guardarAlertas(dados.alertas);
   } catch { /* sem internet: os sinos ficam como estão */ }
 }
 
@@ -429,9 +432,34 @@ function salvarAlerta(e) {
     });
     guardarAlertas(dados.alertas);
     conta.alertaOferta = null;
+    conta.emailConfirmado = dados.confirmado !== false;
+    // E-mail ainda não confirmado (conta com senha): os avisos só saem depois de abrir o link mandado ao e-mail
+    if (!conta.emailConfirmado) {
+      conta.etapa = "meus-alertas";
+      return desenharConta();
+    }
     $("#janela-conta").close();
     toast(alvo ? `🔔 Pronto! Avisamos quando chegar a R$ ${brl(alvo)}` : "🔔 Pronto! Avisamos por e-mail quando o preço baixar");
   });
+}
+
+function reenviarConfirmacao() {
+  return comEspera(null, async () => {
+    const dados = await chamarConta("POST", "/confirmar", { reenviar: true });
+    if (dados.confirmado) { conta.emailConfirmado = true; desenharConta(); return toast("✅ Seu e-mail já está confirmado"); }
+    toast("📧 Link mandado. Confira seu e-mail (e a caixa de spam).");
+  });
+}
+
+// Link "Confirmar e-mail" do e-mail (#confirmar=<código>)
+async function confirmarEmail(token) {
+  try {
+    await chamarConta("POST", "/confirmar", { token });
+    conta.emailConfirmado = true;
+    toast("✅ E-mail confirmado! Os alertas de preço já valem.");
+  } catch (e) {
+    toast(e.message);
+  }
 }
 
 function pararAlerta(id) {
@@ -446,6 +474,10 @@ function meusAlertas(erro) {
   const lista = [...alertas.values()];
   return [
     el("h2", { id: "conta-titulo" }, "🔔 Meus alertas de preço"),
+    conta.emailConfirmado === false && el("div", { class: "aviso-confirmar" },
+      el("strong", {}, "📧 Confirme seu e-mail para receber os avisos"),
+      el("span", {}, `Mandamos um link para ${conta.usuario?.email || "o seu e-mail"}. Os alertas ficam guardados e começam a valer quando você abrir o link.`),
+      el("button", { class: "botao-link", type: "button", onclick: reenviarConfirmacao }, "Mandar o link de novo")),
     el("p", {}, lista.length
       ? "Avisamos por e-mail quando o preço baixar. Conferimos uma vez por dia."
       : "Você ainda não tem alertas. Toque no 🔔 de um produto para acompanhar o preço dele."),
@@ -1135,7 +1167,7 @@ function semRepetidos(lista) {
 // pela sugestão, o site já pede os resultados; ao apertar Enter eles estão prontos (ou quase).
 // Pede com atalho=1 (não conta nos "em alta": pode ser só uma sugestão que ela nem escolheu). Se ela buscar isso
 // mesmo, o site usa a resposta adiantada e só avisa o servidor para contar (contar=1).
-const VERSAO_BUSCA = 79;
+const VERSAO_BUSCA = 80;
 const MAX_ADIANTADAS = 8; // por visita, para não gastar as consultas às lojas à toa
 const adiantadas = new Map();
 let totalAdiantadas = 0;
@@ -1950,21 +1982,34 @@ function desenharCupons() {
 // O código só aparece depois do clique em "Pegar cupom", que abre a loja pelo link com comissão (pedido do Giovanni,
 // 24/10/2026: quem copiasse o código e fosse direto à loja compraria sem o link). O clique copia o código e marca a
 // visita na loja; mesmo se a pessoa voltar à loja depois, o cookie da Lomadee já ficou no navegador.
-const codigoEscondido = (codigo) => `${codigo.slice(0, Math.min(3, Math.ceil(codigo.length / 3)))}${"•".repeat(Math.max(codigo.length - 3, 4))}`;
+// O código inteiro nem vem na lista (/api/cupons manda só o começo, codigoMascara): é pedido no clique (25/10/2026)
 function itemCupom(c) {
   const loja = infoLoja(c);
-  const codigo = c.codigo && el("code", {}, codigoEscondido(c.codigo));
+  const codigo = c.codigoMascara && el("code", {}, c.codigoMascara);
   const aviso = el("small", { class: "cupom-aviso", hidden: true });
   const pegar = el("a", { class: "botao-oferta cupom-ir", href: c.link, target: "_blank", rel: "sponsored noopener",
-    onclick: () => {
-      if (!c.codigo) return;
-      codigo.textContent = c.codigo;
+    onclick: async () => {
+      if (!c.codigoMascara) return;
+      let inteiro = c.codigoInteiro;
+      if (!inteiro) {
+        try {
+          const r = await fetch(`/api/cupons?codigo=${encodeURIComponent(c.id)}`);
+          inteiro = r.ok ? (await r.json()).codigo : null;
+        } catch { inteiro = null; }
+      }
+      if (!inteiro) {
+        aviso.textContent = "Não foi possível mostrar o código agora. O desconto pode aparecer direto na loja que abriu.";
+        aviso.hidden = false;
+        return;
+      }
+      c.codigoInteiro = inteiro;
+      codigo.textContent = inteiro;
       codigo.parentElement.classList.add("revelado");
-      navigator.clipboard?.writeText(c.codigo).then(
+      navigator.clipboard?.writeText(inteiro).then(
         () => { aviso.textContent = "✓ Código copiado. Cole no carrinho da loja que abriu."; },
         () => { aviso.textContent = "Use este código no carrinho da loja que abriu."; },
       ).finally(() => { aviso.hidden = false; });
-    } }, c.codigo ? "🎟️ Pegar cupom e ir para a loja" : "Ativar desconto na loja →");
+    } }, c.codigoMascara ? "🎟️ Pegar cupom e ir para a loja" : "Ativar desconto na loja →");
   return el("li", { class: "cupom" },
     el("div", { class: "cupom-topo" },
       el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
@@ -1972,7 +2017,7 @@ function itemCupom(c) {
     el("strong", { class: "cupom-titulo" }, c.titulo),
     c.descricao && c.descricao !== c.titulo && el("p", { class: "cupom-descricao" }, c.descricao),
     el("div", { class: "cupom-acoes" },
-      c.codigo ? el("span", { class: "cupom-codigo" }, codigo) : el("span", { class: "cupom-sem-codigo" }, "Sem código: o desconto aparece na loja"),
+      c.codigoMascara ? el("span", { class: "cupom-codigo" }, codigo) : el("span", { class: "cupom-sem-codigo" }, "Sem código: o desconto aparece na loja"),
       pegar),
     aviso);
 }

@@ -1,7 +1,9 @@
 // /api/ir?m=<marca>&u=<link do produto> — botão "Comprar" dos produtos da Lomadee.
 // Gera o link com comissão no encurtador da Lomadee só quando alguém clica (o limite é de 60 consultas
 // por minuto, não dá para gerar os 48 de cada busca) e guarda no banco: o próximo clique já sai pronto.
-import { pedirLomadee, marcasAprovadas } from "../../lib/fontes/lomadee.js";
+// Só gera link novo para endereço assinado pelo servidor (assinaturaValida, em lib/fontes/lomadee.js; teste de invasão de
+// 25/10/2026): link montado por outra pessoa só leva ao site da própria marca, ou volta para a página inicial.
+import { pedirLomadee, marcasAprovadas, assinaturaValida } from "../../lib/fontes/lomadee.js";
 
 const UUID = /^[0-9a-f-]{20,40}$/i;
 
@@ -28,6 +30,8 @@ export async function onRequestGet({ request, env }) {
   const url = params.get("u") || "";
   const voltar = () => Response.redirect(new URL("/", request.url).toString(), 302);
   if (!env.LOMADEE_API_KEY || !UUID.test(marca) || !url.startsWith("https://") || url.length > 2000) return voltar();
+  // Links salvos antes da assinatura (carrinho, alertas) continuam abrindo: pelo link já gerado ou no site da marca
+  const assinado = await assinaturaValida(env, marca, url, params.get("s"));
 
   if (env.DB) {
     try {
@@ -40,6 +44,7 @@ export async function onRequestGet({ request, env }) {
   }
 
   try {
+    if (!assinado) throw new Error("link sem assinatura: não gera link novo");
     const canais = await pedirLomadee(env, "/affiliate/shortener/url", {
       metodo: "POST",
       corpo: { organizationId: marca, type: "Custom", url },
