@@ -43,7 +43,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
   (região BR) e atualiza o D1 pela API do Cloudflare (só grava o que mudou; trava de 300 mil por vez desde 23/10/2026, plano pago; não apaga nada se o feed
   falhar ou encolher mais da metade). Roda pelo GitHub Actions (`.github/workflows/robo-precos.yml`, 02:30 de Cuiabá desde 16/10/2026).
   Teste local: `node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite`. Ver README.
-- `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br`, que **ainda não existe**.
+- `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br` (✅ existe desde 26/10/2026, encaminha para o Gmail dele).
 - `_headers` + `<meta robots noindex>` escondem o site do Google até o lançamento.
 - Testar local: `npx wrangler pages dev public` (rodar **de dentro do repositório**; desde 17/10/2026 o site fica em `public/`) e abrir a página principal.
 - Rede do ambiente do Claude: **"Completo" desde 16/10/2026** (Giovanni trocou em Ambiente > Edit > Acesso à rede). Antes
@@ -713,9 +713,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Rate limiting rules > "Limite API": URI Path starts with `/api/`, por IP, 60 pedidos em 10 s → Block 10 s (plano grátis: só 1
   regra; já usada). Não deu para testar o bloqueio daqui: a rede do Claude sai por vários IPs (160.79.106.x).
   O robô fica bem abaixo (2 buscas prontas ao mesmo tempo, ~5 s cada).
-- ⏳ **contato@ (26/10/2026, item 8)**: passos do Email Routing entregues de novo (Email > Email Routing > Get started; custom
-  address `contato` → Gmail dele; verificar o e-mail; "Add records and enable" troca o MX nulo/SPF -all). Aguardando print/teste.
-  Responder como contato@ = configurar depois (Gmail "Enviar e-mail como" + SMTP do Resend). Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
+- ✅ **contato@vaiprocarrinho.com.br FUNCIONANDO (26/10/2026)**: Cloudflare Email Routing; Giovanni apagou à mão o MX nulo e o
+  TXT `v=spf1 -all` (o Cloudflare não conseguia); MX route1/2/3.mx.cloudflare.net + SPF `include:_spf.mx.cloudflare.net ~all` +
+  DKIM; regra `contato` → Gmail pessoal dele (verificado). Teste de outro e-mail chegou no Gmail. DMARC `_dmarc` (reject) mantido.
+  Só RECEBE; responder como contato@ = depois (Gmail "Enviar e-mail como" + SMTP do Resend; o SPF precisará incluir o Resend). Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
   login dele por 1 h (ele ainda entra por Google ou "Esqueci minha senha"). Conferido no ar (commit 0374bd8): lista de cupons
   sem código inteiro, /api/ir com site falso volta à página inicial, link real assinado gera o lmdee.link. Buscas prontas
   voltam na madrugada (v=80); até lá a busca nova leva ~4 s.
