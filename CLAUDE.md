@@ -722,6 +722,12 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Ainda pendentes da lista: 3 (senha do Registro.br), 5 (UptimeRobot), responder como contato@ (opcional).
 - ⏳ **UptimeRobot (item 5, 26/10/2026)**: passos entregues (monitor HTTP(s) da página + monitor Keyword em `/api/numeros` com a
   palavra `lojas`, 5 min, alerta por e-mail). Giovanni vai fazer "outra hora".
+- **Lomadee: marcas que pagam mais (26/10/2026, pedido do Giovanni)**: lista tirada das 161 páginas públicas `lomadee.com.br/pt-br/marcas/<nome>`
+  (comissão "até X%"): Laluna 18% (moda infantil), Kidy 17%, Lojas REDE 15%, Disney 15%, Coza 15%, Cá d'Oro 14%, Nautika 13%, Sawary/
+  Catran/Esbelt/Sou Nuaá 12%. Shein = 0,4% (decidido: se usar, só no "Ir para a loja"). Giovanni disse que quase todas já estão
+  liberadas. Execução #42 (Run workflow com a opção nova `so_lomadee`, que roda só a conferência das marcas; cache das marcas v3,
+  /api/lojas VERSAO=8, numeros v=4): 105 marcas liberadas, **as mesmas 24 mandam produtos** (as que pagam mais não mandam catálogo
+  pela API). Proposto: seção "Outras lojas parceiras" só com o botão "Ir para a loja" para marcas sem produtos. Aguardando decisão.
 - **Awin sem lojas novas (26/10/2026, execução #41)**: as mesmas 13 (conta nova 10 "active", antiga 11): Monte Carlo, Kabum, Spicy,
   Elements, Casa Tema, Animale, Shark-Ninja, Karsten, Lauri, EINSTAR, Posthaus, Polishop, Arno. Pedidos pendentes/recusados só
   aparecem no painel da Awin (abas Pendente/Recusado): pedir print se ele quiser que o Claude analise.
