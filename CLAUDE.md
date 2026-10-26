@@ -724,7 +724,14 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   palavra `lojas`, 5 min, alerta por e-mail). Giovanni vai fazer "outra hora".
 - **Awin sem lojas novas (26/10/2026, execução #41)**: as mesmas 13 (conta nova 10 "active", antiga 11): Monte Carlo, Kabum, Spicy,
   Elements, Casa Tema, Animale, Shark-Ninja, Karsten, Lauri, EINSTAR, Posthaus, Polishop, Arno. Pedidos pendentes/recusados só
-  aparecem no painel da Awin (abas Pendente/Recusado): pedir print se ele quiser que o Claude analise. Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
+  aparecem no painel da Awin (abas Pendente/Recusado): pedir print se ele quiser que o Claude analise.
+- ✅ **Botão "Ir para a loja →" (26/10/2026, pedido do Giovanni: "comissão de quem visita a loja pelo site")**: na janela "Lojas
+  parceiras", cada loja tem "Ver produtos" + "Ir para a loja →" (`.lp-botoes`/`.lp-ir`), link `/api/ir-loja?id=<loja>`
+  (functions/api/ir-loja.js): Shopee `linkShopee` (mutation generateShortLink), AliExpress `linkAliExpress`
+  (aliexpress.affiliate.link.generate, promotion_link_type 0), Awin `cread.php?awinmid=&awinaffid=` (afiliado tirado do link de
+  um produto da loja: PF ou PJ), Lomadee `link` do canal liberado em `marcasAprovadas` (cache de marcas v2). Link guardado 7 dias
+  no cache; sem link volta para `/?loja=<id>`. Conferido no ar: os 4 chegam à página inicial com utm/aff da conta dele.
+  Explicado: comissão vale para qualquer compra dentro do prazo do cookie (último clique; mesmo aparelho/navegador). Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
   login dele por 1 h (ele ainda entra por Google ou "Esqueci minha senha"). Conferido no ar (commit 0374bd8): lista de cupons
   sem código inteiro, /api/ir com site falso volta à página inicial, link real assinado gera o lmdee.link. Buscas prontas
   voltam na madrugada (v=80); até lá a busca nova leva ~4 s.
