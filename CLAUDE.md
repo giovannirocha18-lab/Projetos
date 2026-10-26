@@ -732,6 +732,14 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   sozinho até 200 produtos (`PRODUTOS_DESEJADOS`, era 100). Agora ~240 (Shopee + Kabum). AliExpress quase não tem celular ≥ R$ 500
   que entregue no BR (3–4 por lote; o resto é capinha). Cache v=81 (buscas prontas refeitas na madrugada).
 - **Convites do Grupo Lunzo na Awin (26/10/2026)**: marketplace europeu (SK, RO, DE, HU, PL; entrega só no próprio país) → recusados.
+- ⭐ **Pesquisa "como o cérebro decide uma compra" (26/10/2026, pedido do Giovanni) → itens 1, 2 e 3 feitos**: (1) **"✨ Escolha rápida"**
+  (`escolhaRapida`/`desenharEscolhaRapida` no app.js, `#escolha-rapida` no index): na busca e na categoria, 3 cartões "💰 Mais barato",
+  "🏆 Custo-benefício" (meio; mais vendido entre os abaixo da mediana) e "⭐ Mais bem avaliado" (nota ≥ 4,5 com 10+ vendas), cada um com o
+  critério escrito; só com 6+ produtos comparáveis; base = `ofertasComparaveis` (busca) ou produtos da categoria (`semForaDaCurva`).
+  (2) **"⭐ Bem avaliados (nota 4 ou mais)"** em "Mais opções" (`#bem-avaliados`, `NOTA_BOA`; só a Shopee manda nota; "Mais opções"
+  agora aparece quando há frete OU nota). (3) **Centavos menores e no alto** (`.centavos`). Testado com dados reais (air fryer, fone,
+  perfume, geladeira, Celulares). Não feitos (sugeridos): animação ao salvar no carrinho, "Você economiza R$ X no carrinho", esqueleto
+  de cartões. Base: Chernev 2015 (excesso de opções), Spiegel (nota 4,2–4,5), Thomas & Morwitz 2005, Simonson 1989, Deloitte 2020.
 - **Awin sem lojas novas (26/10/2026, execução #41)**: as mesmas 13 (conta nova 10 "active", antiga 11): Monte Carlo, Kabum, Spicy,
   Elements, Casa Tema, Animale, Shark-Ninja, Karsten, Lauri, EINSTAR, Posthaus, Polishop, Arno. Pedidos pendentes/recusados só
   aparecem no painel da Awin (abas Pendente/Recusado): pedir print se ele quiser que o Claude analise.
