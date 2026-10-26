@@ -1568,9 +1568,20 @@ function escolhaRapida(lista) {
   return escolhas.length >= 2 ? escolhas : [];
 }
 
+// A escolha fica parada enquanto a lista e os filtros são os mesmos: só muda quando o visitante mexe num filtro ou
+// pede "Ver mais resultados"
+function chaveDaEscolha() {
+  return JSON.stringify([estado.pedido, estado.cargasManuais || 0, [...estado.lojasDesmarcadas], estado.secoesSo && [...estado.secoesSo],
+    [...estado.secoesFora], [...estado.marcasSo], $("#preco-min").value, $("#preco-max").value, $("#so-frete").checked,
+    $("#bem-avaliados").checked, $("#com-acessorios").checked, $("input[name=envio]:checked")?.value]);
+}
+
 function desenharEscolhaRapida(lista) {
-  const escolhas = escolhaRapida(lista);
   const caixa = $("#escolha-rapida");
+  if (estado.completando) { caixa.hidden = true; return; }
+  const chave = chaveDaEscolha();
+  if (estado.escolha?.chave !== chave) estado.escolha = { chave, escolhas: escolhaRapida(lista) };
+  const { escolhas } = estado.escolha;
   caixa.hidden = !escolhas.length;
   caixa.replaceChildren(...(escolhas.length ? [
     el("h2", { class: "escolha-cabeca" }, "✨ Escolha rápida"),
@@ -1979,6 +1990,7 @@ async function buscar(q) {
     else if (!estado.cat) estado.secoesSo = categoriasDaBusca();
     estado.maisBusca = dados.mais;
     estado.temMaisBusca = Boolean(dados.mais);
+    estado.completando = estado.temMaisBusca; // a "Escolha rápida" só aparece depois dos lotes automáticos
     desenharFiltroLojas();
     desenharResultados();
     completarSozinho(pedido);
@@ -2333,14 +2345,25 @@ async function carregarMaisOfertas() {
 const PRODUTOS_DESEJADOS = 200; // 26/10/2026: era 100 (categorias abriam com ~110 produtos)
 const PEDIDOS_AUTOMATICOS = 3;
 async function completarSozinho(pedido) {
-  for (let i = 0; i < PEDIDOS_AUTOMATICOS; i++) {
-    if (pedido !== estado.pedido || !estado.temMaisBusca) return;
-    if (estado.ofertas.filter((o) => !o.acessorio).length >= PRODUTOS_DESEJADOS) return;
-    await carregarMaisResultados({ sozinho: true });
+  // A "Escolha rápida" espera os lotes automáticos chegarem (senão o "mais barato" trocava sozinho segundos depois;
+  // print do Giovanni, 26/10/2026)
+  estado.completando = true;
+  try {
+    for (let i = 0; i < PEDIDOS_AUTOMATICOS; i++) {
+      if (pedido !== estado.pedido || !estado.temMaisBusca) return;
+      if (estado.ofertas.filter((o) => !o.acessorio).length >= PRODUTOS_DESEJADOS) return;
+      await carregarMaisResultados({ sozinho: true });
+    }
+  } finally {
+    if (pedido === estado.pedido) {
+      estado.completando = false;
+      if (!estado.buscando) desenharEscolhaRapida(filtrar());
+    }
   }
 }
 
 async function carregarMaisResultados({ sozinho = false } = {}) {
+  if (!sozinho) estado.cargasManuais = (estado.cargasManuais || 0) + 1;
   const botao = $("#mais-resultados");
   const pedido = estado.pedido;
   const q = estado.q;

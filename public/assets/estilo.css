@@ -867,7 +867,7 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .preco .centavos { vertical-align: .62em; margin-left: 1px; }
 
 /* "✨ Escolha rápida" no topo da busca (26/10/2026): 3 sugestões com o critério à mostra */
-.escolha-rapida { margin-bottom: 22px; padding: 14px 16px 16px; border-radius: var(--raio); background: var(--roxo-claro); border: 1px solid #ddd6fe; }
+.escolha-rapida { animation: surgir .35s ease-out; margin-bottom: 22px; padding: 14px 16px 16px; border-radius: var(--raio); background: var(--roxo-claro); border: 1px solid #ddd6fe; }
 .escolha-cabeca { margin: 0 0 10px; font-size: 1.05rem; color: var(--roxo-forte); }
 .escolha-lista { display: grid; grid-template-columns: repeat(3, minmax(0, 260px)); gap: 18px; }
 .escolha { display: flex; flex-direction: column; min-width: 0; }
