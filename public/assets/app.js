@@ -920,7 +920,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
           `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`)),
       el("div", { class: "precos" },
         o.precoAntigo && el("span", { class: "preco-antigo" }, `R$ ${brl(o.precoAntigo)}`),
-        el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", {}, `,${decimal}`)),
+        el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", { class: "centavos" }, `,${decimal}`)),
         o.precoAntigo > o.preco + 1 && el("span", { class: "economia-tag" }, ...longoCurto(`Você economiza R$ ${brl(o.precoAntigo - o.preco)}`, `Economize R$ ${brl(o.precoAntigo - o.preco)}`))),
       o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
       o.internacional && el("span", {
@@ -1051,7 +1051,7 @@ function abrirDetalhes(o, { doLink = false } = {}) {
         `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`)),
     el("div", { class: "precos" },
       o.precoAntigo && el("span", { class: "preco-antigo" }, `R$ ${brl(o.precoAntigo)}`, o.desconto && ` (-${o.desconto}%)`),
-      el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", {}, `,${decimal}`)),
+      el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", { class: "centavos" }, `,${decimal}`)),
       o.precoAntigo > o.preco + 1 && el("span", { class: "economia-tag" }, `Você economiza R$ ${brl(o.precoAntigo - o.preco)}`)),
     el("div", { class: "detalhes-selos" },
       o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
@@ -1262,6 +1262,7 @@ function passaNosFiltros(comMarca = true) {
   const min = lerPreco($("#preco-min").value);
   const max = lerPreco($("#preco-max").value);
   const frete = $("#so-frete").checked;
+  const bemAvaliados = $("#bem-avaliados").checked;
   const envio = $("input[name=envio]:checked")?.value || "todos";
   const semAcessorios = escondeAcessorios();
   return (o) => secaoVisivel(o)
@@ -1270,6 +1271,7 @@ function passaNosFiltros(comMarca = true) {
     && !(min >= 0 && o.preco < min)
     && !(max >= 0 && o.preco > max)
     && (!frete || o.freteGratis)
+    && (!bemAvaliados || o.avaliacao >= NOTA_BOA)
     && (envio === "todos" || (envio === "internacional") === Boolean(o.internacional));
 }
 
@@ -1505,13 +1507,8 @@ function avisoCategoria() {
 
 // Ofertas que valem para o "Menor preço": o produto buscado (título com todas as palavras),
 // sem acessórios e sem preços fora da curva ("Bit para parafusadeira" a R$ 5 numa lista de R$ 200)
-function ofertasComparaveis(lista) {
-  const produtos = lista.filter((o) => !o.acessorio);
-  // Sem o produto buscado na lista (ex.: só jaquetas "Air" numa busca por "air fryer"), ninguém ganha o selo
-  // e o selo "Menor preço" não vai para resfriador nem peça de carro quando há o produto de verdade
-  const exatos = produtos.filter(produtoExato);
-  const deVerdade = exatos.filter((o) => o.principal && !o.variante && !o.foraDoTipo);
-  const base = deVerdade.length ? deVerdade : exatos;
+// Tira os preços fora da curva (menos de 30% ou mais de 3 vezes a mediana)
+function semForaDaCurva(base) {
   if (!base.length) return [];
   const precos = base.map((o) => o.preco).sort((a, b) => a - b);
   const mediana = precos[Math.floor(precos.length / 2)];
@@ -1519,10 +1516,68 @@ function ofertasComparaveis(lista) {
   return dentro.length ? dentro : base;
 }
 
+function ofertasComparaveis(lista) {
+  const produtos = lista.filter((o) => !o.acessorio);
+  // Sem o produto buscado na lista (ex.: só jaquetas "Air" numa busca por "air fryer"), ninguém ganha o selo
+  // e o selo "Menor preço" não vai para resfriador nem peça de carro quando há o produto de verdade
+  const exatos = produtos.filter(produtoExato);
+  const deVerdade = exatos.filter((o) => o.principal && !o.variante && !o.foraDoTipo);
+  const base = deVerdade.length ? deVerdade : exatos;
+  return semForaDaCurva(base);
+}
+
 function melhorOferta(lista) {
   if (poucosProdutos()) return null; // só peças na lista: o selo iria para uma peça
   const base = ofertasComparaveis(lista);
   return base.length ? base.reduce((a, b) => (b.preco < a.preco ? b : a)) : null;
+}
+
+// "✨ Escolha rápida" (26/10/2026, pedido do Giovanni, pesquisa sobre como decidimos uma compra): com muitas opções a
+// pessoa adia a decisão (Chernev et al., 2015), então 3 sugestões no topo da busca, cada uma com o critério à mostra.
+// O "custo-benefício" fica no meio (efeito compromisso, Simonson 1989). Só entre os produtos de verdade da busca
+// (ofertasComparaveis: sem acessório e sem preço fora da curva); nota só conta com vendas suficientes (avaliações
+// de poucas pessoas não dizem muito).
+const NOTA_BOA = 4;
+const ESCOLHA_MINIMO = 6;
+const VENDAS_MINIMAS = 10; // a API manda as vendas recentes (números baixos); com menos que isso a nota não diz muito
+function escolhaRapida(lista) {
+  if (!estado.q || estado.loja || poucosProdutos()) return [];
+  // Categoria aberta (vitrine): os produtos da categoria, sem preço fora da curva; busca: os produtos de verdade da busca
+  const cat = navegandoCategoria();
+  const daCategoria = cat && lista.filter((o) => !o.acessorio && o.secao === cat.nome);
+  const base = (cat ? semForaDaCurva(daCategoria) : ofertasComparaveis(lista)).filter((o) => !o.variante && !o.foraDoTipo);
+  if (base.length < ESCOLHA_MINIMO) return [];
+  const precos = base.map((o) => o.preco).sort((a, b) => a - b);
+  const mediana = precos[Math.floor(precos.length / 2)];
+  const usados = new Set();
+  const primeiro = (candidatos, ordem) => {
+    const o = candidatos.sort(ordem).find((x) => !usados.has(x.id));
+    if (o) usados.add(o.id);
+    return o;
+  };
+  const barato = primeiro([...base], (a, b) => a.preco - b.preco);
+  const avaliado = primeiro(base.filter((o) => o.avaliacao >= 4.5 && o.vendidos >= VENDAS_MINIMAS),
+    (a, b) => b.avaliacao - a.avaliacao || b.vendidos - a.vendidos);
+  const custo = primeiro(base.filter((o) => o.preco <= mediana && o.vendidos >= VENDAS_MINIMAS && !(o.avaliacao && o.avaliacao < 4.5)),
+    (a, b) => b.vendidos - a.vendidos);
+  const escolhas = [
+    barato && { o: barato, titulo: "💰 Mais barato", porque: "O menor preço entre os produtos desta lista" },
+    custo && { o: custo, titulo: "🏆 Custo-benefício", porque: "O mais vendido entre os que custam menos que a média desta lista" },
+    avaliado && { o: avaliado, titulo: "⭐ Mais bem avaliado", porque: `A maior nota entre os produtos com ${VENDAS_MINIMAS} vendas ou mais` },
+  ].filter(Boolean);
+  return escolhas.length >= 2 ? escolhas : [];
+}
+
+function desenharEscolhaRapida(lista) {
+  const escolhas = escolhaRapida(lista);
+  const caixa = $("#escolha-rapida");
+  caixa.hidden = !escolhas.length;
+  caixa.replaceChildren(...(escolhas.length ? [
+    el("h2", { class: "escolha-cabeca" }, "✨ Escolha rápida"),
+    el("div", { class: "escolha-lista" }, ...escolhas.map(({ o, titulo, porque }) => el("div", { class: "escolha" },
+      el("p", { class: "escolha-titulo" }, titulo, el("small", {}, porque)),
+      cartaoOferta(o)))),
+  ] : []));
 }
 
 // "Corrigimos “eletrolux” · Buscar como digitei" ou "Você quis dizer: electrolux?"
@@ -1581,7 +1636,13 @@ function desenharBotaoFrete() {
   // Nenhuma loja parceira informa frete hoje (Shopee, AliExpress e Lomadee não mandam; os feeds da Awin vêm sem; conferido
   // em 23/10/2026): a opção da barra lateral só aparece quando há produto com frete grátis informado pela loja
   // ("Com desconto" saiu em 24/10/2026: "Maior desconto" em "Ordenar por" já faz isso; sem frete, "Mais opções" some)
-  $("#mais-opcoes").hidden = !qtd && !ligado;
+  $("#opcao-frete").hidden = !qtd && !ligado;
+  // "⭐ Bem avaliados" (26/10/2026): só a Shopee manda nota; a opção aparece quando há produtos com nota na lista
+  const avaliados = estado.ofertas.filter((o) => o.avaliacao >= NOTA_BOA && !(escondeAcessorios() && o.acessorio)).length;
+  const bem = $("#bem-avaliados").checked;
+  $("#opcao-avaliados").hidden = !avaliados && !bem;
+  $("#qtd-avaliados").textContent = avaliados || "";
+  $("#mais-opcoes").hidden = $("#opcao-frete").hidden && $("#opcao-avaliados").hidden;
   document.querySelectorAll("[data-frete]").forEach((b) => {
     b.hidden = qtd < FRETE_MINIMO && !ligado;
     b.setAttribute("aria-pressed", String(ligado));
@@ -1608,6 +1669,7 @@ function desenharResultados() {
     c.style.animationDelay = `${Math.min(i, 12) * 30}ms`;
     return c;
   }));
+  desenharEscolhaRapida(lista);
   $("#vazio").hidden = lista.length > 0;
   // Botões de baixo seguem as lojas marcadas no card: com todas desligadas não há o que "ver mais"
   const lojaLigada = (o) => !estado.lojasDesmarcadas.has(o.loja);
@@ -1881,6 +1943,7 @@ async function buscar(q) {
   $("#caixa-marcas").hidden = true;
   $("#vazio").hidden = true;
   $("#grade").replaceChildren(...esqueletos(8));
+  $("#escolha-rapida").hidden = true;
   estado.temMaisBusca = false;
   $("#mais-resultados").hidden = true;
   $("#ver-acessorios").hidden = true;
@@ -1924,6 +1987,7 @@ async function buscar(q) {
     estado.buscando = false;
     estado.ofertas = [];
     $("#grade").replaceChildren();
+    $("#escolha-rapida").hidden = true;
     $("#vazio").hidden = true; // o "Ops!" do topo já explica
     $("#resumo").replaceChildren(el("div", {}, el("h1", {}, "Ops! Não conseguimos buscar agora"), el("p", {}, "Verifique sua conexão e tente de novo.")));
   }
@@ -2174,6 +2238,7 @@ async function mostrarLoja(id) {
   $("#caixa-lojas").hidden = true;
   $("#vazio").hidden = true;
   $("#grade").replaceChildren(...esqueletos(8));
+  $("#escolha-rapida").hidden = true;
   $("#mais-resultados").hidden = true;
   $("#ver-acessorios").hidden = true;
   try {
@@ -2739,6 +2804,7 @@ let timerPreco;
   timerPreco = setTimeout(desenharResultados, 300);
 }));
 $("#so-frete").addEventListener("change", desenharResultados);
+$("#bem-avaliados").addEventListener("change", desenharResultados);
 // Mostrar/esconder acessórios muda também a contagem de cada loja
 $("#com-acessorios").addEventListener("change", () => { desenharFiltroLojas(); desenharResultados(); });
 document.querySelectorAll("[data-frete]").forEach((b) => b.addEventListener("click", () => {
@@ -2751,6 +2817,7 @@ function zerarFiltros() {
   $("#preco-min").value = "";
   $("#preco-max").value = "";
   $("#so-frete").checked = false;
+  $("#bem-avaliados").checked = false;
   $("#com-acessorios").checked = false;
   $("input[name=envio][value=todos]").checked = true;
   estado.lojasDesmarcadas.clear();

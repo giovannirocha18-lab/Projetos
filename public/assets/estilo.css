@@ -861,3 +861,23 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .bf-legendas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .bf-legenda { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.16); border-radius: 999px; padding: 4px 10px; font-size: .8rem; font-weight: 700; }
 .bf-legenda .qtd { background: rgba(255,255,255,.25); border-radius: 999px; padding: 0 7px; }
+
+/* Centavos menores e no alto (26/10/2026, pesquisa: o preço parece menor quando os centavos aparecem menores) */
+.preco small { font-size: .52em; }
+.preco .centavos { vertical-align: .62em; margin-left: 1px; }
+
+/* "✨ Escolha rápida" no topo da busca (26/10/2026): 3 sugestões com o critério à mostra */
+.escolha-rapida { margin-bottom: 22px; padding: 14px 16px 16px; border-radius: var(--raio); background: var(--roxo-claro); border: 1px solid #ddd6fe; }
+.escolha-cabeca { margin: 0 0 10px; font-size: 1.05rem; color: var(--roxo-forte); }
+.escolha-lista { display: grid; grid-template-columns: repeat(3, minmax(0, 260px)); gap: 18px; }
+.escolha { display: flex; flex-direction: column; min-width: 0; }
+.escolha .oferta { flex: 1; }
+.escolha-titulo { margin: 0 0 8px; font-weight: 800; color: var(--roxo-forte); line-height: 1.2; }
+.escolha-titulo small { display: block; font-weight: 500; font-size: .76rem; color: var(--suave); margin-top: 2px; min-height: 2.5em; }
+@media (max-width: 640px) {
+  .escolha-rapida { padding: 12px 10px; margin-bottom: 16px; }
+  .escolha-lista { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 46%; gap: 10px;
+    overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; }
+  .escolha { scroll-snap-align: start; }
+  .escolha-titulo { font-size: .88rem; }
+}

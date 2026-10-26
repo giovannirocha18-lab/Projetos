@@ -84,7 +84,8 @@
 
       <fieldset id="mais-opcoes">
         <legend>Mais opções</legend>
-        <label class="opcao"><input type="checkbox" id="so-frete"> Frete grátis</label>
+        <label class="opcao" id="opcao-frete"><input type="checkbox" id="so-frete"> Frete grátis</label>
+        <label class="opcao" id="opcao-avaliados"><input type="checkbox" id="bem-avaliados"> ⭐ Bem avaliados (nota 4 ou mais) <span class="qtd" id="qtd-avaliados"></span></label>
         <!-- Sem caixinha visível (confundia): os acessórios aparecem pelo botão "Ver também N acessórios e peças" abaixo da lista -->
         <input type="checkbox" id="com-acessorios" hidden aria-hidden="true" tabindex="-1">
       </fieldset>
@@ -160,6 +161,7 @@
           <p class="total" id="total"></p>
           <button type="button" class="botao-frete" data-frete hidden></button>
         </div>
+        <section class="escolha-rapida" id="escolha-rapida" hidden aria-label="Escolha rápida"></section>
         <div class="grade" id="grade"></div>
         <div class="mais-ofertas"><button type="button" class="botao-secundario" id="mais-resultados" hidden>Ver mais resultados</button></div>
         <div class="mais-ofertas"><button type="button" class="botao-secundario" id="ver-acessorios" hidden></button></div>
