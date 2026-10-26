@@ -709,9 +709,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (3) **/api/cupons mandava todos os códigos inteiros** (furava o "código escondido"): a lista agora manda `codigoMascara` e o
   código vem de `/api/cupons?codigo=<id>` só no clique em "Pegar cupom" (VERSAO=3). Quem chamar esse endereço à mão ainda vê o
   código de um cupom por vez (igual a clicar).
-  **Falta (Giovanni)**: regra de limite de pedidos no Cloudflare (Security > WAF > Rate limiting rules: caminho começa com /api/,
-  por IP, 60 pedidos em 10 s → bloquear 10 s); hoje não há limite em /api/buscar, /api/produto, /api/lojas (custo e limites
-  das lojas se alguém disparar milhares de buscas). Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
+  ✅ **Limite de pedidos no Cloudflare (26/10/2026, Giovanni fez; conferido pelos prints)**: domínio > Security > Security rules >
+  Rate limiting rules > "Limite API": URI Path starts with `/api/`, por IP, 60 pedidos em 10 s → Block 10 s (plano grátis: só 1
+  regra; já usada). Não deu para testar o bloqueio daqui: a rede do Claude sai por vários IPs (160.79.106.x).
+  O robô fica bem abaixo (2 buscas prontas ao mesmo tempo, ~5 s cada). Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
   login dele por 1 h (ele ainda entra por Google ou "Esqueci minha senha"). Conferido no ar (commit 0374bd8): lista de cupons
   sem código inteiro, /api/ir com site falso volta à página inicial, link real assinado gera o lmdee.link. Buscas prontas
   voltam na madrugada (v=80); até lá a busca nova leva ~4 s.
