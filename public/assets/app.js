@@ -1167,7 +1167,7 @@ function semRepetidos(lista) {
 // pela sugestão, o site já pede os resultados; ao apertar Enter eles estão prontos (ou quase).
 // Pede com atalho=1 (não conta nos "em alta": pode ser só uma sugestão que ela nem escolheu). Se ela buscar isso
 // mesmo, o site usa a resposta adiantada e só avisa o servidor para contar (contar=1).
-const VERSAO_BUSCA = 80;
+const VERSAO_BUSCA = 81;
 const MAX_ADIANTADAS = 8; // por visita, para não gastar as consultas às lojas à toa
 const adiantadas = new Map();
 let totalAdiantadas = 0;
@@ -2265,7 +2265,7 @@ async function carregarMaisOfertas() {
 // "Ver mais resultados": traz a próxima página da busca (Shopee) e junta à lista
 // A busca chega aos poucos: o servidor responde com as primeiras páginas de cada loja (em poucos segundos)
 // e o site pede as próximas sozinho, até ter uns 100 produtos (sem contar acessórios)
-const PRODUTOS_DESEJADOS = 100;
+const PRODUTOS_DESEJADOS = 200; // 26/10/2026: era 100 (categorias abriam com ~110 produtos)
 const PEDIDOS_AUTOMATICOS = 3;
 async function completarSozinho(pedido) {
   for (let i = 0; i < PEDIDOS_AUTOMATICOS; i++) {
