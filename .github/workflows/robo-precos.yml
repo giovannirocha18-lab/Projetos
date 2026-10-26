@@ -12,9 +12,14 @@ on:
         description: "Só a Awin (gravar produtos das lojas), sem Shopee, buscas prontas e Lomadee"
         type: boolean
         default: false
+      so_lomadee:
+        description: "Só conferir as marcas da Lomadee (depois de aprovarem marcas novas)"
+        type: boolean
+        default: false
 
 jobs:
   awin:
+    if: ${{ !inputs.so_lomadee }}
     runs-on: ubuntu-latest
     # Uma gravação por vez: duas ao mesmo tempo (madrugada atrasada + Run workflow) gravam por cima uma da outra
     concurrency:
@@ -87,7 +92,7 @@ jobs:
   # Shopee: o site guarda o preço de hoje dos produtos das vitrines e dos mais buscados
   # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
   shopee:
-    if: ${{ !inputs.so_awin }}
+    if: ${{ !inputs.so_awin && !inputs.so_lomadee }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -107,7 +112,7 @@ jobs:
 
   # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
   prontas:
-    if: ${{ !inputs.so_awin }}
+    if: ${{ !inputs.so_awin && !inputs.so_lomadee }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
     steps:
