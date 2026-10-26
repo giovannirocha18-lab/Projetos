@@ -663,7 +663,7 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 25/10/2026, fim da 14ª sessão)
+## Próximos passos (atualizado 26/10/2026, fim da 15ª sessão)
 - ✅ **15ª sessão (25/10/2026): chave do robô (`lib/robo.js`), publicada**. `/api/preparar-buscas`, `/api/coletar-precos`,
   `/api/conferir-alertas` e `/api/conferir-lojas` estavam abertos a qualquer um; agora exigem `Authorization: Bearer <chave>`.
   Secret **`CHAVE_ROBO`** no Cloudflare (Giovanni cadastrou com esse nome); no GitHub ele cadastrou como `ROBO_CHAVE` ou `CHAVE_ROBO`
@@ -722,6 +722,16 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Ainda pendentes da lista: 3 (senha do Registro.br), 5 (UptimeRobot), responder como contato@ (opcional).
 - ⏳ **UptimeRobot (item 5, 26/10/2026)**: passos entregues (monitor HTTP(s) da página + monitor Keyword em `/api/numeros` com a
   palavra `lojas`, 5 min, alerta por e-mail). Giovanni vai fazer "outra hora".
+- **Qualidade das buscas (26/10/2026, fim da 15ª sessão, pedido do Giovanni)**: auditadas 20 buscas populares (air fryer, celular,
+  fone, geladeira, smart tv, notebook, tênis, perfume, cadeira gamer, smartwatch, panelas, bicicleta, ventilador, máquina de lavar,
+  colchão, mochila, whey, furadeira, vestido, ps5): resultados bons (150–540 produtos de verdade cada). Lento por 2 motivos:
+  (1) cada troca de `VERSAO_CACHE` apaga as buscas prontas até a madrugada → Run workflow ganhou `so_prontas` (refaz só elas, ~18 min;
+  **usar sempre depois de trocar a versão**); (2) Lomadee travava a busca até 8 s → `LIMITE_LOJA_LENTA_MS` = 5 s na busca ao vivo.
+  Depois: buscas prontas 0,3–1,2 s; busca nova ~3–4 s (era 6–9 s). Detalhes vistos e não corrigidos: "geladeira" traz "Geladeira Our
+  Generation" (brinquedo, Candide) em 2º; "máquina de lavar" traz mini lavadora de R$ 45 do AliExpress; "ps5" com
+  "SUPORTEDECONTROLE-PS5…" (título grudado) no topo; "ventilador" com ventilador de lareira do AliExpress em 2º.
+- PCYES (Lomadee): 1ª "foto" era a página do produto e a descrição vinha com HTML escapado e cortado → `ehFoto`/`semHtml` em
+  lomadee.js (26/10). Cache v=83, /api/lojas VERSAO=10.
 - **Lomadee: marcas que pagam mais (26/10/2026, pedido do Giovanni)**: lista tirada das 161 páginas públicas `lomadee.com.br/pt-br/marcas/<nome>`
   (comissão "até X%"): Laluna 18% (moda infantil), Kidy 17%, Lojas REDE 15%, Disney 15%, Coza 15%, Cá d'Oro 14%, Nautika 13%, Sawary/
   Catran/Esbelt/Sou Nuaá 12%. Shein = 0,4% (decidido: se usar, só no "Ir para a loja"). Giovanni disse que quase todas já estão
