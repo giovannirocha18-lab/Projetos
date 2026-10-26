@@ -101,18 +101,48 @@ function salvarFavoritos() {
 
 const ehFavorito = (id) => favoritos.some((f) => f.id === id);
 
-function alternarFavorito(oferta) {
+function alternarFavorito(oferta, origem) {
   if (ehFavorito(oferta.id)) {
     favoritos = favoritos.filter((f) => f.id !== oferta.id);
     toast("Removido do carrinho");
   } else {
     const { id, titulo, preco, loja, lojaNome, link, imagem, emoji, categoria } = oferta;
-    favoritos.unshift({ id, titulo, preco, loja, lojaNome, link, imagem, emoji, categoria });
+    // Preço "de" só quando o cartão mostra economia (o mesmo que aparece em "Você economiza"): soma no carrinho
+    const precoAntigo = oferta.precoAntigo > preco + 1 ? oferta.precoAntigo : undefined;
+    favoritos.unshift({ id, titulo, preco, precoAntigo, loja, lojaNome, link, imagem, emoji, categoria });
     toast("🛒 Guardado no seu carrinho");
+    if (origem) voarAteCarrinho(origem);
   }
   salvarFavoritos();
   enviarCarrinho();
   atualizarFavoritos(true);
+}
+
+// A foto do produto "voa" até o carrinho do topo (26/10/2026, pesquisa: confirmação visível de que deu certo)
+function voarAteCarrinho(origem) {
+  const destino = $("#abrir-favoritos");
+  const foto = origem.closest(".oferta")?.querySelector(".oferta-foto img, .oferta-foto .foto-emoji") || origem;
+  const de = foto.getBoundingClientRect();
+  const para = destino.getBoundingClientRect();
+  if (!de.width || !para.width || !document.body.animate) return;
+  const tamanho = Math.min(90, de.width, de.height || 90);
+  const voando = foto.tagName === "IMG" ? el("img", { src: foto.src, alt: "" }) : el("span", {}, foto.textContent);
+  voando.className = "voando";
+  Object.assign(voando.style, { width: `${tamanho}px`, height: `${tamanho}px`,
+    left: `${de.left + de.width / 2 - tamanho / 2}px`, top: `${de.top + (de.height || tamanho) / 2 - tamanho / 2}px` });
+  document.body.append(voando);
+  const dx = para.left + para.width / 2 - (de.left + de.width / 2);
+  const dy = para.top + para.height / 2 - (de.top + (de.height || tamanho) / 2);
+  voando.animate([
+    { transform: "translate(0, 0) scale(1)", opacity: 1 },
+    { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 60}px) scale(.6)`, opacity: 1, offset: 0.5 },
+    { transform: `translate(${dx}px, ${dy}px) scale(.15)`, opacity: .3 },
+  ], { duration: 750, easing: "cubic-bezier(.5, 0, .75, 1)" }).finished.then(() => {
+    voando.remove();
+    destino.classList.remove("chegou");
+    void destino.offsetWidth;
+    destino.classList.add("chegou");
+  }, () => voando.remove());
 }
 
 function atualizarFavoritos(animar = false) {
@@ -131,14 +161,22 @@ function desenharFavoritos() {
       el("span", {}, "🛒"), el("p", {}, "Seu carrinho está vazio. Toque no carrinho de uma oferta para guardar e comprar depois.")));
     return;
   }
-  lista.replaceChildren(...favoritos.map((f) => {
+  // "Você economiza R$ X no seu carrinho" (26/10/2026): soma do "Você economiza" dos produtos guardados, com os preços de
+  // quando foram guardados
+  const total = favoritos.reduce((t, f) => t + f.preco, 0);
+  const economia = favoritos.reduce((t, f) => t + (f.precoAntigo > f.preco ? f.precoAntigo - f.preco : 0), 0);
+  const resumo = el("div", { class: "fav-resumo" },
+    el("p", {}, `${favoritos.length} ${favoritos.length === 1 ? "produto" : "produtos"} · `, el("strong", {}, `R$ ${brl(total)}`)),
+    economia >= 1 && el("p", { class: "fav-economia" }, "💸 Você economiza ", el("strong", {}, `R$ ${brl(economia)}`), " com as ofertas do seu carrinho"),
+    el("small", {}, "Preços de quando você guardou; confira o valor na loja antes de pagar."));
+  lista.replaceChildren(resumo, ...favoritos.map((f) => {
     const loja = infoLoja(f);
     return el("div", { class: "fav-item" },
       el("div", { class: "fav-foto", style: `--fundo-cat:${FUNDO_CATEGORIA[f.categoria] || "var(--bg)"}` },
         f.imagem ? el("img", { src: f.imagem, alt: "" }) : f.emoji || "🛍️"),
       el("div", {},
         el("a", { href: f.link, target: "_blank", rel: "sponsored noopener" }, f.titulo),
-        el("strong", {}, `R$ ${brl(f.preco)}`),
+        el("strong", {}, `R$ ${brl(f.preco)}`, f.precoAntigo > f.preco && el("s", { class: "fav-antigo" }, `R$ ${brl(f.precoAntigo)}`)),
         el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome)),
       el("button", { class: "fechar", type: "button", "aria-label": "Remover", onclick: () => alternarFavorito(f) }, "✕"));
   }));
@@ -943,7 +981,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         }, "🔔"),
         el("button", {
           class: "favoritar", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
-          "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: () => alternarFavorito(o),
+          "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: (e) => alternarFavorito(o, e.currentTarget),
         }, ICONE_CARRINHO()))),
       el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
         ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
