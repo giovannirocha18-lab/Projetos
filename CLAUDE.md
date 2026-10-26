@@ -739,7 +739,8 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (2) **"⭐ Bem avaliados (nota 4 ou mais)"** em "Mais opções" (`#bem-avaliados`, `NOTA_BOA`; só a Shopee manda nota; "Mais opções"
   agora aparece quando há frete OU nota). (3) **Centavos menores e no alto** (`.centavos`). Testado com dados reais (air fryer, fone,
   perfume, geladeira, Celulares). Não feitos (sugeridos): animação ao salvar no carrinho, "Você economiza R$ X no carrinho", esqueleto
-  de cartões. Base: Chernev 2015 (excesso de opções), Spiegel (nota 4,2–4,5), Thomas & Morwitz 2005, Simonson 1989, Deloitte 2020.
+  de cartões. Ajuste (print dele: "mais barato" trocava sozinho): o quadro só aparece depois dos lotes automáticos
+  (`estado.completando`) e fica parado até mexer num filtro ou clicar em "Ver mais" (`chaveDaEscolha`). Base: Chernev 2015 (excesso de opções), Spiegel (nota 4,2–4,5), Thomas & Morwitz 2005, Simonson 1989, Deloitte 2020.
 - **Awin sem lojas novas (26/10/2026, execução #41)**: as mesmas 13 (conta nova 10 "active", antiga 11): Monte Carlo, Kabum, Spicy,
   Elements, Casa Tema, Animale, Shark-Ninja, Karsten, Lauri, EINSTAR, Posthaus, Polishop, Arno. Pedidos pendentes/recusados só
   aparecem no painel da Awin (abas Pendente/Recusado): pedir print se ele quiser que o Claude analise.
