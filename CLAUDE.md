@@ -738,8 +738,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   critério escrito; só com 6+ produtos comparáveis; base = `ofertasComparaveis` (busca) ou produtos da categoria (`semForaDaCurva`).
   (2) **"⭐ Bem avaliados (nota 4 ou mais)"** em "Mais opções" (`#bem-avaliados`, `NOTA_BOA`; só a Shopee manda nota; "Mais opções"
   agora aparece quando há frete OU nota). (3) **Centavos menores e no alto** (`.centavos`). Testado com dados reais (air fryer, fone,
-  perfume, geladeira, Celulares). Não feitos (sugeridos): animação ao salvar no carrinho, "Você economiza R$ X no carrinho", esqueleto
-  de cartões. Ajuste (print dele: "mais barato" trocava sozinho): o quadro só aparece depois dos lotes automáticos
+  perfume, geladeira, Celulares). ✅ Itens 4 e 5 (26/10): foto "voa" até o carrinho do topo ao guardar (`voarAteCarrinho`, `.voando`,
+  `.chegou`) e resumo no Meu carrinho ("N produtos · R$ total" + "💸 Você economiza R$ X"; item guarda `precoAntigo`, aceito também em
+  `limparCarrinho` de lib/conta.js). Não feito: esqueleto de cartões (já existe `esqueletos(8)` na busca). Ajuste (print dele: "mais barato" trocava sozinho): o quadro só aparece depois dos lotes automáticos
   (`estado.completando`) e fica parado até mexer num filtro ou clicar em "Ver mais" (`chaveDaEscolha`). Base: Chernev 2015 (excesso de opções), Spiegel (nota 4,2–4,5), Thomas & Morwitz 2005, Simonson 1989, Deloitte 2020.
 - **Awin sem lojas novas (26/10/2026, execução #41)**: as mesmas 13 (conta nova 10 "active", antiga 11): Monte Carlo, Kabum, Spicy,
   Elements, Casa Tema, Animale, Shark-Ninja, Karsten, Lauri, EINSTAR, Posthaus, Polishop, Arno. Pedidos pendentes/recusados só
