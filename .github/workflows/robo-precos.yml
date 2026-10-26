@@ -16,10 +16,14 @@ on:
         description: "Só conferir as marcas da Lomadee (depois de aprovarem marcas novas)"
         type: boolean
         default: false
+      so_prontas:
+        description: "Só preparar as buscas prontas (depois de trocar a versão do cache da busca)"
+        type: boolean
+        default: false
 
 jobs:
   awin:
-    if: ${{ !inputs.so_lomadee }}
+    if: ${{ !inputs.so_lomadee && !inputs.so_prontas }}
     runs-on: ubuntu-latest
     # Uma gravação por vez: duas ao mesmo tempo (madrugada atrasada + Run workflow) gravam por cima uma da outra
     concurrency:
@@ -92,7 +96,7 @@ jobs:
   # Shopee: o site guarda o preço de hoje dos produtos das vitrines e dos mais buscados
   # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
   shopee:
-    if: ${{ !inputs.so_awin && !inputs.so_lomadee }}
+    if: ${{ !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -132,7 +136,7 @@ jobs:
 
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
   lomadee:
-    if: ${{ !inputs.so_awin }}
+    if: ${{ !inputs.so_awin && !inputs.so_prontas }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

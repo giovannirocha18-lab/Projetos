@@ -47,6 +47,9 @@ const MINIMO_PRODUTOS = 100;
 const PAGINAS_VITRINE = 2;
 // Loja que demora mais que isso fica de fora desta resposta (as outras não esperam por ela)
 const LIMITE_LOJA_MS = 8000;
+// Lomadee: quando demora, segura a busca inteira até 8 s (air fryer, fone bluetooth e smart tv levavam ~9 s por causa dela;
+// conferido em 26/10/2026) e quase sempre traz poucos produtos. Na busca ao vivo espera no máximo 5 s
+const LIMITE_LOJA_LENTA_MS = { lomadee: 5000 };
 // Para o robô que prepara as buscas populares ninguém está esperando: as lojas têm mais tempo
 const LIMITE_LOJA_ROBO_MS = 10000;
 // Buscas populares preparadas pelo robô da madrugada (/api/preparar-buscas) valem por até 30 horas
@@ -161,7 +164,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const preparar = Boolean(env.__PREPARAR);
   // Atualização por trás de uma busca guardada que passou de FRESCO_MS: busca nas lojas e regrava o cache
   const atualizar = Boolean(env.__ATUALIZAR);
-  const limiteLoja = preparar ? LIMITE_LOJA_ROBO_MS : LIMITE_LOJA_MS;
+  const limiteDe = (fonte) => (preparar ? LIMITE_LOJA_ROBO_MS : LIMITE_LOJA_LENTA_MS[fonte.nome] || LIMITE_LOJA_MS);
   const inicio = Date.now();
   const params = new URL(request.url).searchParams;
   // Erros comuns de digitação são trocados antes de buscar ("eletrolux" -> "electrolux"); a resposta traz o q
@@ -248,7 +251,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         const medir = () => { if (lojas[fonte.nome]) lojas[fonte.nome].ms = Math.max(Date.now() - t0, lojas[fonte.nome].ms || 0); };
         try {
           if (!termo) {
-            const ofertas = await comLimite(fonte.destaques(env, pagina), limiteLoja);
+            const ofertas = await comLimite(fonte.destaques(env, pagina), limiteDe(fonte));
             lojas[fonte.nome] = { ok: true, total: ofertas.length };
             medir();
             return ofertas;
@@ -257,12 +260,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
           if (!fonte.porPagina) {
             // Lojas sem páginas (Awin, curadoria) vêm inteiras na primeira vez: uma consulta só por termo
             if (!paginas.includes(1)) return [];
-            const ofertas = await comLimite(fonte.buscar(termo, env, 1, opcoes), limiteLoja);
+            const ofertas = await comLimite(fonte.buscar(termo, env, 1, opcoes), limiteDe(fonte));
             lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(ofertas.length, lojas[fonte.nome]?.total || 0) };
             medir();
             return ofertas;
           }
-          const listas = await comLimite(Promise.all(paginas.map((p) => fonte.buscar(termo, env, p, opcoes))), limiteLoja);
+          const listas = await comLimite(Promise.all(paginas.map((p) => fonte.buscar(termo, env, p, opcoes))), limiteDe(fonte));
           const vistos = new Set();
           const ofertas = listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id));
           // total = tamanho da última página (cheia = a loja tem mais). Na vitrine (várias buscas) vale a que trouxe mais
