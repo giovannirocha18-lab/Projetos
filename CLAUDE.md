@@ -716,7 +716,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 - ✅ **contato@vaiprocarrinho.com.br FUNCIONANDO (26/10/2026)**: Cloudflare Email Routing; Giovanni apagou à mão o MX nulo e o
   TXT `v=spf1 -all` (o Cloudflare não conseguia); MX route1/2/3.mx.cloudflare.net + SPF `include:_spf.mx.cloudflare.net ~all` +
   DKIM; regra `contato` → Gmail pessoal dele (verificado). Teste de outro e-mail chegou no Gmail. DMARC `_dmarc` (reject) mantido.
-  Só RECEBE; responder como contato@ = depois (Gmail "Enviar e-mail como" + SMTP do Resend; o SPF precisará incluir o Resend). Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
+  Só RECEBE; responder como contato@ = depois (Gmail "Enviar e-mail como" + SMTP do Resend; o SPF precisará incluir o Resend).
+- ⏳ **2FA (item 2, 26/10/2026)**: passos entregues (Google Authenticator; ordem: Gmail, Cloudflare, GitHub, Registro.br, Awin PF e PJ,
+  Lomadee, Shopee, Resend; guardar códigos de recuperação fora do celular). Giovanni vai fazer "outra hora": lembrar de vez em quando.
+  Ainda pendentes da lista: 3 (senha do Registro.br), 5 (UptimeRobot), responder como contato@ (opcional). Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
   login dele por 1 h (ele ainda entra por Google ou "Esqueci minha senha"). Conferido no ar (commit 0374bd8): lista de cupons
   sem código inteiro, /api/ir com site falso volta à página inicial, link real assinado gera o lmdee.link. Buscas prontas
   voltam na madrugada (v=80); até lá a busca nova leva ~4 s.
