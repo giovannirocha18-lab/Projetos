@@ -823,6 +823,9 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .lp-nome small { display: block; font-weight: 500; font-size: .78rem; color: var(--suave); }
 .lp-linha .botao-secundario { flex: none; width: auto; margin: 0; padding: 7px 14px; font-size: .85rem; font-weight: 700; color: var(--roxo); border-color: var(--roxo); border-radius: 999px; }
 .lp-linha .botao-secundario:hover { background: var(--roxo); color: #fff; }
+.lp-botoes { flex: none; display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.lp-botoes .botao-secundario, .lp-ir { text-align: center; }
+.lp-ir { width: auto; margin: 0; padding: 7px 14px; font-size: .85rem; border-radius: 999px; min-height: 0; }
 
 /* Cupons (24/10/2026): selo nos cartões, botão no card roxo da página inicial e janela com os cupons */
 .selo-cupom { border: 1px dashed #b45309; background: #fffbeb; color: #b45309; font: inherit; font-size: .68rem; font-weight: 800;

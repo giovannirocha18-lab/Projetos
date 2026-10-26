@@ -2052,7 +2052,7 @@ function desenharListaLojas() {
   const filtro = limpo($("#lojas-filtro").value);
   const todas = lojasParceiras || [];
   const lista = filtro ? todas.filter((l) => limpo(l.nome).includes(filtro)) : todas;
-  $("#lojas-total").textContent = `${todas.length} lojas com produtos no Vai pro Carrinho. Escolha uma para ver os produtos dela.`;
+  $("#lojas-total").textContent = `${todas.length} lojas com produtos no Vai pro Carrinho. Veja os produtos de cada uma aqui ou vá direto ao site da loja.`;
   const linha = (l) => el("li", { class: "lp-linha", style: `--cor-loja:${corDaLoja(l)}` },
     el("span", { class: "loja-ponto" }),
     el("span", { class: "lp-nome" }, l.nome,
@@ -2060,7 +2060,11 @@ function desenharListaLojas() {
         : `${l.produtos.toLocaleString("pt-BR")} ${l.produtos === 1 ? "produto" : "produtos"}`) : "",
         l.internacional ? " · 🌎 Internacional" : ""),
       botaoCupomLoja(l)),
-    el("button", { type: "button", class: "botao-secundario", onclick: () => { $("#janela-lojas").close(); irParaLoja(l.id); } }, "Ver produtos"));
+    el("div", { class: "lp-botoes" },
+      el("button", { type: "button", class: "botao-secundario", onclick: () => { $("#janela-lojas").close(); irParaLoja(l.id); } }, "Ver produtos"),
+      // Site da loja pelo link com comissão (/api/ir-loja): vale qualquer compra feita lá dentro do prazo do cookie
+      el("a", { class: "botao-oferta lp-ir", href: `/api/ir-loja?id=${encodeURIComponent(l.id)}`, target: "_blank", rel: "sponsored noopener" },
+        "Ir para a loja →")));
   const grandes = lista.filter((l) => l.rede === "marketplace");
   const outras = lista.filter((l) => l.rede !== "marketplace");
   $("#lojas-lista").replaceChildren(
