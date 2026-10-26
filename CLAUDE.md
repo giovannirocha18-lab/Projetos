@@ -719,7 +719,12 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Só RECEBE; responder como contato@ = depois (Gmail "Enviar e-mail como" + SMTP do Resend; o SPF precisará incluir o Resend).
 - ⏳ **2FA (item 2, 26/10/2026)**: passos entregues (Google Authenticator; ordem: Gmail, Cloudflare, GitHub, Registro.br, Awin PF e PJ,
   Lomadee, Shopee, Resend; guardar códigos de recuperação fora do celular). Giovanni vai fazer "outra hora": lembrar de vez em quando.
-  Ainda pendentes da lista: 3 (senha do Registro.br), 5 (UptimeRobot), responder como contato@ (opcional). Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
+  Ainda pendentes da lista: 3 (senha do Registro.br), 5 (UptimeRobot), responder como contato@ (opcional).
+- ⏳ **UptimeRobot (item 5, 26/10/2026)**: passos entregues (monitor HTTP(s) da página + monitor Keyword em `/api/numeros` com a
+  palavra `lojas`, 5 min, alerta por e-mail). Giovanni vai fazer "outra hora".
+- **Awin sem lojas novas (26/10/2026, execução #41)**: as mesmas 13 (conta nova 10 "active", antiga 11): Monte Carlo, Kabum, Spicy,
+  Elements, Casa Tema, Animale, Shark-Ninja, Karsten, Lauri, EINSTAR, Posthaus, Polishop, Arno. Pedidos pendentes/recusados só
+  aparecem no painel da Awin (abas Pendente/Recusado): pedir print se ele quiser que o Claude analise. Conhecido e aceito: 10 senhas erradas com o e-mail de alguém bloqueiam o
   login dele por 1 h (ele ainda entra por Google ou "Esqueci minha senha"). Conferido no ar (commit 0374bd8): lista de cupons
   sem código inteiro, /api/ir com site falso volta à página inicial, link real assinado gera o lmdee.link. Buscas prontas
   voltam na madrugada (v=80); até lá a busca nova leva ~4 s.
