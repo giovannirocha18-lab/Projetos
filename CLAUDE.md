@@ -728,6 +728,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   liberadas. Execução #42 (Run workflow com a opção nova `so_lomadee`, que roda só a conferência das marcas; cache das marcas v3,
   /api/lojas VERSAO=8, numeros v=4): 105 marcas liberadas, **as mesmas 24 mandam produtos** (as que pagam mais não mandam catálogo
   pela API). Proposto: seção "Outras lojas parceiras" só com o botão "Ir para a loja" para marcas sem produtos. Aguardando decisão.
+- **Categoria Celulares (26/10/2026, print do Giovanni: só 114 ofertas)**: vitrine ganhou "smartphone" e "celular"; site carrega
+  sozinho até 200 produtos (`PRODUTOS_DESEJADOS`, era 100). Agora ~240 (Shopee + Kabum). AliExpress quase não tem celular ≥ R$ 500
+  que entregue no BR (3–4 por lote; o resto é capinha). Cache v=81 (buscas prontas refeitas na madrugada).
+- **Convites do Grupo Lunzo na Awin (26/10/2026)**: marketplace europeu (SK, RO, DE, HU, PL; entrega só no próprio país) → recusados.
 - **Awin sem lojas novas (26/10/2026, execução #41)**: as mesmas 13 (conta nova 10 "active", antiga 11): Monte Carlo, Kabum, Spicy,
   Elements, Casa Tema, Animale, Shark-Ninja, Karsten, Lauri, EINSTAR, Posthaus, Polishop, Arno. Pedidos pendentes/recusados só
   aparecem no painel da Awin (abas Pendente/Recusado): pedir print se ele quiser que o Claude analise.
