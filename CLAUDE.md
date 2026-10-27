@@ -675,7 +675,8 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (from/to vaiprocarrinho.com.br → marcador VaiProCarrinho, fora da Caixa de entrada).
 - ✅ **Cobasi BR aprovada na conta PJ da Awin (27/10/2026)**: execução #46 (Run workflow `so_awin`, disparada pelo Claude): feed 48117,
   8.967 produtos (1 sem foto), 8.982 novos no site; busca "ração" já traz 60 da Cobasi. Lojas Benoit também no feed (3.390; 1.483 sem
-  foto, 638 com link 404). Banco 256 MB de 500 MB. 15 lojas da Awin.
+  foto, 638 com link 404; aprovada na conta PF → 1.263 no site). Banco 256 MB de 500 MB. 15 lojas da Awin, 39 no total.
+  /api/lojas VERSAO=11 e numeros v=5 (lista "Lojas parceiras" fica 6 h guardada: trocar a versão quando entrar loja nova).
 - ✅ **Cupons com o código no título (27/10/2026, print do Giovanni: "CHAPEUDEVIAGEM", "AVENTURANDO")**: `semCodigo` em
   lib/cupons.js tira o código do título e da descrição (sem maiúsculas/acentos/espaços/símbolos; só código de 4+ letras e palavra
   inteira); título que fica vazio = "Cupom de desconto". /api/cupons VERSAO=5. Conferido no ar: 79 cupons, 0 com o código no texto.
