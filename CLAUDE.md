@@ -681,6 +681,11 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Execução #54 (150 buscas, 0 falhas, 18 suspeitos): reais = peças em "panela de pressão elétrica" (anel de vedação R$ 51, panela
   de arroz R$ 41), Echo Dot de R$ 48, chaveiro de pelúcia em "stanley", guarda-roupa de pano R$ 211; alarmes falsos = mesa de jantar
   (típico R$ 5.887 distorcido), cama pet R$ 14, perfume R$ 12,50, "com chaveiro"/"com capa" de brinde, pendrive chaveiro.
+  ✅ Corrigidos 4 dos 5 reais (cache v=87, conferido no ar): `PECA_SEM_COM` ("anel/borracha/kit de vedação" sem "com" antes = peça);
+  "echo dot" em `PRODUTOS_NAS_LOJAS` com precoMin 200; "chaveiro" em `PECAS_NA_FRENTE` (só 1ª palavra e não vale se a busca tem a
+  palavra; "Labubu Chaveiro" é produto); `VARIANTES_DA_CATEGORIA.Móveis` = pano/lona/TNT ("tecido" NÃO: sofá de tecido é o comum).
+  Não corrigido: "Panela de arroz Tomada … Universal" R$ 41 em "panela de pressão elétrica" ("tomada" como peça transformava
+  "tomada inteligente" em busca de acessório). "stanley" também traz CD do Stanley Clarke e DVD do Kubrick (nome ambíguo).
 - **16ª sessão (27/10/2026) fez**: app instalado com nome na abertura (manifesto + ícones); cupons sem o código no título; Resend
   verificado (e-mails saem do domínio) + filtro do Gmail; Cobasi no site (8.966 produtos); robô passou a tirar fotos com 403 do S3;
   Lojas Benoit pausada (feed com fotos e preços errados). **Próximo**: conferir o robô da madrugada de 28/10 (job `prontas` refeito
