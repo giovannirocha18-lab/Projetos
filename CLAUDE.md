@@ -663,7 +663,12 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 26/10/2026, fim da 15ª sessão)
+## Próximos passos (atualizado 27/10/2026, fim da 16ª sessão)
+- **16ª sessão (27/10/2026) fez**: app instalado com nome na abertura (manifesto + ícones); cupons sem o código no título; Resend
+  verificado (e-mails saem do domínio) + filtro do Gmail; Cobasi no site (8.966 produtos); robô passou a tirar fotos com 403 do S3;
+  Lojas Benoit pausada (feed com fotos e preços errados). **Próximo**: conferir o robô da madrugada de 28/10 (job `prontas` refeito
+  sem a Benoit; Monte Carlo segue com ~30% sem foto); Giovanni: 2FA, senha do Registro.br, UptimeRobot; decidir a seção "Outras
+  lojas parceiras" (marcas da Lomadee sem produtos); 4 detalhes de busca listados em "Qualidade das buscas".
 - ✅ **App instalado (27/10/2026, print do Giovanni: ao abrir aparecia só o ícone)**: `public/manifest.webmanifest` (nome "Vai pro Carrinho",
   fundo/tema `#6d28d9`, standalone; liberado em `PUBLICOS`). O Chrome mostra na abertura o ícone "any" e não deixa tirar essa tela: por
   isso os ícones "any" (`marca/app-nome-192/512.png`) são o logo COM o nome embaixo (fundo transparente); o ícone da tela inicial usa
