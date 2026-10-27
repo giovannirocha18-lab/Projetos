@@ -664,13 +664,15 @@ async function main() {
     relatorio.forEach((l) => console.log(l));
     throw new Error("Nenhum feed foi baixado com sucesso; nada foi alterado");
   }
-  // Produtos tirados de propósito por link quebrado: não contam para a trava "feed caiu mais da metade" lá embaixo
-  // (25/10/2026: na Arno saíram 50 de 87 e a trava não deixou removê-los)
-  const foraPorLink = [];
+  // Produtos tirados de propósito (foto que não abre ou link quebrado): não contam para a trava "feed caiu mais da
+  // metade" lá embaixo (25/10/2026: na Arno saíram 50 de 87; 27/10: na Lojas Benoit, 3.072 sem foto, e a trava não deixou removê-los)
+  const foraDeProposito = [];
   // Teste local com arquivo de exemplo (--feed): as fotos são de mentira, não testa
   if (!arquivosFeed.length && !process.env.ROBO_SEM_TESTE_FOTOS) {
     const inicioFotos = Date.now();
     const { resultado, semFoto, testadas } = await conferirFotos([...novas.values()]);
+    const comFoto = new Set(resultado.map((o) => o.id));
+    for (const id of novas.keys()) if (!comFoto.has(id)) foraDeProposito.push(id);
     novas.clear();
     for (const o of resultado) novas.set(o.id, o);
     const fora = [...semFoto].map(([loja, n]) => `${loja} ${n}`).join(", ");
@@ -678,7 +680,7 @@ async function main() {
       (fora ? `produtos sem foto que abre (ficam de fora): ${fora}` : "nenhum produto sem foto"));
     const links = await conferirLinks([...novas.values()]);
     const ficam = new Set(links.resultado.map((o) => o.id));
-    for (const id of novas.keys()) if (!ficam.has(id)) foraPorLink.push(id);
+    for (const id of novas.keys()) if (!ficam.has(id)) foraDeProposito.push(id);
     novas.clear();
     for (const o of links.resultado) novas.set(o.id, o);
     relatorio.push(`🔗 Links: ${LINKS_POR_LOJA} produtos testados em cada uma das ${links.lojas} lojas; ` +
@@ -703,7 +705,7 @@ async function main() {
   // encolheu mais da metade de um dia para o outro também não (parece falha).
   const contar = (ids) => ids.reduce((c, id) => c.set(lojaDoId(id), (c.get(lojaDoId(id)) || 0) + 1), new Map());
   const antesPorLoja = contar([...atuais.keys()]);
-  const hojePorLoja = contar([...novas.keys(), ...foraPorLink]);
+  const hojePorLoja = contar([...novas.keys(), ...foraDeProposito]);
   for (const [loja, antes] of antesPorLoja) {
     if (lojasBaixadas.has(loja) && hojePorLoja.get(loja) < antes / 2 && antes >= 20) {
       lojasBaixadas.delete(loja);
