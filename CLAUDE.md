@@ -692,6 +692,13 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Print "ração" (27/10/2026): 9 massageadores da AliExpress em "Outros". Causa: a regra "palavras juntas" ("airfryer") procurava
   "racao" dentro de "vibracao". Agora só vale em busca de 2+ palavras (`citaAlgumaPalavra`/`citaTodasFlexivel`). Cache v=90.
   Testada e desfeita uma trava de categoria na AliExpress (cortava relógios/mouses bons).
+  Print "caixa de som" (27/10/2026): **Candide (Lomadee) com fotos que não abrem** (a loja trocou as fotos; a Lomadee manda os
+  endereços antigos, 404 em todas as fotos do produto; a página do produto abre). `lib/fotos.js` `semFotosQuebradas`: tabela D1
+  `fotos_testadas` (url, ok, quando; boa vale 14 dias, ruim 3); a busca e a página da loja (`/api/lojas`) usam o que já foi testado
+  (fica a 1ª foto boa; todas ruins = produto sai) e testam o resto DEPOIS da resposta (waitUntil, até 80 por busca); nas buscas
+  prontas do robô testa ANTES (até 5 rodadas). `fotoAbre` foi do robo/awin.mjs para `lib/links.js`. Testar dentro da busca foi
+  tentado e desfeito: a Lomadee sozinha já leva 3–5 s e passando de 5 s a loja inteira sai da busca. Busca já guardada (1 h) só
+  melhora quando é refeita. Cache v=93, /api/lojas VERSAO=14. Hoje (27/10) a API da Lomadee está lenta (várias buscas sem ela).
 - **16ª sessão (27/10/2026) fez**: app instalado com nome na abertura (manifesto + ícones); cupons sem o código no título; Resend
   verificado (e-mails saem do domínio) + filtro do Gmail; Cobasi no site (8.966 produtos); robô passou a tirar fotos com 403 do S3;
   Lojas Benoit pausada (feed com fotos e preços errados). **Próximo**: conferir o robô da madrugada de 28/10 (job `prontas` refeito
