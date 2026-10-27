@@ -663,7 +663,11 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 27/10/2026, 17ª sessão)
+## Próximos passos (atualizado 27/10/2026, fim da 17ª sessão)
+- **Conferir na próxima conversa**: (1) fotos da Candide: busca "brinquedo"/"boneca" depois das buscas prontas (execução disparada
+  ~21h UTC de 27/10) não deve trazer foto 404 da Candide (testar as URLs de `imagem` com curl); (2) log do job `auditoria` da
+  madrugada de 28/10 (deve vir quase vazio; se vier totalmente vazio por dias, conferir com um caso conhecido); (3) se a Lomadee
+  continuar passando de 5 s em muitas buscas, investigar (não é das fotos: já estava lenta antes).
 - **17ª sessão (27/10/2026)**: corrigidos os 4 detalhes de busca (ver "Qualidade das buscas"). Giovanni: conferir geladeira,
   máquina de lavar, ps5 e ventilador no site.
 - ⭐ **Auditoria da busca toda madrugada (27/10/2026, pedido do Giovanni)**: job `auditoria` no `robo-precos.yml` (depois do
