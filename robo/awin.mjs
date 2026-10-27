@@ -23,7 +23,7 @@ import { Readable } from "node:stream";
 import { readFileSync, appendFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 import { normalizar } from "../lib/texto.js";
-import { lojaComLinksQuebrados, linksQuebrados, sortear } from "../lib/links.js";
+import { lojaComLinksQuebrados, linksQuebrados, sortear, fotoAbre } from "../lib/links.js";
 import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, RESUMO_LOJAS_AWIN, INDICE_LOJA, CRIAR_INDICE_LOJA, juntarMilhares } from "../lib/ofertas.js";
 
 const LISTA_FEEDS = "https://productdata.awin.com/datafeed/list/apikey/";
@@ -307,7 +307,6 @@ const DIAS_FOTO_RUIM = 3;
 // Trocar para testar de novo todas as fotos guardadas (2: o 403 do Amazon S3 passou a contar como foto quebrada, 27/10/2026)
 const VERSAO_FOTOS = 2;
 const TESTES_AO_MESMO_TEMPO = 64; // com 32, a 1ª vez (83 mil fotos, ~0,6 s cada) passava de 25 min
-const NAVEGADOR = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
 
 function guardarFotos(guardadas) {
   try {
@@ -320,30 +319,6 @@ function guardarFotos(guardadas) {
 
 function lerFotosGuardadas() {
   try { return new Map(Object.entries(JSON.parse(readFileSync(ARQUIVO_FOTOS, "utf8")))); } catch { return new Map(); }
-}
-
-// true = abre, false = não existe (404, 410, não é imagem…), null = não deu para saber (tempo esgotado, rede)
-async function fotoAbre(url) {
-  const pedir = (metodo) => fetch(url, {
-    method: metodo, redirect: "follow", signal: AbortSignal.timeout(10000),
-    headers: { "User-Agent": NAVEGADOR, ...(metodo === "GET" ? { Range: "bytes=0-1023" } : {}) },
-  });
-  try {
-    let r = await pedir("HEAD");
-    // Alguns servidores não aceitam HEAD: tenta um pedacinho com GET
-    if ([403, 405, 501].includes(r.status)) r = await pedir("GET");
-    if (r.body) r.body.cancel().catch(() => {});
-    // 403 do Amazon S3 (erro em XML, direto ou pela CloudFront) = arquivo que não existe: o S3 responde "acesso negado"
-    // no lugar de 404 (27/10/2026: ~95% das fotos da Lojas Benoit, que não abrem nem no navegador)
-    if (r.status === 403 && (/AmazonS3/i.test(r.headers.get("server") || "") || /xml/.test(r.headers.get("content-type") || ""))) return false;
-    // Outro 403: alguns servidores barram robôs mas abrem no navegador (o imgur dá 403 para o Node e 200 para o curl).
-    // Só 404/410 e "não é imagem" contam como foto quebrada
-    if (r.status >= 500 || r.status === 429 || r.status === 403 || r.status === 401) return null;
-    const tipo = r.headers.get("content-type") || "";
-    return r.ok && (!tipo || tipo.startsWith("image/"));
-  } catch {
-    return null;
-  }
 }
 
 async function conferirFotos(ofertas) {

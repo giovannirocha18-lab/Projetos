@@ -15,6 +15,7 @@ import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
+import { semFotosQuebradas } from "../../lib/fotos.js";
 import { normalizar } from "../../lib/texto.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
@@ -58,7 +59,7 @@ const VALIDADE_PRONTA_MS = 30 * 60 * 60 * 1000;
 const MAX_PAGINA = 20;
 const MAX_DESDE = 100;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 92;
+const VERSAO_CACHE = 93;
 // Como o site da AliExpress busca (estudado em 21/10/2026, pedido do Giovanni): ele descobre a CATEGORIA da busca
 // ("celular" -> Celulares 5090301, "geladeira" -> 60203) e mostra os produtos dela. A API de afiliados só procura a
 // palavra nos títulos ("celular" trazia capinhas, "geladeira" trazia peças). Então, como no site, pedimos também dentro
@@ -361,6 +362,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (!q) {
     mais = pagina < MAX_PAGINA && fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina) ? `pagina=${pagina + 1}` : null;
   }
+  // Lomadee: tira as fotos que já sabemos que não abrem (ver lib/fotos.js); nas buscas prontas do robô, testa antes
+  ofertas = await semFotosQuebradas(env.DB, ofertas, { esperar: Boolean(preparar), waitUntil });
   // Shopee e AliExpress: junta o histórico de preço e guarda o preço de hoje (sem atrasar a resposta).
   // É o que permite o selo "Desconto real" (ex.: na Black Friday). Banco fora do ar não derruba a busca.
   if (env.DB && ofertas.some(ehAoVivo)) {

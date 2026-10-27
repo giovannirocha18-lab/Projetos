@@ -6,6 +6,7 @@
 import { shopee } from "../../lib/fontes/shopee.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee, marcasComProdutos, produtosDaMarca } from "../../lib/fontes/lomadee.js";
+import { semFotosQuebradas } from "../../lib/fotos.js";
 import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoVivo, nomeDaLojaAwin, lojasDaAwin, lojaPequena } from "../../lib/ofertas.js";
 import { carregarMapa, aplicarMapa } from "../../lib/mapaCategorias.js";
 import { marcarSecoes } from "../../lib/categorias.js";
@@ -14,7 +15,7 @@ const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
 const POR_PAGINA = 48;
 const MAX_PAGINA = 20;
-const VERSAO = 13; // 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
+const VERSAO = 14; // 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
 
 function responder(dados, segundos) {
   return Response.json(dados, { headers: { "Cache-Control": `public, max-age=${segundos}`, "X-Robots-Tag": "noindex" } });
@@ -36,7 +37,7 @@ async function listarLojas(env) {
   return { lojas: [...marketplaces, ...lojas], completo: (!lomadee.ativa(env) || marcas.size > 0) && daAwin !== null };
 }
 
-async function produtosDaLoja(env, id, pagina) {
+async function produtosDaLoja(env, id, pagina, waitUntil) {
   if (id === "shopee" || id === "aliexpress") {
     const fonte = id === "shopee" ? shopee : aliexpress;
     if (!fonte.ativa(env)) return null;
@@ -47,7 +48,8 @@ async function produtosDaLoja(env, id, pagina) {
   const chave = resto.join(":");
   if (rede === "lomadee" && chave && lomadee.ativa(env)) {
     const r = await produtosDaMarca(env, chave, pagina, POR_PAGINA);
-    return r.nome ? { ...r, temMais: r.temMais && pagina < MAX_PAGINA } : null;
+    // Fotos que já sabemos que não abrem saem (ver lib/fotos.js)
+    return r.nome ? { ...r, ofertas: await semFotosQuebradas(env.DB, r.ofertas, { waitUntil }), temMais: r.temMais && pagina < MAX_PAGINA } : null;
   }
   if (rede === "awin" && chave && env.DB) {
     // Primeiro os com desconto (maior primeiro), depois o resto. "ORDER BY desconto DESC" segue o índice (loja, desconto)
@@ -81,7 +83,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   } else {
     let dados;
     try {
-      dados = await produtosDaLoja(env, id, pagina);
+      dados = await produtosDaLoja(env, id, pagina, waitUntil);
     } catch (erro) {
       // 500 (o Cloudflare troca a resposta 502 pela página dele)
       return Response.json({ erro: "Não foi possível carregar os produtos desta loja agora", detalhe: String(erro?.message || erro).slice(0, 200) }, { status: 500 });
