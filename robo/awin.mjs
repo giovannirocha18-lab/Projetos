@@ -300,6 +300,8 @@ const lojaDoId = (id) => id.split("-")[1];
 const ARQUIVO_FOTOS = process.env.ROBO_CACHE_FOTOS || ".cache/fotos.json";
 const DIAS_FOTO_BOA = 14;
 const DIAS_FOTO_RUIM = 3;
+// Trocar para testar de novo todas as fotos guardadas (2: o 403 do Amazon S3 passou a contar como foto quebrada, 27/10/2026)
+const VERSAO_FOTOS = 2;
 const TESTES_AO_MESMO_TEMPO = 64; // com 32, a 1ª vez (83 mil fotos, ~0,6 s cada) passava de 25 min
 const NAVEGADOR = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
 
@@ -343,7 +345,7 @@ async function fotoAbre(url) {
 async function conferirFotos(ofertas) {
   const guardadas = lerFotosGuardadas();
   const hoje = Math.floor(Date.now() / 864e5);
-  const vencida = (g) => !g || hoje - g.dia > (g.ok ? DIAS_FOTO_BOA : DIAS_FOTO_RUIM);
+  const vencida = (g) => !g || g.v !== VERSAO_FOTOS || hoje - g.dia > (g.ok ? DIAS_FOTO_BOA : DIAS_FOTO_RUIM);
   const testar = new Set();
   const fotosDe = (o) => (o.imagens ? JSON.parse(o.imagens) : [o.imagem]).filter(Boolean);
   // Primeiro só a foto principal; as extras só de quem teve a principal quebrada
@@ -355,7 +357,7 @@ async function conferirFotos(ofertas) {
         const url = fila[i++];
         const ok = await fotoAbre(url);
         // Foto boa ganha um dia sorteado na última semana: assim as ~83 mil não vencem todas no mesmo dia
-        if (ok !== null) guardadas.set(url, { ok, dia: ok ? hoje - Math.floor(Math.random() * 7) : hoje });
+        if (ok !== null) guardadas.set(url, { ok, dia: ok ? hoje - Math.floor(Math.random() * 7) : hoje, v: VERSAO_FOTOS });
         // De tempos em tempos grava o que já testou: se o robô passar do tempo, a próxima vez continua daqui
         if (++feitas % 5000 === 0) {
           guardarFotos(guardadas);
