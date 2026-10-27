@@ -31,6 +31,10 @@ const CASOS = {
   // 27/10/2026 (auditoria da busca, execução #54)
   "stanley": { E: ["Copo Térmico Stanley Quencher 1,18L"], A: ["Chaveiro de Pelúcia Anime Dr. Stone: Senku, Gen, Ryusui, Xeno, Stanley, Chibi"] },
   "chaveiro": { E: ["Chaveiro de Pelúcia Labubu", "Chaveiro Personalizado Couro"] },
+  "guarda roupa": {
+    E: ["Guarda-Roupa Casal 6 Portas Cabideiro Araplac", "Guarda-Roupa Solteiro 3 Portas com Cabide"],
+    A: ["Guarda-roupa guarda-roupa cabide embutido cabide de secagem Pull-out Rack Slide ferroviário"],
+  },
   "panela de pressão elétrica": {
     E: ["Panela de Pressão Elétrica Mondial 5L com anel de vedação extra"],
     A: ["Midea panela de pressão elétrica anel de borracha anel de vedação panela elétrica de alta pressão"],
