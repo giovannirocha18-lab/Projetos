@@ -20,10 +20,14 @@ on:
         description: "Só preparar as buscas prontas (depois de trocar a versão do cache da busca)"
         type: boolean
         default: false
+      so_auditoria:
+        description: "Só a auditoria da busca (lista produtos suspeitos no topo das buscas mais comuns)"
+        type: boolean
+        default: false
 
 jobs:
   awin:
-    if: ${{ !inputs.so_lomadee && !inputs.so_prontas }}
+    if: ${{ !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria }}
     runs-on: ubuntu-latest
     # Uma gravação por vez: duas ao mesmo tempo (madrugada atrasada + Run workflow) gravam por cima uma da outra
     concurrency:
@@ -96,7 +100,7 @@ jobs:
   # Shopee: o site guarda o preço de hoje dos produtos das vitrines e dos mais buscados
   # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
   shopee:
-    if: ${{ !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas }}
+    if: ${{ !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -116,7 +120,7 @@ jobs:
 
   # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
   prontas:
-    if: ${{ !inputs.so_awin && !inputs.so_lomadee }}
+    if: ${{ !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
     steps:
@@ -136,7 +140,7 @@ jobs:
 
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
   lomadee:
-    if: ${{ !inputs.so_awin && !inputs.so_prontas }}
+    if: ${{ !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -153,3 +157,21 @@ jobs:
             echo "$r" | grep -q '"fim":true' && break
             sleep 60 # a Lomadee aceita 60 consultas por minuto; com 25 s partes inteiras falhavam (23/10/2026)
           done
+
+  # Auditoria da busca (27/10/2026): depois das buscas prontas, abre as buscas mais comuns como o visitante vê e lista
+  # no resumo os produtos suspeitos no topo (de brinquedo, peça, preço fora do normal…). Não muda nada no site:
+  # a lista serve para corrigir as regras da busca (lib/relevancia.js)
+  auditoria:
+    needs: prontas
+    if: ${{ always() && !inputs.so_awin && !inputs.so_lomadee }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: claude/inspiring-hamilton-wafagr
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Auditoria da busca
+        run: node robo/auditoria.mjs 150
