@@ -675,6 +675,12 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Correção das regras = permanente (vale para os produtos que entrarem depois). 1ª rodada (60 buscas) achou: **"kit" fazia a busca
   virar "de acessório"** (nada escondido, maquiagem de brinquedo em "kit maquiagem") → "kit" saiu de `GENERICAS` e da regra das 2+
   palavras; "skin care" = skincare; palavra de acessório que é pedaço da buscada não conta ("Baba Skin" em "kit skincare"). Cache v=85.
+  Ajustes (cache v=86): pausa de 0,5 s (sem ela 66 de 150 buscas davam 429 no limite do Cloudflare), palavras só nas 8 primeiras do
+  título, sem decoração/compatível/suporte/película/refil; VARIANTES + aquecedor, arrefecedor, pequeno(a). Testado subir o corte de
+  preço do nível 2 para 10%: escondia tênis infantil de R$ 20 e mini geladeira de R$ 360 → desfeito (fica 8%).
+  Execução #54 (150 buscas, 0 falhas, 18 suspeitos): reais = peças em "panela de pressão elétrica" (anel de vedação R$ 51, panela
+  de arroz R$ 41), Echo Dot de R$ 48, chaveiro de pelúcia em "stanley", guarda-roupa de pano R$ 211; alarmes falsos = mesa de jantar
+  (típico R$ 5.887 distorcido), cama pet R$ 14, perfume R$ 12,50, "com chaveiro"/"com capa" de brinde, pendrive chaveiro.
 - **16ª sessão (27/10/2026) fez**: app instalado com nome na abertura (manifesto + ícones); cupons sem o código no título; Resend
   verificado (e-mails saem do domínio) + filtro do Gmail; Cobasi no site (8.966 produtos); robô passou a tirar fotos com 403 do S3;
   Lojas Benoit pausada (feed com fotos e preços errados). **Próximo**: conferir o robô da madrugada de 28/10 (job `prontas` refeito
