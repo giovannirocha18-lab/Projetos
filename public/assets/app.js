@@ -2492,7 +2492,6 @@ async function carregarDestaques() {
     estado.inicio = semRepetidos(dados.ofertas);
     estado.temMaisInicio = Boolean(dados.temMais);
     tituloOfertas(false);
-    tirarAbertura();
     if (pedido !== estado.pedido) return; // a pessoa já foi para uma busca
     $("#aviso-teste").hidden = !dados.exemplo;
     mostrarInicio();
@@ -2973,18 +2972,6 @@ window.addEventListener("popstate", () => {
 });
 
 $("#ano").textContent = new Date().getFullYear();
-
-// Tela de abertura do app instalado: fica pelo menos 1,2 s (para ver o logo) e sai quando a página
-// está pronta, ou em 2,5 s no máximo
-function tirarAbertura() {
-  const abertura = $("#abertura");
-  if (!abertura || abertura.classList.contains("saindo")) return;
-  setTimeout(() => {
-    abertura.classList.add("saindo");
-    setTimeout(() => abertura.remove(), 400);
-  }, Math.max(0, 1200 - performance.now()));
-}
-setTimeout(tirarAbertura, 2500);
 
 const linkDeProduto = new URLSearchParams(location.search).has("produto");
 montarInicio();
