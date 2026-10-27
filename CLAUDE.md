@@ -666,6 +666,15 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 ## Próximos passos (atualizado 27/10/2026, 17ª sessão)
 - **17ª sessão (27/10/2026)**: corrigidos os 4 detalhes de busca (ver "Qualidade das buscas"). Giovanni: conferir geladeira,
   máquina de lavar, ps5 e ventilador no site.
+- ⭐ **Auditoria da busca toda madrugada (27/10/2026, pedido do Giovanni)**: job `auditoria` no `robo-precos.yml` (depois do
+  `prontas`; Run workflow `so_auditoria` roda só ela) → `node robo/auditoria.mjs 150`: abre no site as 150 primeiras de
+  `termosParaSugestoes` (buscas prontas, ~2 ao mesmo tempo) e `lib/auditoria.js` (`listaVisivel` imita o site: sem acessórios, só as
+  categorias da busca) lista no resumo da execução os suspeitos do topo 20: palavra suspeita (`SUSPEITAS`: brinquedo, capa, adesivo,
+  reposição, enfeite…; boneca/brinquedo normal em busca de brinquedo ou sem categoria), preço < 10% do típico, "não começa pelo
+  produto" no topo 10. **Não muda nada no site**: Claude lê o log (GitHub MCP `get_job_logs` do job `auditoria`) e corrige as regras.
+  Correção das regras = permanente (vale para os produtos que entrarem depois). 1ª rodada (60 buscas) achou: **"kit" fazia a busca
+  virar "de acessório"** (nada escondido, maquiagem de brinquedo em "kit maquiagem") → "kit" saiu de `GENERICAS` e da regra das 2+
+  palavras; "skin care" = skincare; palavra de acessório que é pedaço da buscada não conta ("Baba Skin" em "kit skincare"). Cache v=85.
 - **16ª sessão (27/10/2026) fez**: app instalado com nome na abertura (manifesto + ícones); cupons sem o código no título; Resend
   verificado (e-mails saem do domínio) + filtro do Gmail; Cobasi no site (8.966 produtos); robô passou a tirar fotos com 403 do S3;
   Lojas Benoit pausada (feed com fotos e preços errados). **Próximo**: conferir o robô da madrugada de 28/10 (job `prontas` refeito
