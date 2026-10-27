@@ -7,7 +7,11 @@ import { termosParaSugestoes } from "../lib/vocabulario.js";
 
 const SITE = "https://vaiprocarrinho.com.br";
 const QUANTAS = Number(process.argv[2]) || 150;
-const AO_MESMO_TEMPO = 2; // bem abaixo do limite de pedidos do Cloudflare (60 em 10 s por IP)
+// Limite de pedidos do Cloudflare: 60 em 10 s por IP. Com 2 ao mesmo tempo e sem pausa, 66 de 150 buscas deram 429
+// (as prontas respondem em ~0,1 s); com a pausa ficam no máximo ~4 por segundo
+const AO_MESMO_TEMPO = 2;
+const PAUSA_MS = 500;
+const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 // Mesma versão do cache que o site usa: assim pega as buscas prontas (respondem na hora)
 const versao = readFileSync(new URL("../functions/api/buscar.js", import.meta.url), "utf8").match(/const VERSAO_CACHE = (\d+)/)[1];
 
@@ -16,6 +20,7 @@ async function abrir(q) {
     try {
       const r = await fetch(`${SITE}/api/buscar?v=${versao}&atalho=1&q=${encodeURIComponent(q)}`, { signal: AbortSignal.timeout(30000) });
       if (r.ok) return await r.json();
+      if (r.status === 429) await espera(11000); // bloqueado por 10 s: espera e tenta de novo
     } catch {}
   }
   return null;
@@ -31,6 +36,7 @@ for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
     const suspeitos = auditarBusca(d.q || q, d.ofertas);
     if (suspeitos.length) resultados.push({ q: d.q || q, suspeitos });
   }));
+  await espera(PAUSA_MS);
 }
 
 resultados.sort((a, b) => b.suspeitos.length - a.suspeitos.length);
