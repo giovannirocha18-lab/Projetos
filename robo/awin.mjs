@@ -327,7 +327,10 @@ async function fotoAbre(url) {
     // Alguns servidores não aceitam HEAD: tenta um pedacinho com GET
     if ([403, 405, 501].includes(r.status)) r = await pedir("GET");
     if (r.body) r.body.cancel().catch(() => {});
-    // 403: alguns servidores barram robôs mas abrem no navegador (o imgur dá 403 para o Node e 200 para o curl).
+    // 403 do Amazon S3 (erro em XML, direto ou pela CloudFront) = arquivo que não existe: o S3 responde "acesso negado"
+    // no lugar de 404 (27/10/2026: ~95% das fotos da Lojas Benoit, que não abrem nem no navegador)
+    if (r.status === 403 && (/AmazonS3/i.test(r.headers.get("server") || "") || /xml/.test(r.headers.get("content-type") || ""))) return false;
+    // Outro 403: alguns servidores barram robôs mas abrem no navegador (o imgur dá 403 para o Node e 200 para o curl).
     // Só 404/410 e "não é imagem" contam como foto quebrada
     if (r.status >= 500 || r.status === 429 || r.status === 403 || r.status === 401) return null;
     const tipo = r.headers.get("content-type") || "";
