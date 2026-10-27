@@ -16,7 +16,7 @@ const arredondar = (n) => (n >= 20 ? Math.floor(n / 10) * 10 : n);
 
 export async function onRequestGet({ request, env }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/numeros?v=6", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/numeros?v=7", request.url)); // trocar o v= para descartar o guardado
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
 

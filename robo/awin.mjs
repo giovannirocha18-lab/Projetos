@@ -27,6 +27,10 @@ import { lojaComLinksQuebrados, linksQuebrados, sortear } from "../lib/links.js"
 import { TABELAS_OFERTAS, MIGRACOES_OFERTAS, RESUMO_LOJAS_AWIN, INDICE_LOJA, CRIAR_INDICE_LOJA, juntarMilhares } from "../lib/ofertas.js";
 
 const LISTA_FEEDS = "https://productdata.awin.com/datafeed/list/apikey/";
+// Lojas aprovadas que ficam fora do site (os produtos delas são apagados) até corrigirem o feed. Nome da loja na Awin,
+// em minúsculas e sem acento. Lojas Benoit (27/10/2026, decisão do Giovanni): 94% das fotos não existem mais e o preço
+// do feed não bate com o site dela (forno R$ 8.699 no feed, ~R$ 10 mil na loja). Tirar daqui quando ela avisar que corrigiu.
+const LOJAS_PAUSADAS = ["lojas benoit"];
 // Regiões aceitas (ex.: "BR" ou "BR,US"). Vazio = todas. Lojas de fora entram marcadas como internacionais.
 const REGIOES = (process.env.ROBO_REGIOES || "").split(",").map((r) => r.trim().toUpperCase()).filter(Boolean);
 // Cotação usada para converter preços em outras moedas (preenchida em main)
@@ -524,10 +528,12 @@ async function feedsDaConta({ nome: nomeSegredo, rotulo, segredo }) {
   console.log(`Situação das lojas na lista: ${JSON.stringify(situacoes)}`);
   const regiao = (f) => pegar(f, "primaryregion", "region", "advertiserregion").toUpperCase();
   const idioma = (f) => pegar(f, "language", "idioma").toLowerCase();
+  const pausada = (f) => LOJAS_PAUSADAS.some((p) => normalizar(pegar(f, "advertisername", "merchantname")).startsWith(p));
   const aprovados = lista.filter((f) =>
     /^(active|joined|yes|true|1)$/i.test(pegar(f, "membershipstatus", "status", "joined"))
     && pegar(f, "url", "downloadurl", "feedurl")
-    && (!REGIOES.length || !regiao(f) || REGIOES.includes(regiao(f))));
+    && (!REGIOES.length || !regiao(f) || REGIOES.includes(regiao(f)))
+    && !pausada(f));
 
   // Loja de fora costuma ter um feed por país/idioma (o mesmo produto em dólar, euro, libra…).
   // Para não repetir produto: se a loja tem feed em português, usa os em português;
