@@ -663,12 +663,14 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 27/10/2026, fim da 16ª sessão)
+## Próximos passos (atualizado 27/10/2026, 17ª sessão)
+- **17ª sessão (27/10/2026)**: corrigidos os 4 detalhes de busca (ver "Qualidade das buscas"). Giovanni: conferir geladeira,
+  máquina de lavar, ps5 e ventilador no site.
 - **16ª sessão (27/10/2026) fez**: app instalado com nome na abertura (manifesto + ícones); cupons sem o código no título; Resend
   verificado (e-mails saem do domínio) + filtro do Gmail; Cobasi no site (8.966 produtos); robô passou a tirar fotos com 403 do S3;
   Lojas Benoit pausada (feed com fotos e preços errados). **Próximo**: conferir o robô da madrugada de 28/10 (job `prontas` refeito
   sem a Benoit; Monte Carlo segue com ~30% sem foto); Giovanni: 2FA, senha do Registro.br, UptimeRobot; decidir a seção "Outras
-  lojas parceiras" (marcas da Lomadee sem produtos); 4 detalhes de busca listados em "Qualidade das buscas".
+  lojas parceiras" (marcas da Lomadee sem produtos).
 - ✅ **App instalado (27/10/2026, print do Giovanni: ao abrir aparecia só o ícone)**: `public/manifest.webmanifest` (nome "Vai pro Carrinho",
   fundo/tema `#6d28d9`, standalone; liberado em `PUBLICOS`). O Chrome mostra na abertura o ícone "any" e não deixa tirar essa tela: por
   isso os ícones "any" (`marca/app-nome-192/512.png`) são o logo COM o nome embaixo (fundo transparente); o ícone da tela inicial usa
@@ -757,9 +759,13 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   colchão, mochila, whey, furadeira, vestido, ps5): resultados bons (150–540 produtos de verdade cada). Lento por 2 motivos:
   (1) cada troca de `VERSAO_CACHE` apaga as buscas prontas até a madrugada → Run workflow ganhou `so_prontas` (refaz só elas, ~18 min;
   **usar sempre depois de trocar a versão**); (2) Lomadee travava a busca até 8 s → `LIMITE_LOJA_LENTA_MS` = 5 s na busca ao vivo.
-  Depois: buscas prontas 0,3–1,2 s; busca nova ~3–4 s (era 6–9 s). Detalhes vistos e não corrigidos: "geladeira" traz "Geladeira Our
-  Generation" (brinquedo, Candide) em 2º; "máquina de lavar" traz mini lavadora de R$ 45 do AliExpress; "ps5" com
-  "SUPORTEDECONTROLE-PS5…" (título grudado) no topo; "ventilador" com ventilador de lareira do AliExpress em 2º.
+  Depois: buscas prontas 0,3–1,2 s; busca nova ~3–4 s (era 6–9 s).
+  ✅ **Os 4 detalhes corrigidos (27/10/2026, 17ª sessão, cache v=84)** em `lib/relevancia.js`: palavras grudadas (`GRUDADA` em
+  `comSinonimos`: "SUPORTEDECONTROLE" → "suporte de controle"); `MARCA_DE_BRINQUEDO` (Our Generation, Polly Pocket, Baby Alive…) e
+  "boneca(s)" em `BRINQUEDO`; `OUTRO_PRODUTO` ventilador + lareira/lenha/fogão; preço como prova: produto comum comparado também com a
+  mediana dos comuns (as mini lavadoras baixavam o típico), versão de nicho segue com a mediana de todos. Conferido em 28 buscas reais:
+  só saíram coisas que não são o produto (raquete de tênis de mesa, desodorante "sem perfume", celular de mostruário, tigelas em
+  "máquina de lavar", toppers de R$ 45 em "colchão"). Run workflow `so_prontas` disparado.
 - PCYES (Lomadee): 1ª "foto" era a página do produto e a descrição vinha com HTML escapado e cortado → `ehFoto`/`semHtml` em
   lomadee.js (26/10). Cache v=83, /api/lojas VERSAO=10.
 - **Lomadee: marcas que pagam mais (26/10/2026, pedido do Giovanni)**: lista tirada das 161 páginas públicas `lomadee.com.br/pt-br/marcas/<nome>`
