@@ -686,6 +686,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   palavra; "Labubu Chaveiro" é produto); `VARIANTES_DA_CATEGORIA.Móveis` = pano/lona/TNT ("tecido" NÃO: sofá de tecido é o comum).
   Não corrigido: "Panela de arroz Tomada … Universal" R$ 41 em "panela de pressão elétrica" ("tomada" como peça transformava
   "tomada inteligente" em busca de acessório). "stanley" também traz CD do Stanley Clarke e DVD do Kubrick (nome ambíguo).
+  Execução #55: 15 suspeitos (1 novo real: trilho de cabide R$ 175 em "guarda roupa" → `DEPOIS` + cabide(s)). Auditoria sem alarmes
+  falsos (cache v=88): palavra suspeita só ANTES do produto buscado e não depois de "com/c/+/brinde"; preço típico = 1º quartil (não
+  mediana). Rodada local: 150 buscas, 0 suspeitos. Se a lista vier vazia por muitos dias, conferir com um caso conhecido.
 - **16ª sessão (27/10/2026) fez**: app instalado com nome na abertura (manifesto + ícones); cupons sem o código no título; Resend
   verificado (e-mails saem do domínio) + filtro do Gmail; Cobasi no site (8.966 produtos); robô passou a tirar fotos com 403 do S3;
   Lojas Benoit pausada (feed com fotos e preços errados). **Próximo**: conferir o robô da madrugada de 28/10 (job `prontas` refeito
