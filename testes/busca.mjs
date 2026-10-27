@@ -372,6 +372,9 @@ for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
 
 // Filtro da AliExpress (busca solta): fica = passa no filtro; sai = tem que ser tirado
 const FILTRO_ALIEXPRESS = {
+  // 27/10/2026 (print): "vibração" contém "ração"; o massageador aparecia na busca "ração"
+  "ração": { fica: ["Ração para Peixes Ornamentais SUNSUN Koi", "Ração Golden Cães Adultos 15kg"],
+    sai: ["Máquina de massagem para pescoço com 4 cabeças, aquecimento, vibração, compressa quente"] },
   "batedeira": {
     fica: ["Batedeira Planetária Mondial 700W", "Gancho Espiral para Batedeiras KitchenAid", "Batedeiras Elétricas Portáteis"],
     sai: ["Capacitor Automotivo Farah 16V100F: Retificador Eletrônico", "Supernew para dewalt portátil jump start cabo carro auxiliar"],
