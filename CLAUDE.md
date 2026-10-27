@@ -665,11 +665,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 
 ## Próximos passos (atualizado 26/10/2026, fim da 15ª sessão)
 - ✅ **App instalado (27/10/2026, print do Giovanni: ao abrir aparecia só o ícone)**: `public/manifest.webmanifest` (nome "Vai pro Carrinho",
-  ícones `marca/app-*.png` comum e maskable, `apple-touch-icon.png`, fundo/tema `#6d28d9`, standalone; liberado em `PUBLICOS`) e tela de
-  abertura `#abertura` (logo + "Vai pro Carrinho" + slogan + pontinhos no gradiente) que só aparece no app instalado (`display-mode:
-  standalone` no estilo.css); `tirarAbertura()` no app.js tira entre 1,2 s e 2,5 s (CSS tira sozinha em 4 s se o JS falhar).
-  O Android 12+ ainda mostra 1 instante o ícone sozinho (tela do sistema; não dá para pôr o nome nela). Giovanni precisa
-  desinstalar o atalho antigo e instalar de novo ("Instalar app" no menu do Chrome).
+  fundo/tema `#6d28d9`, standalone; liberado em `PUBLICOS`). O Chrome mostra na abertura o ícone "any" e não deixa tirar essa tela: por
+  isso os ícones "any" (`marca/app-nome-192/512.png`) são o logo COM o nome embaixo (fundo transparente); o ícone da tela inicial usa
+  os "maskable" (`app-maskable-*.png`, sem nome) e o iPhone o `apple-touch-icon.png`. Uma 2ª tela de abertura feita no site foi
+  testada e tirada (aparecia o logo duas vezes). Para ver a mudança: desinstalar e instalar de novo ("Instalar app" no Chrome).
 - ✅ **15ª sessão (25/10/2026): chave do robô (`lib/robo.js`), publicada**. `/api/preparar-buscas`, `/api/coletar-precos`,
   `/api/conferir-alertas` e `/api/conferir-lojas` estavam abertos a qualquer um; agora exigem `Authorization: Bearer <chave>`.
   Secret **`CHAVE_ROBO`** no Cloudflare (Giovanni cadastrou com esse nome); no GitHub ele cadastrou como `ROBO_CHAVE` ou `CHAVE_ROBO`
