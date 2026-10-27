@@ -18,12 +18,23 @@
   <meta name="verification" content="2e195e3c8c68351f1709348e09eae77d" />
   <meta name="lomadee" content="2324685" />
   <link rel="icon" href="/marca/vaiprocarrinho-icone.svg" type="image/svg+xml">
+  <!-- Instalar como app (celular): nome, ícones e cores -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/marca/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Vai pro Carrinho">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/estilo.css">
 </head>
 <body>
+  <!-- Tela de abertura: só aparece no app instalado (estilo.css, display-mode: standalone); o app.js tira -->
+  <div class="abertura" id="abertura" aria-hidden="true">
+    <img class="abertura-icone" src="/marca/vaiprocarrinho-icone.svg" alt="" width="120" height="120">
+    <p class="abertura-nome">Vai pro <strong>Carrinho</strong></p>
+    <p class="abertura-slogan">Compare preços. Pague menos.</p>
+    <span class="abertura-pontos"><i></i><i></i><i></i></span>
+  </div>
   <div class="aviso-teste" id="aviso-teste" hidden>
     🧪 <strong>Modo de teste:</strong> produtos e preços de exemplo. Os botões abrem a busca da loja.
   </div>
