@@ -682,6 +682,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   foto também não contam na trava "feed caiu mais da metade" (`foraDeProposito`) e `VERSAO_FOTOS = 2` fez o robô testar de novo as
   111.932 fotos (#49, 18 min). Benoit: 3.072 sem foto + 107 com link 404 → **209 no site**, fotos conferidas (20 de 20 abrem).
   Texto avisando a Benoit (fotos e links) enviado por ele pela Awin.
+  ⏸️ **Lojas Benoit FORA do site (27/10/2026, decisão do Giovanni)**: além das fotos, o preço do feed não bate com o site dela (forno
+  R$ 8.699 no feed x ~R$ 10 mil na loja). `LOJAS_PAUSADAS` em robo/awin.mjs (nome normalizado; a loja é tratada como não aprovada e os
+  produtos são apagados). #50 tirou; Run workflow `so_prontas` refez as buscas prontas. /api/lojas VERSAO=13, numeros v=7.
+  **Religar quando o Giovanni avisar que a Benoit corrigiu**: tirar "lojas benoit" da lista, rodar `so_awin` e conferir fotos e preços.
 - ✅ **Cupons com o código no título (27/10/2026, print do Giovanni: "CHAPEUDEVIAGEM", "AVENTURANDO")**: `semCodigo` em
   lib/cupons.js tira o código do título e da descrição (sem maiúsculas/acentos/espaços/símbolos; só código de 4+ letras e palavra
   inteira); título que fica vazio = "Cupom de desconto". /api/cupons VERSAO=5. Conferido no ar: 79 cupons, 0 com o código no texto.
