@@ -28,6 +28,13 @@ const CASOS = {
   },
   "kit skincare": { E: ["Kit 6 Kit Skin Care Baba Skin Com 24 Itens Rhenuks Cosméticos", "Kit Skincare Rosa Mosqueta Sabonete Facial"] },
   "kit churrasco": { E: ["Kit Churrasco Brinox Precision 3 Peças Faca Garfo e Chaira"] },
+  // 27/10/2026 (auditoria da busca, execução #54)
+  "stanley": { E: ["Copo Térmico Stanley Quencher 1,18L"], A: ["Chaveiro de Pelúcia Anime Dr. Stone: Senku, Gen, Ryusui, Xeno, Stanley, Chibi"] },
+  "chaveiro": { E: ["Chaveiro de Pelúcia Labubu", "Chaveiro Personalizado Couro"] },
+  "panela de pressão elétrica": {
+    E: ["Panela de Pressão Elétrica Mondial 5L com anel de vedação extra"],
+    A: ["Midea panela de pressão elétrica anel de borracha anel de vedação panela elétrica de alta pressão"],
+  },
   // ---- Prints do Giovanni ----
   // 17/10/2026: suporte, porta-controle e adesivo apareciam no meio; joystick e gamepad são o próprio controle
   "controle para video game": {
@@ -284,6 +291,8 @@ const ORDEM = [
   ["joystick", ["SJ02 Novo Joystick de Alavanca de Controle de Guindaste para Máquinas Pesadas", "Controle Joystick Gamer para PS4 Pc Bluetooth"], "Controle Joystick Gamer para PS4 Pc Bluetooth"],
   ["joystick", ["Joystick Keycap para Teclado Mecânico - Controle Analógico Gamer 3D", "Controle Joystick USB para PC Computador PS2 Gamepad"], "Controle Joystick USB para PC Computador PS2 Gamepad"],
   ["controle para video game", ["Joystick Industrial de Controle Remoto Hall", "Controle De Xbox 360 Com Fio Para Video Game e PC"], "Controle De Xbox 360 Com Fio Para Video Game e PC"],
+  // Guarda-roupa de pano depois dos de madeira (auditoria, 27/10/2026)
+  ["guarda roupa", ["Guarda-roupa simples pano guarda-roupa moda dos desenhos animados", "Guarda-Roupa Casal 6 Portas Araplac"], "Guarda-Roupa Casal 6 Portas Araplac"],
   // Protetor de para-brisa não é protetor solar de pele (17/10/2026)
   ["protetor solar", ["Protetor Solar para Para-brisa de Carro Estiloso", "Protetor Solar Facial FPS 50 Neutrogena"], "Protetor Solar Facial FPS 50 Neutrogena"],
   // 27/10/2026 (auditoria das buscas): geladeira de boneca e ventilador de lareira no topo
