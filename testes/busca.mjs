@@ -21,6 +21,13 @@ const CASOS = {
     E: ["Boné Trucker Aba Curva Preto", "Boné KaBuM! Esports Aba Reta"],
     N: ["Boneco Funko Pop! Pokemon - Squirtle"],
   },
+  // 27/10/2026 (auditoria da busca): "kit" fazia a busca virar "de acessório" e nada era escondido (maquiagem de brinquedo)
+  "kit maquiagem": {
+    E: ["Kit Maquiagem Completo Pincéis e Sombra", "Kit de Maquiagem Profissional Paleta de Sombras"],
+    A: ["Kits de Maquiagem de Brinquedo, Kits de Maquiagem de Faz de Conta para Presente"],
+  },
+  "kit skincare": { E: ["Kit 6 Kit Skin Care Baba Skin Com 24 Itens Rhenuks Cosméticos", "Kit Skincare Rosa Mosqueta Sabonete Facial"] },
+  "kit churrasco": { E: ["Kit Churrasco Brinox Precision 3 Peças Faca Garfo e Chaira"] },
   // ---- Prints do Giovanni ----
   // 17/10/2026: suporte, porta-controle e adesivo apareciam no meio; joystick e gamepad são o próprio controle
   "controle para video game": {
