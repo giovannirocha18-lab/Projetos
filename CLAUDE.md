@@ -669,6 +669,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   isso os ícones "any" (`marca/app-nome-192/512.png`) são o logo COM o nome embaixo (fundo transparente); o ícone da tela inicial usa
   os "maskable" (`app-maskable-*.png`, sem nome) e o iPhone o `apple-touch-icon.png`. Uma 2ª tela de abertura feita no site foi
   testada e tirada (aparecia o logo duas vezes). Para ver a mudança: desinstalar e instalar de novo ("Instalar app" no Chrome).
+- ✅ **Cupons com o código no título (27/10/2026, print do Giovanni: "CHAPEUDEVIAGEM", "AVENTURANDO")**: `semCodigo` em
+  lib/cupons.js tira o código do título e da descrição (sem maiúsculas/acentos/espaços/símbolos; só código de 4+ letras e palavra
+  inteira); título que fica vazio = "Cupom de desconto". /api/cupons VERSAO=5. Conferido no ar: 79 cupons, 0 com o código no texto.
 - ✅ **15ª sessão (25/10/2026): chave do robô (`lib/robo.js`), publicada**. `/api/preparar-buscas`, `/api/coletar-precos`,
   `/api/conferir-alertas` e `/api/conferir-lojas` estavam abertos a qualquer um; agora exigem `Authorization: Bearer <chave>`.
   Secret **`CHAVE_ROBO`** no Cloudflare (Giovanni cadastrou com esse nome); no GitHub ele cadastrou como `ROBO_CHAVE` ou `CHAVE_ROBO`
