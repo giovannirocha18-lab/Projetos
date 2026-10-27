@@ -78,7 +78,8 @@ const CASOS = {
   // Print de 17/10/2026: "ps5" mostrava adesivo, enfeite e skin no topo e o console só em "Maior preço"
   "ps5": {
     E: ["Console PS5 Slim 825GB Digital Edition + 2 Jogos", "PS5 SLIM BUNDLE 1TB FISICO", "Console PlayStation PS5 Bundle Edição Digital", "playstation 5 825gb", "Console PlayStation 5 Slim 1TB", "Sony PS5 Pro Digital"],
-    A: ["Controle DualSense para PS5", "Capa Skin Adesivo PS5", "2026 Novo produto PS5 SLIM Elite Version pro Handle Silicone Capa protetora", "2026 Novo produto Heroes PS5 pro Adesivo de corpo", "Skin PS5 Fat Playstation 5 Adesivo - Personalizada", "Decoração PlayStation PS5 | Enfeite de Mesa"],
+    A: ["Controle DualSense para PS5", "Capa Skin Adesivo PS5", "2026 Novo produto PS5 SLIM Elite Version pro Handle Silicone Capa protetora", "2026 Novo produto Heroes PS5 pro Adesivo de corpo", "Skin PS5 Fat Playstation 5 Adesivo - Personalizada", "Decoração PlayStation PS5 | Enfeite de Mesa",
+      "SUPORTEDECONTROLE-PS5-3D-PLA-LG3DSTORE"], // 27/10/2026: palavras grudadas pelo vendedor
   },
   "jogo de panelas": { E: ["Jogo Panelas Tramontina Antiaderente 5 peças", "Jogo de Panelas Cerâmica 10 Peças Kit Cozinha"] },
   "tapete yoga": { E: ["Tapete de Yoga Antiderrapante 6mm"] },
@@ -204,6 +205,12 @@ const CASOS_PRECO = [
   ["celular", [...celulares, ["Celular Usado Nokia 110 4G Dual Chip", 89]], { "Celular Usado Nokia 110 4G Dual Chip": "P" }],
   ["mondial air fryer", [["Mondial Air Fryer AFN-40 4L", 350], ["Air Fryer Mondial Family 5L", 420]], { "Mondial Air Fryer AFN-40 4L": "P", "Air Fryer Mondial Family 5L": "P" }],
   ["philco ventilador", [["Ventilador Philco PVT40 40cm", 180]], { "Ventilador Philco PVT40 40cm": "P" }],
+  // 27/10/2026: as mini lavadoras baixavam o preço típico e a "turbina para meias" de R$ 48 passava; a mini continua
+  ["maquina de lavar", [["Máquina de Lavar Consul 15Kg", 1900], ["Máquina de Lavar Electrolux 13Kg", 2100], ["Máquina de Lavar Brastemp 12Kg", 1800],
+    ["Máquina de Lavar Midea 11Kg", 1700], ["Máquina de Lavar Philco 12Kg", 1600],
+    ...Array.from({ length: 8 }, (_, i) => [`Mini Máquina de Lavar Portátil Dobrável ${i + 8}L`, 100 + i]),
+    ["Máquina de Lavar com Turbina Rotativa e Bolhas para Meias e Roupas Íntimas", 48]],
+    { "Máquina de Lavar com Turbina Rotativa e Bolhas para Meias e Roupas Íntimas": "A", "Mini Máquina de Lavar Portátil Dobrável 8L": "P" }],
 ];
 for (const [q, itens, esperado] of CASOS_PRECO) {
   const saida = separarAcessorios(itens.map(([titulo, preco], i) => ({ id: String(i), titulo, preco })), q);
@@ -272,6 +279,9 @@ const ORDEM = [
   ["controle para video game", ["Joystick Industrial de Controle Remoto Hall", "Controle De Xbox 360 Com Fio Para Video Game e PC"], "Controle De Xbox 360 Com Fio Para Video Game e PC"],
   // Protetor de para-brisa não é protetor solar de pele (17/10/2026)
   ["protetor solar", ["Protetor Solar para Para-brisa de Carro Estiloso", "Protetor Solar Facial FPS 50 Neutrogena"], "Protetor Solar Facial FPS 50 Neutrogena"],
+  // 27/10/2026 (auditoria das buscas): geladeira de boneca e ventilador de lareira no topo
+  ["geladeira", ["Geladeira Our Generation Perfectly Fresh", "Geladeira Brastemp Frost Free 375L"], "Geladeira Brastemp Frost Free 375L"],
+  ["ventilador", ["Ventilador de Fogão Preto com 6 Lâminas, Movido a Calor, para Lareira a Lenha", "Ventilador Arno Xtreme Force Coluna 50cm"], "Ventilador Arno Xtreme Force Coluna 50cm"],
   ["protetor solar", ["Protetor Solar Personalizado para Carro com Qualquer Design", "Protetor Solar Corporal FPS 30 Sundown"], "Protetor Solar Corporal FPS 30 Sundown"],
 ];
 for (const [q, titulos, primeiro] of ORDEM) {
