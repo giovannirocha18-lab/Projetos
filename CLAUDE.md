@@ -669,6 +669,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   isso os ícones "any" (`marca/app-nome-192/512.png`) são o logo COM o nome embaixo (fundo transparente); o ícone da tela inicial usa
   os "maskable" (`app-maskable-*.png`, sem nome) e o iPhone o `apple-touch-icon.png`. Uma 2ª tela de abertura feita no site foi
   testada e tirada (aparecia o logo duas vezes). Para ver a mudança: desinstalar e instalar de novo ("Instalar app" no Chrome).
+- ✅ **Resend com o domínio (27/10/2026)**: Giovanni adicionou vaiprocarrinho.com.br no Resend (São Paulo, Return-Path `send`,
+  "Auto configure" do Cloudflare: TXT `resend._domainkey` e `send` → forge.rmta.net, conferidos no DNS) e criou `EMAIL_REMETENTE`
+  no Cloudflare. Site republicado para ler a variável. Falta ele ver "Verified" no Resend e testar "Esqueci minha senha"/alerta.
 - ✅ **Cupons com o código no título (27/10/2026, print do Giovanni: "CHAPEUDEVIAGEM", "AVENTURANDO")**: `semCodigo` em
   lib/cupons.js tira o código do título e da descrição (sem maiúsculas/acentos/espaços/símbolos; só código de 4+ letras e palavra
   inteira); título que fica vazio = "Cupom de desconto". /api/cupons VERSAO=5. Conferido no ar: 79 cupons, 0 com o código no texto.

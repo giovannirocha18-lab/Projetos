@@ -36,6 +36,7 @@ Liga quando o projeto no Cloudflare tiver (Settings):
 - **Variables and Secrets** > `RESEND_API_KEY` (tipo Secret), chave do resend.com para enviar o link de "Esqueci minha senha".
 - Opcional: `EMAIL_REMETENTE` (ex.: `Vai pro Carrinho <nao-responda@vaiprocarrinho.com.br>`), só depois
   de verificar o domínio no Resend. Sem isso, o Resend só entrega para o e-mail dono da conta Resend.
+  ✅ Desde 27/10/2026: domínio no Resend (região São Paulo, registros DNS postos pelo "Auto configure") e `EMAIL_REMETENTE` criado.
 
 **Entrar com Google** (opcional): o botão aparece quando existirem `GOOGLE_CLIENT_ID` (variável) e
 `GOOGLE_CLIENT_SECRET` (Secret). Criados em console.cloud.google.com > APIs e serviços > Credenciais >
