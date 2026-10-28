@@ -680,6 +680,17 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   garrafa pet, pijama/chaveiro/fantasia/desenho de gato, coleira infantil, pote de cozinha). "gato" sozinho segue fraco ("Perfume Gato
   Preto" é de gente; Pets `nao` + perfume, cozinha, garrafa pet…). Conferido em ~50 buscas reais. Para outra categoria exclusiva, seguir
   o mesmo molde. Cache v=95, /api/lojas VERSAO=16; `so_prontas` disparado. No ar: "shampoo" 46 em Pets, "perfume" 8 em Pets.
+- ⭐ **Trava automática pela categoria da loja (28/10/2026, pedido do Giovanni: "trava para todas as categorias sem buscar uma a
+  uma")**. Giovanni NÃO quis IA paga (oferecidas Opus/Sonnet/Haiku via API; decidiu "só grátis"). Feito: `lib/caminhos.js`
+  `categoriaDoCaminho` lê o caminho de categoria que as lojas da Awin mandam no feed (coluna `categoria`, PT/ES/EN; regras próprias,
+  depois as regras do título por pedaço) e `categoriaTravada(o)` em lib/categorias.js (Pets pelo título forte OU caminho da loja OU loja
+  de um tipo só: `PADRAO_DA_LOJA` Casa Tema = Móveis forte, Animale = Moda feminina fraca) vale em toda busca, categoria aberta,
+  vitrine e página de loja (acima do catMapa e da "conferência" do buscado). Shopee/AliExpress mandam só códigos: seguem pelo mapa
+  aprendido. Relatório no robô: passo "Categorias das lojas" no job `auditoria` (`robo/caminhos.mjs`: % por loja e caminhos sem
+  categoria). 1ª rodada: Cobasi 100%, Monte Carlo 100%, Karsten 99%, Kabum 86%, Efacil 68%, Casa Tema 66% (+ padrão), Posthaus 0%
+  (só "Vestuário > Roupas"), oBoticario 1% (códigos), Lauri 0% (vazio). Conferido em 25 buscas: perfume de pet → Pets, charm de prata →
+  Joias, perfume p/ ar-condicionado → Eletrodomésticos, toalha Karsten → Cama e banho, panela elétrica → Eletroportáteis, cozinha
+  planejada → Móveis. Cache v=96, /api/lojas VERSAO=17. **Quando entrar loja nova da Awin: ler o relatório e completar `REGRAS`.**
 - **17ª sessão (27/10/2026)**: corrigidos os 4 detalhes de busca (ver "Qualidade das buscas"). Giovanni: conferir geladeira,
   máquina de lavar, ps5 e ventilador no site.
 - ⭐ **Auditoria da busca toda madrugada (27/10/2026, pedido do Giovanni)**: job `auditoria` no `robo-precos.yml` (depois do
