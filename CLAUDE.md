@@ -691,6 +691,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (só "Vestuário > Roupas"), oBoticario 1% (códigos), Lauri 0% (vazio). Conferido em 25 buscas: perfume de pet → Pets, charm de prata →
   Joias, perfume p/ ar-condicionado → Eletrodomésticos, toalha Karsten → Cama e banho, panela elétrica → Eletroportáteis, cozinha
   planejada → Móveis. Cache v=96, /api/lojas VERSAO=17. **Quando entrar loja nova da Awin: ler o relatório e completar `REGRAS`.**
+- ✅ **Pix/à vista (28/10/2026, print Motorola Razr 70 Ultra: site R$ 7.999 x loja "R$ 7.199,10 à vista via PIX")**: conferido no
+  sistema da loja (VTEX: Price 7999, ListPrice 11999): R$ 7.999 é o preço a prazo; o desconto Pix não vem no feed. `AVISO_CUPOM` virou
+  "💸 Pagando no Pix ou com cupom, muitos produtos saem ainda mais baratos na loja." e a nota da janela "Ver detalhes" cita Pix/cupom.
 - ⏳ **PENDENTE (pedido do Giovanni, 28/10/2026): IA paga para a correção automática da busca/categorias.** Hoje o robô corrige
   sozinho fotos/links quebrados, mapa de categorias da Shopee/AliExpress e produtos novos; a auditoria e o relatório de categorias só
   ANOTAM e o Claude corrige as regras. Com IA, o robô classificaria cada produto e consertaria sozinho. **Giovanni vai ativar "assim que
