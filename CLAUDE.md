@@ -669,6 +669,11 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   tira as fotos já testadas também do cache e das buscas prontas; o teste agora pega todas as fotos do produto de uma vez (até 200).
   Auditoria da execução #58: 150 buscas, 0 suspeitos. **Conferir**: log do job `auditoria` das próximas madrugadas; Lomadee e
   AliExpress passando de 5/8 s em várias buscas (28/10 ~00h UTC) — se continuar, investigar.
+- ✅ **28/10/2026 (18ª sessão)**: conta PJ da Awin ganhou **oBoticario** (2.210 produtos) e **Efacil** (26.905). Execução #59
+  (`so_awin`): 16 lojas da Awin, 130.785 produtos nos feeds, banco 285 MB de 500 MB. /api/lojas VERSAO=15, numeros v=8.
+  Print "perfume" (Xô Chulé Pet Clean da Cobasi em Perfumes): `PARA_OUTRO_USO` em `marcarSecoes` (lib/categorias.js) põe o produto
+  buscado mas para pet/carro em Pets/Automotivo (só palavras fortes: pet, cães, cachorro, gatos…; "automotivo", "para carro").
+  Cache v=94; `so_prontas` disparado.
 - **17ª sessão (27/10/2026)**: corrigidos os 4 detalhes de busca (ver "Qualidade das buscas"). Giovanni: conferir geladeira,
   máquina de lavar, ps5 e ventilador no site.
 - ⭐ **Auditoria da busca toda madrugada (27/10/2026, pedido do Giovanni)**: job `auditoria` no `robo-precos.yml` (depois do
