@@ -673,7 +673,13 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (`so_awin`): 16 lojas da Awin, 130.785 produtos nos feeds, banco 285 MB de 500 MB. /api/lojas VERSAO=15, numeros v=8.
   Print "perfume" (Xô Chulé Pet Clean da Cobasi em Perfumes): `PARA_OUTRO_USO` em `marcarSecoes` (lib/categorias.js) põe o produto
   buscado mas para pet/carro em Pets/Automotivo (só palavras fortes: pet, cães, cachorro, gatos…; "automotivo", "para carro").
-  Cache v=94; `so_prontas` disparado.
+  Cache v=94.
+  ⭐ **Pets exclusiva (28/10/2026, pedido do Giovanni)**: produto de bicho fica SÓ em Pets em qualquer busca, categoria aberta, vitrine,
+  página de loja, mesmo com a categoria da loja (`catMapa`) dizendo outra. `RE_PET`/`RE_NAO_PET`/`exclusivo` em lib/categorias.js (palavras
+  fortes: pet, cães, cachorro, gatos, ração, coleira, tapete higiênico, antipulgas, animais de estimação…; exceções: cachorro quente,
+  garrafa pet, pijama/chaveiro/fantasia/desenho de gato, coleira infantil, pote de cozinha). "gato" sozinho segue fraco ("Perfume Gato
+  Preto" é de gente; Pets `nao` + perfume, cozinha, garrafa pet…). Conferido em ~50 buscas reais. Para outra categoria exclusiva, seguir
+  o mesmo molde. Cache v=95, /api/lojas VERSAO=16; `so_prontas` disparado. No ar: "shampoo" 46 em Pets, "perfume" 8 em Pets.
 - **17ª sessão (27/10/2026)**: corrigidos os 4 detalhes de busca (ver "Qualidade das buscas"). Giovanni: conferir geladeira,
   máquina de lavar, ps5 e ventilador no site.
 - ⭐ **Auditoria da busca toda madrugada (27/10/2026, pedido do Giovanni)**: job `auditoria` no `robo-precos.yml` (depois do
