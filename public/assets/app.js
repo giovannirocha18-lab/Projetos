@@ -1110,7 +1110,7 @@ function abrirDetalhes(o, { doLink = false } = {}) {
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}`, onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
       `Comprar ${loja.em} ${loja.nome.length <= 16 ? loja.nome : "loja"}`, el("span", { class: "flecha", "aria-hidden": "true" }, "→")),
     el("p", { class: "detalhes-nota" }, o.descricao
-      ? "Preço e estoque podem mudar. Confira na loja antes de finalizar."
+      ? "Preço e estoque podem mudar. No Pix ou com cupom pode sair mais barato: confira na loja antes de finalizar."
       : "Cores, tamanhos e a descrição completa aparecem na página da loja."));
 
   $("#detalhes-conteudo").replaceChildren(el("div", { class: "detalhes" }, galeria, info));
@@ -1475,7 +1475,8 @@ function alternarLoja(id, ligar) {
 
 // A API das lojas manda o preço sem cupom; com cupom ou Pix (depende da conta e da campanha) pode sair menos na loja.
 // Aviso uma vez só, no card de resultados e na faixa das "Ofertas do dia", sem mexer nos cartões (pedido do Giovanni)
-const AVISO_CUPOM = "💸 Produtos que têm cupom na loja podem sair ainda mais baratos.";
+// Pix e cupom não vêm nos arquivos das lojas (print Motorola, 28/10/2026: R$ 7.999 no site = preço a prazo; R$ 7.199 no Pix)
+const AVISO_CUPOM = "💸 Pagando no Pix ou com cupom, muitos produtos saem ainda mais baratos na loja.";
 
 // Lojas desta busca dentro do card de resultados (pedido do Giovanni, 17/10/2026): o visitante vê na hora quais lojas
 // têm o produto e liga/desliga cada uma; "Limpar" desliga todas (para escolher só uma) e "Marcar todas" volta tudo
