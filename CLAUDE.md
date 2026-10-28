@@ -663,7 +663,7 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 27/10/2026, fim da 17ª sessão)
+## Próximos passos (atualizado 28/10/2026, fim da 18ª sessão)
 - ✅ **Conferido em 28/10/2026**: fotos da Candide limpas (busca "boneca": 4 da Candide, todas abrem; página da loja: 0 quebradas).
   Faltava: resposta guardada (cache de 1 dia) não era refeita com a Lomadee lenta (>5 s) → `respostaSemFotosQuebradas` (lib/fotos.js)
   tira as fotos já testadas também do cache e das buscas prontas; o teste agora pega todas as fotos do produto de uma vez (até 200).
@@ -691,6 +691,11 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (só "Vestuário > Roupas"), oBoticario 1% (códigos), Lauri 0% (vazio). Conferido em 25 buscas: perfume de pet → Pets, charm de prata →
   Joias, perfume p/ ar-condicionado → Eletrodomésticos, toalha Karsten → Cama e banho, panela elétrica → Eletroportáteis, cozinha
   planejada → Móveis. Cache v=96, /api/lojas VERSAO=17. **Quando entrar loja nova da Awin: ler o relatório e completar `REGRAS`.**
+- **Fim da 18ª sessão (28/10/2026)**: Giovanni vai pedir mais lojas na Awin (conta PJ) com a mensagem curta (modelo entregue:
+  comparador, 130 mil produtos, MEI, feed oficial, sem cupom falso nem anúncio pago com a marca). Analisada a **Teka** (7%, cookie 30 dias,
+  não aceita PF, feed 932 produtos, lançada 27/10/2026): recomendado pedir. **Quando ele avisar de loja aprovada**: rodar `so_awin`, ler o
+  log, rodar `so_auditoria` (relatório "Categorias das lojas"), completar `REGRAS`/`PADRAO_DA_LOJA` em lib/caminhos.js, subir
+  /api/lojas VERSAO e numeros v, cache e `so_prontas`. **Conferir na próxima conversa**: auditoria da madrugada de 29/10.
 - ✅ **Pix/à vista (28/10/2026, print Motorola Razr 70 Ultra: site R$ 7.999 x loja "R$ 7.199,10 à vista via PIX")**: conferido no
   sistema da loja (VTEX: Price 7999, ListPrice 11999): R$ 7.999 é o preço a prazo; o desconto Pix não vem no feed. `AVISO_CUPOM` virou
   "💸 Pagando no Pix ou com cupom, muitos produtos saem ainda mais baratos na loja." e a nota da janela "Ver detalhes" cita Pix/cupom.
