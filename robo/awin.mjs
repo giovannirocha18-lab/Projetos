@@ -246,7 +246,8 @@ function paraOferta(p, feed = {}) {
   const precoAntigo = antigo > preco * 1.01 ? antigo : null;
   const lojaNome = nomeDaLoja(p.merchant_name || feed.lojaNome) || `Loja ${lojaId}`;
   const tipo = (p.product_type || "").split(">").pop().trim();
-  const categoria = (p.category_name || p.merchant_category || tipo || "").slice(0, 60) || null;
+  // Central Ar (28/10/2026) só manda o caminho em merchant_product_category_path
+  const categoria = (p.category_name || p.merchant_category || tipo || p.merchant_product_category_path || "").slice(0, 60) || null;
   // Frete: delivery_cost (padrão) ou shipping no formato Google ("BR:::0.00 BRL")
   const textoFrete = p.delivery_cost ?? (p.shipping ? p.shipping.split(":").pop() : undefined);
   const frete = numero(textoFrete);
