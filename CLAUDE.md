@@ -696,6 +696,11 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   não aceita PF, feed 932 produtos, lançada 27/10/2026): recomendado pedir. **Quando ele avisar de loja aprovada**: rodar `so_awin`, ler o
   log, rodar `so_auditoria` (relatório "Categorias das lojas"), completar `REGRAS`/`PADRAO_DA_LOJA` em lib/caminhos.js, subir
   /api/lojas VERSAO e numeros v, cache e `so_prontas`. **Conferir na próxima conversa**: auditoria da madrugada de 29/10.
+- ⭐ **Busca dentro da loja (28/10/2026, pedido do Giovanni)**: com a página de uma loja aberta (`?loja=`), a busca procura só
+  nela (`?q=…&loja=<id>`; sem loja escolhida, o site todo). Servidor: `/api/buscar?loja=` (`lojaDaBusca` em buscar.js; só a fonte
+  da loja; Awin lê até 5000 candidatos do FTS filtrados por `loja` e traz até 200; Lomadee manda `organizationIds` da marca;
+  categoria não vale junto). Site: `lojaAtual()`/`nomeDaLoja()`, caixa "Buscar em Calvin Klein…", aviso "Na loja 🏬 X · Buscar em
+  todas as lojas ✕". Conferido no ar: óculos Calvin Klein 29, vestido Posthaus 200, fone Shopee 144, fone AliExpress 329.
 - ✅ **"✕ Limpar filtros" do card roxo (28/10/2026, print "cueca boxer")**: na busca só limpava filtros (parecia não funcionar).
   Agora `limparTudo` volta à página inicial como o logo (menos na Black Friday); o da barra lateral só limpa os filtros.
 - ✅ **Página da loja (28/10/2026, print Calvin Klein "44 de 572")**: carregava 48 por vez (só pelo botão "Ver mais"). Agora
