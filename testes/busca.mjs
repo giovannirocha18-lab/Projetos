@@ -9,7 +9,7 @@
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
 import { separarAcessorios, produtoBuscado } from "../lib/relevancia.js";
 import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
-import { categoriaDoProduto, marcarSecoes } from "../lib/categorias.js";
+import { categoriaDoProduto, categoriaPorNome, marcarSecoes } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 
 const CASOS = {
@@ -381,6 +381,26 @@ for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
   for (const o of [...pelaBusca, ...pelaCategoria]) {
     total++;
     if (o.secao !== titulos[o.titulo]) { falhas++; console.log(`✗ outro uso: "${o.titulo}" ficou em ${o.secao || "Outros"}`); }
+  }
+}
+
+// Pets é exclusiva (pedido do Giovanni, 28/10/2026): produto de bicho fica só em Pets, em qualquer busca ou categoria
+{
+  const casos = {
+    "Shampoo Antipulgas Previn Coveli - 500 ml": "Pets", "Tapete Higiênico MyHug 80x60cm - 30 unidades": "Pets",
+    "Suplemento Aminocão 300g para Cães com Vitaminas": "Pets", "Lenço Umedecido Cães e Gatos MyHug": "Pets",
+    "Capa de Chuva para Cachorro Azul Bichinho Chic": "Pets", "Fonte bebedouro para gatos pet elétrica automática": "Pets",
+    "Pijama Feminino Estampa Gatos": null, "Máquina de Cachorro Quente Elétrica": null, "10 chaveiros fofos de cachorrinhos": null,
+    "Mochila Infantil com Coleira Anti-Perda": null, "Pote Hermético Cozinha 4 Litros para arroz feijão ração": null,
+    "Garrafa Pet 2 Litros Transparente": null, "Perfume Gato Preto Feminino 50ml": null,
+  };
+  for (const [titulo, esperado] of Object.entries(casos)) {
+    for (const [q, cat] of [["perfume", null], ["shampoo", null], ["", categoriaPorNome("Perfumes")], ["", categoriaPorNome("Bebês")]]) {
+      total++;
+      const [o] = marcarSecoes([{ titulo, preco: 50, principal: true }], cat, q ? categoriaDoProduto(q) : null, q ? produtoBuscado(q) : null);
+      const pet = o.secao === "Pets";
+      if (pet !== (esperado === "Pets")) { falhas++; console.log(`✗ Pets exclusiva: "${titulo}" ficou em ${o.secao || "Outros"} (${q || cat.nome})`); }
+    }
   }
 }
 
