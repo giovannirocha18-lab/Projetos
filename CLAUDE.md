@@ -696,6 +696,8 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   não aceita PF, feed 932 produtos, lançada 27/10/2026): recomendado pedir. **Quando ele avisar de loja aprovada**: rodar `so_awin`, ler o
   log, rodar `so_auditoria` (relatório "Categorias das lojas"), completar `REGRAS`/`PADRAO_DA_LOJA` em lib/caminhos.js, subir
   /api/lojas VERSAO e numeros v, cache e `so_prontas`. **Conferir na próxima conversa**: auditoria da madrugada de 29/10.
+- ✅ **Página da loja (28/10/2026, print Calvin Klein "44 de 572")**: carregava 48 por vez (só pelo botão "Ver mais"). Agora
+  `completarLoja` no app.js pede sozinho mais 3 páginas (até ~200, como a busca). Conferido no ar: Calvin Klein 44 → 180.
 - ✅ **Pix/à vista (28/10/2026, print Motorola Razr 70 Ultra: site R$ 7.999 x loja "R$ 7.199,10 à vista via PIX")**: conferido no
   sistema da loja (VTEX: Price 7999, ListPrice 11999): R$ 7.999 é o preço a prazo; o desconto Pix não vem no feed. `AVISO_CUPOM` virou
   "💸 Pagando no Pix ou com cupom, muitos produtos saem ainda mais baratos na loja." e a nota da janela "Ver detalhes" cita Pix/cupom.
