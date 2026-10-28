@@ -404,6 +404,30 @@ for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
   }
 }
 
+// Categoria travada pela categoria que a loja manda no feed (lib/caminhos.js, 28/10/2026)
+{
+  const casos = [
+    [{ titulo: "Perfume Deo Colônia Fêmea Procão - 120 ml", lojaNome: "Cobasi", catsLoja: ["Productos para mascotas y animales > Productos para mascotas"] }, "Pets"],
+    [{ titulo: "Charm Perfume em Prata 925", lojaNome: "Monte Carlo Jóias", catsLoja: ["Vestuário e acessórios > Joias > Amuletos e pingentes"] }, "Joias e bijuterias"],
+    [{ titulo: "Perfume para Ar Condicionado Garden 60ml", lojaNome: "Efacil", catsLoja: ["Climatização &gt; Ar Condicionado"] }, "Eletrodomésticos"],
+    [{ titulo: "Jogo de Cama Casal Karsten 4 Peças", lojaNome: "Karsten", catsLoja: ["Cama - Produto - Jogo de Cama"] }, "Cama e banho"],
+    [{ titulo: "Cama Solteiro Montessoriana Branco", lojaNome: "Casa Tema", catsLoja: ["Cama"] }, "Móveis"],
+    [{ titulo: "Cozinha Compacta 6 Portas Branco", lojaNome: "Efacil", catsLoja: ["Móveis &gt; Cozinha Completa"] }, "Móveis"],
+    [{ titulo: "Panela Elétrica de Arroz Mondial", lojaNome: "Efacil", catsLoja: ["Eletroportáteis &gt; Panela Elétrica"] }, "Eletroportáteis"],
+    [{ titulo: "Blusa Babado Estampada - 34", lojaNome: "Animale", catsLoja: ["NEW COLLECTION - BLUSA"] }, "Moda feminina"],
+    [{ titulo: "Perfume Árabe Lattafa Asad 100ml", lojaNome: "shopee", catsLoja: ["100630", "100661"] }, "Perfumes"],
+  ];
+  for (const q of ["perfume", ""]) {
+    const ofertas = casos.map(([o]) => ({ ...o, preco: 100, principal: true }));
+    const marcadas = q ? marcarSecoes(separarAcessorios(ofertas, q), null, categoriaDoProduto(q), produtoBuscado(q)) : marcarSecoes(ofertas, categoriaPorNome("Perfumes"));
+    for (const o of marcadas) {
+      const esperada = casos.find(([c]) => c.titulo === o.titulo)[1];
+      total++;
+      if (o.secao !== esperada) { falhas++; console.log(`✗ categoria da loja: "${o.titulo}" ficou em ${o.secao || "Outros"} (esperado ${esperada}, ${q || "Perfumes aberta"})`); }
+    }
+  }
+}
+
 // Filtro da AliExpress (busca solta): fica = passa no filtro; sai = tem que ser tirado
 const FILTRO_ALIEXPRESS = {
   // 27/10/2026 (print): "vibração" contém "ração"; o massageador aparecia na busca "ração"
