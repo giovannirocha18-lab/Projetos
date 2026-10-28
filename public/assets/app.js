@@ -1205,7 +1205,7 @@ function semRepetidos(lista) {
 // pela sugestão, o site já pede os resultados; ao apertar Enter eles estão prontos (ou quase).
 // Pede com atalho=1 (não conta nos "em alta": pode ser só uma sugestão que ela nem escolheu). Se ela buscar isso
 // mesmo, o site usa a resposta adiantada e só avisa o servidor para contar (contar=1).
-const VERSAO_BUSCA = 93;
+const VERSAO_BUSCA = 94;
 const MAX_ADIANTADAS = 8; // por visita, para não gastar as consultas às lojas à toa
 const adiantadas = new Map();
 let totalAdiantadas = 0;

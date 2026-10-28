@@ -370,6 +370,20 @@ for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
   if (categoriaDoProduto("Mouse Gamer RGB 7200 DPI")?.nome !== "Informática") { falhas++; console.log("✗ mouse gamer saiu de Informática"); }
 }
 
+// Produto buscado para pet/carro fica em Pets/Automotivo (print "perfume": Xô Chulé Pet Clean da Cobasi em Perfumes, 28/10/2026)
+{
+  const titulos = { "Perfume Spray Xô Chulé Pet Clean - 120 ml": "Pets", "Colônia Body Splash Forest Soul Pet Society - 60 ml": "Pets",
+    "Perfume Automotivo Aromatizante Carro": "Automotivo", "Perfume Gato Preto Feminino 50ml": "Perfumes", "Perfume Ferrari Black Masculino": "Perfumes" };
+  const lista = Object.keys(titulos);
+  const q = "perfume";
+  const pelaBusca = marcarSecoes(separarAcessorios(lista.map((titulo) => ({ titulo, preco: 100 })), q), null, categoriaDoProduto(q), produtoBuscado(q));
+  const pelaCategoria = marcarSecoes(lista.map((titulo) => ({ titulo })), categoriaDoProduto("perfume"));
+  for (const o of [...pelaBusca, ...pelaCategoria]) {
+    total++;
+    if (o.secao !== titulos[o.titulo]) { falhas++; console.log(`✗ outro uso: "${o.titulo}" ficou em ${o.secao || "Outros"}`); }
+  }
+}
+
 // Filtro da AliExpress (busca solta): fica = passa no filtro; sai = tem que ser tirado
 const FILTRO_ALIEXPRESS = {
   // 27/10/2026 (print): "vibração" contém "ração"; o massageador aparecia na busca "ração"
