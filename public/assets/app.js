@@ -2304,6 +2304,7 @@ async function mostrarLoja(id) {
     desenharFiltroLojas();
     desenharResultados();
     if (!estado.ofertas.length) $("#vazio").hidden = true; // o card de cima já explica
+    completarLoja(pedido);
   } catch {
     if (pedido !== estado.pedido) return;
     estado.buscando = false;
@@ -2313,7 +2314,17 @@ async function mostrarLoja(id) {
   }
 }
 
-async function carregarMaisDaLoja() {
+// A loja chega de 48 em 48: o site pede as próximas sozinho até uns 200 produtos, como na busca
+// (pergunta do Giovanni, 28/10/2026: "ao escolher uma loja só carrega 40 produtos")
+async function completarLoja(pedido) {
+  for (let i = 0; i < PEDIDOS_AUTOMATICOS; i++) {
+    if (pedido !== estado.pedido || !estado.temMaisBusca) return;
+    if (estado.ofertas.length >= PRODUTOS_DESEJADOS) return;
+    await carregarMaisDaLoja({ sozinho: true });
+  }
+}
+
+async function carregarMaisDaLoja({ sozinho = false } = {}) {
   const botao = $("#mais-resultados");
   const pedido = estado.pedido;
   const id = estado.loja.id;
@@ -2329,7 +2340,7 @@ async function carregarMaisDaLoja() {
     desenharFiltroLojas();
     desenharResultados();
   } catch {
-    if (pedido === estado.pedido) toast("Não foi possível carregar mais produtos agora");
+    if (pedido === estado.pedido && !sozinho) toast("Não foi possível carregar mais produtos agora");
   } finally {
     botao.disabled = false;
     botao.textContent = "Ver mais resultados";
