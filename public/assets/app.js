@@ -1481,7 +1481,7 @@ const AVISO_CUPOM = "💸 Pagando no Pix ou com cupom, muitos produtos saem aind
 // Lojas desta busca dentro do card de resultados (pedido do Giovanni, 17/10/2026): o visitante vê na hora quais lojas
 // têm o produto e liga/desliga cada uma; "Limpar" desliga todas (para escolher só uma) e "Marcar todas" volta tudo
 // Mesmo botão "Limpar filtros" da barra lateral, no card roxo (pedido do Giovanni, 22/10/2026: no card ele fica à vista)
-const botaoLimparFiltros = () => el("button", { type: "button", class: "chip-acao chip-limpar", onclick: limparFiltros }, "✕ Limpar filtros");
+const botaoLimparFiltros = () => el("button", { type: "button", class: "chip-acao chip-limpar", onclick: limparTudo }, "✕ Limpar filtros");
 
 function lojasNoResumo() {
   const contagem = contarLojas();
@@ -2911,6 +2911,15 @@ function limparFiltros() {
   desenharResultados();
 }
 $("#limpar-filtros").addEventListener("click", limparFiltros);
+// "Limpar filtros" do card roxo: volta à página inicial como o logo, também depois de uma busca (print do Giovanni,
+// 28/10/2026: buscou "cueca boxer", clicou e nada aconteceu). O da barra lateral continua só limpando os filtros.
+function limparTudo() {
+  if (estado.loja?.id === BLACK_FRIDAY) return limparFiltros();
+  zerarFiltros();
+  $("input[name=ordem][value=relevancia]").checked = true;
+  document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
+  irPara("");
+}
 
 // Atualizar a página (F5) volta ao começo: sem busca, sem categoria e sem filtros
 // (o navegador guardaria o que estava marcado). Link compartilhado com ?q= continua abrindo a busca.
