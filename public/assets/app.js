@@ -1209,9 +1209,12 @@ const VERSAO_BUSCA = 99;
 const MAX_ADIANTADAS = 8; // por visita, para não gastar as consultas às lojas à toa
 const adiantadas = new Map();
 let totalAdiantadas = 0;
-const chaveAdiantada = (q, cat) => `${q.trim().toLowerCase()}|${cat || ""}`;
-const enderecoBusca = (q, cat, extra = "") =>
-  `/api/buscar?v=${VERSAO_BUSCA}&q=${encodeURIComponent(q)}${q && cat ? `&cat=${encodeURIComponent(cat)}` : ""}${extra}`;
+const chaveAdiantada = (q, cat) => `${q.trim().toLowerCase()}|${cat || ""}|${lojaAtual() || ""}`;
+const enderecoBusca = (q, cat, extra = "") => {
+  const loja = q && lojaAtual();
+  return `/api/buscar?v=${VERSAO_BUSCA}&q=${encodeURIComponent(q)}${loja ? `&loja=${encodeURIComponent(loja)}`
+    : q && cat ? `&cat=${encodeURIComponent(cat)}` : ""}${extra}`;
+};
 function adiantarBusca(q, cat) {
   q = (q || "").trim();
   const chave = chaveAdiantada(q, cat);
@@ -1531,6 +1534,14 @@ function desenharLojasDaLista() {
   }));
 }
 
+// "oculos" buscado com a página da Calvin Klein aberta: mostra a loja e um jeito de buscar em todas
+function avisoLoja() {
+  const loja = lojaAtual();
+  if (!loja) return null;
+  return el("p", { class: "resumo-categoria" }, `Na loja 🏬 ${nomeDaLoja(loja)} · `,
+    el("button", { type: "button", onclick: () => irPara(estado.q) }, "Buscar em todas as lojas ✕"));
+}
+
 // "invictus" buscado dentro de Perfumes: mostra a categoria e um jeito de buscar em tudo
 function avisoCategoria() {
   const sair = () => irPara(estado.q);
@@ -1635,12 +1646,12 @@ function avisoCorrecao() {
   if (navegandoCategoria()) return null;
   if (estado.corrigidaDe) {
     return el("p", { class: "resumo-categoria" }, `Corrigimos “${estado.corrigidaDe}” · `,
-      el("button", { type: "button", onclick: () => irPara(estado.corrigidaDe, { cat: estado.cat, exato: true }) },
+      el("button", { type: "button", onclick: () => irPara(estado.corrigidaDe, { cat: estado.cat, exato: true, loja: lojaAtual() }) },
         "Buscar como digitei"));
   }
   if (estado.sugestao) {
     return el("p", { class: "resumo-categoria" }, "Você quis dizer: ",
-      el("button", { type: "button", onclick: () => irPara(estado.sugestao, { cat: estado.cat }) }, `${estado.sugestao}?`));
+      el("button", { type: "button", onclick: () => irPara(estado.sugestao, { cat: estado.cat, loja: lojaAtual() }) }, `${estado.sugestao}?`));
   }
   return null;
 }
@@ -1653,6 +1664,12 @@ const poucosProdutos = () => Boolean(estado.q) && !navegandoCategoria() && estad
 function avisoSemProduto() {
   if (!poucosProdutos()) return null;
   const qtd = qtdPrincipais();
+  const loja = lojaAtual();
+  if (loja) {
+    return el("p", { class: "aviso-sem-produto", role: "status" }, `${qtd ? `Encontramos só ${qtd} ${qtd === 1 ? "oferta" : "ofertas"} de “${estado.q}”`
+      : `😕 Não encontramos “${estado.q}”`} na ${nomeDaLoja(loja)}. `,
+      el("button", { type: "button", class: "botao-link-claro", onclick: () => irPara(estado.q) }, "Buscar em todas as lojas"));
+  }
   return el("p", { class: "aviso-sem-produto", role: "status" }, qtd
     ? `Encontramos só ${qtd} ${qtd === 1 ? "oferta" : "ofertas"} de “${estado.q}” nas lojas parceiras. O resto da lista são peças, acessórios e produtos parecidos.`
     : `😕 “${estado.q}” não está à venda nas nossas lojas parceiras no momento. Abaixo, peças, acessórios e produtos parecidos.`);
@@ -1669,6 +1686,7 @@ function desenharResumo(lista) {
       : "Nenhuma oferta com esses filtros"),
     avisoCorrecao(),
     avisoCategoria(),
+    avisoLoja(),
     avisoSemProduto(),
     lojasNoResumo(),
     el("div", { class: "resumo-acoes" }, botaoLimparFiltros()));
@@ -2297,6 +2315,7 @@ async function mostrarLoja(id) {
     if (pedido !== estado.pedido) return;
     estado.buscando = false;
     estado.loja.nome = dados.nome || estado.loja.nome;
+    if (estado.loja.nome) { nomesDeLojas[id] = estado.loja.nome; marcarCategoria(); }
     estado.loja.totais = dados.totais;
     document.title = id === BLACK_FRIDAY ? "Black Friday de verdade — Vai pro Carrinho" : `${estado.loja.nome} — Vai pro Carrinho`;
     estado.ofertas = semRepetidos(dados.ofertas || []);
@@ -2576,9 +2595,19 @@ const categoriaPeloNome = (nome) => (nome ? categoriasAtuais.find((c) => c.nome 
 // Digitar "perfume" sem categoria é uma busca comum, e não a vitrine de Perfumes
 function categoriaAtual() {
   const params = new URLSearchParams(location.search);
-  if (!(params.get("q") || "").trim()) return null;
+  if (!(params.get("q") || "").trim() || params.get("loja")) return null;
   return params.get("cat") || null;
 }
+
+// Loja aberta (?loja=, com ou sem busca): a busca é feita só nela (pedido do Giovanni, 28/10/2026).
+// Sem loja escolhida, a busca segue o site todo. A Black Friday não é loja
+function lojaAtual() {
+  if (naBlackFriday()) return null;
+  return (new URLSearchParams(location.search).get("loja") || "").trim().slice(0, 120) || null;
+}
+const nomesDeLojas = {};
+const nomeDaLoja = (id) => nomesDeLojas[id] || lojasParceiras?.find((l) => l.id === id)?.nome || LOJAS[id]?.nome
+  || estado.ofertas.find((o) => o.lojaNome)?.lojaNome || "loja";
 
 // Visitante clicou numa categoria (e não buscou nada dentro dela): devolve a categoria
 function navegandoCategoria() {
@@ -2600,9 +2629,11 @@ const PLACEHOLDER_CURTO = "Busque e compare preços";
 const telaPequena = matchMedia("(max-width: 640px)");
 function marcarCategoria() {
   const cat = categoriaAtual();
+  const loja = lojaAtual();
   document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", b.dataset.nome === cat));
   const padrao = telaPequena.matches ? PLACEHOLDER_CURTO : PLACEHOLDER_BUSCA;
-  document.querySelectorAll("[data-busca] input").forEach((i) => { i.placeholder = cat ? `Buscar em ${cat}…` : padrao; });
+  const onde = loja ? nomeDaLoja(loja) : cat;
+  document.querySelectorAll("[data-busca] input").forEach((i) => { i.placeholder = onde ? `Buscar em ${onde}…` : padrao; });
 }
 marcarCategoria();
 telaPequena.addEventListener("change", marcarCategoria);
@@ -2656,10 +2687,12 @@ function mostrar() {
 
 // atalho = clique em "em alta" ou categoria: não conta como busca feita pelo visitante
 // cat = buscar dentro dessa categoria do menu ("invictus" em Perfumes)
-function irPara(q, { atalho = false, cat = null, exato = false } = {}) {
+// loja = buscar só nessa loja (página da loja aberta)
+function irPara(q, { atalho = false, cat = null, exato = false, loja = null } = {}) {
   q = (q || "").trim();
   estado.atalho = atalho;
-  const url = q ? `/?q=${encodeURIComponent(q)}${cat ? `&cat=${encodeURIComponent(cat)}` : ""}${exato ? "&exato=1" : ""}` : "/";
+  const onde = loja ? `&loja=${encodeURIComponent(loja)}` : cat ? `&cat=${encodeURIComponent(cat)}` : "";
+  const url = q ? `/?q=${encodeURIComponent(q)}${onde}${exato ? "&exato=1" : ""}` : "/";
   history.pushState(null, "", url);
   window.scrollTo({ top: 0, behavior: "smooth" });
   mostrar();
@@ -2808,7 +2841,7 @@ function prepararBusca(form) {
     lista.replaceChildren(...itens.map((s, n) => el("li", {
       role: "option", id: `${idLista}-${n}`, "aria-selected": "false",
       onmouseenter: () => adiantarBusca(s, categoriaAtual()),
-      onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual() }); },
+      onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual(), loja: lojaAtual() }); },
     }, textoSugestao(s, input.value))));
     ativo = -1;
     lista.hidden = false;
@@ -2840,7 +2873,7 @@ function prepararBusca(form) {
     input.blur();
     // Busca vazia: volta para as "Ofertas do dia" (como clicar no logo)
     if (!input.value.trim()) return irPara("");
-    irPara(input.value, { cat: categoriaAtual() });
+    irPara(input.value, { cat: categoriaAtual(), loja: lojaAtual() });
   });
 }
 

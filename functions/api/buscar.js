@@ -4,6 +4,7 @@
 // GET /api/buscar?q=...&desde=10 -> mais resultados da busca, a partir da página 10 da Shopee
 //                                   (a resposta traz em "mais" o pedaço de endereço para a próxima vez)
 // GET /api/buscar?q=invictus&cat=Perfumes -> busca dentro da categoria escolhida no menu
+// GET /api/buscar?q=oculos&loja=awin:calvin-klein -> busca só nessa loja (página da loja aberta; pedido do Giovanni, 28/10/2026)
 //
 // Roda nos servidores do Cloudflare (Pages Functions). É aqui que ficam as
 // chaves das APIs, sem nunca chegarem ao navegador do visitante.
@@ -160,6 +161,15 @@ const compactar = async (texto) =>
 const descompactar = (bytes) =>
   new Response(new Blob([new Uint8Array(bytes)]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
 
+// "awin:calvin-klein" -> { id, rede: "awin", chave: "calvin-klein" }; rede = nome da fonte (lib/fontes/<rede>.js)
+function lojaDaBusca(id) {
+  const [rede, ...resto] = String(id || "").trim().slice(0, 120).split(":");
+  const chave = resto.join(":");
+  if (rede === "shopee" || rede === "aliexpress") return { id: rede, rede, chave: null };
+  if ((rede === "awin" || rede === "lomadee") && chave) return { id: `${rede}:${chave}`, rede, chave };
+  return null;
+}
+
 export async function onRequestGet({ request, env, waitUntil }) {
   // O robô (/api/preparar-buscas) passa preparar = true: busca de novo nas lojas e guarda a resposta no banco
   const preparar = Boolean(env.__PREPARAR);
@@ -174,7 +184,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const { q, sugestao } = params.has("exato") ? { q: acentuarBusca(digitado), sugestao: null } : corrigirBusca(digitado);
   const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const desde = Math.min(Math.max(parseInt(params.get("desde"), 10) || 1, 1), MAX_DESDE);
-  const categoria = q ? categoriaPorNome(params.get("cat")) : null;
+  // Busca dentro de uma loja (id como em /api/lojas: shopee, aliexpress, awin:<loja>, lomadee:<marca>). A categoria não vale junto
+  const soLoja = q ? lojaDaBusca(params.get("loja")) : null;
+  const categoria = q && !soLoja ? categoriaPorNome(params.get("cat")) : null;
 
   // Conta a busca para os "em alta" da semana, sem atrasar a resposta.
   // Clique num atalho não conta: senão o atalho se manteria em alta sozinho.
@@ -188,7 +200,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Guarda as respostas (ver FRESCO_MS) para responder na hora e não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
+  const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${soLoja ? `&loja=${encodeURIComponent(soLoja.id)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
   // Refaz a busca nas lojas em segundo plano (sem contar como busca)
   const refazerPorTras = (criado) => {
     if (preparar || atualizar || Date.now() - criado < FRESCO_MS || atualizando.has(chave.url)) return;
@@ -232,12 +244,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const reais = FONTES_REAIS.filter((_, i) => ligadas[i]);
   // Enquanto nenhuma API estiver ligada, usa os produtos de exemplo
   // Da 2ª página em diante, só as lojas que têm mais páginas de destaques
-  const fontes = (reais.length ? reais : [exemplo]).filter((f) => pagina === 1 || f.porPagina);
+  const fontes = (reais.length ? reais : [exemplo]).filter((f) => (pagina === 1 || f.porPagina) && (!soLoja || f.nome === soLoja.rede));
 
   // Categorias das lojas que já sabemos traduzir para as nossas (ver lib/mapaCategorias.js)
   const mapa = await carregarMapa(env);
   const lojas = {};
   const consultar = async (termo, opcoesDaBusca) => {
+    if (soLoja) opcoesDaBusca = { ...opcoesDaBusca, soLoja: soLoja.chave };
     // A loja pode buscar também dentro das categorias dela que já sabemos serem da categoria do que foi buscado
     const catBusca = termo ? categoriaDoProduto(termo) : null;
     // resto = a busca sem o nome da categoria ("celular samsung" -> "samsung"; "celular" -> ""): dentro da categoria
@@ -398,6 +411,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     q,
     sugestao,
     categoria: categoria && !foraDaCategoria ? categoria.nome : null,
+    loja: soLoja?.id || null,
     foraDaCategoria,
     exemplo: !reais.length,
     ofertas,
