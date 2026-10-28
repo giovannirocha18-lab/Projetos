@@ -15,7 +15,7 @@ import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
-import { semFotosQuebradas } from "../../lib/fotos.js";
+import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js";
 import { normalizar } from "../../lib/texto.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
@@ -202,7 +202,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (guardada) {
     if (soContar) { contar(guardada); return new Response(null, { status: 204 }); }
     refazerPorTras(Number(guardada.headers.get("X-Criado")) || 0);
-    return contar(paraNavegador(guardada));
+    return contar(paraNavegador(await respostaSemFotosQuebradas(env.DB, guardada, waitUntil)));
   }
   // Busca popular já preparada pelo robô: responde na hora (e guarda no cache por 1 hora)
   // Vale para as buscas populares e para as "Ofertas do dia" da página inicial (q vazio, 1ª página)
@@ -219,7 +219,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         const criado = Date.now() - pronta.criado < VALIDADE_PRONTA_MS ? pronta.criado : 0;
         if (cache) waitUntil(cache.put(chave, paraGuardar(resposta.clone(), criado)).catch(() => {}));
         refazerPorTras(criado);
-        return contar(resposta);
+        return contar(await respostaSemFotosQuebradas(env.DB, resposta, waitUntil));
       }
     } catch {
       // tabela ainda não existe (o robô cria): segue buscando nas lojas

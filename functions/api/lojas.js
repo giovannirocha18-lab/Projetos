@@ -6,7 +6,7 @@
 import { shopee } from "../../lib/fontes/shopee.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee, marcasComProdutos, produtosDaMarca } from "../../lib/fontes/lomadee.js";
-import { semFotosQuebradas } from "../../lib/fotos.js";
+import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js";
 import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoVivo, nomeDaLojaAwin, lojasDaAwin, lojaPequena } from "../../lib/ofertas.js";
 import { carregarMapa, aplicarMapa } from "../../lib/mapaCategorias.js";
 import { marcarSecoes } from "../../lib/categorias.js";
@@ -73,7 +73,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const chave = new Request(new URL(`/api/lojas?v=${VERSAO}${id ? `&id=${encodeURIComponent(id)}&pagina=${pagina}` : ""}`, request.url));
   const guardada = cache && (await cache.match(chave));
-  if (guardada) return guardada;
+  if (guardada) return respostaSemFotosQuebradas(env.DB, guardada, waitUntil);
 
   let resposta;
   if (!id) {
