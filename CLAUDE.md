@@ -691,6 +691,14 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (só "Vestuário > Roupas"), oBoticario 1% (códigos), Lauri 0% (vazio). Conferido em 25 buscas: perfume de pet → Pets, charm de prata →
   Joias, perfume p/ ar-condicionado → Eletrodomésticos, toalha Karsten → Cama e banho, panela elétrica → Eletroportáteis, cozinha
   planejada → Móveis. Cache v=96, /api/lojas VERSAO=17. **Quando entrar loja nova da Awin: ler o relatório e completar `REGRAS`.**
+- ⏳ **PENDENTE (pedido do Giovanni, 28/10/2026): IA paga para a correção automática da busca/categorias.** Hoje o robô corrige
+  sozinho fotos/links quebrados, mapa de categorias da Shopee/AliExpress e produtos novos; a auditoria e o relatório de categorias só
+  ANOTAM e o Claude corrige as regras. Com IA, o robô classificaria cada produto e consertaria sozinho. **Giovanni vai ativar "assim que
+  tiver condição": lembrar de vez em quando.** Passos quando ele quiser: criar conta paga em console.anthropic.com, colocar créditos,
+  criar chave de API e cadastrar como Secret no GitHub (nunca no chat). Estimativa (28/10/2026, Batch API com 50% de desconto, ~200 mil
+  títulos uma vez + novos por dia): Haiku 5.5 ~US$ 1 uma vez e centavos/mês; Sonnet 5.5 ~US$ 15 + <US$ 1/mês; Opus 5.5 ~US$ 30 +
+  US$ 1–3/mês. Ideia: robô no GitHub Actions classifica em lote, guarda no D1 e o site usa como categoria travada; a auditoria passaria a
+  pedir à IA "é o produto buscado?" antes de esconder.
 - ✅ **28/10/2026: conta PJ da Awin de 12 para 15 lojas** (print do Giovanni): novas **Central Ar** (250 de 758; 508 fora de estoque),
   **Motorola** (198) e **Calvin Klein** (572). Execuções #65/#67 (`so_awin`): 19 lojas da Awin, 131.574 produtos nos feeds, banco 297 MB.
   Categorias: robô agora lê também `merchant_product_category_path` (Central Ar); Central Ar = Eletrodomésticos forte (o caminho traz o
