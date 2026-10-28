@@ -59,7 +59,7 @@ const VALIDADE_PRONTA_MS = 30 * 60 * 60 * 1000;
 const MAX_PAGINA = 20;
 const MAX_DESDE = 100;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 97;
+const VERSAO_CACHE = 98;
 // Como o site da AliExpress busca (estudado em 21/10/2026, pedido do Giovanni): ele descobre a CATEGORIA da busca
 // ("celular" -> Celulares 5090301, "geladeira" -> 60203) e mostra os produtos dela. A API de afiliados só procura a
 // palavra nos títulos ("celular" trazia capinhas, "geladeira" trazia peças). Então, como no site, pedimos também dentro
