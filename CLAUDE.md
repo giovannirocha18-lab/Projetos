@@ -691,6 +691,13 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (só "Vestuário > Roupas"), oBoticario 1% (códigos), Lauri 0% (vazio). Conferido em 25 buscas: perfume de pet → Pets, charm de prata →
   Joias, perfume p/ ar-condicionado → Eletrodomésticos, toalha Karsten → Cama e banho, panela elétrica → Eletroportáteis, cozinha
   planejada → Móveis. Cache v=96, /api/lojas VERSAO=17. **Quando entrar loja nova da Awin: ler o relatório e completar `REGRAS`.**
+- ✅ **28/10/2026: conta PJ da Awin de 12 para 15 lojas** (print do Giovanni): novas **Central Ar** (250 de 758; 508 fora de estoque),
+  **Motorola** (198) e **Calvin Klein** (572). Execuções #65/#67 (`so_awin`): 19 lojas da Awin, 131.574 produtos nos feeds, banco 297 MB.
+  Categorias: robô agora lê também `merchant_product_category_path` (Central Ar); Central Ar = Eletrodomésticos forte (o caminho traz o
+  nome do produto: "CONTROLE SEM FIO…" virava Games); "Masculino/Feminino" no caminho (Calvin Klein) só vale se o título não disser a
+  categoria (`GENERO` em lib/caminhos.js); "moto"/"motos" saíram de Automotivo nos caminhos (Motorola "Família moto g" virava Automotivo).
+  No ar: Motorola = Celulares 35, Fones 8, Smartwatches 3; Central Ar toda em Eletrodomésticos. Cache v=99, /api/lojas VERSAO=20,
+  numeros v=9; `so_prontas` disparado. Auditoria #66: só "stanley" (marca de ferramentas e de copos; não corrigido).
 - **17ª sessão (27/10/2026)**: corrigidos os 4 detalhes de busca (ver "Qualidade das buscas"). Giovanni: conferir geladeira,
   máquina de lavar, ps5 e ventilador no site.
 - ⭐ **Auditoria da busca toda madrugada (27/10/2026, pedido do Giovanni)**: job `auditoria` no `robo-precos.yml` (depois do
