@@ -702,6 +702,12 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Depois (pedido dele): se nada abrir, `/api/ir` e `/api/ir-loja` (Lomadee) voltam com `?aviso=loja-instavel[&nome=]` e o site mostra por
   12 s "⚠️ O sistema da X está instável… Não é um problema do Vai pro Carrinho" (`avisoDeLojaInstavel` no app.js). Teste do link =
   `redirecionaBem` em lib/links.js (só Lomadee: testar link da Shopee/AliExpress contaria clique falso).
+- ✅ **Produtos da Lomadee com "página não encontrada" (29/10/2026, Little Duck "Poltrona Duck Infantil", pedido do Giovanni)**: a loja tira
+  o produto e a Lomadee segue mandando. `lib/fotos.js`: tabela `links_testados` (página boa vale 7 dias, ruim 3); busca, página da loja e
+  respostas guardadas tiram os já sabidos como quebrados e testam até 60 novos depois da resposta (`semFotosQuebradas`); o robô (job
+  `lomadee`, `conferirMarcas`) testa a página de TODOS os produtos de cada marca (até 600 por parte, `semPaginasQuebradas`; resumo mostra
+  `paginasTestadas`/`paginasQuebradas`). Execução #70 (`so_lomadee`): 1.330 páginas testadas; fora Rovitex 28, PCYES 2, Livrarias
+  Curitiba 1, Desconto Aqui 1 (e a poltrona da Little Duck). Testa o endereço direto (`paginaDoProduto` = "u" do /api/ir), nunca o link de afiliado.
 - ⭐ **Busca dentro da loja (28/10/2026, pedido do Giovanni)**: com a página de uma loja aberta (`?loja=`), a busca procura só
   nela (`?q=…&loja=<id>`; sem loja escolhida, o site todo). Servidor: `/api/buscar?loja=` (`lojaDaBusca` em buscar.js; só a fonte
   da loja; Awin lê até 5000 candidatos do FTS filtrados por `loja` e traz até 200; Lomadee manda `organizationIds` da marca;
