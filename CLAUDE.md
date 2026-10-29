@@ -699,6 +699,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 - ✅ **Encurtador da Lomadee fora do ar (29/10/2026, print Little Duck "links quebrados")**: lmdee.link respondia 500 ("Connection is
   closed") para TODAS as marcas da Lomadee; os sites das lojas abriam. `/api/ir` agora testa o link curto (`curtoFunciona`, resultado
   vale 2 min) e, quebrado, manda direto ao produto no site da marca (sem comissão enquanto durar). Little Duck NÃO foi tirada. Conferido no ar.
+  Depois (pedido dele): se nada abrir, `/api/ir` e `/api/ir-loja` (Lomadee) voltam com `?aviso=loja-instavel[&nome=]` e o site mostra por
+  12 s "⚠️ O sistema da X está instável… Não é um problema do Vai pro Carrinho" (`avisoDeLojaInstavel` no app.js). Teste do link =
+  `redirecionaBem` em lib/links.js (só Lomadee: testar link da Shopee/AliExpress contaria clique falso).
 - ⭐ **Busca dentro da loja (28/10/2026, pedido do Giovanni)**: com a página de uma loja aberta (`?loja=`), a busca procura só
   nela (`?q=…&loja=<id>`; sem loja escolhida, o site todo). Servidor: `/api/buscar?loja=` (`lojaDaBusca` em buscar.js; só a fonte
   da loja; Awin lê até 5000 candidatos do FTS filtrados por `loja` e traz até 200; Lomadee manda `organizationIds` da marca;
