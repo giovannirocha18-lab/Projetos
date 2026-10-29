@@ -79,12 +79,25 @@ const ICONE_CARRINHO = () => {
 // Avisos rápidos
 // ---------------------------------------------------------------------
 let timerToast;
-function toast(msg) {
+function toast(msg, ms = 2600) {
   const t = $("#toast");
   t.textContent = msg;
   t.classList.add("visivel");
   clearTimeout(timerToast);
-  timerToast = setTimeout(() => t.classList.remove("visivel"), 2600);
+  timerToast = setTimeout(() => t.classList.remove("visivel"), ms);
+}
+
+// A loja (ou a rede de afiliados dela) saiu do ar na hora do "Comprar"/"Ir para a loja": o servidor volta para cá com
+// ?aviso=loja-instavel e o site explica que o problema não é nosso (pedido do Giovanni, 29/10/2026)
+function avisoDeLojaInstavel() {
+  const params = new URLSearchParams(location.search);
+  if (params.get("aviso") !== "loja-instavel") return;
+  const nome = (params.get("nome") || "").slice(0, 60) || (params.get("loja") ? nomeDaLoja(params.get("loja")) : "");
+  params.delete("aviso");
+  params.delete("nome");
+  history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
+  const loja = nome && nome !== "loja" ? `da ${nome}` : "da loja";
+  toast(`⚠️ O sistema ${loja} está instável no momento e não conseguimos abrir a página. Não é um problema do Vai pro Carrinho: tente de novo em alguns minutos.`, 12000);
 }
 
 // ---------------------------------------------------------------------
@@ -2964,6 +2977,8 @@ if (performance.getEntriesByType?.("navigation")[0]?.type === "reload") {
   window.scrollTo(0, 0);
   if (location.search) history.replaceState(null, "", location.pathname);
 }
+
+avisoDeLojaInstavel();
 
 $("#mais-ofertas").addEventListener("click", carregarMaisOfertas);
 $("#mais-resultados").addEventListener("click", () => (estado.loja ? carregarMaisDaLoja() : carregarMaisResultados()));

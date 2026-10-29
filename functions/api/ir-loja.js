@@ -6,6 +6,7 @@
 import { shopee, linkShopee } from "../../lib/fontes/shopee.js";
 import { aliexpress, linkAliExpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee, marcasAprovadas } from "../../lib/fontes/lomadee.js";
+import { redirecionaBem } from "../../lib/links.js";
 
 const GUARDAR_SEGUNDOS = 7 * 24 * 60 * 60;
 const VERSAO = 1;
@@ -40,7 +41,13 @@ export async function onRequestGet({ request, env }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const chave = new Request(new URL(`/api/ir-loja?v=${VERSAO}&id=${encodeURIComponent(id)}`, request.url));
   const guardado = cache && (await cache.match(chave));
-  if (guardado) return Response.redirect(await guardado.text(), 302);
+  // Lomadee: o encurtador dela às vezes sai do ar (29/10/2026); aí mostra os produtos da loja aqui, com um aviso
+  const lomadeeFora = async (link) => id.startsWith("lomadee:") && !(await redirecionaBem(link));
+  const avisar = () => Response.redirect(new URL(`/?loja=${encodeURIComponent(id)}&aviso=loja-instavel`, request.url).toString(), 302);
+  if (guardado) {
+    const link = await guardado.text();
+    return (await lomadeeFora(link)) ? avisar() : Response.redirect(link, 302);
+  }
 
   let link = null;
   try {
@@ -53,5 +60,6 @@ export async function onRequestGet({ request, env }) {
   if (cache) {
     await cache.put(chave, new Response(link, { headers: { "Cache-Control": `public, max-age=${GUARDAR_SEGUNDOS}` } })).catch(() => {});
   }
+  if (await lomadeeFora(link)) return avisar();
   return Response.redirect(link, 302);
 }
