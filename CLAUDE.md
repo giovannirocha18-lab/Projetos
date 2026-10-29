@@ -726,6 +726,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 - ✅ **Pix/à vista (28/10/2026, print Motorola Razr 70 Ultra: site R$ 7.999 x loja "R$ 7.199,10 à vista via PIX")**: conferido no
   sistema da loja (VTEX: Price 7999, ListPrice 11999): R$ 7.999 é o preço a prazo; o desconto Pix não vem no feed. `AVISO_CUPOM` virou
   "💸 Pagando no Pix ou com cupom, muitos produtos saem ainda mais baratos na loja." e a nota da janela "Ver detalhes" cita Pix/cupom.
+- ⏳ **IA (Haiku 5.5) — 29/10/2026: Giovanni DECIDIU começar pelo Haiku** (`claude-haiku-5-5`). Passos entregues: console.anthropic.com
+  (Sign up; Settings > Billing > Buy credits US$ 5, auto-reload desligado; Settings > Limits opcional; Settings > API Keys > Create Key
+  "robo-categorias") e Secret do GitHub **`ANTHROPIC_API_KEY`** (Settings > Secrets and variables > Actions). **Aguardando ele dizer
+  "chave cadastrada"**; então: programar o robô (Batch API), testar pequeno, mostrar custo, depois rodar nos ~200 mil.
 - ⏳ **PENDENTE (pedido do Giovanni, 28/10/2026): IA paga para a correção automática da busca/categorias.** Hoje o robô corrige
   sozinho fotos/links quebrados, mapa de categorias da Shopee/AliExpress e produtos novos; a auditoria e o relatório de categorias só
   ANOTAM e o Claude corrige as regras. Com IA, o robô classificaria cada produto e consertaria sozinho. **Giovanni vai ativar "assim que
