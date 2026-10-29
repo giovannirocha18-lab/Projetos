@@ -10,6 +10,7 @@ import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js
 import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoVivo, nomeDaLojaAwin, lojasDaAwin, lojaPequena } from "../../lib/ofertas.js";
 import { carregarMapa, aplicarMapa } from "../../lib/mapaCategorias.js";
 import { marcarSecoes } from "../../lib/categorias.js";
+import { comCategoriaDaIa } from "../../lib/ia.js";
 
 const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
@@ -90,7 +91,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     }
     if (!dados) return Response.json({ erro: "Loja não encontrada" }, { status: 404 });
     const mapa = await carregarMapa(env).catch(() => null);
-    let ofertas = marcarSecoes(mapa ? aplicarMapa(dados.ofertas, mapa) : dados.ofertas);
+    let ofertas = marcarSecoes(await comCategoriaDaIa(env.DB, mapa ? aplicarMapa(dados.ofertas, mapa) : dados.ofertas));
     // Shopee, AliExpress e Lomadee: histórico de preço como na busca (e guarda o preço de hoje, no máx. 60)
     if (env.DB && ofertas.some(ehAoVivo)) {
       try {

@@ -8,6 +8,7 @@
 //
 // Roda nos servidores do Cloudflare (Pages Functions). É aqui que ficam as
 // chaves das APIs, sem nunca chegarem ao navegador do visitante.
+import { comCategoriaDaIa } from "../../lib/ia.js";
 import { exemplo } from "../../lib/fontes/exemplo.js";
 import { curadoria } from "../../lib/fontes/curadoria.js";
 import { shopee } from "../../lib/fontes/shopee.js";
@@ -296,7 +297,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         }
       }),
     );
-    return aplicarMapa(intercalar(resultados), mapa);
+    return comCategoriaDaIa(env.DB, aplicarMapa(intercalar(resultados), mapa));
   };
 
   // Busca digitada: pede páginas de 3 em 3 até ter produtos suficientes (ver MINIMO_PRODUTOS).
