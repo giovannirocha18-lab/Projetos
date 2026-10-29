@@ -24,6 +24,23 @@ function mesmoSite(url, site) {
   }
 }
 
+// O encurtador da Lomadee (lmdee.link) às vezes sai do ar e responde 500 para todas as marcas (print da Little Duck,
+// 29/10/2026). Antes de mandar o visitante, confere se o link curto redireciona; fora do ar = vai direto ao site da marca
+// (sem comissão, mas o visitante chega ao produto). O resultado vale 2 minutos para não testar a cada clique
+let encurtador = { ok: true, ate: 0 };
+async function curtoFunciona(curto) {
+  if (Date.now() < encurtador.ate) return encurtador.ok;
+  let ok;
+  try {
+    const r = await fetch(curto, { redirect: "manual", signal: AbortSignal.timeout(3000) });
+    ok = r.status >= 300 && r.status < 400;
+  } catch {
+    ok = false;
+  }
+  encurtador = { ok, ate: Date.now() + 2 * 60 * 1000 };
+  return ok;
+}
+
 export async function onRequestGet({ request, env }) {
   const params = new URL(request.url).searchParams;
   const marca = params.get("m") || "";
@@ -37,14 +54,15 @@ export async function onRequestGet({ request, env }) {
     try {
       await criarTabela(env.DB);
       const guardado = await env.DB.prepare("SELECT curto FROM links_lomadee WHERE url = ?").bind(url).first();
-      if (guardado?.curto) return Response.redirect(guardado.curto, 302);
+      if (guardado?.curto && (await curtoFunciona(guardado.curto))) return Response.redirect(guardado.curto, 302);
+      if (guardado?.curto) throw new Error("encurtador fora do ar");
     } catch {
       // banco fora do ar: gera o link mesmo assim
     }
   }
 
   try {
-    if (!assinado) throw new Error("link sem assinatura: não gera link novo");
+    if (!assinado || !encurtador.ok) throw new Error("link sem assinatura ou encurtador fora do ar: não gera link novo");
     const canais = await pedirLomadee(env, "/affiliate/shortener/url", {
       metodo: "POST",
       corpo: { organizationId: marca, type: "Custom", url },
@@ -52,7 +70,7 @@ export async function onRequestGet({ request, env }) {
     const curto = (Array.isArray(canais) ? canais : []).flatMap((c) => c.shortUrls || []).find((u) => u.startsWith("https://"));
     if (curto) {
       if (env.DB) await env.DB.prepare("INSERT OR REPLACE INTO links_lomadee (url, curto) VALUES (?, ?)").bind(url, curto).run().catch(() => {});
-      return Response.redirect(curto, 302);
+      if (await curtoFunciona(curto)) return Response.redirect(curto, 302);
     }
   } catch {
     // limite estourado ou Lomadee fora do ar: cai no link da própria loja abaixo
