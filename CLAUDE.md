@@ -730,6 +730,12 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (Sign up; Settings > Billing > Buy credits US$ 5, auto-reload desligado; Settings > Limits opcional; Settings > API Keys > Create Key
   "robo-categorias") e Secret do GitHub **`ANTHROPIC_API_KEY`** (Settings > Secrets and variables > Actions). **Aguardando ele dizer
   "chave cadastrada"**; então: programar o robô (Batch API), testar pequeno, mostrar custo, depois rodar nos ~200 mil.
+  ✅ Chave cadastrada (29/10). **Robô pronto**: `robo/ia.mjs` + `lib/ia.js` (tabelas `ia_categorias` chave=título normalizado, `ia_lotes`,
+  `ia_pedidos`; `VERSAO_IA`), job `ia` no robo-precos.yml (inputs `so_ia`, `ia_limite`, `ia_esperar`; SDK @anthropic-ai/sdk 1.3.0 instalado no
+  job). 100 títulos por pedido, effort low, saída JSON com enum das 39 categorias + "Outros". Títulos = Awin do banco (131 mil) + buscas
+  prontas (Shopee/AliExpress/Lomadee). **Teste #73 (500 títulos): US$ 0,0053 → ~US$ 0,011 por mil → ~US$ 2,30 para os 211 mil**; qualidade
+  boa (erro visto: capacete de moto → Bonés; regra acrescentada). Madrugada com limite 0 (não manda nada) até o Giovanni aprovar.
+  **Falta**: aprovação → rodar completo (ia_limite 300000) e trocar o padrão do job; depois ligar no site (`catIa` em categoriaTravada).
 - ⏳ **PENDENTE (pedido do Giovanni, 28/10/2026): IA paga para a correção automática da busca/categorias.** Hoje o robô corrige
   sozinho fotos/links quebrados, mapa de categorias da Shopee/AliExpress e produtos novos; a auditoria e o relatório de categorias só
   ANOTAM e o Claude corrige as regras. Com IA, o robô classificaria cada produto e consertaria sozinho. **Giovanni vai ativar "assim que
