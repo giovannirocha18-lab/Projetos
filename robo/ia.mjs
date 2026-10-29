@@ -135,7 +135,7 @@ Regras:
 - Produto para animais de estimação (ração, cama, coleira, brinquedo de pet) é Pets.
 - Peças e acessórios vão na categoria do aparelho em que são usados quando a categoria existe: capa, película e suporte de celular = Acessórios de celular; carregador, cabo e power bank = Carregadores; peça de carro ou moto = Automotivo.
 - Geladeira, fogão, micro-ondas, máquina de lavar, ar-condicionado, TV, ventilador = Eletrodomésticos. Air fryer, liquidificador, cafeteira, batedeira = Eletroportáteis.
-- Celulares da Motorola ("Moto G") são Celulares, não Automotivo. Roupa e itens de bebê são Bebês; brinquedo infantil é Brinquedos.
+- Capacete, luva, baú e roupa de motociclista são Automotivo. Celulares da Motorola ("Moto G") são Celulares, não Automotivo. Roupa e itens de bebê são Bebês; brinquedo infantil é Brinquedos.
 - Roupas: Moda íntima (cueca, calcinha, sutiã, pijama, meia), Moda fitness (roupa de academia), senão Moda masculina ou Moda feminina. Calçados ficam em Calçados.
 - Use ${SEM_CATEGORIA} só quando nenhuma categoria servir.
 Responda com uma linha por título, usando o número dele.`;
