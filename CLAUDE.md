@@ -696,6 +696,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   não aceita PF, feed 932 produtos, lançada 27/10/2026): recomendado pedir. **Quando ele avisar de loja aprovada**: rodar `so_awin`, ler o
   log, rodar `so_auditoria` (relatório "Categorias das lojas"), completar `REGRAS`/`PADRAO_DA_LOJA` em lib/caminhos.js, subir
   /api/lojas VERSAO e numeros v, cache e `so_prontas`. **Conferir na próxima conversa**: auditoria da madrugada de 29/10.
+- ✅ **Encurtador da Lomadee fora do ar (29/10/2026, print Little Duck "links quebrados")**: lmdee.link respondia 500 ("Connection is
+  closed") para TODAS as marcas da Lomadee; os sites das lojas abriam. `/api/ir` agora testa o link curto (`curtoFunciona`, resultado
+  vale 2 min) e, quebrado, manda direto ao produto no site da marca (sem comissão enquanto durar). Little Duck NÃO foi tirada. Conferido no ar.
 - ⭐ **Busca dentro da loja (28/10/2026, pedido do Giovanni)**: com a página de uma loja aberta (`?loja=`), a busca procura só
   nela (`?q=…&loja=<id>`; sem loja escolhida, o site todo). Servidor: `/api/buscar?loja=` (`lojaDaBusca` em buscar.js; só a fonte
   da loja; Awin lê até 5000 candidatos do FTS filtrados por `loja` e traz até 200; Lomadee manda `organizationIds` da marca;
