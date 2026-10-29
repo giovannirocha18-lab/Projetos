@@ -168,14 +168,34 @@ const parametros = (titulos) => ({
 async function mandarLote(titulos) {
   const pedidos = [];
   for (let i = 0; i < titulos.length; i += POR_PEDIDO) pedidos.push({ id: `p${pedidos.length}`, titulos: titulos.slice(i, i + POR_PEDIDO) });
-  const lote = await claude.messages.batches.create({
-    requests: pedidos.map((p) => ({ custom_id: p.id, params: parametros(p.titulos) })),
-  });
-  await d1("INSERT INTO ia_lotes (id, criado, aberto, titulos) VALUES (?, ?, 1, ?)", [lote.id, Date.now(), titulos.length]);
-  for (let i = 0; i < pedidos.length; i += 50) {
-    await d1(`INSERT INTO ia_pedidos (lote, pedido, titulos) VALUES ${pedidos.slice(i, i + 50)
-      .map((p) => `(${texto(lote.id)},${texto(p.id)},${texto(JSON.stringify(p.titulos))})`).join(",")}`);
+  // Guarda os títulos ANTES de mandar o lote (29/10/2026: o lote foi pago e a gravação dos títulos falhou depois,
+  // então o resultado não tinha como ser lido). Até 90 KB de SQL por consulta (o D1 aceita até 100 KB)
+  const provisorio = `novo-${Date.now()}`;
+  let valores = [];
+  let tamanho = 0;
+  const gravar = async () => {
+    if (valores.length) await d1(`INSERT INTO ia_pedidos (lote, pedido, titulos) VALUES ${valores.join(",")}`);
+    valores = [];
+    tamanho = 0;
+  };
+  for (const p of pedidos) {
+    const valor = `(${texto(provisorio)},${texto(p.id)},${texto(JSON.stringify(p.titulos))})`;
+    if (tamanho + valor.length > 90000) await gravar();
+    valores.push(valor);
+    tamanho += valor.length + 1;
   }
+  await gravar();
+  let lote;
+  try {
+    lote = await claude.messages.batches.create({
+      requests: pedidos.map((p) => ({ custom_id: p.id, params: parametros(p.titulos) })),
+    });
+  } catch (erro) {
+    await d1("DELETE FROM ia_pedidos WHERE lote = ?", [provisorio]);
+    throw erro;
+  }
+  await d1("UPDATE ia_pedidos SET lote = ? WHERE lote = ?", [lote.id, provisorio]);
+  await d1("INSERT INTO ia_lotes (id, criado, aberto, titulos) VALUES (?, ?, 1, ?)", [lote.id, Date.now(), titulos.length]);
   anotar(`- Lote ${lote.id} enviado: ${titulos.length} títulos em ${pedidos.length} pedidos`);
   return lote.id;
 }
@@ -232,6 +252,9 @@ async function lerLote(id) {
 anotar("### Robô da IA (categorias)");
 for (const sql of TABELAS_IA) await d1(sql);
 
+// Lote sem os títulos guardados não tem como ser lido: fecha (e restos de um envio que falhou saem)
+await d1("UPDATE ia_lotes SET aberto = 0 WHERE aberto = 1 AND id NOT IN (SELECT DISTINCT lote FROM ia_pedidos)");
+await d1("DELETE FROM ia_pedidos WHERE lote LIKE 'novo-%'");
 let [aberto] = await d1("SELECT id FROM ia_lotes WHERE aberto = 1 ORDER BY criado LIMIT 1");
 if (!aberto) {
   const [daAwin, dasBuscas, feitas] = await Promise.all([titulosDaAwin(), titulosDasBuscas(BUSCAS), jaClassificadas()]);
