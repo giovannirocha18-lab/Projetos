@@ -1,7 +1,7 @@
 // GET /api/preparar-buscas?parte=0 -> faz de novo, nas lojas, as "Ofertas do dia" e as buscas mais populares e guarda as respostas
 // no banco (tabela buscas_prontas_gz, compactada). Quem buscar esses termos recebe a resposta na hora, sem esperar as lojas.
 // O robô do GitHub (robo-precos.yml) chama parte por parte toda madrugada (duas ao mesmo tempo): uma busca por chamada.
-import { onRequestGet as buscar } from "./buscar.js";
+import { onRequestGet as buscar, PAGINAS_INICIO_PRONTAS } from "./buscar.js";
 import { categoriasParaPreparar, buscasDasVitrines } from "../../lib/categorias.js";
 import { maisBuscados, termosBuscados } from "../../lib/buscas.js";
 import { carregarMapa } from "../../lib/mapaCategorias.js";
@@ -26,19 +26,21 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const vistos = new Set();
   const lista = [
     { q: "" }, // "Ofertas do dia" da página inicial
+    ...Array.from({ length: PAGINAS_INICIO_PRONTAS - 1 }, (_, i) => ({ q: "", pagina: i + 2 })), // e as próximas páginas
     ...categoriasParaPreparar().map((c) => ({ q: c.busca, cat: c.nome })),
     ...[...POPULARES, ...buscados, ...doMes, ...buscasDasVitrines(), ...termosParaSugestoes()].map((q) => ({ q })),
   ].filter((b) => {
-    const chave = `${b.q.toLowerCase()}|${b.cat || ""}`;
+    const chave = `${b.q.toLowerCase()}|${b.cat || ""}|${b.pagina || 1}`;
     return !vistos.has(chave) && vistos.add(chave);
   }).slice(0, MAX_PRONTAS);
   const fim = parte + 1 >= lista.length;
   if (parte >= lista.length) return Response.json({ parte, partes: lista.length, fim: true });
 
-  const { q, cat } = lista[parte];
+  const { q, cat, pagina } = lista[parte];
   const url = new URL("/api/buscar", request.url);
   url.searchParams.set("q", q);
   if (cat) url.searchParams.set("cat", cat);
+  if (pagina) url.searchParams.set("pagina", String(pagina));
   const inicio = Date.now();
   const resposta = await buscar({ request: new Request(url), env: { ...env, __PREPARAR: true }, waitUntil });
   const dados = await resposta.json().catch(() => ({}));
@@ -46,7 +48,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Página da Black Friday: guarda os produtos desta busca com desconto que dá para conferir (lib/blackfriday.js)
   const blackFriday = await guardarDaBusca(env.DB, dados.ofertas).catch(() => 0);
   return Response.json({
-    parte, partes: lista.length, fim, busca: cat ? `${cat} (${q})` : q || "Ofertas do dia",
+    parte, partes: lista.length, fim, busca: cat ? `${cat} (${q})` : q || `Ofertas do dia${pagina ? ` (página ${pagina})` : ""}`,
     produtos: dados.ofertas?.length || 0, guardada: Boolean(dados.lojas?.shopee?.ok && dados.ofertas?.length), falhou,
     blackFriday, segundos: (Date.now() - inicio) / 1000, categoriasAprendidas: (await carregarMapa(env)).size,
   }, { headers: { "Cache-Control": "no-store" } });

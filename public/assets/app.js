@@ -2,6 +2,15 @@
 // Vai pro Carrinho — comparador de preços
 // =====================================================================
 
+// "Ofertas do dia" pedidas antes de todo o resto (29/10/2026, Giovanni: na 1ª abertura ficava "Buscando…" sem
+// nenhum produto): na página inicial o pedido sai já na 1ª linha; carregarDestaques usa esta resposta
+const VERSAO_BUSCA = 99;
+const ehPaginaInicial = location.pathname === "/" && !new URLSearchParams(location.search).has("q")
+  && !new URLSearchParams(location.search).has("loja");
+let inicioAdiantado = ehPaginaInicial
+  ? fetch(`/api/buscar?v=${VERSAO_BUSCA}&q=`).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+  : null;
+
 const LOJAS = {
   shopee: { nome: "Shopee", em: "na", cor: "#ee4d2d", texto: "#fff" },
   mercadolivre: { nome: "Mercado Livre", em: "no", cor: "#ffe600", texto: "#2d3277" },
@@ -1218,7 +1227,7 @@ function semRepetidos(lista) {
 // pela sugestão, o site já pede os resultados; ao apertar Enter eles estão prontos (ou quase).
 // Pede com atalho=1 (não conta nos "em alta": pode ser só uma sugestão que ela nem escolheu). Se ela buscar isso
 // mesmo, o site usa a resposta adiantada e só avisa o servidor para contar (contar=1).
-const VERSAO_BUSCA = 99;
+// (VERSAO_BUSCA fica no começo do arquivo: as "Ofertas do dia" são pedidas logo que o arquivo começa a rodar)
 const MAX_ADIANTADAS = 8; // por visita, para não gastar as consultas às lojas à toa
 const adiantadas = new Map();
 let totalAdiantadas = 0;
@@ -2396,8 +2405,25 @@ function desenharInicio(lista) {
   $("#mais-ofertas").hidden = !estado.temMaisInicio;
 }
 
-// "Ver mais ofertas": traz a próxima página de mais vendidos e junta à lista
-async function carregarMaisOfertas() {
+// "⭐ Bem avaliados" nas "Ofertas do dia" (29/10/2026, Giovanni: só 39): só a Shopee manda nota, então o site pede mais
+// páginas sozinho até ter uns 100 produtos com nota boa (as 6 primeiras páginas ficam prontas no servidor)
+const BEM_AVALIADOS_DESEJADOS = 100;
+const PAGINAS_BEM_AVALIADOS = 6;
+async function completarBemAvaliados() {
+  for (let i = 0; i < PAGINAS_BEM_AVALIADOS; i++) {
+    if (estado.q || estado.loja || !estado.inicio || !estado.temMaisInicio || !$("#bem-avaliados").checked) return;
+    if (estado.inicio.filter((o) => o.avaliacao >= NOTA_BOA).length >= BEM_AVALIADOS_DESEJADOS) return;
+    if (!(await carregarMaisOfertas())) return;
+  }
+}
+
+// "Ver mais ofertas": traz a próxima página de mais vendidos e junta à lista (devolve true se carregou)
+let carregandoOfertas = null;
+function carregarMaisOfertas() {
+  carregandoOfertas ||= trazerMaisOfertas().finally(() => { carregandoOfertas = null; });
+  return carregandoOfertas;
+}
+async function trazerMaisOfertas() {
   const botao = $("#mais-ofertas");
   botao.disabled = true;
   botao.textContent = "Carregando…";
@@ -2413,8 +2439,10 @@ async function carregarMaisOfertas() {
       desenharFiltroLojas();
       desenharResultados();
     }
+    return true;
   } catch {
     if (!estado.q) toast("Não foi possível carregar mais ofertas agora");
+    return false;
   } finally {
     botao.disabled = false;
     botao.textContent = "Ver mais ofertas";
@@ -2525,15 +2553,58 @@ function tituloOfertas(carregando) {
     : ["⚡ Ofertas do dia"]));
 }
 
+// Últimas "Ofertas do dia" vistas neste aparelho: aparecem na hora na próxima abertura e são trocadas pelas novas assim
+// que chegam (o visitante não fica olhando "Buscando…"). Valem 12 h; preço e link são os mesmos da loja naquela hora
+const GUARDA_INICIO = "ofertasDoDia";
+const VALIDADE_INICIO_GUARDADO = 12 * 3600e3;
+function inicioGuardado() {
+  try {
+    const g = JSON.parse(localStorage.getItem(GUARDA_INICIO) || "null");
+    return g && Date.now() - g.quando < VALIDADE_INICIO_GUARDADO && Array.isArray(g.ofertas) && g.ofertas.length ? g.ofertas : null;
+  } catch {
+    return null;
+  }
+}
+function guardarInicio(ofertas) {
+  try {
+    localStorage.setItem(GUARDA_INICIO, JSON.stringify({ quando: Date.now(), ofertas: ofertas.slice(0, 100) }));
+  } catch {
+    // sem armazenamento (aba anônima, cheio): só não guarda
+  }
+}
+
+async function pedirInicio() {
+  const adiantado = inicioAdiantado && (await inicioAdiantado);
+  inicioAdiantado = null;
+  if (adiantado) return adiantado;
+  try {
+    return await consultarApi("");
+  } catch {
+    // Falhou (rede do celular, servidor acordando): tenta mais uma vez antes de desistir
+    await new Promise((ok) => setTimeout(ok, 1500));
+    return consultarApi("");
+  }
+}
+
 async function carregarDestaques() {
   const pedido = ++estado.pedido;
   estado.ofertas = [];
   $("#filtro-lojas").replaceChildren();
-  $("#destaques").replaceChildren(...esqueletos(12));
-  tituloOfertas(true);
+  const guardado = inicioGuardado();
+  if (guardado) {
+    estado.inicio = semRepetidos(guardado);
+    estado.ofertas = estado.inicio;
+    desenharFiltroLojas();
+    desenharResultados();
+  } else {
+    $("#destaques").replaceChildren(...esqueletos(12));
+    tituloOfertas(true);
+  }
   try {
-    const dados = await consultarApi("");
+    const dados = await pedirInicio();
+    guardarInicio(dados.ofertas);
     estado.inicio = semRepetidos(dados.ofertas);
+    estado.paginaInicio = 1;
     estado.temMaisInicio = Boolean(dados.temMais);
     tituloOfertas(false);
     if (pedido !== estado.pedido) return; // a pessoa já foi para uma busca
@@ -2541,7 +2612,7 @@ async function carregarDestaques() {
     mostrarInicio();
   } catch {
     tituloOfertas(false);
-    if (pedido !== estado.pedido) return;
+    if (pedido !== estado.pedido || guardado) return; // com as guardadas na tela, fica com elas
     $("#destaques").replaceChildren(el("p", { class: "vazio" }, "Não foi possível carregar as ofertas agora."));
   }
 }
@@ -2923,7 +2994,7 @@ let timerPreco;
   timerPreco = setTimeout(desenharResultados, 300);
 }));
 $("#so-frete").addEventListener("change", desenharResultados);
-$("#bem-avaliados").addEventListener("change", desenharResultados);
+$("#bem-avaliados").addEventListener("change", () => { desenharResultados(); if ($("#bem-avaliados").checked) completarBemAvaliados(); });
 // Mostrar/esconder acessórios muda também a contagem de cada loja
 $("#com-acessorios").addEventListener("change", () => { desenharFiltroLojas(); desenharResultados(); });
 document.querySelectorAll("[data-frete]").forEach((b) => b.addEventListener("click", () => {

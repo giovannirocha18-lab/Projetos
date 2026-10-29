@@ -61,6 +61,7 @@ const MAX_PAGINA = 20;
 const MAX_DESDE = 100;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
 const VERSAO_CACHE = 99;
+export const PAGINAS_INICIO_PRONTAS = 6;
 // Como o site da AliExpress busca (estudado em 21/10/2026, pedido do Giovanni): ele descobre a CATEGORIA da busca
 // ("celular" -> Celulares 5090301, "geladeira" -> 60203) e mostra os produtos dela. A API de afiliados só procura a
 // palavra nos títulos ("celular" trazia capinhas, "geladeira" trazia peças). Então, como no site, pedimos também dentro
@@ -218,7 +219,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   // Busca popular já preparada pelo robô: responde na hora (e guarda no cache por 1 hora)
   // Vale para as buscas populares e para as "Ofertas do dia" da página inicial (q vazio, 1ª página)
-  const primeira = pagina === 1 && desde === 1;
+  // As primeiras páginas das "Ofertas do dia" também ficam prontas (29/10/2026: "Ver mais ofertas" levava ~4,5 s por página)
+  const primeira = desde === 1 && (pagina === 1 || (!q && pagina <= PAGINAS_INICIO_PRONTAS));
   if (primeira && !preparar && !atualizar && env.DB) {
     try {
       const pronta = await env.DB.prepare(`SELECT resposta, total, criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
