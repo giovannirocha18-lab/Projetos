@@ -702,6 +702,12 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Depois (pedido dele): se nada abrir, `/api/ir` e `/api/ir-loja` (Lomadee) voltam com `?aviso=loja-instavel[&nome=]` e o site mostra por
   12 s "⚠️ O sistema da X está instável… Não é um problema do Vai pro Carrinho" (`avisoDeLojaInstavel` no app.js). Teste do link =
   `redirecionaBem` em lib/links.js (só Lomadee: testar link da Shopee/AliExpress contaria clique falso).
+- ✅ **Ofertas do dia mais rápidas + "Bem avaliados" (29/10/2026, pedido do Giovanni: 1ª abertura ficava em "Buscando…" e só 39 bem
+  avaliados)**: (1) `inicioAdiantado` no topo do app.js pede `/api/buscar?v=…&q=` na 1ª linha (VERSAO_BUSCA foi para o topo);
+  (2) últimas Ofertas do dia guardadas no aparelho (localStorage `ofertasDoDia`, 12 h, até 100) aparecem na hora e são trocadas pelas
+  novas; falhou = tenta de novo 1 vez (`pedirInicio`); (3) páginas 2–6 das Ofertas do dia também ficam prontas
+  (`PAGINAS_INICIO_PRONTAS` em buscar.js; preparar-buscas partes 1–5); (4) marcar "⭐ Bem avaliados" na página inicial carrega mais
+  páginas sozinho até 100 com nota (`completarBemAvaliados`). Testado: 1ª visita 1,3 s, 2ª 0,95 s; bem avaliados 36 → 141.
 - ✅ **Produtos da Lomadee com "página não encontrada" (29/10/2026, Little Duck "Poltrona Duck Infantil", pedido do Giovanni)**: a loja tira
   o produto e a Lomadee segue mandando. `lib/fotos.js`: tabela `links_testados` (página boa vale 7 dias, ruim 3); busca, página da loja e
   respostas guardadas tiram os já sabidos como quebrados e testam até 60 novos depois da resposta (`semFotosQuebradas`); o robô (job
