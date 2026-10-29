@@ -735,7 +735,11 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   job). 100 títulos por pedido, effort low, saída JSON com enum das 39 categorias + "Outros". Títulos = Awin do banco (131 mil) + buscas
   prontas (Shopee/AliExpress/Lomadee). **Teste #73 (500 títulos): US$ 0,0053 → ~US$ 0,011 por mil → ~US$ 2,30 para os 211 mil**; qualidade
   boa (erro visto: capacete de moto → Bonés; regra acrescentada). Madrugada com limite 0 (não manda nada) até o Giovanni aprovar.
-  **Falta**: aprovação → rodar completo (ia_limite 300000) e trocar o padrão do job; depois ligar no site (`catIa` em categoriaTravada).
+  ✅ **NO AR (29/10)**: 1ª rodada completa (#74) foi paga (US$ 2,04) e PERDIDA (gravação dos títulos estourou o tamanho do SQL depois
+  de mandar o lote); corrigido (títulos gravados ANTES, em consultas ≤90 KB; lote sem títulos é fechado). #75: 210.138 títulos com
+  categoria, US$ 2,04 (US$ 0,0097 por mil), 5 min. Site: `comCategoriaDaIa` (lib/ia.js, em `consultar` do buscar.js e em lojas.js) põe
+  `catIa`; `categoriaTravada` usa logo depois de Pets. Cache v=100, /api/lojas VERSAO=21, so_prontas disparado. Saldo ~US$ 0,92;
+  madrugada manda só os novos (limite padrão 300000). Roupa infantil vai para Bebês (não há categoria Infantil).
 - ⏳ **PENDENTE (pedido do Giovanni, 28/10/2026): IA paga para a correção automática da busca/categorias.** Hoje o robô corrige
   sozinho fotos/links quebrados, mapa de categorias da Shopee/AliExpress e produtos novos; a auditoria e o relatório de categorias só
   ANOTAM e o Claude corrige as regras. Com IA, o robô classificaria cada produto e consertaria sozinho. **Giovanni vai ativar "assim que
