@@ -41,7 +41,7 @@ link de afiliado do Giovanni. Estratégia: Shopee em volume (API), Mercado Livre
 - `lib/ofertas.js` = criação das tabelas `ofertas`, `ofertas_fts` (com gatilhos) e `precos` (histórico de preço por dia).
 - `robo/awin.mjs` = **robô de preços**: baixa a lista de feeds da Awin (chave `AWIN_FEED_KEY`), pega os das lojas aprovadas
   (região BR) e atualiza o D1 pela API do Cloudflare (só grava o que mudou; trava de 300 mil por vez desde 23/10/2026, plano pago; não apaga nada se o feed
-  falhar ou encolher mais da metade). Roda pelo GitHub Actions (`.github/workflows/robo-precos.yml`, 02:30 de Cuiabá desde 16/10/2026).
+  falhar ou encolher mais da metade). Roda pelo GitHub Actions (`.github/workflows/robo-precos.yml`, 01:30 de Brasília desde 30/10/2026; o GitHub costuma começar 6–7 h depois).
   Teste local: `node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite`. Ver README.
 - `privacidade.html` = Política de Privacidade. Cita `contato@vaiprocarrinho.com.br` (✅ existe desde 26/10/2026, encaminha para o Gmail dele).
 - `_headers` + `<meta robots noindex>` escondem o site do Google até o lançamento.

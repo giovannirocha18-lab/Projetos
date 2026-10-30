@@ -5,7 +5,7 @@ name: Robô de preços
 
 on:
   schedule:
-    - cron: "30 6 * * *" # 02:30 no horário de Cuiabá (03:30 de Brasília), pedido do Giovanni, 16/10/2026
+    - cron: "30 4 * * *" # 01:30 de Brasília (30/10/2026, pedido do Giovanni; o GitHub costuma atrasar horas)
   workflow_dispatch:
     inputs:
       so_awin:
