@@ -658,7 +658,7 @@ function abrirComparacao() {
   const linha = (titulo, celula) => el("tr", {}, el("th", { scope: "row" }, titulo), ...lista.map((o) => el("td", {}, celula(o))));
   const tabela = el("table", { class: "tabela-comparar" },
     el("thead", {}, el("tr", {}, el("th", {}, ""), ...lista.map((o) => el("th", { scope: "col" },
-      el("div", { class: "comparar-foto" }, o.imagem ? el("img", { src: o.imagem, alt: "", onerror: fotoQuebrada(o) }) : el("span", { class: "foto-emoji" }, o.emoji || "🛍️")),
+      el("div", { class: "comparar-foto" }, o.imagem ? el("img", { src: fotoPequena(o.imagem), alt: "", onerror: fotoQuebrada(o) }) : el("span", { class: "foto-emoji" }, o.emoji || "🛍️")),
       el("button", { class: "titulo-botao", type: "button", onclick: () => { $("#janela-comparar").close(); abrirDetalhes(o); } }, o.titulo))))),
     el("tbody", {},
       linha("Loja", (o) => el("span", { class: "loja-tag", style: `--cor-loja:${infoLoja(o).cor}` }, el("span", { class: "loja-ponto" }), infoLoja(o).nome)),
@@ -902,10 +902,22 @@ function estrelas(nota) {
 // Texto com versão curta para o celular (cartões estreitos)
 const longoCurto = (longo, curto) => [el("span", { class: "so-longo" }, longo), el("span", { class: "so-curto" }, curto)];
 
-// Foto que não carregou: se era a miniatura da Shopee, tenta a original; senão, mostra o emoji
+// Foto do cartão em tamanho de cartão (celular demorava: AliExpress e lojas VTEX mandam 800–1500 px, até 180 KB cada;
+// 30/10/2026). A janela "Ver detalhes" continua com a original. AliExpress: sufixo _350x350; VTEX (Animale, Karsten,
+// Monte Carlo, Rovitex…): /arquivos/ids/<id>-350-auto (mantém a proporção); gbmedia: w_400
+const fotoPequena = (url) => {
+  if (!url) return url;
+  if (/aliexpress-media\.com|alicdn\.com/.test(url) && /\.(jpe?g|png|webp)$/i.test(url)) return `${url}_350x350${url.match(/\.\w+$/)[0]}`;
+  if (/\.vteximg\.com\.br\/arquivos\/ids\/\d+/.test(url)) return url.replace(/(\/arquivos\/ids\/\d+)(?:_\d+)?(?:-\d+-(?:\d+|auto))?(?=\/|\?|$)/, "$1-350-auto");
+  if (/gbmedia\.com\.br\/images\/w_\d+\//.test(url)) return url.replace(/\/w_\d+\//, "/w_400/");
+  return url;
+};
+
+// Foto que não carregou: se era a versão pequena (ou a miniatura da Shopee), tenta a original; senão, mostra o emoji
 const fotoQuebrada = (o) => (e) => {
   const img = e.target;
   if (/_tn$/.test(img.src)) img.src = img.src.replace(/_tn$/, "");
+  else if (o.imagem && img.src !== o.imagem && !img.dataset.original) { img.dataset.original = "1"; img.src = o.imagem; }
   else img.replaceWith(el("span", { class: "foto-emoji" }, o.emoji || "🛍️"));
 };
 
@@ -958,7 +970,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
     el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored noopener", tabindex: "-1", "aria-hidden": "true", onclick: abrir },
       o.imagem
         // Foto que não carrega (link quebrado da loja) vira o desenho padrão
-        ? el("img", { src: o.imagem, alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(o) })
+        ? el("img", { src: fotoPequena(o.imagem), alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(o) })
         : el("span", { class: "foto-emoji" }, o.emoji || "🛍️"),
       el("div", { class: "selos" },
         melhor && el("span", { class: "selo selo-melhor" }, ...longoCurto("🏆 Menor preço da busca", "🏆 Menor preço")),
