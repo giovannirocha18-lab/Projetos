@@ -124,6 +124,21 @@ function salvarFavoritos() {
 const ehFavorito = (id) => favoritos.some((f) => f.id === id);
 
 function alternarFavorito(oferta, origem) {
+  // Guardar no carrinho exige conta (pedido do Giovanni, 30/10/2026): abre "Entrar" e, depois de entrar, guarda sozinho
+  if (!ehFavorito(oferta.id) && conta.ativo && !conta.usuario) {
+    conta.carrinhoOferta = oferta;
+    conta.alertaOferta = null;
+    conta.erro = "";
+    conta.etapa = "entrar";
+    desenharConta();
+    const janela = $("#janela-conta");
+    if (!janela.open) janela.showModal();
+    $("input", janela)?.focus();
+    return;
+  }
+  guardarOuTirar(oferta, origem);
+}
+function guardarOuTirar(oferta, origem) {
   if (ehFavorito(oferta.id)) {
     favoritos = favoritos.filter((f) => f.id !== oferta.id);
     toast("Removido do carrinho");
@@ -333,7 +348,9 @@ async function carregarConta() {
 }
 
 function entrarComGoogle() {
-  // Na volta, o carrinho deste aparelho é juntado ao da conta (como no login com senha)
+  // Na volta, o carrinho deste aparelho é juntado ao da conta (como no login com senha); o produto que a pessoa
+  // ia guardar entra antes, para chegar junto
+  if (conta.carrinhoOferta && !ehFavorito(conta.carrinhoOferta.id)) guardarOuTirar(conta.carrinhoOferta);
   try { localStorage.setItem(CHAVE_JUNTAR, "1"); } catch { /* sem armazenamento */ }
   location.href = `/api/conta/google?volta=${encodeURIComponent(location.pathname)}`;
 }
@@ -744,8 +761,9 @@ function desenharConta() {
     const cadastro = conta.etapa === "cadastrar";
     conteudo = [
       el("h2", { id: "conta-titulo" }, cadastro ? "Criar conta" : "Entrar"),
-      el("p", { class: conta.alertaOferta ? "aviso-alerta" : null }, conta.alertaOferta
+      el("p", { class: conta.alertaOferta || conta.carrinhoOferta ? "aviso-alerta" : null }, conta.alertaOferta
         ? "🔔 Entre na sua conta para receber um e-mail quando o preço baixar."
+        : conta.carrinhoOferta ? "🛒 Entre na sua conta para guardar produtos no seu carrinho. Ele fica salvo em qualquer aparelho."
         : "Assim o seu carrinho fica salvo em qualquer aparelho."),
       conta.google && el("button", { class: "botao-google", type: "button", onclick: entrarComGoogle },
         el("img", { src: "assets/google.svg", alt: "", width: "18", height: "18" }), "Entrar com Google"),
@@ -811,6 +829,11 @@ function conectou(dados, mensagem) {
   juntarCarrinho(dados.carrinho);
   desenharContaTopo();
   toast(mensagem);
+  // Entrou para guardar um produto: guarda agora
+  if (conta.carrinhoOferta) {
+    if (!ehFavorito(conta.carrinhoOferta.id)) guardarOuTirar(conta.carrinhoOferta);
+    conta.carrinhoOferta = null;
+  }
   // Entrou para criar um alerta: continua nele (e só depois de saber quais alertas a conta já tem)
   if (conta.alertaOferta) {
     conta.etapa = "alerta";
@@ -3175,6 +3198,7 @@ $("#janela-historico").addEventListener("click", (e) => {
 // Ao fechar, a próxima vez abre na tela principal da conta (e esquece o alerta que ia criar)
 $("#janela-conta").addEventListener("close", () => {
   conta.alertaOferta = null;
+  conta.carrinhoOferta = null;
   if (conta.usuario) conta.etapa = "entrar";
 });
 // Clique fora da janela fecha
