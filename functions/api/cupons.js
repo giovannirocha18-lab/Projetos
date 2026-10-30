@@ -6,39 +6,45 @@
 import { cuponsLomadee, cuponsAwin } from "../../lib/cupons.js";
 
 const CACHE_SEGUNDOS = 3 * 60 * 60;
-const VERSAO = 8; // trocar para descartar o que está guardado
+const VERSAO = 9; // trocar para descartar o que está guardado
 
 // Só o começo do código: "BRINOXCHEFE" -> "BRI••••••••"
 const mascara = (codigo) => `${codigo.slice(0, Math.min(3, Math.ceil(codigo.length / 3)))}${"•".repeat(Math.max(codigo.length - 3, 4))}`;
 
-// Lista completa (com os códigos), guardada no cache do Cloudflare; nunca sai inteira para o visitante
+// Lista completa (com os códigos), guardada no cache do Cloudflare; nunca sai inteira para o visitante.
+// Cada rede vem separada e a última lista boa de cada uma fica guardada 2 dias: se uma cair (30/10/2026: a Lomadee
+// respondia 500 "campaigns_request_failed" e derrubava os cupons da Awin junto), usa a última boa dela. Com alguma
+// rede em falha, a lista junta fica só 10 min; o motivo (sem chaves) vai em "erroAwin"/"erroLomadee" para conferência.
+const ULTIMA_BOA = 2 * 24 * 60 * 60;
+async function daRede(cache, request, nome, buscar) {
+  const chave = new Request(new URL(`/api/cupons?v=${VERSAO}&rede=${nome}&interno=1`, request.url));
+  try {
+    const cupons = await buscar();
+    if (cache) await cache.put(chave, Response.json({ cupons }, { headers: { "Cache-Control": `public, max-age=${ULTIMA_BOA}` } }));
+    return { cupons };
+  } catch (e) {
+    const guardada = cache && (await cache.match(chave));
+    return { cupons: guardada ? (await guardada.json()).cupons : [], erro: String(e.message || e).slice(0, 80) };
+  }
+}
+
 async function todos(request, env) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const chave = new Request(new URL(`/api/cupons?v=${VERSAO}&interno=1`, request.url));
   const guardada = cache && (await cache.match(chave));
-  if (guardada) { const j = await guardada.json(); return { cupons: j.cupons, completo: true, erroAwin: j.erroAwin }; }
-  try {
-    // Awin falhou: mostra os da Lomadee e guarda só 10 min (sem isso, cada visita refazia as 5 páginas da Lomadee e
-    // estourava o limite dela de 60/min; 30/10/2026). O motivo (só o código HTTP) vai em "erroAwin" para conferência.
-    let erroAwin;
-    const [lomadee, awin] = await Promise.all([
-      cuponsLomadee(env),
-      cuponsAwin(env).catch((e) => { erroAwin = String(e.message || e).slice(0, 80); return []; }),
-    ]);
-    const cupons = [...lomadee, ...awin];
-    const segundos = erroAwin ? 10 * 60 : CACHE_SEGUNDOS;
-    if (cache) {
-      await cache.put(chave, Response.json({ cupons, erroAwin }, { headers: { "Cache-Control": `public, max-age=${segundos}` } }));
-    }
-    return { cupons, completo: true, erroAwin };
-  } catch (e) {
-    // Lomadee fora do ar ou em pausa: responde vazio e não guarda (o motivo vai em "erroAwin" também, para conferência)
-    return { cupons: [], completo: false, erroAwin: `Lomadee: ${String(e.message || e).slice(0, 80)}` };
-  }
+  if (guardada) return await guardada.json();
+  const [lomadee, awin] = await Promise.all([
+    daRede(cache, request, "lomadee", () => cuponsLomadee(env)),
+    daRede(cache, request, "awin", () => cuponsAwin(env)),
+  ]);
+  const lista = { cupons: [...lomadee.cupons, ...awin.cupons], erroLomadee: lomadee.erro, erroAwin: awin.erro };
+  const segundos = lomadee.erro || awin.erro ? 10 * 60 : CACHE_SEGUNDOS;
+  if (cache) await cache.put(chave, Response.json(lista, { headers: { "Cache-Control": `public, max-age=${segundos}` } }));
+  return lista;
 }
 
 export async function onRequestGet({ request, env }) {
-  const { cupons, completo, erroAwin } = await todos(request, env);
+  const { cupons, erroAwin, erroLomadee } = await todos(request, env);
   const id = new URL(request.url).searchParams.get("codigo");
   if (id !== null) {
     const c = cupons.find((x) => x.id === id);
@@ -46,7 +52,7 @@ export async function onRequestGet({ request, env }) {
     return Response.json({ codigo: c.codigo, link: c.link }, { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
   }
   const publicos = cupons.map(({ codigo, ...c }) => (codigo ? { ...c, codigoMascara: mascara(codigo) } : c));
-  return Response.json({ cupons: publicos, erroAwin }, {
-    headers: { "Cache-Control": `public, max-age=${completo ? 15 * 60 : 60}`, "X-Robots-Tag": "noindex" },
+  return Response.json({ cupons: publicos, erroAwin, erroLomadee }, {
+    headers: { "Cache-Control": `public, max-age=${erroAwin || erroLomadee ? 60 : 15 * 60}`, "X-Robots-Tag": "noindex" },
   });
 }
