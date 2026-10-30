@@ -31,8 +31,9 @@ async function todos(request, env) {
       await cache.put(chave, Response.json({ cupons, erroAwin }, { headers: { "Cache-Control": `public, max-age=${segundos}` } }));
     }
     return { cupons, completo: true, erroAwin };
-  } catch {
-    return { cupons: [], completo: false }; // Lomadee fora do ar ou em pausa: responde vazio e não guarda
+  } catch (e) {
+    // Lomadee fora do ar ou em pausa: responde vazio e não guarda (o motivo vai em "erroAwin" também, para conferência)
+    return { cupons: [], completo: false, erroAwin: `Lomadee: ${String(e.message || e).slice(0, 80)}` };
   }
 }
 
