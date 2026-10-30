@@ -669,6 +669,8 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   carrinho exige conta. **Conferir na próxima conversa**: horário em que o robô começou na madrugada de 31/10 (se ainda 6–7 h de
   atraso, sugerir cron-job.org); log do job `ia` (lote de 1.584 títulos lido) e saldo da Anthropic (~US$ 0,90); cupons da Lomadee
   voltaram (`/api/cupons` sem `erroLomadee`); auditoria da madrugada.
+  Conferido 30/10 (20ª sessão): execução #80 (cron antigo 06:30 UTC) começou 13:17 UTC (~7 h de atraso); IA mandou lote de 1.584
+  (resultado lido na próxima); auditoria 150 buscas, 0 suspeitos; cupons Lomadee ainda com erro 500 da Lomadee (Awin 44 ok).
 - ✅ **Conferido em 28/10/2026**: fotos da Candide limpas (busca "boneca": 4 da Candide, todas abrem; página da loja: 0 quebradas).
   Faltava: resposta guardada (cache de 1 dia) não era refeita com a Lomadee lenta (>5 s) → `respostaSemFotosQuebradas` (lib/fotos.js)
   tira as fotos já testadas também do cache e das buscas prontas; o teste agora pega todas as fotos do produto de uma vez (até 200).
