@@ -9,6 +9,7 @@
 // Roda nos servidores do Cloudflare (Pages Functions). É aqui que ficam as
 // chaves das APIs, sem nunca chegarem ao navegador do visitante.
 import { comCategoriaDaIa } from "../../lib/ia.js";
+import { naoSaoDaBusca, semNaoBuscados, respostaSemNaoBuscados } from "../../lib/iaBusca.js";
 import { exemplo } from "../../lib/fontes/exemplo.js";
 import { curadoria } from "../../lib/fontes/curadoria.js";
 import { shopee } from "../../lib/fontes/shopee.js";
@@ -216,7 +217,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (guardada) {
     if (soContar) { contar(guardada); return new Response(null, { status: 204 }); }
     refazerPorTras(Number(guardada.headers.get("X-Criado")) || 0);
-    return contar(paraNavegador(await respostaSemFotosQuebradas(env.DB, guardada, waitUntil)));
+    return contar(paraNavegador(await respostaSemNaoBuscados(env.DB, q, await respostaSemFotosQuebradas(env.DB, guardada, waitUntil))));
   }
   // Busca popular já preparada pelo robô: responde na hora (e guarda no cache por 1 hora)
   // Vale para as buscas populares e para as "Ofertas do dia" da página inicial (q vazio, 1ª página)
@@ -234,7 +235,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         const criado = Date.now() - pronta.criado < VALIDADE_PRONTA_MS ? pronta.criado : 0;
         if (cache) waitUntil(cache.put(chave, paraGuardar(resposta.clone(), criado)).catch(() => {}));
         refazerPorTras(criado);
-        return contar(await respostaSemFotosQuebradas(env.DB, resposta, waitUntil));
+        return contar(await respostaSemNaoBuscados(env.DB, q, await respostaSemFotosQuebradas(env.DB, resposta, waitUntil)));
       }
     } catch {
       // tabela ainda não existe (o robô cria): segue buscando nas lojas
@@ -378,6 +379,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (!q) {
     mais = pagina < MAX_PAGINA && fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina) ? `pagina=${pagina + 1}` : null;
   }
+  // O que a IA disse não ser o produto buscado vai para "Ver também… produtos parecidos" (ver lib/iaBusca.js)
+  if (q) ofertas = semNaoBuscados(ofertas, await naoSaoDaBusca(env.DB, q));
   // Lomadee: tira as fotos que já sabemos que não abrem (ver lib/fotos.js); nas buscas prontas do robô, testa antes
   ofertas = await semFotosQuebradas(env.DB, ofertas, { esperar: Boolean(preparar), waitUntil });
   // Shopee e AliExpress: junta o histórico de preço e guarda o preço de hoje (sem atrasar a resposta).
