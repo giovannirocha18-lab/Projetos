@@ -4,7 +4,7 @@
 
 // "Ofertas do dia" pedidas antes de todo o resto (29/10/2026, Giovanni: na 1ª abertura ficava "Buscando…" sem
 // nenhum produto): na página inicial o pedido sai já na 1ª linha; carregarDestaques usa esta resposta
-const VERSAO_BUSCA = 100;
+const VERSAO_BUSCA = 101;
 const ehPaginaInicial = location.pathname === "/" && !new URLSearchParams(location.search).has("q")
   && !new URLSearchParams(location.search).has("loja");
 let inicioAdiantado = ehPaginaInicial
@@ -2627,7 +2627,7 @@ function desenharEmAlta(itens) {
 
 async function carregarEmAlta() {
   try {
-    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta?v=5")).json();
+    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta?v=6")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);

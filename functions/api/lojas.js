@@ -16,7 +16,7 @@ const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
 const POR_PAGINA = 48;
 const MAX_PAGINA = 20;
-const VERSAO = 21; // 21: categorias da IA (29/10/2026); 20: Motorola "moto g" não é moto; 19: Central Ar toda em Eletrodomésticos; 18: Central Ar, Motorola e Calvin Klein (28/10/2026); 17: categoria da loja trava a categoria (28/10/2026); 16: Pets exclusiva (28/10/2026); 15: oBoticario e Efacil (28/10/2026); 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
+const VERSAO = 22; // 22: Moda infantil (30/10/2026); 21: categorias da IA (29/10/2026); 20: Motorola "moto g" não é moto; 19: Central Ar toda em Eletrodomésticos; 18: Central Ar, Motorola e Calvin Klein (28/10/2026); 17: categoria da loja trava a categoria (28/10/2026); 16: Pets exclusiva (28/10/2026); 15: oBoticario e Efacil (28/10/2026); 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
 
 function responder(dados, segundos) {
   return Response.json(dados, { headers: { "Cache-Control": `public, max-age=${segundos}`, "X-Robots-Tag": "noindex" } });

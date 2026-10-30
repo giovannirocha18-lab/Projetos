@@ -135,7 +135,7 @@ Regras:
 - Produto para animais de estimação (ração, cama, coleira, brinquedo de pet) é Pets.
 - Peças e acessórios vão na categoria do aparelho em que são usados quando a categoria existe: capa, película e suporte de celular = Acessórios de celular; carregador, cabo e power bank = Carregadores; peça de carro ou moto = Automotivo.
 - Geladeira, fogão, micro-ondas, máquina de lavar, ar-condicionado, TV, ventilador = Eletrodomésticos. Air fryer, liquidificador, cafeteira, batedeira = Eletroportáteis.
-- Capacete, luva, baú e roupa de motociclista são Automotivo. Celulares da Motorola ("Moto G") são Celulares, não Automotivo. Roupa e itens de bebê são Bebês; brinquedo infantil é Brinquedos.
+- Capacete, luva, baú e roupa de motociclista são Automotivo. Celulares da Motorola ("Moto G") são Celulares, não Automotivo. Bebês é só para bebê (body, fralda, mamadeira, enxoval, roupa "bebê"/"RN"/"0 a 24 meses"); roupa de criança (infantil, menino, menina, juvenil, kids) é Moda infantil; calçado infantil é Calçados; brinquedo infantil é Brinquedos.
 - Roupas: Moda íntima (cueca, calcinha, sutiã, pijama, meia), Moda fitness (roupa de academia), senão Moda masculina ou Moda feminina. Calçados ficam em Calçados.
 - Use ${SEM_CATEGORIA} só quando nenhuma categoria servir.
 Responda com uma linha por título, usando o número dele.`;
@@ -255,6 +255,9 @@ for (const sql of TABELAS_IA) await d1(sql);
 // Lote sem os títulos guardados não tem como ser lido: fecha (e restos de um envio que falhou saem)
 await d1("UPDATE ia_lotes SET aberto = 0 WHERE aberto = 1 AND id NOT IN (SELECT DISTINCT lote FROM ia_pedidos)");
 await d1("DELETE FROM ia_pedidos WHERE lote LIKE 'novo-%'");
+// Versão 2 (30/10/2026, categoria nova "Moda infantil"): só refaz os de Bebês e os que citam criança; o resto passa para a v2
+await d1(`UPDATE ia_categorias SET versao = 2 WHERE versao = 1 AND categoria != 'Bebês' AND chave NOT LIKE '%infantil%'
+  AND chave NOT LIKE '%menin%' AND chave NOT LIKE '%juvenil%' AND chave NOT LIKE '%kids%' AND chave NOT LIKE '%crianca%'`);
 let [aberto] = await d1("SELECT id FROM ia_lotes WHERE aberto = 1 ORDER BY criado LIMIT 1");
 if (!aberto) {
   const [daAwin, dasBuscas, feitas] = await Promise.all([titulosDaAwin(), titulosDasBuscas(BUSCAS), jaClassificadas()]);
