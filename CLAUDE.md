@@ -663,7 +663,12 @@ Selo "Desconto real" (21 dias de histórico) deve começar a aparecer por volta 
 Depois da pausa (16/10/2026, pedido dele): bandeira 🇧🇷 virou desenho (`.bandeira-br` no `estilo.css`, SVG embutido) porque o
 Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"). Publicado.
 
-## Próximos passos (atualizado 28/10/2026, fim da 18ª sessão)
+## Próximos passos (atualizado 30/10/2026, fim da 19ª sessão)
+- **19ª sessão (29–30/10/2026) fez**: IA (Haiku) classificando categorias; Moda infantil; só conta PJ da Awin; fotos menores no celular;
+  cupons da Awin; robô às 01:30; em alta (Pets, sem boneca); marcas de pet; página inicial com ~300 ofertas e cartões aos poucos;
+  carrinho exige conta. **Conferir na próxima conversa**: horário em que o robô começou na madrugada de 31/10 (se ainda 6–7 h de
+  atraso, sugerir cron-job.org); log do job `ia` (lote de 1.584 títulos lido) e saldo da Anthropic (~US$ 0,90); cupons da Lomadee
+  voltaram (`/api/cupons` sem `erroLomadee`); auditoria da madrugada.
 - ✅ **Conferido em 28/10/2026**: fotos da Candide limpas (busca "boneca": 4 da Candide, todas abrem; página da loja: 0 quebradas).
   Faltava: resposta guardada (cache de 1 dia) não era refeita com a Lomadee lenta (>5 s) → `respostaSemFotosQuebradas` (lib/fotos.js)
   tira as fotos já testadas também do cache e das buscas prontas; o teste agora pega todas as fotos do produto de uma vez (até 200).
