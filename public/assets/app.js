@@ -1752,6 +1752,38 @@ function desenharBotaoFrete() {
   });
 }
 
+// Cartões aos poucos (30/10/2026, Giovanni: celular lento com ~300 ofertas na página inicial): montar centenas de cartões
+// de uma vez travava a tela por segundos. Monta os primeiros na hora e o resto em lotes quando a pessoa rola perto do fim
+// (um marcador invisível no fim da grade). Filtros, contagens e "Escolha rápida" continuam usando a lista inteira.
+const CARTOES_POR_LOTE = 48;
+const observadores = new WeakMap();
+function desenharAosPoucos(grade, lista, fazer) {
+  observadores.get(grade)?.disconnect();
+  let feitos = 0;
+  const marcador = el("div", { class: "fim-da-grade", "aria-hidden": "true" });
+  const mais = () => {
+    const lote = lista.slice(feitos, feitos + CARTOES_POR_LOTE).map((o, j) => fazer(o, feitos + j));
+    feitos += lote.length;
+    marcador.before(...lote);
+    if (feitos >= lista.length) { observadores.get(grade)?.disconnect(); marcador.remove(); }
+  };
+  grade.replaceChildren(marcador);
+  if (!lista.length) return marcador.remove();
+  mais();
+  if (feitos < lista.length && "IntersectionObserver" in window) {
+    // Depois de cada lote o marcador é observado de novo: se ainda está perto da tela, vem o próximo lote
+    const obs = new IntersectionObserver((e) => {
+      if (!e.some((x) => x.isIntersecting) || !marcador.isConnected) return;
+      mais();
+      if (marcador.isConnected) { obs.unobserve(marcador); obs.observe(marcador); }
+    }, { rootMargin: "1500px 0px" });
+    obs.observe(marcador);
+    observadores.set(grade, obs);
+  } else {
+    while (feitos < lista.length) mais();
+  }
+}
+
 function desenharResultados() {
   desenharBotaoFrete();
   if ((estado.q || estado.loja) && estado.buscando) return; // filtro mexido enquanto a busca carrega: espera a resposta
@@ -1766,11 +1798,11 @@ function desenharResultados() {
   desenharResumo(lista);
   $("#total").textContent = `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}`;
   const idVendido = idMaisVendido(lista);
-  $("#grade").replaceChildren(...lista.map((o, i) => {
+  desenharAosPoucos($("#grade"), lista, (o, i) => {
     const c = cartaoOferta(o, { melhor: o.id === idMelhor, maisVendido: o.id === idVendido });
     c.style.animationDelay = `${Math.min(i, 12) * 30}ms`;
     return c;
-  }));
+  });
   desenharEscolhaRapida(lista);
   $("#vazio").hidden = lista.length > 0;
   // Botões de baixo seguem as lojas marcadas no card: com todas desligadas não há o que "ver mais"
@@ -2405,15 +2437,18 @@ async function carregarMaisDaLoja({ sozinho = false } = {}) {
 // ---------------------------------------------------------------------
 function desenharInicio(lista) {
   const idVendido = idMaisVendido(lista);
-  $("#destaques").replaceChildren(...(lista.length
-    ? lista.map((o) => {
+  if (!lista.length) {
+    desenharAosPoucos($("#destaques"), [], null);
+    $("#destaques").replaceChildren(el("p", { class: "vazio" }, estado.ofertas.length ? "Nenhuma oferta do dia com esses filtros." : "Nenhuma oferta do dia agora."));
+  } else {
+    desenharAosPoucos($("#destaques"), lista, (o) => {
       const c = cartaoOferta(o, { maisVendido: o.id === idVendido });
       // Ao carregar mais, só os cartões novos "surgem"; os que já estavam ficam parados
       if (estado.vistosInicio.has(o.id)) c.style.animation = "none";
       estado.vistosInicio.add(o.id);
       return c;
-    })
-    : [el("p", { class: "vazio" }, estado.ofertas.length ? "Nenhuma oferta do dia com esses filtros." : "Nenhuma oferta do dia agora.")]));
+    });
+  }
   $("#mais-ofertas").hidden = !estado.temMaisInicio;
 }
 

@@ -894,3 +894,4 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .fav-economia { color: #047857; font-weight: 600; }
 .fav-resumo small { color: var(--suave); font-size: .75rem; }
 .fav-antigo { margin-left: 6px; font-weight: 400; font-size: .8rem; color: var(--suave); }
+.fim-da-grade { grid-column: 1 / -1; height: 1px; }
