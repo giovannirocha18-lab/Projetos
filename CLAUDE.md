@@ -756,6 +756,13 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (Kabum, Motorola, oBoticario, Karsten…). /api/cupons: cada rede separada (`daRede`), última lista boa de cada uma guardada 2 dias; rede
   em falha = lista junta só 10 min e motivo em `erroAwin`/`erroLomadee` (sem chaves). VERSAO=10. No mesmo dia a Lomadee respondia
   500 "campaigns_request_failed" nos cupons (busca da Lomadee ok). `semCodigo` também tira palavra que contém o código ("CP2HUSKY15").
+- ✅ **Página inicial cheia e rápida (30/10/2026, pedido do Giovanni: "Bem avaliados" e quantidade de itens demoravam)**: `paginasSeguintes`/
+  `completarInicio` no app.js pedem as páginas 2–6 das Ofertas do dia (prontas no servidor) juntas logo depois da 1ª (~300 ofertas, ~190
+  bem avaliados já na abertura); com as guardadas no aparelho (localStorage agora até 300) espera tudo e troca uma vez. Ao medir, o
+  lento era MONTAR 300 cartões de uma vez → `desenharAosPoucos` (48 cartões por vez quando a pessoa rola perto do fim, marcador
+  `.fim-da-grade` + IntersectionObserver) na página inicial e na busca. Medido (Pixel 7, 4G simulado): 1º cartão ~1 s nas 2 visitas.
+  Em alta: "boneca" fora (`FORA_DOS_ATALHOS`, filtrado também na lista guardada) e "ração" vira o atalho da categoria Pets
+  (`VIRA_CATEGORIA` em em-alta.js; em-alta v=9). Marcas de pet em `MARCAS` (vocabulario v=3).
 - ⏳ **PENDENTE (pedido do Giovanni, 28/10/2026): IA paga para a correção automática da busca/categorias.** Hoje o robô corrige
   sozinho fotos/links quebrados, mapa de categorias da Shopee/AliExpress e produtos novos; a auditoria e o relatório de categorias só
   ANOTAM e o Claude corrige as regras. Com IA, o robô classificaria cada produto e consertaria sozinho. **Giovanni vai ativar "assim que
