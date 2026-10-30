@@ -740,6 +740,13 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   categoria, US$ 2,04 (US$ 0,0097 por mil), 5 min. Site: `comCategoriaDaIa` (lib/ia.js, em `consultar` do buscar.js e em lojas.js) põe
   `catIa`; `categoriaTravada` usa logo depois de Pets. Cache v=100, /api/lojas VERSAO=21, so_prontas disparado. Saldo ~US$ 0,92;
   madrugada manda só os novos (limite padrão 300000). Roupa infantil vai para Bebês (não há categoria Infantil).
+- ✅ **Moda infantil (30/10/2026, pedido do Giovanni: "roupa infantil não tem nada a ver com bebê")**: categoria nova 👧 (40 categorias),
+  antes de íntima/masculina/feminina; `roupa` agora aceita lista (infantil, menino(s), menina(s), juvenil, kids, teen). Bebês = só bebê.
+  IA v2 (`VERSAO_IA = 2`): robô passa para v2 tudo que não é Bebês nem cita criança e reclassifica só o resto (#77). No ar: "roupa
+  infantil" = 179 em Moda infantil. Cache v=101.
+- ✅ **Só a conta PJ da Awin (30/10/2026, decisão do Giovanni)**: robo/awin.mjs lê só `AWIN_FEED_KEY_PJ` (`AWIN_FEED_KEY` não é mais
+  usado). #78: removidos 59.771 (Posthaus, Polishop, Arno); EINSTAR fica (aprovada também na PJ). 16 lojas da Awin, 71.970 produtos
+  nos feeds, banco 283 MB. Shopee, AliExpress e Lomadee (cadastros no CPF) continuam. Cache v=102, lojas v=23, numeros v=10; `so_prontas` disparado.
 - ⏳ **PENDENTE (pedido do Giovanni, 28/10/2026): IA paga para a correção automática da busca/categorias.** Hoje o robô corrige
   sozinho fotos/links quebrados, mapa de categorias da Shopee/AliExpress e produtos novos; a auditoria e o relatório de categorias só
   ANOTAM e o Claude corrige as regras. Com IA, o robô classificaria cada produto e consertaria sozinho. **Giovanni vai ativar "assim que
