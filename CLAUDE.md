@@ -751,11 +751,11 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   (Rovitex ~114 KB, AliExpress até 180 KB). `fotoPequena` no app.js (só no cartão e no Comparar; "Ver detalhes" usa a original):
   AliExpress `_350x350.jpg`, VTEX `/arquivos/ids/<id>-350-auto`, gbmedia `w_400`; falhou = volta para a original. Rovitex 114→12 KB,
   AliExpress 55→15 KB. Shopee fica no `_tn` (já leve e no cache; `@resize_w…` é mais lento). 1º cartão: busca pronta ~0,4–1,1 s.
-- ⏳ **Cupons da Awin (30/10/2026, pedido do Giovanni)**: `cuponsAwin` em lib/cupons.js (POST api.awin.com/publisher/<id>/promotions,
-  voucher + active + joined + BR; conta de GET /accounts ou Secret `AWIN_PUBLISHER_ID`; chave da loja = a do robô). /api/cupons junta
-  Lomadee + Awin (VERSAO=6; Awin falhou = mostra Lomadee e não guarda). Selo 🎟️ também nas lojas da Awin na janela "Lojas parceiras".
-  **Aguardando Giovanni**: conta PJ > ui.awin.com/awin-api ("API Credentials") > "Show my API token" > Secret `AWIN_API_TOKEN` no
-  Cloudflare (Variables and Secrets) e depois um deploy novo (Claude faz). Conferir `/api/cupons` com ids "awin-…".
+- ✅ **Cupons da Awin NO AR (30/10/2026, pedido do Giovanni)**: `cuponsAwin` em lib/cupons.js (POST api.awin.com/publisher/<id>/promotions,
+  voucher + active + joined + BR; conta de GET /accounts; Secret `AWIN_API_TOKEN` no Cloudflare, cadastrado pelo Giovanni). 43 cupons
+  (Kabum, Motorola, oBoticario, Karsten…). /api/cupons: cada rede separada (`daRede`), última lista boa de cada uma guardada 2 dias; rede
+  em falha = lista junta só 10 min e motivo em `erroAwin`/`erroLomadee` (sem chaves). VERSAO=10. No mesmo dia a Lomadee respondia
+  500 "campaigns_request_failed" nos cupons (busca da Lomadee ok). `semCodigo` também tira palavra que contém o código ("CP2HUSKY15").
 - ⏳ **PENDENTE (pedido do Giovanni, 28/10/2026): IA paga para a correção automática da busca/categorias.** Hoje o robô corrige
   sozinho fotos/links quebrados, mapa de categorias da Shopee/AliExpress e produtos novos; a auditoria e o relatório de categorias só
   ANOTAM e o Claude corrige as regras. Com IA, o robô classificaria cada produto e consertaria sozinho. **Giovanni vai ativar "assim que
