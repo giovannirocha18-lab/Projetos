@@ -4,7 +4,7 @@
 
 // "Ofertas do dia" pedidas antes de todo o resto (29/10/2026, Giovanni: na 1ª abertura ficava "Buscando…" sem
 // nenhum produto): na página inicial o pedido sai já na 1ª linha; carregarDestaques usa esta resposta
-const VERSAO_BUSCA = 101;
+const VERSAO_BUSCA = 102;
 const ehPaginaInicial = location.pathname === "/" && !new URLSearchParams(location.search).has("q")
   && !new URLSearchParams(location.search).has("loja");
 let inicioAdiantado = ehPaginaInicial

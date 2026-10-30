@@ -7,7 +7,7 @@
 // Roda sozinho todo dia pelo GitHub (.github/workflows/robo-precos.yml).
 //
 // Segredos (GitHub > Settings > Secrets and variables > Actions):
-//   AWIN_FEED_KEY          link da "Lista de Feed" da conta antiga da Awin (pessoa física)
+//   (AWIN_FEED_KEY, da conta antiga pessoa física, não é mais usado desde 30/10/2026)
 //   AWIN_FEED_KEY_PJ       o mesmo, da conta nova (empresa/MEI); loja aprovada nas duas usa a nova
 //   CLOUDFLARE_API_TOKEN   token com permissão de editar o D1
 //   CLOUDFLARE_ACCOUNT_ID  ID da conta do Cloudflare
@@ -232,7 +232,7 @@ function paraOferta(p, feed = {}) {
   const promocao = converter(numero(p.sale_price));
   const cheio = converter(numero(p.search_price) || numero(p.store_price) || numero(p.price));
   const preco = promocao > 0 ? promocao : cheio;
-  const link = lojaId && linkAfiliado(p, lojaId, feed.afiliado ?? idAfiliado(process.env.AWIN_FEED_KEY || ""));
+  const link = lojaId && linkAfiliado(p, lojaId, feed.afiliado ?? idAfiliado(process.env.AWIN_FEED_KEY_PJ || ""));
   if (!lojaId) return "sem loja";
   if (!produtoId) return "sem código do produto";
   if (!titulo) return "sem nome";
@@ -455,10 +455,11 @@ async function obterFeeds() {
   // Duas contas da Awin: a nova (empresa/MEI, 20/10/2026) e a antiga (pessoa física). As lojas vão sendo
   // aprovadas de novo na conta nova; enquanto isso, as que só estão na antiga continuam vindo dela.
   // Loja aprovada nas duas usa a nova (o link do produto passa a levar o número de afiliado da empresa).
-  const contas = [["AWIN_FEED_KEY_PJ", "conta nova"], ["AWIN_FEED_KEY", "conta antiga"]]
+  // 30/10/2026 (decisão do Giovanni): só a conta PJ. As lojas só da conta antiga (Posthaus, Polishop, EINSTAR, Arno) saem.
+  const contas = [["AWIN_FEED_KEY_PJ", "conta PJ"]]
     .map(([nome, rotulo]) => ({ nome, rotulo, segredo: (process.env[nome] || "").trim() }))
     .filter((c) => c.segredo);
-  if (!contas.length) throw new Error("Falta o segredo AWIN_FEED_KEY");
+  if (!contas.length) throw new Error("Falta o segredo AWIN_FEED_KEY_PJ");
   const feeds = [];
   const lojasVistas = new Set();
   for (const conta of contas) {
