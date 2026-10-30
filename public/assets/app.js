@@ -2579,9 +2579,41 @@ function inicioGuardado() {
 }
 function guardarInicio(ofertas) {
   try {
-    localStorage.setItem(GUARDA_INICIO, JSON.stringify({ quando: Date.now(), ofertas: ofertas.slice(0, 100) }));
+    localStorage.setItem(GUARDA_INICIO, JSON.stringify({ quando: Date.now(), ofertas: ofertas.slice(0, 300) }));
   } catch {
     // sem armazenamento (aba anônima, cheio): só não guarda
+  }
+}
+
+// Páginas 2 a 6 das Ofertas do dia (prontas no servidor, PAGINAS_INICIO_PRONTAS em buscar.js) pedidas juntas, logo
+// depois da 1ª: a página inicial já abre com ~250 ofertas e o "Bem avaliados" não precisa esperar (pedido do Giovanni,
+// 30/10/2026). Devolve { ofertas, ultima, temMais } ou null.
+const PAGINAS_INICIO_JUNTAS = 6;
+async function paginasSeguintes() {
+  const paginas = await Promise.all(Array.from({ length: PAGINAS_INICIO_JUNTAS - 1 }, (_, i) =>
+    fetch(enderecoBusca("", null, `&pagina=${i + 2}`)).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  const ofertas = [];
+  let ultima = 1, temMais = true;
+  for (const [i, d] of paginas.entries()) {
+    if (!d?.ofertas?.length) break;
+    ofertas.push(...d.ofertas);
+    ultima = i + 2;
+    temMais = Boolean(d.temMais);
+  }
+  return ofertas.length ? { ofertas, ultima, temMais } : null;
+}
+async function completarInicio(pedido) {
+  const seguintes = await paginasSeguintes();
+  // Se a pessoa saiu do início ou já clicou em "Ver mais ofertas", deixa como está
+  if (!seguintes || pedido !== estado.pedido || estado.paginaInicio !== 1) return;
+  estado.inicio = semRepetidos([...estado.inicio, ...seguintes.ofertas]);
+  estado.paginaInicio = seguintes.ultima;
+  estado.temMaisInicio = seguintes.temMais;
+  guardarInicio(estado.inicio);
+  if (!estado.q && !$("#inicio").hidden) {
+    estado.ofertas = estado.inicio;
+    desenharFiltroLojas();
+    desenharResultados();
   }
 }
 
@@ -2614,14 +2646,17 @@ async function carregarDestaques() {
   }
   try {
     const dados = await pedirInicio();
-    guardarInicio(dados.ofertas);
-    estado.inicio = semRepetidos(dados.ofertas);
-    estado.paginaInicio = 1;
-    estado.temMaisInicio = Boolean(dados.temMais);
+    // Com as guardadas na tela, espera as páginas seguintes e troca tudo de uma vez (sem a lista encolher e crescer)
+    const seguintes = guardado && dados.temMais ? await paginasSeguintes() : null;
+    estado.inicio = semRepetidos([...dados.ofertas, ...(seguintes?.ofertas || [])]);
+    estado.paginaInicio = seguintes?.ultima || 1;
+    estado.temMaisInicio = Boolean(seguintes ? seguintes.temMais : dados.temMais);
+    guardarInicio(estado.inicio);
     tituloOfertas(false);
     if (pedido !== estado.pedido) return; // a pessoa já foi para uma busca
     $("#aviso-teste").hidden = !dados.exemplo;
     mostrarInicio();
+    if (!seguintes) completarInicio(pedido);
   } catch {
     tituloOfertas(false);
     if (pedido !== estado.pedido || guardado) return; // com as guardadas na tela, fica com elas
