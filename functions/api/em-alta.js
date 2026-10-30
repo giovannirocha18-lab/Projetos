@@ -23,7 +23,7 @@ function responder(dados, segundos = CACHE_SEGUNDOS) {
 export async function onRequestGet({ request, env }) {
   // Guarda por 1 hora para não consultar a Shopee a cada visita
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/em-alta?v=7", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/em-alta?v=8", request.url)); // trocar o v= para descartar o guardado
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
 
