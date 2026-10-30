@@ -671,6 +671,16 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   voltaram (`/api/cupons` sem `erroLomadee`); auditoria da madrugada.
   Conferido 30/10 (20ª sessão): execução #80 (cron antigo 06:30 UTC) começou 13:17 UTC (~7 h de atraso); IA mandou lote de 1.584
   (resultado lido na próxima); auditoria 150 buscas, 0 suspeitos; cupons Lomadee ainda com erro 500 da Lomadee (Awin 44 ok).
+- ⭐ **IA conferindo as buscas (30/10/2026, 20ª sessão, ideia do Giovanni; print "jogo de ferramentas" com jogo de chá/tabuleiro
+  em Cozinha/Brinquedos)**: passo "IA conferindo as buscas" no job `auditoria` (`robo/conferir-buscas.mjs 300`, `continue-on-error`):
+  abre as 300 primeiras buscas de `/api/vocabulario` (1ª resposta + lote seguinte), pega os produtos não-acessório FORA das categorias
+  da busca (`foraDasCategorias` em lib/iaBusca.js, mesma regra de 20% do site) e pergunta ao Haiku 5.5 (API normal, sem lote; "na
+  dúvida, sim") se é o produto buscado. Tabela D1 `ia_busca` (termo normalizado, chave do título, ok); cada par é perguntado 1 vez.
+  "Não" = `semNaoBuscados` marca `acessorio+parecido+naoBuscado` e manda para "Ver também… parecidos" (busca ao vivo, cache e
+  buscas prontas, lido do D1 a cada 10 min por servidor). "Sim" fora da categoria = lista "Categoria a conferir" no resumo
+  (Claude corrige as regras). Execução #81: 1.799 escondidos em 162 buscas (labubu: roupinhas/caixas; meia: Apple Watch
+  "Meia-noite"; café: camiseta/almofada cor café). Discutível: combos perfume + hidratante saíram de "hidratante".
+  "jogo de dewalt" na sugestão: `sugerir()` completa "de" com marcas (De-walt) — correção pequena pendente, Giovanni não pediu ainda.
 - ✅ **Conferido em 28/10/2026**: fotos da Candide limpas (busca "boneca": 4 da Candide, todas abrem; página da loja: 0 quebradas).
   Faltava: resposta guardada (cache de 1 dia) não era refeita com a Lomadee lenta (>5 s) → `respostaSemFotosQuebradas` (lib/fotos.js)
   tira as fotos já testadas também do cache e das buscas prontas; o teste agora pega todas as fotos do produto de uma vez (até 200).
