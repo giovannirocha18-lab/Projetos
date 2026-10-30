@@ -763,6 +763,9 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   `.fim-da-grade` + IntersectionObserver) na página inicial e na busca. Medido (Pixel 7, 4G simulado): 1º cartão ~1 s nas 2 visitas.
   Em alta: "boneca" fora (`FORA_DOS_ATALHOS`, filtrado também na lista guardada) e "ração" vira o atalho da categoria Pets
   (`VIRA_CATEGORIA` em em-alta.js; em-alta v=9). Marcas de pet em `MARCAS` (vocabulario v=3).
+- ✅ **Carrinho exige conta (30/10/2026, pedido do Giovanni)**: `alternarFavorito` sem login abre "Entrar" com aviso 🛒 (`conta.carrinhoOferta`);
+  depois de entrar (`conectou`) o produto é guardado sozinho; no "Entrar com Google" o produto vai para o carrinho do aparelho antes e
+  é juntado na volta (CHAVE_JUNTAR). Tirar do carrinho continua livre. Conferido no ar (Playwright).
 - ⏳ **PENDENTE (pedido do Giovanni, 28/10/2026): IA paga para a correção automática da busca/categorias.** Hoje o robô corrige
   sozinho fotos/links quebrados, mapa de categorias da Shopee/AliExpress e produtos novos; a auditoria e o relatório de categorias só
   ANOTAM e o Claude corrige as regras. Com IA, o robô classificaria cada produto e consertaria sozinho. **Giovanni vai ativar "assim que
