@@ -2656,7 +2656,7 @@ async function carregarDestaques() {
     if (pedido !== estado.pedido) return; // a pessoa já foi para uma busca
     $("#aviso-teste").hidden = !dados.exemplo;
     mostrarInicio();
-    if (!seguintes) completarInicio(pedido);
+    if (!seguintes) completarInicio(estado.pedido); // mostrarInicio() trocou o número do pedido
   } catch {
     tituloOfertas(false);
     if (pedido !== estado.pedido || guardado) return; // com as guardadas na tela, fica com elas
