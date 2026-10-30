@@ -680,6 +680,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   buscas prontas, lido do D1 a cada 10 min por servidor). "Sim" fora da categoria = lista "Categoria a conferir" no resumo
   (Claude corrige as regras). Execução #81: 1.799 escondidos em 162 buscas (labubu: roupinhas/caixas; meia: Apple Watch
   "Meia-noite"; café: camiseta/almofada cor café). Discutível: combos perfume + hidratante saíram de "hidratante".
+  ⭐ **Marcas x categorias na barra lateral (30/10/2026, pergunta do Giovanni; Baymard/NN/g)**: "Marcas" subiu para logo abaixo de
+  "Ordenar por". "Categorias nos resultados" some na busca de produto específico e só aparece (antes das Marcas) quando a busca
+  é ambígua: 2+ categorias fortes, sem base, ou 20%+ dos produtos fora da categoria (`PARTE_FORA_AMBIGUA` em `desenharFiltroSecoes`).
+  Testado: geladeira/jogo de ferramentas/toalha = só Marcas; kit, vestido (Moda infantil), colchão, capa, presente = categorias.
   "jogo de dewalt" na sugestão: `sugerir()` completa "de" com marcas (De-walt) — correção pequena pendente, Giovanni não pediu ainda.
 - ✅ **Conferido em 28/10/2026**: fotos da Candide limpas (busca "boneca": 4 da Candide, todas abrem; página da loja: 0 quebradas).
   Faltava: resposta guardada (cache de 1 dia) não era refeita com a Lomadee lenta (>5 s) → `respostaSemFotosQuebradas` (lib/fotos.js)
