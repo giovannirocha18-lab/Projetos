@@ -6,7 +6,7 @@
 import { cuponsLomadee, cuponsAwin } from "../../lib/cupons.js";
 
 const CACHE_SEGUNDOS = 3 * 60 * 60;
-const VERSAO = 9; // trocar para descartar o que está guardado
+const VERSAO = 10; // trocar para descartar o que está guardado
 
 // Só o começo do código: "BRINOXCHEFE" -> "BRI••••••••"
 const mascara = (codigo) => `${codigo.slice(0, Math.min(3, Math.ceil(codigo.length / 3)))}${"•".repeat(Math.max(codigo.length - 3, 4))}`;
