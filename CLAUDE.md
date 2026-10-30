@@ -747,6 +747,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
 - ✅ **Só a conta PJ da Awin (30/10/2026, decisão do Giovanni)**: robo/awin.mjs lê só `AWIN_FEED_KEY_PJ` (`AWIN_FEED_KEY` não é mais
   usado). #78: removidos 59.771 (Posthaus, Polishop, Arno); EINSTAR fica (aprovada também na PJ). 16 lojas da Awin, 71.970 produtos
   nos feeds, banco 283 MB. Shopee, AliExpress e Lomadee (cadastros no CPF) continuam. Cache v=102, lojas v=23, numeros v=10; `so_prontas` disparado.
+- ✅ **Celular lento (30/10/2026, pedido do Giovanni)**: medido com Playwright (Pixel 7, 4G simulado): fotos grandes demais
+  (Rovitex ~114 KB, AliExpress até 180 KB). `fotoPequena` no app.js (só no cartão e no Comparar; "Ver detalhes" usa a original):
+  AliExpress `_350x350.jpg`, VTEX `/arquivos/ids/<id>-350-auto`, gbmedia `w_400`; falhou = volta para a original. Rovitex 114→12 KB,
+  AliExpress 55→15 KB. Shopee fica no `_tn` (já leve e no cache; `@resize_w…` é mais lento). 1º cartão: busca pronta ~0,4–1,1 s.
 - ⏳ **PENDENTE (pedido do Giovanni, 28/10/2026): IA paga para a correção automática da busca/categorias.** Hoje o robô corrige
   sozinho fotos/links quebrados, mapa de categorias da Shopee/AliExpress e produtos novos; a auditoria e o relatório de categorias só
   ANOTAM e o Claude corrige as regras. Com IA, o robô classificaria cada produto e consertaria sozinho. **Giovanni vai ativar "assim que
