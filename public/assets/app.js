@@ -1425,13 +1425,27 @@ function marcarSecao(secao, marcada) {
   desenharResultados();
 }
 
+const PARTE_FORA_AMBIGUA = 0.2;
 function desenharFiltroSecoes() {
   const semAcessorios = escondeAcessorios();
   const contagem = new Map();
   for (const o of estado.ofertas) {
     if (!(semAcessorios && o.acessorio)) contagem.set(o.secao || "", (contagem.get(o.secao || "") || 0) + 1);
   }
-  $("#caixa-secoes").hidden = contagem.size < 2;
+  // Busca de um produto específico ("geladeira", "jogo de ferramentas"): a categoria já está dita na busca e a lista só
+  // mostrava o que veio errado; o que ajuda é a marca, que fica no alto (pesquisas de usabilidade Baymard/NN/g; pedido do
+  // Giovanni, 30/10/2026). As categorias só aparecem quando a busca se divide em 2+ categorias fortes ("toalha", "jogo")
+  // ou não dá para saber; aí vêm antes das marcas
+  // Também quando 20%+ dos produtos estão fora da categoria da busca ("kit", "capa", "presente", "vestido" com Moda infantil)
+  const daBusca = categoriasDaBusca();
+  const produtos = estado.ofertas.filter((o) => !o.acessorio);
+  const fora = daBusca ? produtos.filter((o) => !daBusca.has(o.secao || "")).length : 0;
+  const ambigua = !daBusca || daBusca.size > 1 || fora >= produtos.length * PARTE_FORA_AMBIGUA;
+  $("#caixa-secoes").hidden = contagem.size < 2 || (estado.q && !estado.cat && !ambigua);
+  const caixa = $("#caixa-secoes");
+  const marcas = $("#caixa-marcas");
+  if (estado.q && !estado.cat && ambigua) { if (caixa.nextElementSibling !== marcas) marcas.before(caixa); }
+  else if (marcas.nextElementSibling !== caixa) marcas.after(caixa);
   const ordem = [...contagem.keys()].sort((a, b) => (!a) - (!b) || (b === estado.cat) - (a === estado.cat) || contagem.get(b) - contagem.get(a));
   $("#filtro-secoes").replaceChildren(...ordem.map((secao) => el("label", { class: "opcao" },
     el("input", { type: "checkbox", checked: secaoVisivel({ secao }), onchange: (e) => marcarSecao(secao, e.target.checked) }),
