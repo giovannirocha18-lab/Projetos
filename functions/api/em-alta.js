@@ -20,10 +20,15 @@ function responder(dados, segundos = CACHE_SEGUNDOS) {
   });
 }
 
+// Busca muito feita que aparece como a categoria inteira, mais chamativa (pedido do Giovanni, 30/10/2026: "ração" -> "Pets")
+const VIRA_CATEGORIA = {
+  racao: { nome: "Pets", busca: "pet" },
+};
+
 export async function onRequestGet({ request, env }) {
   // Guarda por 1 hora para não consultar a Shopee a cada visita
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/em-alta?v=8", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/em-alta?v=9", request.url)); // trocar o v= para descartar o guardado
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
 
@@ -33,7 +38,7 @@ export async function onRequestGet({ request, env }) {
   ]);
   const categorias = categoriasEmAlta(maisVendidos, QUANTIDADE);
   const vistos = new Set();
-  const itens = [...doSite.map((t) => ({ nome: t, busca: t })), ...categorias]
+  const itens = [...doSite.map((t) => VIRA_CATEGORIA[normalizar(t)] || { nome: t, busca: t }), ...categorias]
     .filter((i) => !vistos.has(normalizar(i.busca)) && vistos.add(normalizar(i.busca)))
     .slice(0, QUANTIDADE);
 
