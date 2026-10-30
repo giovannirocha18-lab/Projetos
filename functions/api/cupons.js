@@ -3,10 +3,10 @@
 // GET /api/cupons?codigo=<id> -> { codigo, link } de um cupom: o botão "Pegar cupom" pede o código só no clique, que
 // também abre a loja pelo link com comissão (teste de invasão de 25/10/2026: a lista mandava todos os códigos inteiros,
 // e quem abrisse o endereço da lista via tudo sem passar pelo link)
-import { cuponsLomadee } from "../../lib/cupons.js";
+import { cuponsLomadee, cuponsAwin } from "../../lib/cupons.js";
 
 const CACHE_SEGUNDOS = 3 * 60 * 60;
-const VERSAO = 5; // trocar para descartar o que está guardado
+const VERSAO = 6; // trocar para descartar o que está guardado
 
 // Só o começo do código: "BRINOXCHEFE" -> "BRI••••••••"
 const mascara = (codigo) => `${codigo.slice(0, Math.min(3, Math.ceil(codigo.length / 3)))}${"•".repeat(Math.max(codigo.length - 3, 4))}`;
@@ -18,7 +18,11 @@ async function todos(request, env) {
   const guardada = cache && (await cache.match(chave));
   if (guardada) return { cupons: (await guardada.json()).cupons, completo: true };
   try {
-    const cupons = await cuponsLomadee(env);
+    // Awin fora do ar: mostra os da Lomadee, mas não guarda (tenta de novo no próximo pedido)
+    let awinOk = true;
+    const [lomadee, awin] = await Promise.all([cuponsLomadee(env), cuponsAwin(env).catch(() => { awinOk = false; return []; })]);
+    const cupons = [...lomadee, ...awin];
+    if (!awinOk) return { cupons, completo: false };
     if (cache) {
       await cache.put(chave, Response.json({ cupons }, { headers: { "Cache-Control": `public, max-age=${CACHE_SEGUNDOS}` } }));
     }

@@ -2240,10 +2240,10 @@ function desenharListaLojas() {
     ...(lista.length ? [] : [el("p", { class: "vazio" }, "Nenhuma loja com esse nome.")]));
 }
 
-// Na janela de lojas, as marcas da Lomadee com cupom ganham o selo (a chave da loja vem do nome, como no servidor)
+// Na janela de lojas, as lojas com cupom ganham o selo (Lomadee: pelo nome; Awin: pela chave "awin:<loja>")
 function botaoCupomLoja(l) {
-  if (l.rede !== "lomadee") return null;
-  const c = estado.cupons.find((x) => x.lojaNome === l.nome);
+  if (l.rede !== "lomadee" && l.rede !== "awin") return null;
+  const c = estado.cupons.find((x) => (l.rede === "awin" ? `awin:${x.loja}` === l.id : x.lojaNome === l.nome));
   return c ? botaoCupom(c.loja) : null;
 }
 
