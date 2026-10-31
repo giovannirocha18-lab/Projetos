@@ -51,7 +51,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   do robô; decidir Mercado Livre.
 - **Claude**: conferir o robô de cada madrugada (atraso, IA, auditoria); quando loja nova aprovar: `so_awin`, ler o log,
   `so_auditoria` (categorias da loja → completar `REGRAS` em lib/caminhos.js), subir versões e `so_prontas`.
-- Pequenos: sugestão "jogo de" completa com marcas ("jogo dewalt"); cupons da Lomadee davam erro 500 do lado deles.
+- Pequenos: cupons da Lomadee davam erro 500 do lado deles; sugestão completa marca sem ligação com o produto
+  ("geladeira bravecto") — dá para usar `marcas-produtos`.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
 
 ## Comando de recomeço
