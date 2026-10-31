@@ -743,16 +743,24 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .grafico-caixa { position: relative; }
 .grafico { width: 100%; height: auto; display: block; touch-action: pan-y; }
 .grafico-base { stroke: var(--borda); stroke-width: 1; }
-.grafico-area { fill: var(--roxo); opacity: .08; }
-.grafico-linha { fill: none; stroke: var(--roxo); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.grafico-ponto { fill: var(--roxo); stroke: var(--card); stroke-width: 2; }
+.grafico-grade { stroke: var(--borda); stroke-width: 1; stroke-dasharray: 2 4; }
+.grafico-linha { fill: none; stroke: var(--roxo); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.grafico-ponto { fill: var(--card); stroke: var(--roxo); stroke-width: 2; }
+.grafico-menor { fill: var(--verde); stroke: var(--card); stroke-width: 2; }
+.grafico-menor-texto { fill: var(--verde); font-size: 10px; font-weight: 700; }
+.grafico-costume { stroke: var(--suave); stroke-width: 1; stroke-dasharray: 5 4; opacity: .7; }
+.grafico-costume-texto { fill: var(--suave); font-size: 9.5px; font-weight: 600; }
+.grafico-atual { fill: var(--roxo); stroke: var(--card); stroke-width: 2; }
+.grafico-halo { fill: var(--roxo); opacity: .16; }
+.grafico-etiqueta { fill: var(--roxo); }
+.grafico-etiqueta-texto { fill: #fff; font-size: 10px; font-weight: 700; }
 .grafico-marca { fill: var(--roxo); stroke: var(--card); stroke-width: 2; }
 .grafico-guia { stroke: var(--suave); stroke-width: 1; stroke-dasharray: 3 3; }
 .grafico-eixo { fill: var(--suave); font-size: 10px; }
 .grafico-dica {
   position: absolute; top: -6px; transform: translateX(-50%); pointer-events: none;
-  background: var(--texto); color: var(--card); border-radius: 8px; padding: 4px 8px;
-  font-size: .75rem; display: flex; gap: 6px; white-space: nowrap;
+  background: var(--texto); color: var(--card); border-radius: 10px; padding: 5px 10px;
+  font-size: .78rem; display: flex; gap: 6px; white-space: nowrap; box-shadow: 0 6px 18px rgba(26, 21, 48, .22);
 }
 .grafico-dica[hidden] { display: none; }
 

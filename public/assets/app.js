@@ -1063,39 +1063,112 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
 // ---------------------------------------------------------------------
 const dataCurta = (dia) => new Date(`${dia}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 
-function graficoHistorico(pontos, precoAtual) {
+// Visual de 31/10/2026 (print do Giovanni: "deixe este gráfico mais bonito"): escala de preços à direita com linhas
+// claras, faixa roxa que some para baixo, linha tracejada do preço de costume, menor preço em verde, preço de hoje em
+// destaque e data no meio do eixo. Pontos só onde o preço mudou.
+let contadorGraficos = 0;
+function passoBonito(bruto) {
+  const pot = 10 ** Math.floor(Math.log10(bruto));
+  return [1, 2, 2.5, 5, 10].map((f) => f * pot).find((v) => v >= bruto);
+}
+function graficoHistorico(pontos, precoAtual, habitual = null) {
   const hoje = new Date().toLocaleDateString("sv-SE");
   const serie = [...pontos];
   if (!serie.length || serie.at(-1).dia !== hoje) serie.push({ dia: hoje, preco: precoAtual ?? serie.at(-1)?.preco });
-  const L = 320, A = 150, m = { esq: 8, dir: 8, topo: 14, base: 22 };
+  // Espaço à direita do tamanho da etiqueta do preço de hoje (R$ 45,60 ou R$ 1.234,56)
+  const etiqueta = `R$ ${brl(serie.at(-1).preco)}`;
+  const largura = etiqueta.length * 6 + 14;
+  const L = 340, A = 190, m = { esq: 6, dir: largura + 12, topo: 16, base: 26 };
   // Meio dia depois de hoje, para o preço atual aparecer como um trecho e não só um ponto
   const t0 = Date.parse(serie[0].dia), t1 = Math.max(Date.parse(serie.at(-1).dia), t0 + 864e5) + 432e5;
   const precos = serie.map((p) => p.preco);
-  let min = Math.min(...precos), max = Math.max(...precos);
+  const menor = Math.min(...precos), maior = Math.max(...precos);
+  let min = Math.min(menor, habitual || menor), max = Math.max(maior, habitual || maior);
   if (max - min < 1) { min -= 5; max += 5; }
-  const folga = (max - min) * 0.15;
+  const folga = (max - min) * 0.18;
+  const lo = Math.max(0, min - folga), hi = max + folga;
   const x = (dia) => m.esq + ((Date.parse(dia) - t0) / (t1 - t0)) * (L - m.esq - m.dir);
-  const y = (v) => m.topo + (1 - (v - (min - folga)) / (max - min + 2 * folga)) * (A - m.topo - m.base);
+  const y = (v) => m.topo + (1 - (v - lo) / (hi - lo)) * (A - m.topo - m.base);
+  const fimX = L - m.dir, baseY = A - m.base;
   // Linha em degraus: o preço segue igual até o próximo registro
   let d = `M${x(serie[0].dia)},${y(serie[0].preco)}`;
   for (let i = 1; i < serie.length; i++) d += ` H${x(serie[i].dia)} V${y(serie[i].preco)}`;
-  d += ` H${L - m.dir}`;
-  const area = `${d} V${A - m.base} H${x(serie[0].dia)} Z`;
+  d += ` H${fimX}`;
+  const area = `${d} V${baseY} H${x(serie[0].dia)} Z`;
   const ns = "http://www.w3.org/2000/svg";
-  const svg = (tag, attrs) => { const n = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); return n; };
+  const svg = (tag, attrs, texto) => {
+    const n = document.createElementNS(ns, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    if (texto !== undefined) n.textContent = texto;
+    return n;
+  };
 
   const raiz = svg("svg", { viewBox: `0 0 ${L} ${A}`, class: "grafico", role: "img",
-    "aria-label": `Preço de ${dataCurta(serie[0].dia)} até hoje: entre R$ ${brl(Math.min(...precos))} e R$ ${brl(Math.max(...precos))}` });
-  raiz.append(
-    svg("line", { x1: m.esq, x2: L - m.dir, y1: A - m.base, y2: A - m.base, class: "grafico-base" }),
-    svg("path", { d: area, class: "grafico-area" }),
-    svg("path", { d, class: "grafico-linha" }));
-  for (const p of serie.slice(0, -1)) raiz.append(svg("circle", { cx: x(p.dia), cy: y(p.preco), r: 4, class: "grafico-ponto" }));
-  const legenda = (texto, ancora, xx) => { const t = svg("text", { x: xx, y: A - 6, "text-anchor": ancora, class: "grafico-eixo" }); t.textContent = texto; return t; };
-  raiz.append(legenda(dataCurta(serie[0].dia), "start", m.esq), legenda("hoje", "end", L - m.dir));
+    "aria-label": `Preço de ${dataCurta(serie[0].dia)} até hoje: entre R$ ${brl(menor)} e R$ ${brl(maior)}; hoje R$ ${brl(serie.at(-1).preco)}` });
+  const idFaixa = `grafico-faixa-${++contadorGraficos}`;
+  const faixa = svg("linearGradient", { id: idFaixa, x1: 0, y1: 0, x2: 0, y2: 1 });
+  faixa.append(svg("stop", { offset: "0%", "stop-color": "#7c3aed", "stop-opacity": ".26" }),
+    svg("stop", { offset: "100%", "stop-color": "#7c3aed", "stop-opacity": "0" }));
+  const defs = svg("defs", {});
+  defs.append(faixa);
+  raiz.append(defs);
+
+  // Escala de preços à direita (3 ou 4 valores redondos); some o que encostar no preço de hoje
+  const atualY = y(serie.at(-1).preco);
+  const costumeY = habitual ? y(habitual) : null;
+  const ocupado = (yy) => Math.abs(yy - atualY) < 14 || (costumeY !== null && Math.abs(yy - costumeY) < 15);
+  const passo = passoBonito((hi - lo) / 4);
+  for (let v = Math.ceil(lo / passo) * passo; v <= hi; v += passo) {
+    const yy = y(v);
+    if (yy < m.topo - 2 || yy > baseY - 4) continue;
+    raiz.append(svg("line", { x1: m.esq, x2: fimX, y1: yy, y2: yy, class: "grafico-grade" }));
+    if (!ocupado(yy)) {
+      raiz.append(svg("text", { x: L - 4, y: yy + 3.5, "text-anchor": "end", class: "grafico-eixo" },
+        `R$ ${brl(v).replace(/,00$/, "")}`));
+    }
+  }
+  raiz.append(svg("line", { x1: m.esq, x2: fimX, y1: baseY, y2: baseY, class: "grafico-base" }));
+
+  // Preço de costume: linha tracejada e o nome na coluna da escala (o valor está na caixa colorida acima)
+  if (habitual) {
+    raiz.append(svg("line", { x1: m.esq, x2: fimX, y1: costumeY, y2: costumeY, class: "grafico-costume" }));
+    if (Math.abs(costumeY - atualY) >= 14) {
+      raiz.append(svg("text", { x: L - 4, y: costumeY + 3.5, "text-anchor": "end", class: "grafico-costume-texto" }, "de costume"));
+    }
+  }
+
+  raiz.append(svg("path", { d: area, fill: `url(#${idFaixa})` }), svg("path", { d, class: "grafico-linha" }));
+
+  // Pontos só onde o preço mudou; o menor preço em verde (a última vez que chegou nele)
+  const mudancas = serie.slice(0, -1).filter((p, i, a) => i === 0 || p.preco !== a[i - 1].preco);
+  const menorPonto = [...serie].reverse().find((p) => p.preco === menor);
+  for (const p of mudancas) {
+    if (p === menorPonto) continue;
+    raiz.append(svg("circle", { cx: x(p.dia), cy: y(p.preco), r: 3.5, class: "grafico-ponto" }));
+  }
+  if (menor < maior && menorPonto !== serie.at(-1)) {
+    const mx = x(menorPonto.dia), my = y(menor);
+    raiz.append(svg("circle", { cx: mx, cy: my, r: 5, class: "grafico-menor" }),
+      svg("text", { x: Math.min(Math.max(mx, m.esq + 46), fimX - 46), y: Math.min(my + 17, baseY - 4),
+        "text-anchor": "middle", class: "grafico-menor-texto" }, `menor R$ ${brl(menor)}`));
+  }
+  // Preço de hoje: bolinha com halo no fim da linha e etiqueta roxa na escala
+  const ex = fimX;
+  raiz.append(svg("circle", { cx: ex, cy: atualY, r: 9, class: "grafico-halo" }),
+    svg("circle", { cx: ex, cy: atualY, r: 5, class: "grafico-atual" }));
+  raiz.append(svg("rect", { x: L - largura - 1, y: atualY - 10, width: largura, height: 20, rx: 10, class: "grafico-etiqueta" }),
+    svg("text", { x: L - 1 - largura / 2, y: atualY + 3.5, "text-anchor": "middle", class: "grafico-etiqueta-texto" }, etiqueta));
+
+  // Datas: começo, meio (se tiver uns dias) e hoje
+  const legenda = (texto, ancora, xx) => svg("text", { x: xx, y: A - 8, "text-anchor": ancora, class: "grafico-eixo" }, texto);
+  raiz.append(legenda(dataCurta(serie[0].dia), "start", m.esq), legenda("hoje", "end", fimX));
+  if (t1 - t0 > 6 * 864e5) {
+    const meio = new Date((t0 + t1) / 2).toLocaleDateString("sv-SE");
+    raiz.append(legenda(dataCurta(meio), "middle", (m.esq + fimX) / 2));
+  }
 
   // Dica ao passar o mouse/dedo: preço em vigor naquele dia
-  const guia = svg("line", { y1: m.topo, y2: A - m.base, class: "grafico-guia", visibility: "hidden" });
+  const guia = svg("line", { y1: m.topo - 6, y2: baseY, class: "grafico-guia", visibility: "hidden" });
   const marca = svg("circle", { r: 5, class: "grafico-marca", visibility: "hidden" });
   raiz.append(guia, marca);
   const dica = el("div", { class: "grafico-dica", hidden: true });
@@ -1104,7 +1177,7 @@ function graficoHistorico(pontos, precoAtual) {
     const r = raiz.getBoundingClientRect();
     const t = t0 + ((e.clientX - r.left) / r.width * L - m.esq) / (L - m.esq - m.dir) * (t1 - t0);
     const vigente = [...serie].reverse().find((p) => Date.parse(p.dia) <= t) || serie[0];
-    const xx = Math.min(Math.max((e.clientX - r.left) / r.width * L, m.esq), L - m.dir);
+    const xx = Math.min(Math.max((e.clientX - r.left) / r.width * L, m.esq), fimX);
     for (const n of [guia, marca]) n.setAttribute("visibility", "visible");
     guia.setAttribute("x1", xx); guia.setAttribute("x2", xx);
     marca.setAttribute("cx", xx); marca.setAttribute("cy", y(vigente.preco));
@@ -1215,7 +1288,7 @@ async function abrirHistorico(o) {
       el("div", {}, el("small", {}, "Hoje"), el("strong", {}, `R$ ${brl(o.preco)}`)),
       el("div", {}, el("small", {}, "Menor"), el("strong", {}, `R$ ${brl(Math.min(...precos))}`)),
       el("div", {}, el("small", {}, "Maior"), el("strong", {}, `R$ ${brl(Math.max(...precos))}`))),
-    graficoHistorico(pontos, o.preco),
+    graficoHistorico(pontos, o.preco, o.historico?.dias >= DIAS_PARA_OPINAR ? o.historico.habitual : null),
     el("p", { class: "historico-nota" }, diasAcompanhando < 7
       ? "Começamos a acompanhar este preço há pouco tempo. O gráfico fica mais completo a cada dia."
       : `Preço acompanhado há ${diasAcompanhando} dias.${o.moeda ? ` Valores convertidos de ${o.moeda} para reais.` : ""}`),
