@@ -684,6 +684,14 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   "Ordenar por". "Categorias nos resultados" some na busca de produto específico e só aparece (antes das Marcas) quando a busca
   é ambígua: 2+ categorias fortes, sem base, ou 20%+ dos produtos fora da categoria (`PARTE_FORA_AMBIGUA` em `desenharFiltroSecoes`).
   Testado: geladeira/jogo de ferramentas/toalha = só Marcas; kit, vestido (Moda infantil), colchão, capa, presente = categorias.
+  ⭐ **Celular no molde do app do Mercado Livre (31/10/2026, print do Giovanni; nossas cores)**: só ≤640px (computador igual).
+  Topo = ícone do logo + busca em pílula (conta/carrinho do topo escondidos); `#abas-cel` (Tudo + 14 categorias, `ABAS_CELULAR`,
+  montadas em `desenharCategorias`, marcadas em `marcarCategoria`); `.atalhos-cel` na página inicial (Mais vendidos, Maior desconto,
+  Cupons, Black Friday, Lojas, Bem avaliados, Categorias; `data-atalho`); faixa "milhões" menor sem os botões; cartão: carrinho
+  redondo em cima da foto (`.favoritar-foto`), "N% OFF" verde ao lado do preço antigo (`.desconto-pill`, selo -N% da foto some),
+  sem Ver detalhes/Histórico/WhatsApp/sino (estão na janela de detalhes), **tocar na foto abre "Ver detalhes"** (`CELULAR`);
+  `.barra-baixo` fixa (Início, Categorias, Carrinho com contador `data-contador-bb`, Cupons, Conta); `voltarAoInicio()`;
+  card roxo da busca menor com lojas deslizando. Testado com Playwright (Pixel, dados reais).
   "jogo de dewalt" na sugestão: `sugerir()` completa "de" com marcas (De-walt) — correção pequena pendente, Giovanni não pediu ainda.
 - ✅ **Conferido em 28/10/2026**: fotos da Candide limpas (busca "boneca": 4 da Candide, todas abrem; página da loja: 0 quebradas).
   Faltava: resposta guardada (cache de 1 dia) não era refeita com a Lomadee lenta (>5 s) → `respostaSemFotosQuebradas` (lib/fotos.js)
