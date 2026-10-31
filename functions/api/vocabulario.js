@@ -4,12 +4,13 @@
 import { termosBuscados } from "../../lib/buscas.js";
 import { ERROS, MARCAS, termosParaSugestoes } from "../../lib/vocabulario.js";
 import { CHAVE_RESUMO, termosDeMarcas } from "../../lib/marcasProdutos.js";
+import { normalizar } from "../../lib/texto.js";
 
 const CACHE_SEGUNDOS = 6 * 60 * 60;
 
 export async function onRequestGet({ request, env }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/vocabulario?v=4", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/vocabulario?v=5", request.url)); // trocar o v= para descartar o guardado
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
 
@@ -22,7 +23,8 @@ export async function onRequestGet({ request, env }) {
   } catch {
     // ainda sem o resumo (o robô cria)
   }
-  const termos = [...new Set([...termosParaSugestoes(buscados), ...deMarcas])];
+  const vistos = new Set();
+  const termos = [...termosParaSugestoes(buscados), ...deMarcas].filter((t) => !vistos.has(normalizar(t)) && vistos.add(normalizar(t)));
   const resposta = new Response(JSON.stringify({ termos, marcas: MARCAS, erros: ERROS }), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
