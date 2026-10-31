@@ -1517,6 +1517,10 @@ function marcaDe(o) {
 }
 
 const MARCAS_VISIVEIS = 10;
+let ordemMarcas = [];
+let marcasParadas = false;
+$("#caixa-marcas").addEventListener("pointerenter", () => { marcasParadas = true; });
+$("#caixa-marcas").addEventListener("pointerleave", () => { marcasParadas = false; });
 function desenharFiltroMarcas() {
   const passa = passaNosFiltros(false);
   const contagem = new Map();
@@ -1532,7 +1536,14 @@ function desenharFiltroMarcas() {
   // na busca, na categoria e na página de uma loja (print do Giovanni, 24/10/2026: só 3 marcas na página inicial)
   caixa.hidden = contagem.size < 2 || (!estado.q && !estado.loja);
   if (caixa.hidden) return;
-  const ordem = [...contagem].sort(([a, x], [b, y]) => estado.marcasSo.has(b) - estado.marcasSo.has(a) || y.qtd - x.qtd || x.nome.localeCompare(y.nome, "pt-BR"));
+  let ordem = [...contagem].sort(([a, x], [b, y]) => estado.marcasSo.has(b) - estado.marcasSo.has(a) || y.qtd - x.qtd || x.nome.localeCompare(y.nome, "pt-BR"));
+  // Com o mouse (ou o dedo) em cima da lista, a ordem não muda: os lotes que chegam sozinhos mudavam as quantidades e a
+  // marca embaixo do clique trocava (print "smart tv lg" com Samsung marcada, 31/10/2026). Só as quantidades se atualizam
+  if (marcasParadas && ordemMarcas.length) {
+    const pos = new Map(ordemMarcas.map((n, i) => [n, i]));
+    ordem = ordem.sort(([a], [b]) => (pos.get(a) ?? 1e9) - (pos.get(b) ?? 1e9));
+  }
+  ordemMarcas = ordem.map(([n]) => n);
   const mostrar = estado.todasMarcas ? ordem : ordem.slice(0, Math.max(MARCAS_VISIVEIS, estado.marcasSo.size));
   $("#filtro-marcas").replaceChildren(...mostrar.map(([n, m]) => el("label", { class: "opcao" },
     el("input", { type: "checkbox", checked: estado.marcasSo.has(n), onchange: (e) => {
