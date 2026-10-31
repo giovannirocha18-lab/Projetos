@@ -935,6 +935,8 @@ body.com-comparar .rodape { padding-bottom: 96px; }
   .numeros-inicio .botoes-inicio { display: none; }
   .secao-titulo { margin-bottom: 10px; }
   .secao-titulo h2 { font-size: 1.15rem; }
+  /* "Categorias e filtros" ao lado de "Ofertas do dia" saiu: já está nos atalhos e na barra de baixo */
+  .secao-titulo .botao-filtros { display: none; }
 
   /* Cartões enxutos */
   .grade { gap: 8px; }
