@@ -1294,3 +1294,8 @@ Texto para colar numa conversa nova:
 > Estamos continuando o projeto do site vaiprocarrinho.com.br. Leia o CLAUDE.md e o README.md da
 > branch claude/inspiring-hamilton-wafagr, me diga em poucas linhas onde paramos e quais são os próximos passos, e continue
 > trabalhando na branch claude/inspiring-hamilton-wafagr.
+- ⭐ **Gráfico do histórico de preço novo (31/10/2026, print do Giovanni "deixe este gráfico mais bonito")**: `graficoHistorico(pontos,
+  preco, habitual)` em app.js: escala de preços redonda à direita com linhas tracejadas claras (`passoBonito`), faixa roxa em
+  degradê, linha tracejada do preço de costume (só com ≥ DIAS_PARA_OPINAR; nome "de costume" na coluna da escala), menor preço
+  em verde com "menor R$ …", pontos vazados só onde o preço mudou, preço de hoje com halo + etiqueta roxa (coluna da direita do
+  tamanho da etiqueta), data do meio no eixo (> 6 dias), dica do mouse com sombra. Testado no Playwright (celular e computador).
