@@ -1778,13 +1778,15 @@ function desenharResumo(lista) {
     cat ? el("h1", {}, `${cat.emoji || ""} ${cat.nome}`) : el("h1", {}, el("span", {}, "Resultados para "), `“${estado.q}”`),
     el("p", {}, lista.length
       ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"} em ${qtdLojas} ${qtdLojas === 1 ? "loja" : "lojas"}`
-      : "Nenhuma oferta com esses filtros"),
+      : estado.ofertas.length ? "Nenhuma oferta com esses filtros"
+        // Busca sem nenhum resultado (print "geladeira bravecto", 31/10/2026): não fala de filtros que ninguém escolheu
+        : "Não achamos ofertas com essas palavras nas lojas parceiras. Confira a escrita ou tente uma palavra mais simples."),
     avisoCorrecao(),
     avisoCategoria(),
     avisoLoja(),
     avisoSemProduto(),
     lojasNoResumo(),
-    el("div", { class: "resumo-acoes" }, botaoLimparFiltros()));
+    estado.ofertas.length ? el("div", { class: "resumo-acoes" }, botaoLimparFiltros()) : "");
 
   $("#resumo").replaceChildren(titulo);
 }
