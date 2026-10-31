@@ -697,6 +697,12 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   perguntados, 839 escondidos, 1.608 "categoria a conferir" (quase todos variantes legítimas: capacete de esqui, vestido infantil,
   colchão de camping), US$ 0,052; auditoria: só "stanley" (soquete R$ 18, trena R$ 10). Log completo: `get_job_logs` sem
   return_content dá um link; baixar com curl e ler as seções "### IA conferindo as buscas" / "#### Categoria a conferir".
+  ⭐ **Sugestões "produto + marca" (31/10/2026, print "stanl" só com garrafa/copo)**: `lib/marcasProdutos.js` (`produtosPorMarca`:
+  para cada marca de `MARCAS`, o produto do dicionário — `palavrasDeProduto()` das categorias + POPULARES, sem marcas/carros — que
+  aparece primeiro nas 6 primeiras palavras do título; peça de outro produto logo depois não conta; mín. 3 vezes, até 6 por marca,
+  sem "garrafa" + "garrafa térmica" juntos). `robo/marcas.mjs` (passo no job `ia`) lê os ~210 mil títulos de `ia_categorias` e grava
+  em `resumos` (chave `marcas-produtos`); `/api/vocabulario` (v=5) junta como termos sem repetir. No ar: stanley = garrafa, copo,
+  garrafa térmica, parafusadeira, carregador, lavadora, trena; tramontina = jogo de panelas, pote, lavadora de alta pressão…
   "jogo de dewalt" na sugestão: `sugerir()` completa "de" com marcas (De-walt) — correção pequena pendente, Giovanni não pediu ainda.
 - ✅ **Conferido em 28/10/2026**: fotos da Candide limpas (busca "boneca": 4 da Candide, todas abrem; página da loja: 0 quebradas).
   Faltava: resposta guardada (cache de 1 dia) não era refeita com a Lomadee lenta (>5 s) → `respostaSemFotosQuebradas` (lib/fotos.js)
