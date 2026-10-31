@@ -272,6 +272,25 @@ for (const [q, titulos, primeiro, naoBate] of [
   if (fones.find((o) => o.id === "x").acessorio) { falhas++; console.log("✗ todas as palavras: plural \"Fones\" escondido"); }
 }
 
+// Busca com marca: produto de outra marca vai para "Ver também" (print "smart tv lg" com Samsung no filtro, 31/10/2026)
+// [busca, título, fica?]
+for (const [busca, titulo, fica] of [
+  ["smart tv lg", "Smart TV LG 50 Polegadas 4K UHD ThinQ AI", true],
+  ["smart tv lg", "Smart TV 43 Polegadas Samsung Crystal UHD", false],
+  ["smart tv lg", "TV LCD LED Smart Android de 65 Polegadas 4K UHD para Samsung LG Sony TCL", false],
+  ["air fryer mondial", "Air Fryer Philco Redstone PAF16A Preta com Timer 5,5L", false],
+  ["air fryer mondial", "Fritadeira Air Fryer Mondial AFN-40 Preta", true],
+  ["tenis nike", "Tênis de corrida para trilhos Nike Pegasus Trail 5", true],
+  ["celular motorola", "Smartphone Edge 60 Pro 5G 512GB Câmera Sony LYTIA 700C 50MP Motorola", true],
+  ["iphone 15", "Apple iPhone 15 128GB Preto", true],
+  ["galaxy s24", "Samsung Galaxy S24 256GB", true],
+  ["fone jbl", "Fones de Ouvido Bluetooth V5.3 Lenovo LP75 Originais", false],
+]) {
+  total++;
+  const [o] = separarAcessorios([{ id: "1", titulo, preco: 1000 }], busca);
+  if (fica === Boolean(o.outraMarca)) { falhas++; console.log(`✗ marca: "${busca}" -> "${titulo}" ${o.outraMarca ? "escondido" : "visível"}`); }
+}
+
 // Versões de nicho vêm depois das comuns, a não ser que a busca peça: [busca, títulos, o que tem que vir primeiro]
 const ORDEM = [
   ["geladeira", ["Geladeira Portátil 40L Camping Veicular", "Geladeira Frost Free Consul 340L"], "Geladeira Frost Free Consul 340L"],
