@@ -692,6 +692,11 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   sem Ver detalhes/Histórico/WhatsApp/sino (estão na janela de detalhes), **tocar na foto abre "Ver detalhes"** (`CELULAR`);
   `.barra-baixo` fixa (Início, Categorias, Carrinho com contador `data-contador-bb`, Cupons, Conta); `voltarAoInicio()`;
   card roxo da busca menor com lojas deslizando. Testado com Playwright (Pixel, dados reais).
+  Madrugada de 31/10 (#82, cron 04:30 UTC começou 10:30 UTC = ~6 h de atraso): Awin 74.179 produtos, +3.672 novos, 1.457 removidos,
+  banco 312 MB; IA categorias leu o lote de 1.584 (US$ 0,017; novos vão na próxima); IA conferindo buscas: 300 buscas, 2.447
+  perguntados, 839 escondidos, 1.608 "categoria a conferir" (quase todos variantes legítimas: capacete de esqui, vestido infantil,
+  colchão de camping), US$ 0,052; auditoria: só "stanley" (soquete R$ 18, trena R$ 10). Log completo: `get_job_logs` sem
+  return_content dá um link; baixar com curl e ler as seções "### IA conferindo as buscas" / "#### Categoria a conferir".
   "jogo de dewalt" na sugestão: `sugerir()` completa "de" com marcas (De-walt) — correção pequena pendente, Giovanni não pediu ainda.
 - ✅ **Conferido em 28/10/2026**: fotos da Candide limpas (busca "boneca": 4 da Candide, todas abrem; página da loja: 0 quebradas).
   Faltava: resposta guardada (cache de 1 dia) não era refeita com a Lomadee lenta (>5 s) → `respostaSemFotosQuebradas` (lib/fotos.js)
