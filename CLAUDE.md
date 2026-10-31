@@ -10,8 +10,8 @@
   aparecem na tela. Ele manda prints. Pedir que nunca mande senhas/chaves no chat.
 - Conversa longa (~20% do contexto): atualizar esta memória, commit/push com `[skip ci]` e avisar "Abra uma conversa nova e
   cole o comando de recomeço". Não resumir/compactar.
-- **Todo print de erro de busca vira caso novo em `testes/busca.mjs`**; `node testes/busca.mjs` e `node testes/modulos.mjs`
-  têm que passar antes de publicar mudança na busca.
+- **Todo print de erro de busca vira caso novo em `testes/busca.mjs`** (de sugestão, em `testes/sugestoes.mjs`);
+  `node testes/busca.mjs`, `sugestoes.mjs` e `modulos.mjs` têm que passar antes de publicar mudança na busca.
 - Regras fixas: nunca raspar páginas das lojas (só APIs/feeds oficiais); nada de urgência/escassez falsa; sem aviso de
   afiliado visível (só `rel="sponsored"`); sempre tema claro.
 
@@ -51,8 +51,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   do robô; decidir Mercado Livre.
 - **Claude**: conferir o robô de cada madrugada (atraso, IA, auditoria); quando loja nova aprovar: `so_awin`, ler o log,
   `so_auditoria` (categorias da loja → completar `REGRAS` em lib/caminhos.js), subir versões e `so_prontas`.
-- Pequenos: cupons da Lomadee davam erro 500 do lado deles; sugestão completa marca sem ligação com o produto
-  ("geladeira bravecto") — dá para usar `marcas-produtos`.
+- Pequenos: cupons da Lomadee davam erro 500 do lado deles.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
 
 ## Comando de recomeço

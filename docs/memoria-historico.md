@@ -711,7 +711,10 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   Filtro de marcas: ordem parada enquanto o mouse está em cima (`marcasParadas`). Sugestões produto+marca valem para HP/LG (2 letras).
   ✅ Sugestões (31/10): "de/da/para…" no fim depois de outra palavra só bate palavra inteira e não completa marca ("jogo de" =
   jogo de panelas…, não "jogo dewalt"; "furadeira de" não vira "furadeira dewalt"); `bateComeco` com erro exige palavra do tamanho
-  do digitado ("jogo dew" não mostra "jogo de panelas"). Visto e não mexido: "geladeira bra" sugere "geladeira bravecto" (marca de pet).
+  do digitado ("jogo dew" não mostra "jogo de panelas"). Print "geladeira bravecto" (marca de pet, 0 ofertas): com produto antes,
+  a marca só é sugerida se algum termo do vocabulário (inclui as "produto + marca" do robô) tem a marca + as palavras do produto
+  (`temProduto`); "notebook de" → notebook dell, "furadeira de" → furadeira dewalt, "jogo de" → só jogo de panelas…
+  Teste novo `node testes/sugestoes.mjs` (usa o vocabulário do site no ar; todo print de sugestão errada vira caso lá).
 - ✅ **Conferido em 28/10/2026**: fotos da Candide limpas (busca "boneca": 4 da Candide, todas abrem; página da loja: 0 quebradas).
   Faltava: resposta guardada (cache de 1 dia) não era refeita com a Lomadee lenta (>5 s) → `respostaSemFotosQuebradas` (lib/fotos.js)
   tira as fotos já testadas também do cache e das buscas prontas; o teste agora pega todas as fotos do produto de uma vez (até 200).
