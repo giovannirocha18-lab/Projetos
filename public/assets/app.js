@@ -2989,7 +2989,9 @@ function corrigirPalavra(p) {
 }
 const bateInteira = (p, w) => w === p || w === `${p}s` || p === `${w}s` || (p.length >= 6 && distancia(p, w, 1) <= 1);
 // Começo de palavra com 1 letra errada: 4+ letras ("geladeria"), ou 3 depois de outras palavras ("air fra" -> air fryer)
-const bateComeco = (u, w, minimo = 4) => w.startsWith(u) || (u.length >= minimo && distancia(u, w.slice(0, u.length), 1) <= 1);
+// (a palavra do vocabulário tem que ser pelo menos do tamanho do digitado: "dew" não é "de")
+const bateComeco = (u, w, minimo = 4) => w.startsWith(u)
+  || (u.length >= minimo && w.length >= u.length && distancia(u, w.slice(0, u.length), 1) <= 1);
 
 function sugerir(texto) {
   const bruto = texto.replace(/^\s+/, "");
@@ -3015,17 +3017,21 @@ function sugerir(texto) {
   // 2) Termos do vocabulário com todas as palavras digitadas (a última pode estar pela metade);
   //    os que começam igual ao digitado vêm primeiro, depois a ordem do vocabulário (mais buscados primeiro)
   const achados = [];
+  // "de/da/para…" depois de outra palavra só bate a palavra inteira ("furadeira de" não é "furadeira dewalt")
+  const ligacao = VAZIAS_SUGESTAO.has(ultima) && originais.length > 1;
   for (const item of vocab.itens) {
     if (!completas.every((p) => item.p.some((w) => bateInteira(p, w)))) continue;
     const minimo = completas.length ? 3 : 4;
-    if (ultima && !item.p.some((w) => bateComeco(ultima, w, minimo) || bateComeco(ultimaCerta, w, minimo))) continue;
+    if (ligacao && !item.p.includes(ultima)) continue;
+    if (ultima && !ligacao && !item.p.some((w) => bateComeco(ultima, w, minimo) || bateComeco(ultimaCerta, w, minimo))) continue;
     achados.push({ t: item.t, comeca: item.n.startsWith(limpo(corrigido)) || item.n.startsWith(digitado) });
   }
   const primeiro = achados.filter((a) => a.comeca);
   primeiro.slice(0, 5).forEach((a) => incluir(a.t));
 
   // 3) Marca no fim: "maquina de lavar ele" -> "maquina de lavar electrolux"; sozinha: "sams" -> "samsung"
-  if (ultima) {
+  // Idem para marca: "jogo de" não vira "jogo dewalt"
+  if (ultima && !ligacao) {
     const antes = corrigidas.slice(0, -1).join(" ");
     vocab.marcasN
       .filter((x) => x.n.startsWith(ultima) || x.n === ultimaCerta || (ultima.length >= 4 && bateComeco(ultima, x.n)))
