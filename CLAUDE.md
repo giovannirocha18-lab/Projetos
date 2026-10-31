@@ -703,6 +703,13 @@ Windows mostra o emoji só como "BR" (filtro "Nacional" e selo "Envio do Brasil"
   sem "garrafa" + "garrafa térmica" juntos). `robo/marcas.mjs` (passo no job `ia`) lê os ~210 mil títulos de `ia_categorias` e grava
   em `resumos` (chave `marcas-produtos`); `/api/vocabulario` (v=5) junta como termos sem repetir. No ar: stanley = garrafa, copo,
   garrafa térmica, parafusadeira, carregador, lavadora, trena; tramontina = jogo de panelas, pote, lavadora de alta pressão…
+  ⭐ **Busca com marca só mostra a marca (31/10/2026, print "smart tv lg" com Samsung no filtro)**: `deOutraMarca` em
+  `lib/relevancia.js` (fim de `separarAcessorios`): com marca na busca, vai para "Ver também" (`acessorio+parecido+outraMarca`)
+  o produto com outra marca nas 6 primeiras palavras, sem a marca buscada, ou (busca de produto) com a 1ª marca logo depois de
+  "para/compatível" ("TV … para Samsung LG Sony"). Submarcas = dona (`DONO_DA_MARCA`: galaxy→samsung, iphone→apple, walita→philips,
+  shark→ninja…); marca ambígua só nas 3 primeiras palavras. "Câmera Sony … Motorola" fica. Casos no testes/busca.mjs. Cache v=103,
+  `so_prontas` disparado. No ar: smart tv lg / air fryer mondial = filtro de marcas some (só a marca buscada).
+  Filtro de marcas: ordem parada enquanto o mouse está em cima (`marcasParadas`). Sugestões produto+marca valem para HP/LG (2 letras).
   "jogo de dewalt" na sugestão: `sugerir()` completa "de" com marcas (De-walt) — correção pequena pendente, Giovanni não pediu ainda.
 - ✅ **Conferido em 28/10/2026**: fotos da Candide limpas (busca "boneca": 4 da Candide, todas abrem; página da loja: 0 quebradas).
   Faltava: resposta guardada (cache de 1 dia) não era refeita com a Lomadee lenta (>5 s) → `respostaSemFotosQuebradas` (lib/fotos.js)
