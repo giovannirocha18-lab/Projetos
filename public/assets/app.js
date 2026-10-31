@@ -3030,11 +3030,16 @@ function sugerir(texto) {
   primeiro.slice(0, 5).forEach((a) => incluir(a.t));
 
   // 3) Marca no fim: "maquina de lavar ele" -> "maquina de lavar electrolux"; sozinha: "sams" -> "samsung"
-  // Idem para marca: "jogo de" não vira "jogo dewalt"
-  if (ultima && !ligacao) {
+  // Com produto antes, só marca que tem esse produto nas sugestões "produto + marca" do robô (print 31/10: "geladeira
+  // bravecto", marca de remédio para pet). Sem nenhuma, não sugere marca (a busca dá 0 ofertas).
+  const temProduto = (x) => !completas.length
+    || vocab.itens.some((i) => ` ${i.n} `.includes(` ${x.n} `) && completas.every((p) => i.p.some((w) => bateInteira(p, w))));
+  // ("jogo de" não vira "jogo dewalt", mas "notebook de" vira "notebook dell")
+  if (ultima) {
     const antes = corrigidas.slice(0, -1).join(" ");
     vocab.marcasN
       .filter((x) => x.n.startsWith(ultima) || x.n === ultimaCerta || (ultima.length >= 4 && bateComeco(ultima, x.n)))
+      .filter(temProduto)
       .slice(0, 4)
       .forEach((x) => incluir(antes ? `${antes} ${x.m}` : x.m));
   }
