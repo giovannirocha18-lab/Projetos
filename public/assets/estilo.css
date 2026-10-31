@@ -973,6 +973,8 @@ body.com-comparar .rodape { padding-bottom: 96px; }
   /* Card roxo dos resultados mais baixo; lojas numa linha que desliza */
   #resultados { padding-top: 12px; }
   .resumo { padding: 14px; border-radius: 14px; gap: 8px; }
+  /* Sem isto a linha de lojas (que desliza) alargava a página inteira */
+  .resumo > * { min-width: 0; max-width: 100%; flex: 1 1 100%; }
   .resumo h1 { font-size: 1.15rem; }
   .resumo p { font-size: .85rem; }
   .resumo-lojas { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 10px -14px 0; padding: 0 14px 2px; }
@@ -984,4 +986,47 @@ body.com-comparar .rodape { padding-bottom: 96px; }
   .bb-item .contador { top: -3px; right: calc(50% - 22px); }
   .toast { bottom: calc(76px + env(safe-area-inset-bottom)); }
   .barra-comparar { bottom: calc(72px + env(safe-area-inset-bottom)); }
+}
+
+/* ============ Gaveta "Categorias e filtros" no celular, mais moderna (31/10/2026, pedido do Giovanni) ============
+   Alça no topo, cabeçalho e botões presos, opções em pílulas (marcada = roxa) e categorias em blocos com ícone */
+@media (max-width: 640px) {
+  .filtros { padding: 0 16px; border-radius: 24px 24px 0 0; max-height: 88vh; overscroll-behavior: contain; }
+  .filtros-cabecalho { position: sticky; top: 0; z-index: 2; margin: 0 -16px; padding: 22px 16px 10px; background: var(--card);
+    border-bottom: 1px solid var(--borda); }
+  .filtros-cabecalho::before { content: ""; position: absolute; top: 8px; left: 50%; width: 40px; height: 4px; margin-left: -20px;
+    border-radius: 999px; background: var(--borda); }
+  .filtros h2 { font-size: 1.15rem; font-weight: 800; }
+  .filtros-cabecalho .fechar { background: var(--bg); }
+
+  .filtros fieldset { margin: 20px 0 0; }
+  .filtros legend { text-transform: none; letter-spacing: 0; font-size: 1rem; font-weight: 800; color: var(--texto); margin-bottom: 10px; }
+
+  /* Opções em pílulas que quebram linha (ordem, envio, mais opções, marcas, categorias e lojas da lista) */
+  #filtro-marcas, #filtro-secoes, #filtro-lojas { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filtros fieldset:has(> .opcao) { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filtros fieldset:has(> .opcao) > legend { flex-basis: 100%; }
+  .filtros .opcao { position: relative; margin: 0; gap: 6px; padding: 8px 14px; border-radius: 999px; font-size: .86rem; font-weight: 600;
+    border: 1.5px solid var(--borda); background: var(--card); }
+  .filtros .opcao:hover { background: var(--card); }
+  .filtros .opcao input { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
+  .filtros .opcao:has(input:checked) { border-color: var(--roxo); background: var(--roxo-claro); color: var(--roxo-forte); }
+  .filtros .opcao:has(input:focus-visible) { outline: 2px solid var(--roxo); outline-offset: 2px; }
+  .filtros .opcao .qtd { margin-left: 2px; background: var(--bg); }
+  #filtro-marcas .botao-link, #filtro-secoes .botao-link { flex-basis: 100%; text-align: left; }
+
+  /* Categorias: blocos com ícone, 3 por linha */
+  .cat-lista { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .cat-item { flex-direction: column; justify-content: flex-start; gap: 6px; margin: 0; padding: 12px 4px 10px; min-height: 92px;
+    border-radius: 16px; background: var(--bg); font-size: .74rem; font-weight: 600; line-height: 1.15; text-align: center; }
+  .cat-item.ativa { box-shadow: inset 0 0 0 2px var(--roxo); }
+  .cat-icone { width: 42px; height: 42px; border-radius: 14px; font-size: 1.35rem; }
+  .cat-ver-todas { justify-self: center; padding: 8px 16px; border-radius: 999px; background: var(--roxo-claro); }
+
+  .faixa-preco input { padding: 11px 12px; border-radius: 12px; }
+
+  /* Botões presos embaixo: Limpar | Ver ofertas */
+  .filtros-rodape { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; margin: 20px -16px 0;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--card); border-top: 1px solid var(--borda); }
+  .filtros-rodape .botao-secundario, .filtros-rodape .botao-primario { margin: 0; padding: 13px; border-radius: 999px; }
 }
