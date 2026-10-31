@@ -157,7 +157,7 @@ function guardarOuTirar(oferta, origem) {
 
 // A foto do produto "voa" até o carrinho do topo (26/10/2026, pesquisa: confirmação visível de que deu certo)
 function voarAteCarrinho(origem) {
-  const destino = $("#abrir-favoritos");
+  const destino = [$("#abrir-favoritos"), $("[data-bb-carrinho]")].find((b) => b?.offsetParent) || $("#abrir-favoritos");
   const foto = origem.closest(".oferta")?.querySelector(".oferta-foto img, .oferta-foto .foto-emoji") || origem;
   const de = foto.getBoundingClientRect();
   const para = destino.getBoundingClientRect();
@@ -186,7 +186,9 @@ function atualizarFavoritos(animar = false) {
   const c = $("#contador-favoritos");
   c.textContent = favoritos.length;
   c.hidden = !favoritos.length;
-  if (animar) { c.classList.remove("pulo"); void c.offsetWidth; c.classList.add("pulo"); }
+  const bb = $("[data-contador-bb]");
+  if (bb) { bb.textContent = favoritos.length; bb.hidden = !favoritos.length; }
+  if (animar) for (const x of [c, bb]) if (x) { x.classList.remove("pulo"); void x.offsetWidth; x.classList.add("pulo"); }
   document.querySelectorAll(".favoritar").forEach((b) => b.setAttribute("aria-pressed", ehFavorito(b.dataset.id)));
   if (!$("#painel-favoritos").hidden) desenharFavoritos();
 }
@@ -358,6 +360,7 @@ function entrarComGoogle() {
 function desenharContaTopo() {
   const botao = $("#abrir-conta");
   botao.hidden = !conta.ativo;
+  $("[data-bb-conta]").hidden = !conta.ativo;
   const caixa = $("#painel-conta");
   caixa.hidden = !conta.ativo;
   if (!conta.ativo) return;
@@ -976,6 +979,7 @@ function selosHistorico(o) {
   ];
 }
 
+const CELULAR = matchMedia("(max-width: 640px)");
 function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
   const loja = infoLoja(o);
   const [inteiro, decimal] = brl(o.preco).split(",");
@@ -990,7 +994,13 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
     el("div", { class: "oferta-topo" },
     el("button", { class: "comparar", type: "button", "data-id": o.id, "aria-pressed": comparando.has(o.id), title: "Comparar com outros produtos",
       onclick: () => alternarComparar(o) }, ...longoCurto("⚖️ Comparar", "⚖️")),
-    el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored noopener", tabindex: "-1", "aria-hidden": "true", onclick: abrir },
+    // Celular (molde do app do Mercado Livre): carrinho redondo em cima da foto, e tocar na foto abre os detalhes
+    el("button", {
+      class: "favoritar favoritar-foto", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
+      "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: (e) => alternarFavorito(o, e.currentTarget),
+    }, ICONE_CARRINHO()),
+    el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored noopener", tabindex: "-1", "aria-hidden": "true",
+      onclick: (e) => { if (CELULAR.matches && temDetalhes(o)) { e.preventDefault(); abrirDetalhes(o); } else abrir(); } },
       o.imagem
         // Foto que não carrega (link quebrado da loja) vira o desenho padrão
         ? el("img", { src: fotoPequena(o.imagem), alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(o) })
@@ -1014,7 +1024,10 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         o.vendidos && el("span", { class: o.vendidos >= 1000 ? "vendidos-muitos" : null },
           `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`)),
       el("div", { class: "precos" },
-        o.precoAntigo && el("span", { class: "preco-antigo" }, `R$ ${brl(o.precoAntigo)}`),
+        // No celular o desconto sai de cima da foto e vem em verde ao lado do preço antigo ("60% OFF")
+        o.precoAntigo && el("span", { class: "linha-de" },
+          o.desconto && el("span", { class: "desconto-pill" }, `${o.desconto}% OFF`),
+          el("span", { class: "preco-antigo" }, `R$ ${brl(o.precoAntigo)}`)),
         el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", { class: "centavos" }, `,${decimal}`)),
         o.precoAntigo > o.preco + 1 && el("span", { class: "economia-tag" }, ...longoCurto(`Você economiza R$ ${brl(o.precoAntigo - o.preco)}`, `Economize R$ ${brl(o.precoAntigo - o.preco)}`))),
       o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
@@ -2765,6 +2778,7 @@ let categoriasAtuais = [];
 let ordemCategorias = "vendidos";
 try { if (localStorage.getItem("ordemCategorias") === "az") ordemCategorias = "az"; } catch { /* sem armazenamento */ }
 
+const ABAS_CELULAR = 14;
 function desenharCategorias(lista = categoriasAtuais) {
   categoriasAtuais = lista;
   document.querySelectorAll("[data-ordem-cat]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.ordemCat === ordemCategorias)));
@@ -2783,6 +2797,11 @@ function desenharCategorias(lista = categoriasAtuais) {
       e.currentTarget.textContent = todas ? "Ver menos ▲" : `Ver todas (${lista.length}) ▼`;
     } }, `Ver todas (${lista.length}) ▼`);
   caixa.replaceChildren(...botoes, ...(verTodas ? [verTodas] : []));
+  // Celular: abas que deslizam no topo ("Tudo" + as categorias que mais vendem), como no app do Mercado Livre
+  $("#abas-cel").replaceChildren(
+    el("button", { class: "aba-cel", type: "button", "data-tudo": "1", onclick: voltarAoInicio }, "Tudo"),
+    ...categoriasAtuais.slice(0, ABAS_CELULAR).map((c) => el("button", { class: "aba-cel", type: "button", "data-nome": c.nome,
+      onclick: () => irPara(c.busca || c.nome, { atalho: true, cat: c.nome }) }, c.nome)));
   marcarCategoria();
   if (estado.q && !$("#resultados").hidden) {
     // Link aberto direto (?q=perfume&cat=Perfumes): só agora dá para saber o título da categoria
@@ -2834,6 +2853,13 @@ function marcarCategoria() {
   const cat = categoriaAtual();
   const loja = lojaAtual();
   document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", b.dataset.nome === cat));
+  const noInicio = !new URLSearchParams(location.search).get("q") && !loja && !naBlackFriday();
+  $("[data-bb=inicio]")?.classList.toggle("ativa", noInicio);
+  document.querySelectorAll(".aba-cel").forEach((b) => {
+    const ativa = b.dataset.tudo ? noInicio : b.dataset.nome === cat;
+    b.classList.toggle("ativa", ativa);
+    if (ativa && b.scrollIntoView && b.offsetParent) b.scrollIntoView({ block: "nearest", inline: "center" });
+  });
   const padrao = telaPequena.matches ? PLACEHOLDER_CURTO : PLACEHOLDER_BUSCA;
   const onde = loja ? nomeDaLoja(loja) : cat;
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.placeholder = onde ? `Buscar em ${onde}…` : padrao; });
@@ -3099,13 +3125,25 @@ function abrirFiltros(abrir) {
 new ResizeObserver(() => document.documentElement.style.setProperty("--altura-topo", `${$("#topo").offsetHeight}px`)).observe($("#topo"));
 document.querySelectorAll("[data-busca]").forEach(prepararBusca);
 // Logo: volta ao começo de tudo (sem busca, sem categoria, filtros e ordem zerados)
-document.querySelectorAll("[data-inicio]").forEach((a) => a.addEventListener("click", (e) => {
-  e.preventDefault();
+function voltarAoInicio(e) {
+  e?.preventDefault();
   zerarFiltros();
   $("input[name=ordem][value=relevancia]").checked = true;
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
   irPara("");
+}
+document.querySelectorAll("[data-inicio]").forEach((a) => a.addEventListener("click", voltarAoInicio));
+// Celular: atalhos da página inicial e barra de baixo (molde do app do Mercado Livre)
+document.querySelectorAll("[data-atalho]").forEach((b) => b.addEventListener("click", () => {
+  const atalho = b.dataset.atalho;
+  if (atalho === "black-friday") return irParaBlackFriday();
+  if (atalho === "avaliados") $("#bem-avaliados").checked = true;
+  else $(`input[name=ordem][value=${atalho}]`).checked = true;
+  $(atalho === "avaliados" ? "#bem-avaliados" : `input[name=ordem][value=${atalho}]`).dispatchEvent(new Event("change"));
+  $("#titulo-ofertas").scrollIntoView({ behavior: "smooth", block: "start" });
 }));
+$("[data-bb-carrinho]").addEventListener("click", () => abrirPainel(true));
+$("[data-bb-conta]").addEventListener("click", abrirConta);
 
 let timerPreco;
 ["#preco-min", "#preco-max"].forEach((s) => $(s).addEventListener("input", () => {

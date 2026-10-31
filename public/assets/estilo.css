@@ -895,3 +895,91 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .fav-resumo small { color: var(--suave); font-size: .75rem; }
 .fav-antigo { margin-left: 6px; font-weight: 400; font-size: .8rem; color: var(--suave); }
 .fim-da-grade { grid-column: 1 / -1; height: 1px; }
+
+/* ============ Celular no molde do app do Mercado Livre (30/10/2026, pedido do Giovanni), com as nossas cores ============
+   Topo numa linha só (ícone + busca), abas de categorias, atalhos com ícone, cartões enxutos (carrinho em cima da foto,
+   desconto verde ao lado do preço antigo) e barra fixa embaixo (Início, Categorias, Carrinho, Cupons, Conta) */
+.abas-cel, .atalhos-cel, .barra-baixo, .favoritar-foto, .desconto-pill { display: none; }
+.linha-de { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.bb-item.chegou { animation: chegou .45s ease; }
+
+@media (max-width: 640px) {
+  /* Topo: ícone do logo + busca em formato de pílula; conta e carrinho foram para a barra de baixo */
+  .topo-linha { flex-wrap: nowrap; gap: 10px; padding-top: 10px; padding-bottom: 6px; }
+  .topo .logo-texto, .topo-acoes { display: none; }
+  .topo-busca { order: 0; flex: 1; flex-basis: auto; }
+  .logo-icone { width: 38px; height: 38px; border-radius: 50%; }
+  .busca-topo { border-radius: 999px; padding: 3px; }
+  .busca-topo input { height: 38px; border-radius: 999px 0 0 999px; padding: 0 16px; font-size: .95rem; }
+  .busca-topo button { border-radius: 999px; padding: 0 16px; }
+
+  /* Abas de categorias: deslizam para o lado, a ativa sublinhada */
+  .abas-cel { display: flex; gap: 22px; overflow-x: auto; scrollbar-width: none; padding: 2px 16px 0; white-space: nowrap; }
+  .abas-cel::-webkit-scrollbar { display: none; }
+  .aba-cel { flex: none; border: 0; background: none; color: rgba(255, 255, 255, .88); font: inherit; font-size: .95rem; font-weight: 600;
+    padding: 6px 0 10px; border-bottom: 3px solid transparent; cursor: pointer; }
+  .aba-cel.ativa { color: #fff; font-weight: 800; border-bottom-color: #fde047; }
+
+  /* Atalhos com ícone (só na página inicial) */
+  .atalhos-cel { display: flex; gap: 14px; overflow-x: auto; scrollbar-width: none; margin: 0 -8px 14px; padding: 2px 8px 4px; }
+  .atalhos-cel::-webkit-scrollbar { display: none; }
+  .atalhos-cel button { flex: none; width: 66px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 0; background: none;
+    padding: 0; color: var(--texto); font: inherit; font-size: .72rem; font-weight: 600; line-height: 1.15; text-align: center; cursor: pointer; }
+  .atalhos-cel button[hidden] { display: none; }
+  .atalhos-cel span { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; font-size: 1.6rem;
+    background: var(--card); box-shadow: 0 2px 8px rgba(60, 20, 120, .12); border: 1px solid var(--borda); }
+  .atalhos-cel .atalho-bf span { background: #111827; border-color: #111827; }
+
+  /* Faixa "milhões de produtos": menor; os botões de Black Friday e cupons já estão nos atalhos */
+  .numeros-inicio { padding: 12px 14px; border-radius: 14px; font-size: .88rem; margin-bottom: 12px; }
+  .numeros-inicio .botoes-inicio { display: none; }
+  .secao-titulo { margin-bottom: 10px; }
+  .secao-titulo h2 { font-size: 1.15rem; }
+
+  /* Cartões enxutos */
+  .grade { gap: 8px; }
+  .pagina { padding-left: 8px; padding-right: 8px; }
+  .oferta { border-radius: 10px; box-shadow: 0 1px 4px rgba(30, 0, 60, .08); border-color: transparent; }
+  .oferta:hover { transform: none; }
+  .oferta-foto img { padding: 4px; }
+  .selo-desconto { display: none; }
+  .favoritar-foto { display: grid; position: absolute; right: 8px; bottom: 8px; z-index: 2; width: 38px; height: 38px;
+    border: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, .18); }
+  .comparar { right: auto; left: 6px; }
+  .oferta-corpo { padding: 8px 10px 10px; gap: 4px; }
+  .loja-tag { font-size: .7rem; padding: 2px 8px 2px 6px; gap: 5px; }
+  .oferta-titulo { font-size: .86rem; font-weight: 500; min-height: 2.6em; }
+  .acoes-oferta { display: none; }
+  .desconto-pill { display: inline-block; font-size: .72rem; font-weight: 800; color: #fff; background: #16a34a; padding: 1px 6px; border-radius: 4px; }
+  .preco-antigo { font-size: .76rem; }
+  .preco { font-size: 1.35rem; font-weight: 700; }
+  .economia-tag { font-size: .72rem; }
+  .botao-oferta { margin-top: 6px; padding: 8px 6px; border-radius: 10px; font-size: .8rem; }
+  .nota { font-size: .74rem; }
+
+  /* Barra fixa embaixo */
+  body { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
+  .barra-baixo { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+    background: var(--card); border-top: 1px solid var(--borda); box-shadow: 0 -4px 16px rgba(30, 0, 60, .08);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
+  .bb-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; background: none;
+    color: var(--suave); font: inherit; font-size: .7rem; font-weight: 600; text-decoration: none; padding: 2px 0; cursor: pointer; }
+  .bb-item[hidden] { display: none; }
+  .bb-item svg { color: var(--roxo); }
+  .bb-item.ativa { color: var(--roxo); font-weight: 800; }
+
+  /* Card roxo dos resultados mais baixo; lojas numa linha que desliza */
+  #resultados { padding-top: 12px; }
+  .resumo { padding: 14px; border-radius: 14px; gap: 8px; }
+  .resumo h1 { font-size: 1.15rem; }
+  .resumo p { font-size: .85rem; }
+  .resumo-lojas { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 10px -14px 0; padding: 0 14px 2px; }
+  .resumo-lojas::-webkit-scrollbar { display: none; }
+  .resumo-lojas > * { flex: none; }
+  .chip-loja, .chip-acao { font-size: .8rem; padding: 4px 10px; gap: 6px; }
+  .resumo small.resumo-lojas-nota { font-size: .72rem; }
+  .barra-lista { margin-top: 10px; }
+  .bb-item .contador { top: -3px; right: calc(50% - 22px); }
+  .toast { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .barra-comparar { bottom: calc(72px + env(safe-area-inset-bottom)); }
+}
