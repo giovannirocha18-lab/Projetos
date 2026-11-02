@@ -1312,3 +1312,7 @@ Texto para colar numa conversa nova:
   (3) "Colchão de Molas …" era marcado como peça ("mola" em PECAS): em lib/relevancia.js a peça logo depois de "de/com" não conta
   quando o título começa pelo produto buscado ("Cadeira com Rodízios"); "Mola de Colchão" continua peça. Casos no testes/busca.mjs.
   Cache v=105 + `so_prontas`. Falta (se quiser): REGRAS de categoria não precisam (feed sem caminho; IA/título resolvem: seção Móveis).
+  **Por que o robô não avisou?** A auditoria só olhava o que APARECE (suspeitos no topo); nada olhava o que falta. Agora
+  `robo/auditoria.mjs` tem "### Lojas nas buscas": em quantas das 150 buscas cada loja da Awin (20+ produtos) apareceu; se em
+  nenhuma, busca a 1ª palavra mais comum dos títulos dela (sofá, colchão); se nem assim = "⚠️ loja invisível" (::warning:: na
+  execução). Produtos todos com ≤ 3 dias de histórico = "🆕 loja nova" (::notice::). Conferir essa seção toda madrugada.
