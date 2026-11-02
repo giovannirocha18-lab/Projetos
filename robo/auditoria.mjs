@@ -28,11 +28,13 @@ async function abrir(q) {
 
 const termos = termosParaSugestoes([]).slice(0, QUANTAS);
 const resultados = [];
+const aparicoes = new Map(); // loja -> em quantas buscas apareceu
 let falhas = 0;
 for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
   await Promise.all(termos.slice(i, i + AO_MESMO_TEMPO).map(async (q) => {
     const d = await abrir(q);
     if (!d?.ofertas) { falhas++; return; }
+    for (const loja of new Set(d.ofertas.map((o) => o.loja))) aparicoes.set(loja, (aparicoes.get(loja) || 0) + 1);
     const suspeitos = auditarBusca(d.q || q, d.ofertas);
     if (suspeitos.length) resultados.push({ q: d.q || q, suspeitos });
   }));
@@ -46,6 +48,60 @@ for (const { q, suspeitos } of resultados) {
   linhas.push(`- **${q}**`);
   for (const s of suspeitos) linhas.push(`  - ${s.posicao}º R$ ${s.preco} (${s.loja}) ${s.titulo.slice(0, 90)} — ${s.motivos.join(", ")}`);
 }
+linhas.push(...await conferirLojas());
 const texto = linhas.join("\n");
 console.log(texto);
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, texto + "\n");
+
+// Lojas que não aparecem (02/11/2026): a Cama In Box entrou na Awin em ~31/10 e ficou 2 dias sem aparecer em nenhuma
+// busca, e nada avisava (a auditoria só olhava o que aparece). Para cada loja da Awin com 20+ produtos: em quantas das
+// buscas acima ela apareceu; se em nenhuma, busca as palavras dos próprios produtos dela ("Sofá", "Colchão"). Se nem
+// assim aparece = ⚠️ loja invisível (aviso amarelo na execução). Loja com produtos de até 3 dias = 🆕 loja nova.
+async function conferirLojas() {
+  const saida = ["### Lojas nas buscas"];
+  let lojas = [];
+  try {
+    lojas = (await (await fetch(`${SITE}/api/lojas`, { signal: AbortSignal.timeout(30000) })).json()).lojas || [];
+  } catch {
+    return [...saida, "- ⚠️ não deu para abrir a lista de lojas"];
+  }
+  for (const l of lojas.filter((x) => x.rede === "awin" && x.produtos >= 20)) {
+    const chave = l.id.replace(/^awin:/, "");
+    let produtos = [];
+    try {
+      const r = await fetch(`${SITE}/api/lojas?id=${encodeURIComponent(l.id)}&pagina=1`, { signal: AbortSignal.timeout(30000) });
+      produtos = (await r.json()).ofertas || [];
+    } catch {}
+    await espera(PAUSA_MS);
+    const nova = produtos.length > 0 && produtos.every((o) => (o.historico?.dias ?? 99) <= 3);
+    const vezes = aparicoes.get(chave) || 0;
+    if (nova) {
+      saida.push(`- 🆕 **${l.nome}** é loja nova (${l.produtos} produtos): conferir categorias, fotos e buscas`);
+      console.log(`::notice::Loja nova na Awin: ${l.nome} (${l.produtos} produtos)`);
+    }
+    if (vezes) {
+      saida.push(`- ${l.nome}: apareceu em ${vezes} de ${termos.length} buscas`);
+      continue;
+    }
+    // Nenhuma das buscas comuns: tenta as palavras dos produtos dela (a 1ª palavra mais comum dos títulos)
+    const contagem = new Map();
+    for (const o of produtos) {
+      const p = String(o.titulo || "").split(/\s+/).find((w) => /^[\p{L}]{4,}$/u.test(w) && !/^kit$/i.test(w));
+      if (p) contagem.set(p.toLowerCase(), (contagem.get(p.toLowerCase()) || 0) + 1);
+    }
+    const palavras = [...contagem.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([p]) => p);
+    const achou = [];
+    for (const q of palavras) {
+      const d = await abrir(q);
+      if (d?.ofertas?.some((o) => o.loja === chave)) achou.push(q);
+      await espera(PAUSA_MS);
+    }
+    if (achou.length) {
+      saida.push(`- ${l.nome}: nenhuma das buscas comuns, mas aparece em: ${achou.join(", ")}`);
+    } else {
+      saida.push(`- ⚠️ **${l.nome}** (${l.produtos} produtos) NÃO aparece em nenhuma busca (nem em: ${palavras.join(", ") || "—"})`);
+      console.log(`::warning::Loja invisível nas buscas: ${l.nome} (${l.produtos} produtos)`);
+    }
+  }
+  return saida;
+}
