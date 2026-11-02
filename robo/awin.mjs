@@ -223,7 +223,9 @@ function linkAfiliado(p, lojaId, afiliado) {
 function paraOferta(p, feed = {}) {
   const lojaId = p.merchant_id || feed.lojaId;
   const produtoId = p.aw_product_id || p.id || p.item_id;
-  const titulo = (p.product_name || p.title || "").replace(/\s+/g, " ").slice(0, 200);
+  // A Cama In Box põe a marca no meio do nome ("Puff Cama inBox Aluna…", "Colchão … Cama inBox Select"): o "Cama" fazia
+  // o puff e o sofá aparecerem na busca "cama" (02/11/2026). A loja já aparece na etiqueta do produto.
+  const titulo = (p.product_name || p.title || "").replace(/\s*\bcama\s?inbox\b/gi, "").replace(/\s+/g, " ").trim().slice(0, 200);
   const moeda = (p.currency || (String(p.price || p.search_price || "").match(/\b[A-Z]{3}\b/) || [])[0]
     || feed.moeda || "BRL").toUpperCase();
   const taxa = COTACOES[moeda];

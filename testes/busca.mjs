@@ -170,6 +170,16 @@ const CASOS = {
   "geladeira": {
     E: ["Geladeira Frost Free Consul 340L", "Geladeira Portátil 40L Camping"],
   },
+  // 02/11/2026 (Cama In Box): "Colchão de Molas" é o colchão (molas = do que é feito), não peça; o robô tira o
+  // "Cama inBox" do título, senão o puff e o sofá dela apareciam em "cama"
+  "colchão": {
+    E: ["Colchão de Molas Ensacadas Select Euro Soft - Casal", "Colchão de Molas"],
+    A: ["Mola de Colchão Ensacada"],
+  },
+  "cama": {
+    E: ["Cama Box Colchão Select + Box de Molas Ensacadas D33 com Pillow TOP - Casal"],
+    N: ["Puff Aluna Retangular com Pés em Madeira Maciça Tecido Suede - Bege"],
+  },
 };
 
 let falhas = 0;
