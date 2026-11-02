@@ -1299,3 +1299,16 @@ Texto para colar numa conversa nova:
   degradê, linha tracejada do preço de costume (só com ≥ DIAS_PARA_OPINAR; nome "de costume" na coluna da escala), menor preço
   em verde com "menor R$ …", pontos vazados só onde o preço mudou, preço de hoje com halo + etiqueta roxa (coluna da direita do
   tamanho da etiqueta), data do meio no eixo (> 6 dias), dica do mouse com sombra. Testado no Playwright (celular e computador).
+- ⭐ **Cama In Box (02/11/2026, Giovanni: "entrou loja nova?")**: aprovada na Awin PJ, o robô pegou sozinho (~31/10; 22 aprovadas,
+  17 usadas). Feed sem categoria (0%), ~3.247 produtos = muitas variações (cor/tamanho) de ~40 modelos: sofás (Xpand Tech a vácuo),
+  colchões/camas box de molas ensacadas, puffs, poltronas. Problemas e correções:
+  (1) **Não aparecia em nenhuma busca comum** (sofá, colchão): `lib/fontes/awin.js` lia os 400 primeiros candidatos do índice FTS
+  na ordem de entrada no banco → as lojas antigas enchiam tudo. Agora `candidatosPorLoja`: uma consulta por loja (palavras da busca
+  AND nome da loja, que está no texto `busca`), 150 candidatos cada, todas num `db.batch`; `revezarLojas` divide as vagas
+  (MAX_RESULTADOS 60 → 100) uma loja por vez, no máx. 2 variações do mesmo título-base (antes do último " - ") por loja. Busca
+  dentro de uma loja continua igual. Testado com node:sqlite (FTS5) imitando o D1. Tempo das buscas igual (~3–8 s).
+  (2) Título trazia a marca no meio ("Puff Cama inBox Aluna"): puff/sofá/poltrona "batiam" com "cama" → robo/awin.mjs tira
+  `cama ?inbox` do título (so_awin rodado; a loja aparece na etiqueta).
+  (3) "Colchão de Molas …" era marcado como peça ("mola" em PECAS): em lib/relevancia.js a peça logo depois de "de/com" não conta
+  quando o título começa pelo produto buscado ("Cadeira com Rodízios"); "Mola de Colchão" continua peça. Casos no testes/busca.mjs.
+  Cache v=105 + `so_prontas`. Falta (se quiser): REGRAS de categoria não precisam (feed sem caminho; IA/título resolvem: seção Móveis).

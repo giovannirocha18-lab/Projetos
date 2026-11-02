@@ -27,7 +27,7 @@ Ainda escondido do Google (noindex) até o lançamento.
 - Principais: `public/index.html`, `public/assets/app.js` (site), `public/assets/estilo.css`, `functions/api/buscar.js`
   (busca), `lib/relevancia.js` (produto x acessório, marca), `lib/categorias.js` (40 categorias), `lib/vocabulario.js`
   (marcas, erros, sugestões), `lib/fontes/*.js` (lojas), `functions/_middleware.js` (lista do que pode abrir).
-- Banco D1 (`DB`), plano Workers Paid. Versões de cache: `VERSAO_CACHE` (buscar.js) = `VERSAO_BUSCA` (app.js), hoje **103**;
+- Banco D1 (`DB`), plano Workers Paid. Versões de cache: `VERSAO_CACHE` (buscar.js) = `VERSAO_BUSCA` (app.js), hoje **105**;
   ao trocar, rodar o robô com `so_prontas`. `/api/vocabulario?v=7`, `/api/lojas` VERSAO e `/api/numeros?v=` também têm versão.
 - Testar local: `npx wrangler pages dev public`; Playwright: Chromium em `/opt/pw-browsers/chromium`,
   import de `/opt/node22/lib/node_modules/playwright/index.mjs`.
@@ -43,6 +43,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - Feito nesta sessão: IA conferindo as buscas (esconde o que não é o produto); filtro de Marcas no alto e categorias só em
   busca ambígua; celular no molde do app do Mercado Livre (abas, atalhos, barra de baixo, gaveta de filtros moderna);
   sugestões "produto + marca" (inclusive HP/LG); busca com marca mostra só a marca (`deOutraMarca`).
+- 02/11: **Cama In Box** (Awin, ~3.200 produtos: sofás, colchões, camas box, puffs) entrou sozinha ~31/10 e não aparecia
+  nas buscas → busca Awin agora pega candidatos de cada loja (`candidatosPorLoja`/`revezarLojas` em lib/fontes/awin.js);
+  título sem "Cama inBox" (robo/awin.mjs); "Colchão de Molas" é produto. Gráfico do histórico novo; sugestões só com marca que
+  tem o produto (`testes/sugestoes.mjs`).
 - Lojas Benoit pausada (`LOJAS_PAUSADAS` em robo/awin.mjs) até corrigir fotos/preços.
 
 ## Pendências
