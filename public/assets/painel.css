@@ -15,10 +15,10 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--texto); font: 15px/1.45 "Plus Jakarta Sans", system-ui, sans-serif; }
-.topo { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 12px 16px;
-  background: var(--card); border-bottom: 1px solid var(--borda); }
+.topo { position: sticky; top: 0; z-index: 2; background: var(--card); border-bottom: 1px solid var(--borda); }
+.topo-linha { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 12px; padding: 12px 16px; }
 .topo h1 { margin: 0; font-size: 1.15rem; }
-.topo > div { flex: 1; min-width: 0; }
+.topo-linha > div { flex: 1; min-width: 0; }
 .sub { color: var(--suave); font-size: .82rem; font-weight: 500; margin: 0; }
 h2 .sub { margin-left: 4px; }
 .botao { border: 1px solid var(--borda); background: var(--card); color: var(--roxo); font: inherit; font-weight: 700;
@@ -36,6 +36,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 16p
 .cartao .desce { color: var(--vermelho); font-weight: 700; }
 .cartao.breve .valor { font-size: 1rem; color: var(--suave); font-weight: 600; margin: 8px 0 4px; }
 .bloco h2 { margin: 0 0 12px; font-size: 1rem; }
+.funil { margin: -6px 0 10px; }
+.funil strong { color: var(--texto); }
 .duas { display: grid; gap: 16px; }
 @media (min-width: 720px) { .duas { grid-template-columns: 1fr 1fr; } }
 

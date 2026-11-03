@@ -1,8 +1,9 @@
 // GET /api/painel/dados — números do painel do Giovanni (painel.vaiprocarrinho.com.br). Só responde nesse endereço e
 // com o login do Cloudflare Access conferido (lib/painel.js; o _middleware.js confere antes, aqui confere de novo).
 // Lê do banco o que o site já guarda (as mesmas contas do relatório "Números do site", robo/numeros-site.mjs), dos
-// últimos 30 dias. Visitas (Web Analytics) e comissões entram depois.
+// últimos 30 dias, e as visitas do Web Analytics do Cloudflare (lib/visitas.js). Comissões entram depois.
 import { ehPainel, quemEntrou } from "../../../lib/painel.js";
+import { visitasDoSite } from "../../../lib/visitas.js";
 
 const DIAS = 30;
 const hoje = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
@@ -21,7 +22,7 @@ export async function onRequestGet({ request, env }) {
   // Tabela que ainda não existe conta como vazia
   const consulta = (sql, ...params) => env.DB.prepare(sql).bind(...params).all().then((r) => r.results).catch(() => []);
   const [
-    buscasDia, topBuscas, cliquesDia, cliquesLoja, cliquesOnde, topProdutos, contas, alertas, carrinhos, prontas, lojasAwin, coletas,
+    buscasDia, topBuscas, cliquesDia, cliquesLoja, cliquesOnde, topProdutos, contas, alertas, carrinhos, prontas, lojasAwin, coletas, visitas,
   ] = await Promise.all([
     consulta("SELECT dia, SUM(total) AS n FROM buscas WHERE dia >= ? GROUP BY dia ORDER BY dia", desde),
     consulta("SELECT MAX(texto) AS nome, SUM(total) AS n FROM buscas WHERE dia >= ? GROUP BY termo ORDER BY n DESC LIMIT 15", semana),
@@ -37,6 +38,7 @@ export async function onRequestGet({ request, env }) {
       WHERE versao = (SELECT MAX(versao) FROM buscas_prontas_gz)`),
     consulta("SELECT nome, produtos AS n FROM lojas_awin ORDER BY produtos DESC"),
     consulta("SELECT MAX(dia) AS dia FROM coletas"),
+    visitasDoSite(env, { desde, ate: dia, semana }),
   ]);
   return Response.json({
     hoje: dia,
@@ -53,5 +55,6 @@ export async function onRequestGet({ request, env }) {
     prontas: { total: prontas[0]?.total || 0, ultima: prontas[0]?.ultima || null },
     lojasAwin,
     ultimaColeta: coletas[0]?.dia || null,
+    visitas,
   }, { headers: cabecalhos });
 }

@@ -124,6 +124,34 @@
     }
   }
 
+  // Visitas (Cloudflare Web Analytics, lib/visitas.js). Sem a chave, o cartão diz o que falta.
+  function cartaoVisitas(v, semana, antes, ontemAntes) {
+    if (!v || v.erro) return cartao("Visitas · 7 dias", "—", `Não deu para ler: ${v?.erro || "sem resposta"}`, "breve");
+    const agora = somaDesde(v.porDia, semana);
+    return cartao("Visitas · 7 dias", num(agora), variacao(agora, somaDesde(v.porDia, antes, ontemAntes)));
+  }
+  function visitas(d, semana) {
+    const v = d.visitas || {};
+    const funil = $("funil");
+    funil.hidden = true;
+    if (v.erro) {
+      $("g-visitas").replaceChildren(el("p", "vazio", `Ainda sem visitas aqui: ${v.erro}.`));
+      for (const id of ["l-origens", "l-aparelhos"]) $(id).replaceChildren(el("li", "vazio", "Sem a chave do Cloudflare."));
+      return;
+    }
+    graficoPorDia($("g-visitas"), v.porDia, d.desde, d.hoje, "visitas");
+    lista($("l-origens"), v.origens);
+    lista($("l-aparelhos"), v.aparelhos);
+    // O caminho: de cada 100 visitas, quantas buscas e quantos cliques para as lojas (cliques só desde 03/11)
+    const total = somaDesde(v.porDia, semana);
+    if (total >= 10) {
+      const por100 = (n) => num(Math.round((n / total) * 100));
+      funil.replaceChildren("A cada 100 visitas (7 dias): ", el("strong", "", `${por100(somaDesde(d.buscasDia, semana))} buscas`),
+        " e ", el("strong", "", `${por100(somaDesde(d.cliquesDia, semana))} cliques para as lojas`));
+      funil.hidden = false;
+    }
+  }
+
   function montar(d) {
     const semana = diasAtras(d.hoje, 6);
     const antes = diasAtras(d.hoje, 13);
@@ -135,9 +163,10 @@
       cartao("Cliques para as lojas · 7 dias", num(cliques), variacao(cliques, somaDesde(d.cliquesDia, antes, ontemAntes))),
       cartao("Contas criadas", num(d.contas.total), `${novas(d.contas.semana, "nova", "novas")} na semana`),
       cartao("Alertas de preço", num(d.alertas.total), `${novas(d.alertas.semana, "novo", "novos")} · ${novas(d.carrinhos, "carrinho", "carrinhos")} com produto`),
-      cartao("Visitas", "Em breve", "falta uma chave do Cloudflare", "breve"),
+      cartaoVisitas(d.visitas, semana, antes, ontemAntes),
       cartao("Comissões do mês", "Em breve", "Shopee, AliExpress, Awin e Lomadee", "breve"),
     );
+    visitas(d, semana);
     graficoPorDia($("g-buscas"), d.buscasDia, d.desde, d.hoje, "buscas");
     graficoPorDia($("g-cliques"), d.cliquesDia, d.desde, d.hoje, "cliques");
     lista($("l-buscas"), d.topBuscas);

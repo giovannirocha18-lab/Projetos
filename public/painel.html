@@ -15,19 +15,25 @@
   <link rel="stylesheet" href="assets/painel.css">
 </head>
 <body>
-  <header class="topo">
+  <header class="topo"><div class="topo-linha">
     <img src="/marca/vaiprocarrinho-icone.svg" alt="" width="32" height="32">
     <div>
       <h1>Painel</h1>
       <p class="sub" id="atualizado">Carregando…</p>
     </div>
     <button type="button" id="recarregar" class="botao">Atualizar</button>
-  </header>
+  </div></header>
 
   <main>
     <p class="aviso" id="erro" hidden></p>
 
     <section class="cartoes" id="cartoes" aria-label="Resumo da semana"></section>
+
+    <section class="bloco">
+      <h2>Visitas por dia <span class="sub">últimos 30 dias · loja vaiprocarrinho.com.br</span></h2>
+      <p class="sub funil" id="funil" hidden></p>
+      <div class="grafico" id="g-visitas"></div>
+    </section>
 
     <section class="bloco">
       <h2>Buscas por dia <span class="sub">últimos 30 dias</span></h2>
@@ -40,6 +46,14 @@
     </section>
 
     <div class="duas">
+      <section class="bloco">
+        <h2>De onde vêm as visitas <span class="sub">7 dias</span></h2>
+        <ol class="lista" id="l-origens"></ol>
+      </section>
+      <section class="bloco">
+        <h2>Celular ou computador <span class="sub">7 dias</span></h2>
+        <ol class="lista" id="l-aparelhos"></ol>
+      </section>
       <section class="bloco">
         <h2>Mais buscados <span class="sub">7 dias</span></h2>
         <ol class="lista" id="l-buscas"></ol>
