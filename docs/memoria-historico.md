@@ -1409,3 +1409,14 @@ Texto para colar numa conversa nova:
      relatório de comissões. Sem raspar painel nenhum.
   5. Painel: cartões (visitas, buscas, cliques, comissão do mês), gráficos por dia, tabelas por loja/produto, saúde (robô,
      prontas guardadas, erros Shopee 10030, saldo da IA, lojas com links quebrados). Tema claro, celular primeiro.
+- **Painel do Giovanni — 1ª versão no ar (03/11/2026, 22ª sessão)**. Giovanni fez: Custom domain `painel.vaiprocarrinho.com.br`
+  no projeto Pages; Zero Trust (plano Free, time criado sozinho); política reutilizável "Giovanni" (Include → Emails, 2 e-mails);
+  aplicação Self-hosted → Public DNS "painel" (a 1ª tentativa salvou só a política, não a aplicação; no menu novo o caminho é
+  Zero Trust → Access controls → Applications). Nome do time e AUD ficam como padrão em `lib/painel.js` (não são segredo,
+  aparecem no endereço da tela de login; variáveis ACCESS_EQUIPE/ACCESS_AUD do Pages trocam). O site confere o passe
+  (Cf-Access-Jwt-Assertion ou cookie CF_Authorization): RS256 com as chaves de `https://<time>.cloudflareaccess.com/cdn-cgi/access/certs`,
+  aud, iss, exp/nbf. No endereço painel: `/` = painel.html, `/api/painel/*`, o resto 404; sem passe 403. No endereço da loja,
+  `/painel` e `/api/painel/*` dão 404. Painel mostra: buscas e cliques por dia (30 dias, barras com dica), cartões da semana
+  com comparação, mais buscados, cliques por loja/produto/lugar, saúde (buscas prontas guardadas, última coleta de preços,
+  lojas da Awin), lojas da Awin. Cartões "Visitas" e "Comissões" ficaram como "Em breve". Testado: passe falso/vencido/de
+  outra chave recusado (9 casos), Playwright pc e celular sem erro, produção conferida com curl.

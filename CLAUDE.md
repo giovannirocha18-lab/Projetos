@@ -73,9 +73,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   **1.260 categorias corrigidas** (US$ 0,10). Números do site: 169 buscas na semana (geladeira, air fryer, ração…), 2 contas. Relatório novo "Números do site" (robo/numeros-site.mjs, fim da
   auditoria): buscas/dia, mais buscados, contas, alertas. Visitas: **Web Analytics ligado em 03/11** (beacon conferido com Playwright, sem erro de CSP). **Cliques para as lojas** contados
   desde 03/11 (`/api/clique`, tabelas cliques e cliques_produtos; links com `marcaClique()` em app.js) e no relatório.
-- **PRÓXIMO: painel do Giovanni** (decidido em 03/11): `painel.vaiprocarrinho.com.br`, protegido pelo **Cloudflare Access**
-  (Zero Trust, só o e-mail dele). Plano no histórico ("Painel do Giovanni"). 1º passo da conversa nova: guiar o Giovanni
-  (domínio no Pages + Access), depois montar o painel e o robô das comissões.
+- **Painel do Giovanni NO AR (03/11, 22ª sessão)**: `painel.vaiprocarrinho.com.br` (domínio no Pages + app "painel" no
+  Cloudflare Access, política "Giovanni" com 2 e-mails, código por e-mail). Código: `lib/painel.js` (confere o passe do Access),
+  `functions/_middleware.js` (`responderPainel`), `functions/api/painel/dados.js`, `public/painel.html` + `assets/painel.*`.
+  **PRÓXIMO**: cartão Visitas (token do Cloudflare "Account Analytics: Read" → Secret; GraphQL Web Analytics), Comissões
+  (`robo/comissoes.mjs`: Shopee conversionReport, AliExpress order.list, Awin token novo, Lomadee?) e resumo do robô no painel.
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
 
