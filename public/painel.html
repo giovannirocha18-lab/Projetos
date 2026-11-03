@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel · Vai pro Carrinho</title>
+  <!-- Painel do Giovanni: só abre em painel.vaiprocarrinho.com.br, com o login do Cloudflare Access (ver lib/painel.js).
+       Esta página não tem nenhum número dentro: tudo vem de /api/painel/dados, que confere o login. -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#6d28d9">
+  <link rel="icon" href="/marca/vaiprocarrinho-icone.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/painel.css">
+</head>
+<body>
+  <header class="topo">
+    <img src="/marca/vaiprocarrinho-icone.svg" alt="" width="32" height="32">
+    <div>
+      <h1>Painel</h1>
+      <p class="sub" id="atualizado">Carregando…</p>
+    </div>
+    <button type="button" id="recarregar" class="botao">Atualizar</button>
+  </header>
+
+  <main>
+    <p class="aviso" id="erro" hidden></p>
+
+    <section class="cartoes" id="cartoes" aria-label="Resumo da semana"></section>
+
+    <section class="bloco">
+      <h2>Buscas por dia <span class="sub">últimos 30 dias</span></h2>
+      <div class="grafico" id="g-buscas"></div>
+    </section>
+
+    <section class="bloco">
+      <h2>Cliques para as lojas por dia <span class="sub">últimos 30 dias · contados desde 03/11</span></h2>
+      <div class="grafico" id="g-cliques"></div>
+    </section>
+
+    <div class="duas">
+      <section class="bloco">
+        <h2>Mais buscados <span class="sub">7 dias</span></h2>
+        <ol class="lista" id="l-buscas"></ol>
+      </section>
+      <section class="bloco">
+        <h2>Cliques por loja <span class="sub">7 dias</span></h2>
+        <ol class="lista" id="l-lojas"></ol>
+      </section>
+      <section class="bloco">
+        <h2>Produtos mais clicados <span class="sub">7 dias</span></h2>
+        <ol class="lista" id="l-produtos"></ol>
+      </section>
+      <section class="bloco">
+        <h2>De onde saem os cliques <span class="sub">7 dias</span></h2>
+        <ol class="lista" id="l-onde"></ol>
+      </section>
+    </div>
+
+    <section class="bloco">
+      <h2>Saúde do site</h2>
+      <ul class="saude" id="saude"></ul>
+    </section>
+
+    <section class="bloco">
+      <h2>Lojas da Awin <span class="sub">produtos no banco</span></h2>
+      <ol class="lista" id="l-awin"></ol>
+    </section>
+  </main>
+
+  <div class="dica" id="dica" role="status" hidden></div>
+  <script src="assets/painel.js" defer></script>
+</body>
+</html>

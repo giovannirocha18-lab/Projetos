@@ -4,6 +4,7 @@
 // /assets/ e /marca/ não passam por aqui (public/_routes.json): saem direto do Cloudflare, mais rápido e sem gastar o
 // limite de chamadas, com os cabeçalhos de segurança do public/_headers. Só é seguro porque NADA interno fica em public/.
 import { produtoPorId } from "../lib/produto.js";
+import { ehPainel, quemEntrou } from "../lib/painel.js";
 
 const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|como-funciona(\.html)?\/?|manifest\.webmanifest|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
 
@@ -116,8 +117,32 @@ export async function onRequest(contexto) {
   return comSeguranca(await comVersaoNosArquivos(resposta, contexto.env, url.origin));
 }
 
-async function responder({ request, next, env }) {
+const naoEncontrada = () => new Response("Página não encontrada", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+
+// painel.vaiprocarrinho.com.br: só a página do painel e os números dela, e só com o login do Cloudflare Access
+// (lib/painel.js). Nada da loja abre nesse endereço. /assets/ não passa por aqui, mas o Access protege o endereço todo.
+async function responderPainel({ request, next, env }, url) {
+  const semCache = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" };
+  if (!(await quemEntrou(request, env))) {
+    return new Response("Acesso negado", { status: 403, headers: { "Content-Type": "text/plain; charset=utf-8", ...semCache } });
+  }
+  const caminho = caminhoNormal(url.pathname);
+  let resposta;
+  if (caminho === "/" || caminho === "/index.html") resposta = await env.ASSETS.fetch(new Request(new URL("/painel", url.origin)));
+  else if (/^\/api\/painel\/[\w-]+$/.test(caminho)) resposta = await next();
+  else if (caminho === "/favicon.ico") return Response.redirect(`${url.origin}/marca/vaiprocarrinho-icone.svg`, 302);
+  else return naoEncontrada();
+  resposta = new Response(resposta.body, resposta);
+  for (const [nome, valor] of Object.entries(semCache)) resposta.headers.set(nome, valor);
+  return resposta;
+}
+
+async function responder(contexto) {
+  const { request, next, env } = contexto;
   const url = new URL(request.url);
+  if (ehPainel(request.url)) return responderPainel(contexto, url);
+  // Os números do painel nunca respondem no endereço da loja
+  if (/^\/api\/painel(\/|$)/i.test(caminhoNormal(url.pathname))) return naoEncontrada();
   // O endereço vaiprocarrinho.pages.dev (do Cloudflare) não pode ser desligado: leva para o domínio
   // oficial. As prévias de outras branches (algo.vaiprocarrinho.pages.dev) continuam abrindo.
   if (url.hostname === "vaiprocarrinho.pages.dev") {
@@ -146,7 +171,7 @@ async function responder({ request, next, env }) {
   // Endereço "torto" nunca passa: ".." (mesmo escrito %2e%2e), barra dupla ou barra invertida (%5c)
   const torto = /(^|\/)\.\.(\/|$)/.test(caminho) || /\/\/|\\/.test(cru);
   if (torto || !PUBLICOS.test(caminho)) {
-    return new Response("Página não encontrada", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+    return naoEncontrada();
   }
   return next();
 }

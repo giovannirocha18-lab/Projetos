@@ -1,0 +1,72 @@
+/* Painel do Giovanni (public/painel.html). Tema claro, celular primeiro. */
+:root {
+  --roxo: #6d28d9;
+  --roxo-claro: #ede9fe;
+  --verde: #15803d;
+  --vermelho: #b91c1c;
+  --amarelo-fundo: #fef3c7;
+  --bg: #f6f5fb;
+  --card: #ffffff;
+  --texto: #1a1530;
+  --suave: #625d78;
+  --borda: #e6e3ef;
+  --grade: #eeecf4;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--texto); font: 15px/1.45 "Plus Jakarta Sans", system-ui, sans-serif; }
+.topo { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  background: var(--card); border-bottom: 1px solid var(--borda); }
+.topo h1 { margin: 0; font-size: 1.15rem; }
+.topo > div { flex: 1; min-width: 0; }
+.sub { color: var(--suave); font-size: .82rem; font-weight: 500; margin: 0; }
+h2 .sub { margin-left: 4px; }
+.botao { border: 1px solid var(--borda); background: var(--card); color: var(--roxo); font: inherit; font-weight: 700;
+  padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+.botao:hover { background: var(--roxo-claro); }
+main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+.aviso { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--amarelo-fundo); }
+.cartoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 720px) { .cartoes { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.cartao, .bloco { background: var(--card); border: 1px solid var(--borda); border-radius: 16px; padding: 14px 16px; }
+.cartao .rotulo { color: var(--suave); font-size: .82rem; font-weight: 600; }
+.cartao .valor { font-size: 1.7rem; font-weight: 800; margin: 2px 0; font-variant-numeric: tabular-nums; }
+.cartao .comparacao { font-size: .8rem; color: var(--suave); }
+.cartao .sobe { color: var(--verde); font-weight: 700; }
+.cartao .desce { color: var(--vermelho); font-weight: 700; }
+.cartao.breve .valor { font-size: 1rem; color: var(--suave); font-weight: 600; margin: 8px 0 4px; }
+.bloco h2 { margin: 0 0 12px; font-size: 1rem; }
+.duas { display: grid; gap: 16px; }
+@media (min-width: 720px) { .duas { grid-template-columns: 1fr 1fr; } }
+
+/* Gráfico de barras por dia (uma série só: o título diz o que é) */
+.grafico { position: relative; height: 170px; display: flex; flex-direction: column; }
+.grafico .area { position: relative; flex: 1; margin-right: 34px; display: flex; align-items: flex-end; gap: 2px;
+  border-bottom: 1px solid var(--borda); }
+.grafico .linha-max { position: absolute; left: 0; right: 0; top: 0; border-top: 1px dashed var(--grade); }
+.grafico .linha-max span { position: absolute; right: -34px; top: -9px; width: 30px; text-align: right;
+  font-size: .72rem; color: var(--suave); font-variant-numeric: tabular-nums; }
+.grafico .coluna { flex: 1; height: 100%; display: flex; align-items: flex-end; cursor: default; }
+.grafico .barra { width: 100%; background: var(--roxo); border-radius: 4px 4px 0 0; min-height: 0; }
+.grafico .coluna:hover .barra, .grafico .coluna.ativa .barra { background: #5b21b6; }
+.grafico .coluna.hoje .barra { opacity: .55; }
+.grafico .eixo { margin-right: 34px; display: flex; justify-content: space-between; font-size: .72rem; color: var(--suave); padding-top: 4px; }
+.grafico .vazio { margin: auto; color: var(--suave); }
+
+/* Listas com barrinha proporcional */
+.lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lista li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; font-size: .9rem; }
+.lista .nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista .nome small { color: var(--suave); }
+.lista .n { font-weight: 700; font-variant-numeric: tabular-nums; }
+.lista .trilho { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--grade); }
+.lista .trilho i { display: block; height: 100%; border-radius: 3px; background: var(--roxo); }
+.lista .vazio { color: var(--suave); display: block; }
+
+.saude { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.saude li { display: flex; gap: 10px; align-items: flex-start; }
+.saude .icone { flex: none; width: 22px; text-align: center; }
+.saude small { color: var(--suave); display: block; }
+
+.dica { position: fixed; z-index: 5; pointer-events: none; background: var(--texto); color: #fff; font-size: .8rem;
+  padding: 6px 10px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, calc(-100% - 8px)); }
