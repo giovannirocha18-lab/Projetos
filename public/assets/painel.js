@@ -147,9 +147,9 @@
     // O caminho: de cada 100 visitas, quantas buscas e quantos cliques para as lojas (cliques só desde 03/11)
     const total = somaDesde(v.porDia, semana);
     if (total >= 10) {
-      const por100 = (n) => num(Math.round((n / total) * 100));
-      funil.replaceChildren("A cada 100 visitas (7 dias): ", el("strong", "", `${por100(somaDesde(d.buscasDia, semana))} buscas`),
-        " e ", el("strong", "", `${por100(somaDesde(d.cliquesDia, semana))} cliques para as lojas`));
+      const por100 = (n, um, varios) => novas(Math.round((n / total) * 100), um, varios);
+      funil.replaceChildren("A cada 100 visitas (7 dias): ", el("strong", "", por100(somaDesde(d.buscasDia, semana), "busca", "buscas")),
+        " e ", el("strong", "", por100(somaDesde(d.cliquesDia, semana), "clique", "cliques") + " para as lojas"));
       funil.hidden = false;
     }
   }
