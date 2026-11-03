@@ -6,6 +6,7 @@
 // Cada título é perguntado uma vez por busca (tabela ia_busca). Usa a API normal (não o lote): resposta na hora.
 // Uso: node robo/conferir-buscas.mjs [quantidade de buscas]
 //   (precisa de ANTHROPIC_API_KEY, CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e D1_DATABASE_ID)
+import { paraPainel } from "./painel.mjs";
 import { readFileSync, appendFileSync } from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { chaveIa, VERSAO_IA, TABELAS_IA } from "../lib/ia.js";
@@ -34,6 +35,7 @@ const { ANTHROPIC_API_KEY, CLOUDFLARE_API_TOKEN: token, CLOUDFLARE_ACCOUNT_ID: c
 anotar("### IA conferindo as buscas");
 if (!ANTHROPIC_API_KEY || !token || !conta || !banco) {
   anotar("- Faltam os segredos ANTHROPIC_API_KEY e/ou do Cloudflare: não rodou");
+  paraPainel("ia_buscas", { avisos: ["Faltam os segredos ANTHROPIC_API_KEY e/ou do Cloudflare: não rodou"] });
   fim();
   process.exit(0);
 }
@@ -255,6 +257,15 @@ const listar = (titulo, itens, comCats) => {
     if (lista.length > 15) anotar(`  - … e mais ${lista.length - 15}`);
   }
 };
+paraPainel("ia_buscas", {
+  linhas: [
+    `${abertas} de ${termos.length} buscas abertas; ${perguntados} produtos perguntados à IA`,
+    `Escondidos (não são o produto buscado): ${naoSao.length}`,
+    `Categorias corrigidas sozinhas: ${correcoes.size}`,
+    `Custo: US$ ${custo.toFixed(2)}`,
+  ],
+  avisos: falhas ? [`${falhas} perguntas à IA deram erro (saldo da Anthropic acabou?)`] : [],
+});
 listar("Escondidos pela IA", naoSao, false);
 listar("Categoria a conferir", categoriaDuvidosa, true);
 fim();

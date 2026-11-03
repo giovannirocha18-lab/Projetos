@@ -17,6 +17,7 @@
 //   node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite
 //   node robo/awin.mjs --feed robo/exemplo-awin-google.csv --loja 105615:Leveros --sqlite /tmp/teste.sqlite
 // =====================================================================
+import { paraPainel } from "./painel.mjs";
 import { createHash } from "node:crypto";
 import { gunzipSync, createGunzip } from "node:zlib";
 import { Readable } from "node:stream";
@@ -753,9 +754,16 @@ async function main() {
     appendFileSync(process.env.GITHUB_STEP_SUMMARY,
       `## 🛒 Robô de preços — Awin\n\n${[...relatorio, "", ...resumo].map((l) => (l ? `- ${l}` : "")).join("\n")}\n`);
   }
+  // Painel: o resumo sem o tempo; avisos = feeds com erro, feed que encolheu, lojas com links quebrados
+  const lojasOk = relatorio.filter((l) => l.startsWith("✅")).length;
+  paraPainel("awin", {
+    linhas: [`${lojasOk} feeds de lojas lidos`, ...resumo.filter((l) => !l.startsWith("Tempo"))],
+    avisos: relatorio.filter((l) => /^(❌|⚠️)/.test(l)),
+  });
 }
 
 main().catch((erro) => {
   console.error(`ERRO: ${erro.message}`);
+  paraPainel("awin", { avisos: [`Parou com erro: ${erro.message}`] });
   process.exit(1);
 });

@@ -5,6 +5,7 @@
 // Só manda o que ainda não tem categoria nesta VERSAO_IA.
 // Uso: node robo/ia.mjs [--limite N] [--buscas N] [--esperar MINUTOS]
 //   (precisa de ANTHROPIC_API_KEY, CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e D1_DATABASE_ID)
+import { paraPainel } from "./painel.mjs";
 import { readFileSync, appendFileSync } from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { VERSAO_IA, SEM_CATEGORIA, chaveIa, TABELAS_IA } from "../lib/ia.js";
@@ -295,3 +296,8 @@ if (aberto) {
 }
 
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, resumo.join("\n") + "\n");
+// Painel: só as linhas principais (sem exemplos, categorias e custo por 1.000)
+paraPainel("ia", {
+  linhas: resumo.filter((l) => l.startsWith("- ") && !/^- (Exemplos|Por categoria|Custo por)/.test(l))
+    .map((l) => l.replace(/^- Tokens: .*= (US\$ [\d.]+)$/, "- Custo: $1").replace(/Lote \S+ /, "Lote ")),
+});

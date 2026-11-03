@@ -1,5 +1,5 @@
-// Painel do Giovanni (public/painel.html). Duas seções no menu do topo: Métricas (/api/painel/dados) e Comissões
-// (/api/painel/comissoes?mes=AAAA-MM). Nada de número fica nesta página: sem o login do Cloudflare Access a API não responde.
+// Painel do Giovanni (public/painel.html). Três seções no menu do topo: Métricas (/api/painel/dados), Comissões
+// (/api/painel/comissoes?mes=AAAA-MM) e Robô (o resumo de cada execução do robô, que também vem em /api/painel/dados). Nada de número fica nesta página: sem o login do Cloudflare Access a API não responde.
 (() => {
   const $ = (id) => document.getElementById(id);
   const SVG = "http://www.w3.org/2000/svg";
@@ -388,7 +388,10 @@
     const produtos = d.lojasAwin.reduce((s, l) => s + l.n, 0);
     itens.push(["🏬", `${num(d.lojasAwin.length)} lojas da Awin no banco`, `${num(produtos)} produtos`]);
     itens.push([d.visitas?.erro ? "⚠️" : "✅", "Visitas (Cloudflare Web Analytics)", d.visitas?.erro || "lidas normalmente"]);
-    itens.push(["🤖", "Robô da madrugada", "o resumo de cada noite fica no GitHub (Actions → Robô de preços); em breve aqui"]);
+    const ultima = (d.robo || []).length ? ultimaMadrugada(d.robo) : null;
+    itens.push(ultima ? [ICONE_SITUACAO[ultima.situacao] || "🤖", `Robô: ${TEXTO_SITUACAO[ultima.situacao] || ultima.situacao}`,
+      `${ultima.evento === "schedule" ? "última madrugada" : "última execução"}: ${quando(ultima.inicio)} · detalhes na aba Robô`]
+      : ["🤖", "Robô da madrugada", "o resumo aparece aqui (aba Robô) depois da próxima execução"]);
     $("saude").replaceChildren(...itens.map(([icone, titulo, detalhe]) => {
       const li = el("li");
       const corpo = el("div", "", titulo);
@@ -414,6 +417,7 @@
     lista($("l-onde"), d.cliquesOnde, (i) => ONDE[i.nome] || i.nome);
     medidor(d);
     saude(d);
+    montarRobo();
   }
 
   // =================================== COMISSÕES ===================================
@@ -574,18 +578,141 @@
     atualizarQuadroDaComissao();
   }
 
+  // =================================== ROBÔ ===================================
+  // Cada execução (robo/relatorio.mjs): { id, numero, evento, modo, inicio, fim, situacao, partes: [{ titulo, situacao,
+  // linhas, avisos, minutos }], atrasoMin, link }
+
+  const ICONE_SITUACAO = { ok: "✅", aviso: "⚠️", erro: "❌" };
+  const TEXTO_SITUACAO = { ok: "tudo certo", aviso: "rodou, com avisos", erro: "deu erro" };
+  const SELO_SITUACAO = { ok: "✓ Tudo certo", aviso: "! Avisos", erro: "✕ Erro" };
+  const MODOS = {
+    madrugada: "Madrugada", completo: "Manual (completo)", so_awin: "Manual: só Awin", so_prontas: "Manual: só buscas prontas",
+    so_lomadee: "Manual: só Lomadee", so_auditoria: "Manual: só auditoria", so_ia: "Manual: só IA", so_numeros: "Manual: só números",
+  };
+  const tipoDaExecucao = (modo) => MODOS[modo] || `Manual: ${modo}`;
+  const hora = (ms) => new Date(ms).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+  const diaDe = (ms) => new Date(ms).toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+  function quando(ms) {
+    const dia = diaDe(ms);
+    const hoje = hojeBr();
+    return `${dia === hoje ? "hoje" : dia === diasAtras(hoje, 1) ? "ontem" : dataBr(dia)} às ${hora(ms)}`;
+  }
+  function duracao(min) {
+    if (min === null || min === undefined) return "—";
+    if (min < 60) return `${min} min`;
+    return `${Math.floor(min / 60)} h${min % 60 ? ` ${String(min % 60).padStart(2, "0")}` : ""}`;
+  }
+  // Um número de dentro das linhas de um passo (ex.: "431 de 478 buscas guardadas")
+  function achar(ex, chave, regex) {
+    const parte = (ex.partes || []).find((p) => p.chave === chave);
+    for (const l of parte?.linhas || []) { const m = l.match(regex); if (m) return m; }
+    return null;
+  }
+
+  const robo = { escolhida: null };
+  const ultimaMadrugada = (lista) => lista.find((e) => e.evento === "schedule") || lista[0];
+  function montarRobo() {
+    const lista = estado.dados?.robo || [];
+    if (!lista.length) {
+      const nada = "Ainda sem resumo: aparece aqui depois da próxima execução do robô (a da madrugada ou um Run workflow).";
+      $("r-resumo").replaceChildren(el("p", "vazio", nada));
+      $("r-numeros").replaceChildren();
+      $("r-atencao").replaceChildren();
+      $("r-partes").replaceChildren();
+      vazioNaTabela($("r-execucoes"), 7, "Nenhuma execução registrada ainda.");
+      return;
+    }
+    // Sem escolha: a última madrugada (é a que importa todo dia); as manuais ficam na tabela
+    const ex = lista.find((e) => e.id === robo.escolhida) || ultimaMadrugada(lista);
+
+    // Resumo
+    $("r-titulo").textContent = ex === ultimaMadrugada(lista) && !robo.escolhida
+      ? (ex.evento === "schedule" ? "Última madrugada" : "Última execução") : "Execução escolhida";
+    const minutos = ex.fim && ex.inicio ? Math.round((ex.fim - ex.inicio) / 6e4) : null;
+    $("r-resumo").replaceChildren(
+      quadro("Situação", null, el("span", `selo ${ex.situacao}`, SELO_SITUACAO[ex.situacao] || ex.situacao), tipoDaExecucao(ex.modo)),
+      quadro("Começou", quando(ex.inicio), null, `nº ${ex.numero || "—"}`),
+      quadro("Atraso do GitHub", ex.atrasoMin === null || ex.atrasoMin === undefined ? "—" : duracao(ex.atrasoMin), null,
+        ex.evento === "schedule" ? "marcado para 01:30" : "rodou na hora (manual)"),
+      quadro("Duração", duracao(minutos), null, ex.fim ? `terminou ${hora(ex.fim)}` : ""),
+    );
+    // O quadro "Situação" não tem número: tira o "Em breve" que o quadro() põe quando o valor é null
+    $("r-resumo").querySelector(".breve")?.remove();
+
+    // Números da execução (só os que existem nela)
+    const numeros = [];
+    const prontas = achar(ex, "prontas", /(\d+) de (\d+) buscas guardadas/);
+    if (prontas) numeros.push(quadro("Buscas prontas guardadas", `${num(prontas[1])} de ${num(prontas[2])}`, null,
+      `${Math.round((prontas[1] / Math.max(1, prontas[2])) * 100)}% (o bom é 80% ou mais)`));
+    const produtos = achar(ex, "awin", /Produtos nos feeds: ([\d.]+)/);
+    const novos = achar(ex, "awin", /Novos no site: ([\d.]+)/);
+    const removidos = achar(ex, "awin", /Removidos: ([\d.]+)/);
+    if (produtos) numeros.push(quadro("Produtos da Awin", num(Number(produtos[1].replace(/\./g, ""))), null,
+      `${novos ? `+${num(Number(novos[1].replace(/\./g, "")))} novos` : ""}${removidos ? ` · −${num(Number(removidos[1].replace(/\./g, "")))} removidos` : ""}`));
+    const escondidos = achar(ex, "ia_buscas", /Escondidos[^:]*: (\d+)/);
+    const corrigidas = achar(ex, "ia_buscas", /Categorias corrigidas sozinhas: (\d+)/);
+    if (escondidos) numeros.push(quadro("IA: escondidos nas buscas", num(escondidos[1]), null, corrigidas ? `${num(corrigidas[1])} categorias corrigidas` : ""));
+    const custos = (ex.partes || []).flatMap((p) => p.linhas.map((l) => l.match(/US\$ ([\d.]+)/)).filter(Boolean)).map((m) => Number(m[1]));
+    if (custos.length) numeros.push(quadro("Custo da IA", dinheiro(custos.reduce((a, b) => a + b, 0), "USD"), null, "Anthropic (Claude Haiku)"));
+    const emails = achar(ex, "alertas", /(\d+) e-mails/);
+    if (emails) numeros.push(quadro("E-mails \"Baixou!\"", num(emails[1]), null, "alertas de preço"));
+    $("r-numeros").replaceChildren(...(numeros.length ? numeros.slice(0, 4) : [el("p", "vazio", "Esta execução não teve esses passos.")]));
+
+    // Precisa de atenção: todos os avisos, com o passo
+    const avisos = (ex.partes || []).flatMap((p) => p.avisos.map((a) => [p, a]));
+    $("r-atencao").replaceChildren(...(avisos.length ? avisos.slice(0, 12).map(([p, a]) => {
+      const li = el("li");
+      const corpo = el("div", "", p.titulo);
+      corpo.append(el("small", "", a));
+      li.append(el("span", "icone", p.situacao === "erro" ? "❌" : "⚠️"), corpo);
+      return li;
+    }) : [(() => { const li = el("li"); const c = el("div", "", "Nada"); c.append(el("small", "", "Todos os passos rodaram sem aviso.")); li.append(el("span", "icone", "✅"), c); return li; })()]));
+    if (avisos.length > 12) $("r-atencao").append(el("li", "vazio", `… e mais ${avisos.length - 12} (no passo a passo)`));
+
+    // Passo a passo
+    $("r-qual").textContent = `${tipoDaExecucao(ex.modo)} · ${quando(ex.inicio)}`;
+    $("r-partes").replaceChildren(...(ex.partes || []).map((p) => {
+      const li = el("li");
+      const detalhes = el("ul", "detalhes");
+      for (const l of p.linhas) detalhes.append(el("li", "", l));
+      for (const a of p.avisos) detalhes.append(el("li", p.situacao === "erro" ? "falha" : "alerta", /^[\p{L}\p{N}]/u.test(a) ? `${p.situacao === "erro" ? "✕" : "!"} ${a}` : a));
+      li.append(el("span", "icone", ICONE_SITUACAO[p.situacao] || "•"), el("span", "titulo-passo", p.titulo),
+        el("span", "tempo", p.minutos === null || p.minutos === undefined ? "" : duracao(p.minutos)), detalhes);
+      return li;
+    }));
+    if (!(ex.partes || []).length) $("r-partes").append(el("li", "vazio", "Sem passos registrados."));
+
+    // Execuções recentes
+    $("r-execucoes").replaceChildren(...lista.map((e) => {
+      const link = el("a", "", "Abrir");
+      link.href = e.link || "#";
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.addEventListener("click", (evento) => evento.stopPropagation());
+      const tr = linhaDeTabela([
+        [dataBr(diaDe(e.inicio))], [tipoDaExecucao(e.modo), "nome"], [hora(e.inicio), "num"],
+        [e.atrasoMin === null || e.atrasoMin === undefined ? "—" : duracao(e.atrasoMin), "num"],
+        [duracao(e.fim ? Math.round((e.fim - e.inicio) / 6e4) : null), "num"],
+        [el("span", `selo ${e.situacao}`, SELO_SITUACAO[e.situacao] || e.situacao), "num"], [link, "num"],
+      ]);
+      if (e === ex) tr.classList.add("escolhida");
+      tr.addEventListener("click", () => { robo.escolhida = e.id; montarRobo(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+      return tr;
+    }));
+  }
+
   // =================================== MENU E CARGA ===================================
 
-  function vistaAtual() { return location.hash === "#comissoes" ? "comissoes" : "metricas"; }
+  const VISTAS = ["metricas", "comissoes", "robo"];
+  function vistaAtual() { const v = location.hash.slice(1); return VISTAS.includes(v) ? v : "metricas"; }
   function mostrarVista() {
     const vista = vistaAtual();
-    $("vista-metricas").hidden = vista !== "metricas";
-    $("vista-comissoes").hidden = vista !== "comissoes";
+    for (const v of VISTAS) $(`vista-${v}`).hidden = vista !== v;
     document.querySelectorAll("[data-vista]").forEach((a) => {
       if (a.dataset.vista === vista) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
     if (vista === "comissoes") carregarComissoes();
-    else graficoMetricas();
+    else if (vista === "metricas") graficoMetricas();
     esconderDica();
   }
   window.addEventListener("hashchange", mostrarVista);
@@ -593,7 +720,7 @@
   let espera;
   window.addEventListener("resize", () => {
     clearTimeout(espera);
-    espera = setTimeout(() => { if (vistaAtual() === "metricas") graficoMetricas(); else montarComissoes(); }, 150);
+    espera = setTimeout(() => { if (vistaAtual() === "metricas") graficoMetricas(); else if (vistaAtual() === "comissoes") montarComissoes(); }, 150);
   });
 
   async function carregarMetricas() {

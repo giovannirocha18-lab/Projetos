@@ -2,6 +2,7 @@
 // Para cada caminho de categoria que as lojas mandam no feed, mostra em qual das nossas categorias ele cai
 // (lib/caminhos.js) e lista os caminhos sem categoria, para conferir de vez em quando e completar as regras.
 // Uso: node robo/caminhos.mjs   (precisa de CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e D1_DATABASE_ID)
+import { paraPainel } from "./painel.mjs";
 import { appendFileSync } from "node:fs";
 import { categoriaDoCaminho } from "../lib/caminhos.js";
 import { categoriaDoProduto } from "../lib/categorias.js";
@@ -50,3 +51,4 @@ const saida = [
 ].join("\n");
 console.log(saida);
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, saida + "\n");
+paraPainel("caminhos", { linhas: [`${porLoja.size} lojas; ${semCategoria.length} caminhos de categoria das lojas sem categoria nossa`] });

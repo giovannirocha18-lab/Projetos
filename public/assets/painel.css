@@ -199,5 +199,20 @@ main { max-width: 1240px; margin: 0 auto; padding: 16px; }
 .botao-icone:disabled { opacity: .35; cursor: default; }
 .rodape { padding: 0 4px 16px; }
 
+/* Robô: passo a passo */
+.passos { list-style: none; margin: 0; padding: 0; display: grid; }
+.passos > li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 2px 10px; padding: 10px 0; border-bottom: 1px solid var(--borda); }
+.passos > li:last-child { border-bottom: 0; }
+.passos .icone { grid-row: span 2; text-align: center; }
+.passos .titulo-passo { font-weight: 700; }
+.passos .tempo { color: var(--suave); font-size: .76rem; text-align: right; white-space: nowrap; }
+.passos .detalhes { grid-column: 2 / -1; margin: 0; padding: 0; list-style: none; color: var(--suave); font-size: .84rem; }
+.passos .detalhes .alerta { color: var(--alerta); }
+.passos .detalhes .falha { color: var(--desce); }
+.selo.aviso { color: var(--alerta); background: rgba(245, 176, 20, .12); }
+#r-execucoes tr { cursor: pointer; }
+#r-execucoes tr.escolhida { background: var(--acento-fundo); }
+#r-execucoes a { color: var(--acento-forte); }
+
 .dica { position: fixed; z-index: 5; pointer-events: none; background: #fff; color: #0b0f17; font-size: .78rem; font-weight: 600;
   padding: 6px 10px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }

@@ -2,6 +2,7 @@
 // lê os títulos de todos os produtos que já passaram pelo site (tabela ia_categorias, chave = título sem acento) e guarda,
 // para cada marca, os produtos que mais aparecem com ela. /api/vocabulario manda isso para o site.
 // Uso: node robo/marcas.mjs   (precisa de CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e D1_DATABASE_ID)
+import { paraPainel } from "./painel.mjs";
 import { appendFileSync } from "node:fs";
 import { produtosPorMarca, CHAVE_RESUMO } from "../lib/marcasProdutos.js";
 
@@ -41,3 +42,4 @@ const linhas = [`### Sugestões "produto + marca"`, `- ${titulos.length.toLocale
   ...["stanley", "mondial", "tramontina", "samsung", "nike", "dewalt"].filter((m) => porMarca[m]).map((m) => `  - ${m}: ${porMarca[m].join(", ")}`)];
 console.log(linhas.join("\n"));
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, linhas.join("\n") + "\n");
+paraPainel("marcas", { linhas: [`${marcas.length} marcas com sugestões "produto + marca"`] });

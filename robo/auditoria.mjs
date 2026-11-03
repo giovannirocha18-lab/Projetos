@@ -1,6 +1,7 @@
 // Auditoria da busca: roda depois das buscas prontas (robo-precos.yml, job "auditoria").
 // Abre no site as buscas mais comuns e lista os produtos suspeitos no topo (ver lib/auditoria.js).
 // Uso: node robo/auditoria.mjs [quantidade de buscas]   (resumo no $GITHUB_STEP_SUMMARY, se existir)
+import { paraPainel } from "./painel.mjs";
 import { readFileSync, appendFileSync } from "node:fs";
 import { auditarBusca } from "../lib/auditoria.js";
 import { termosParaSugestoes } from "../lib/vocabulario.js";
@@ -48,7 +49,18 @@ for (const { q, suspeitos } of resultados) {
   linhas.push(`- **${q}**`);
   for (const s of suspeitos) linhas.push(`  - ${s.posicao}º R$ ${s.preco} (${s.loja}) ${s.titulo.slice(0, 90)} — ${s.motivos.join(", ")}`);
 }
-linhas.push(...await conferirLojas());
+const lojas = await conferirLojas();
+linhas.push(...lojas);
+paraPainel("auditoria", {
+  linhas: [linhas[1], resultados.length ? `Mais suspeitos: ${resultados.slice(0, 5).map((r) => `${r.q} (${r.suspeitos.length})`).join(", ")}` : null],
+  avisos: falhas > termos.length / 10 ? [`${falhas} de ${termos.length} buscas não abriram`] : [],
+});
+// Lojas nas buscas: 🆕 loja nova e ⚠️ loja invisível viram aviso; o resto, uma linha só
+const avisosLojas = lojas.filter((l) => /🆕|⚠️/.test(l));
+paraPainel("lojas", {
+  linhas: [`${lojas.filter((l) => / apareceu em /.test(l)).length} lojas da Awin aparecem nas buscas comuns`],
+  avisos: avisosLojas,
+});
 const texto = linhas.join("\n");
 console.log(texto);
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, texto + "\n");

@@ -50,6 +50,12 @@ jobs:
       group: robo-awin
       cancel-in-progress: false
     timeout-minutes: 60 # 1ª vez testa ~83 mil fotos
+    # Resumo para o painel (job "relatorio" no fim): o que cada passo anotou e se deu certo
+    outputs:
+      awin: ${{ steps.awin.outputs.awin }}
+      awin_ok: ${{ steps.awin.outcome }}
+      alertas: ${{ steps.alertas.outputs.alertas }}
+      alertas_ok: ${{ steps.alertas.outcome }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -85,6 +91,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
       - name: Atualizar ofertas da Awin
+        id: awin
         run: node --max-old-space-size=6144 robo/awin.mjs
         env:
           AWIN_FEED_KEY_PJ: ${{ secrets.AWIN_FEED_KEY_PJ }}
@@ -93,18 +100,24 @@ jobs:
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
       # Alertas de preço: com os preços da Awin já atualizados, confere os produtos com alerta e manda os e-mails
       - name: Conferir alertas de preço
+        id: alertas
         if: ${{ !cancelled() }}
         env:
           CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }} # chave do robô (lib/robo.js); no GitHub vale um dos dois nomes
         run: |
           echo "### Alertas de preço" >> "$GITHUB_STEP_SUMMARY"
+          n() { echo "$1" | jq -r "$2 // 0" 2>/dev/null | grep -E '^[0-9]+$' || echo 0; } # número de dentro da resposta
+          produtos=0; emails=0; falhas=0
           for parte in $(seq 0 200); do
-            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 90 "https://vaiprocarrinho.com.br/api/conferir-alertas?parte=$parte") || { echo "parte $parte: falhou"; continue; }
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 90 "https://vaiprocarrinho.com.br/api/conferir-alertas?parte=$parte") || { echo "parte $parte: falhou"; falhas=$((falhas + 1)); continue; }
             echo "parte $parte: $r"
             echo "$r" | grep -q CHAVE_ROBO && exit 1 # chave recusada: falha visível (e-mail do GitHub)
             echo "- $r" >> "$GITHUB_STEP_SUMMARY"
+            produtos=$((produtos + $(n "$r" .produtos))); emails=$((emails + $(n "$r" .avisos)))
             echo "$r" | grep -q '"fim":true' && break
           done
+          aviso=""; [ "$falhas" -gt 0 ] && aviso="$falhas partes não responderam"
+          echo "alertas=$(jq -cn --arg l "$produtos produtos com alerta conferidos; $emails e-mails \"Baixou!\" enviados" --arg a "$aviso" '{linhas: [$l], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
       # Guarda o teste das fotos mesmo se o robô falhar ou passar do tempo (o que já foi testado não se perde)
       - uses: actions/cache/save@v4
         if: always()
@@ -118,20 +131,32 @@ jobs:
     if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    outputs:
+      shopee: ${{ steps.shopee.outputs.shopee }}
+      shopee_ok: ${{ steps.shopee.outcome }}
     steps:
       - name: Guardar preços da Shopee
+        id: shopee
         env:
           CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }} # chave do robô (lib/robo.js); no GitHub vale um dos dois nomes
         run: |
           echo "### Preços da Shopee" >> "$GITHUB_STEP_SUMMARY"
+          n() { echo "$1" | jq -r "$2 // 0" 2>/dev/null | grep -E '^[0-9]+$' || echo 0; } # número de dentro da resposta
+          gravados=0; erros=0; limite=0; falhas=0; feitas=0
           for parte in $(seq 0 80); do
-            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 60 "https://vaiprocarrinho.com.br/api/coletar-precos?parte=$parte") || { echo "parte $parte: falhou"; continue; }
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 60 "https://vaiprocarrinho.com.br/api/coletar-precos?parte=$parte") || { echo "parte $parte: falhou"; falhas=$((falhas + 1)); continue; }
             echo "parte $parte: $r"
             echo "$r" | grep -q CHAVE_ROBO && exit 1 # chave recusada: falha visível (e-mail do GitHub)
             echo "- parte $parte: $r" >> "$GITHUB_STEP_SUMMARY"
+            feitas=$((feitas + 1)); gravados=$((gravados + $(n "$r" .gravados))); erros=$((erros + $(n "$r" '(.erros | length)')))
+            echo "$r" | grep -q 10030 && limite=$((limite + 1))
             echo "$r" | grep -q '"fim":true' && break
             sleep 2
           done
+          aviso=""
+          [ "$erros" -gt 0 ] && aviso="$erros buscas com erro na Shopee ($limite partes com o limite 10030)"
+          [ "$falhas" -gt 0 ] && aviso="$aviso${aviso:+; }$falhas partes não responderam"
+          echo "shopee=$(jq -cn --arg l "$gravados preços guardados para o histórico ($feitas partes)" --arg a "$aviso" '{linhas: [$l], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
 
   # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
   prontas:
@@ -140,8 +165,12 @@ jobs:
     if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
+    outputs:
+      prontas: ${{ steps.prontas.outputs.prontas }}
+      prontas_ok: ${{ steps.prontas.outcome }}
     steps:
       - name: Preparar buscas populares
+        id: prontas
         env:
           CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }} # chave do robô (lib/robo.js); no GitHub vale um dos dois nomes
         # A 1ª chamada diz quantas são ("partes"). Uma busca por vez (eram 2 ao mesmo tempo): desde 02/11/2026 a Shopee
@@ -155,10 +184,10 @@ jobs:
           echo "parte 0: $r"
           partes=$(echo "$r" | grep -o '"partes":[0-9]*' | cut -d: -f2)
           [ -z "$partes" ] && { echo "Não deu para saber quantas buscas são"; exit 1; }
-          inicio=$(date +%s); parte=1; tentativas=0; guardadas=0; esperas=0
+          inicio=$(date +%s); parte=1; tentativas=0; guardadas=0; esperas=0; esgotou=""
           echo "$r" | grep -q '"guardada":true' && guardadas=1
           while [ "$parte" -lt "$partes" ]; do
-            if [ $(( $(date +%s) - inicio )) -gt 4200 ]; then echo "Tempo esgotado na parte $parte"; break; fi
+            if [ $(( $(date +%s) - inicio )) -gt 4200 ]; then echo "Tempo esgotado na parte $parte"; esgotou=1; break; fi
             r=$(pedir "$parte")
             echo "parte $parte: $r"
             if echo "$r" | grep -q 10030 && [ "$tentativas" -lt 2 ]; then
@@ -168,26 +197,43 @@ jobs:
             tentativas=0; parte=$((parte + 1))
           done
           echo "- $guardadas de $partes buscas guardadas (feitas até a parte $parte; $esperas esperas pelo limite da Shopee)" >> "$GITHUB_STEP_SUMMARY"
+          aviso=""
+          [ $((guardadas * 100)) -lt $((partes * 80)) ] && aviso="Menos de 80% guardadas: as outras ficam com a resposta da véspera (até 7 dias)"
+          [ -n "$esgotou" ] && aviso="$aviso${aviso:+; }parou aos 70 minutos, na busca $parte de $partes"
+          echo "prontas=$(jq -cn --arg l "$guardadas de $partes buscas guardadas" --arg e "$esperas esperas de 1 minuto pelo limite da Shopee" --arg a "$aviso" '{linhas: [$l, $e], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
 
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
   lomadee:
     if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      lomadee: ${{ steps.lomadee.outputs.lomadee }}
+      lomadee_ok: ${{ steps.lomadee.outcome }}
     steps:
       - name: Conferir marcas da Lomadee
+        id: lomadee
         env:
           CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }} # chave do robô (lib/robo.js); no GitHub vale um dos dois nomes
         run: |
           echo "### Marcas da Lomadee com produtos" >> "$GITHUB_STEP_SUMMARY"
+          : > com.txt; : > quebradas.txt; falhas=0
           for parte in $(seq 0 20); do
-            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 300 "https://vaiprocarrinho.com.br/api/conferir-lojas?parte=$parte") || { echo "parte $parte: falhou"; continue; }
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 300 "https://vaiprocarrinho.com.br/api/conferir-lojas?parte=$parte") || { echo "parte $parte: falhou"; falhas=$((falhas + 1)); continue; }
             echo "parte $parte: $r"
             echo "$r" | grep -q CHAVE_ROBO && exit 1 # chave recusada: falha visível (e-mail do GitHub)
             echo "- $r" >> "$GITHUB_STEP_SUMMARY"
+            echo "$r" | jq -r '.comProdutos[]?' >> com.txt 2>/dev/null || true
+            echo "$r" | jq -r '.linksQuebrados[]?' >> quebradas.txt 2>/dev/null || true
+            echo "$r" | grep -q '"erro"' && falhas=$((falhas + 1))
             echo "$r" | grep -q '"fim":true' && break
             sleep 60 # a Lomadee aceita 60 consultas por minuto; com 25 s partes inteiras falhavam (23/10/2026)
           done
+          com=$(sort -u com.txt | grep -c . || true); quebradas=$(sort -u quebradas.txt | paste -sd, - | sed 's/,/, /g')
+          aviso=""
+          [ -n "$quebradas" ] && aviso="Links quebrados (fora do site): $quebradas"
+          [ "$falhas" -gt 0 ] && aviso="$aviso${aviso:+; }$falhas partes com erro"
+          echo "lomadee=$(jq -cn --arg l "$com marcas com produtos" --arg a "$aviso" '{linhas: [$l], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
 
   # Auditoria da busca (27/10/2026): depois das buscas prontas, abre as buscas mais comuns como o visitante vê e lista
   # no resumo os produtos suspeitos no topo (de brinquedo, peça, preço fora do normal…). Não muda nada no site:
@@ -197,6 +243,15 @@ jobs:
     if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 50
+    outputs:
+      auditoria: ${{ steps.auditoria.outputs.auditoria }}
+      auditoria_ok: ${{ steps.auditoria.outcome }}
+      lojas: ${{ steps.auditoria.outputs.lojas }}
+      lojas_ok: ${{ steps.auditoria.outcome }}
+      ia_buscas: ${{ steps.ia_buscas.outputs.ia_buscas }}
+      ia_buscas_ok: ${{ steps.ia_buscas.outcome }}
+      caminhos: ${{ steps.caminhos.outputs.caminhos }}
+      caminhos_ok: ${{ steps.caminhos.outcome }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -205,12 +260,14 @@ jobs:
         with:
           node-version: 22
       - name: Auditoria da busca
+        id: auditoria
         run: node robo/auditoria.mjs 150
       # IA conferindo as buscas (30/10/2026): o Claude Haiku diz se os produtos fora da categoria da busca são mesmo o
       # produto buscado; os que não são saem do meio dos resultados daquela busca (robo/conferir-buscas.mjs, lib/iaBusca.js)
       - name: Instalar o SDK da Anthropic
         run: npm install --no-save --no-package-lock @anthropic-ai/sdk@1.3.0
       - name: IA conferindo as buscas
+        id: ia_buscas
         continue-on-error: true
         run: node robo/conferir-buscas.mjs 300
         env:
@@ -219,6 +276,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
       - name: Categorias das lojas
+        id: caminhos
         run: node robo/caminhos.mjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -244,6 +302,11 @@ jobs:
     concurrency:
       group: robo-ia
       cancel-in-progress: false
+    outputs:
+      ia: ${{ steps.ia.outputs.ia }}
+      ia_ok: ${{ steps.ia.outcome }}
+      marcas: ${{ steps.marcas.outputs.marcas }}
+      marcas_ok: ${{ steps.marcas.outcome }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -254,6 +317,7 @@ jobs:
       - name: Instalar o SDK da Anthropic
         run: npm install --no-save --no-package-lock @anthropic-ai/sdk@1.3.0
       - name: Categorias pela IA
+        id: ia
         run: node robo/ia.mjs --limite "${{ inputs.ia_limite || '300000' }}" --esperar "${{ inputs.ia_esperar || '0' }}"
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -262,6 +326,7 @@ jobs:
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
       # Sugestões "produto + marca" da caixa de busca (31/10/2026): lê os títulos guardados pela IA (robo/marcas.mjs)
       - name: Sugestões de produtos por marca
+        id: marcas
         continue-on-error: true
         run: node robo/marcas.mjs
         env:
@@ -284,6 +349,33 @@ jobs:
       - name: Números do site
         run: node robo/numeros-site.mjs
         env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+
+  # Resumo para o painel do Giovanni (03/11/2026): depois de todos os jobs (mesmo se algum falhar), junta o que cada
+  # passo anotou e se deu certo e grava no banco (robo/relatorio.mjs, tabela robo_execucoes); aparece na aba "Robô"
+  relatorio:
+    needs: [awin, shopee, prontas, lomadee, auditoria, ia]
+    if: ${{ always() && !inputs.so_numeros }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read # horários de cada job (API do GitHub)
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: claude/inspiring-hamilton-wafagr
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Resumo para o painel
+        run: node robo/relatorio.mjs
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+          ENTRADAS: ${{ toJSON(inputs) }}
+          GITHUB_TOKEN: ${{ github.token }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}

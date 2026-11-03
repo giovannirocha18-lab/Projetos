@@ -6,7 +6,7 @@
   <title>Painel · Vai pro Carrinho</title>
   <!-- Painel do Giovanni: só abre em painel.vaiprocarrinho.com.br, com o login do Cloudflare Access (ver lib/painel.js).
        Esta página não tem nenhum número dentro: tudo vem de /api/painel/dados e /api/painel/comissoes, que conferem o login.
-       Tema preto (pedido do Giovanni, 03/11/2026; a loja continua clara). Menu no topo: Métricas e Comissões (#comissoes). -->
+       Tema preto (pedido do Giovanni, 03/11/2026; a loja continua clara). Menu no topo: Métricas, Comissões (#comissoes) e Robô (#robo). -->
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#0b0f17">
   <meta name="color-scheme" content="dark">
@@ -26,6 +26,7 @@
       <nav class="menu" aria-label="Seções do painel">
         <a href="#metricas" data-vista="metricas">Métricas</a>
         <a href="#comissoes" data-vista="comissoes">Comissões</a>
+        <a href="#robo" data-vista="robo">Robô</a>
       </nav>
       <span class="sub atualizado" id="atualizado">Carregando…</span>
       <button type="button" id="recarregar" class="botao">Atualizar</button>
@@ -174,6 +175,46 @@
       </section>
       <p class="sub rodape">Números das APIs oficiais de cada rede, guardados por 10 minutos (o botão Atualizar busca de novo).
         "Pendente" ainda pode ser cancelada pela loja; vale o que a rede aprovar. AliExpress paga em dólar.</p>
+    </div>
+
+    <!-- ===================== ROBÔ ===================== -->
+    <div class="vista" id="vista-robo" hidden>
+      <div class="cabeca-vista">
+        <h2 class="titulo-vista">Robô</h2>
+        <span class="sub">Roda toda madrugada (marcado para 01:30; o GitHub costuma começar horas depois)</span>
+      </div>
+
+      <div class="trio">
+        <section class="painel">
+          <h2 id="r-titulo">Última execução</h2>
+          <div class="quadros" id="r-resumo"></div>
+        </section>
+        <section class="painel">
+          <h2>Números da execução</h2>
+          <div class="quadros" id="r-numeros"></div>
+        </section>
+        <section class="painel">
+          <h2>Precisa de atenção</h2>
+          <ul class="saude-lista" id="r-atencao"></ul>
+        </section>
+      </div>
+
+      <section class="painel">
+        <h2>Passo a passo <span class="sub" id="r-qual"></span></h2>
+        <ol class="passos" id="r-partes"></ol>
+      </section>
+
+      <section class="painel">
+        <h2>Execuções recentes <span class="sub">toque numa linha para ver os detalhes</span></h2>
+        <div class="tabela-rolagem">
+          <table class="tabela">
+            <thead><tr><th>Data</th><th>Tipo</th><th class="num">Começou</th><th class="num">Atraso</th><th class="num">Duração</th><th class="num">Situação</th><th class="num">GitHub</th></tr></thead>
+            <tbody id="r-execucoes"></tbody>
+          </table>
+        </div>
+      </section>
+      <p class="sub rodape">O resumo é gravado no fim de cada execução do robô. O relatório completo (com as listas) continua no
+        GitHub: Actions → Robô de preços.</p>
     </div>
   </main>
 
