@@ -34,6 +34,11 @@ const FONTES_REAIS = [curadoria, shopee, awin, aliexpress, lomadee];
 const FRESCO_MS = 60 * 60 * 1000;
 const GUARDAR_SEGUNDOS = 24 * 60 * 60;
 const NAVEGADOR_SEGUNDOS = 10 * 60;
+// Busca sem nenhuma oferta de verdade (03/11/2026, print "lisinha": 0 ofertas para o Giovanni, 143 para outra pessoa):
+// a Shopee às vezes responde vazio sem dar erro, e esse "nada" ficava 1 dia no cache do Cloudflare daquela cidade e
+// 10 min no navegador. Agora fica só 5 min no Cloudflare e nada no navegador
+const VAZIA_SEGUNDOS = 5 * 60;
+const vazia = (resposta) => resposta.headers.get("X-Total-Ofertas") === "0";
 // Busca pronta do robô mais velha que 30 h ainda é mostrada (e refeita por trás) por até 7 dias
 const VELHA_DEMAIS_MS = 7 * 24 * 60 * 60 * 1000;
 // Mesma busca não é refeita 2 vezes ao mesmo tempo (vale dentro de cada servidor do Cloudflare)
@@ -62,7 +67,7 @@ const VALIDADE_PRONTA_MS = 30 * 60 * 60 * 1000;
 const MAX_PAGINA = 20;
 const MAX_DESDE = 100;
 // Trocar este número quando mudar o formato das respostas, para não servir as guardadas antes
-const VERSAO_CACHE = 107; // 107: palavra de 3 letras só inteira ("dry" x "Dryko"), 03/11/2026; 106: 400 candidatos por loja; 105: até 100 da Awin; 104: candidatos da Awin de cada loja (Cama In Box), 02/11/2026
+const VERSAO_CACHE = 108; // 108: busca vazia não fica no cache ("lisinha"); 107: palavra de 3 letras só inteira ("dry" x "Dryko"), 03/11/2026; 106: 400 candidatos por loja; 105: até 100 da Awin; 104: candidatos da Awin de cada loja (Cama In Box), 02/11/2026
 export const PAGINAS_INICIO_PRONTAS = 6;
 // Como o site da AliExpress busca (estudado em 21/10/2026, pedido do Giovanni): ele descobre a CATEGORIA da busca
 // ("celular" -> Celulares 5090301, "geladeira" -> 60203) e mostra os produtos dela. A API de afiliados só procura a
@@ -131,7 +136,7 @@ const comLimite = (promessa, ms) => Promise.race([promessa,
 // Cópia para o cache do Cloudflare: vale 1 dia lá e leva a hora em que a busca foi feita nas lojas
 function paraGuardar(resposta, criado = Date.now()) {
   const copia = new Response(resposta.body, resposta);
-  copia.headers.set("Cache-Control", `public, max-age=${GUARDAR_SEGUNDOS}`);
+  copia.headers.set("Cache-Control", `public, max-age=${vazia(resposta) ? VAZIA_SEGUNDOS : GUARDAR_SEGUNDOS}`);
   copia.headers.set("X-Criado", String(criado));
   return copia;
 }
@@ -139,7 +144,7 @@ function paraGuardar(resposta, criado = Date.now()) {
 // Resposta guardada indo para o navegador: ele guarda pouco tempo
 function paraNavegador(resposta) {
   const copia = new Response(resposta.body, resposta);
-  copia.headers.set("Cache-Control", `public, max-age=${NAVEGADOR_SEGUNDOS}`);
+  copia.headers.set("Cache-Control", `public, max-age=${vazia(resposta) ? 0 : NAVEGADOR_SEGUNDOS}`);
   return copia;
 }
 
@@ -429,6 +434,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   });
   // Produtos de exemplo não contam como busca em alta
   resposta.headers.set("X-Total-Ofertas", reais.length ? String(ofertas.length) : "0");
+  if (!reais.length) resposta.headers.set("Cache-Control", "public, max-age=0");
   const todasOk = Object.values(lojas).every((l) => l.ok);
   if (cache && todasOk) await cache.put(chave, paraGuardar(resposta.clone()));
   // Busca pronta: guarda mesmo que uma loja pequena tenha falhado (vindo do robô do GitHub, a Lomadee às vezes
