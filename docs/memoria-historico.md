@@ -1339,3 +1339,8 @@ Texto para colar numa conversa nova:
   buscas prontas rodando (2 em paralelo, ~16 min; à noite isso cai às ~09h por causa do atraso do GitHub). Agora:
   `chamarShopee` tenta de novo no 10030 (pausas 1,5 s e 3 s, cabe nos 8 s da loja); resposta sem oferta = max-age 0 no
   navegador; com alguma loja em erro = max-age 60 (antes 600). O cache do Cloudflare já não guardava resposta com loja em erro.
+- **Print "lisinha" 2 (03/11/2026)**: o "Menor preço da busca" (SIITO Lisinha, Shopee, R$ 32,90, sem vendas nem nota) abria
+  "O produto não existe" na Shopee; a API de afiliados (productOfferV2 por itemId) continua mandando o produto, então não dá
+  para saber pela API. Regra nova em app.js: `comProva` — nos marketplaces (shopee, aliexpress) o selo "🏆 Menor preço da
+  busca" e o "💰 Mais barato" da Escolha rápida só vão para anúncio com vendidos > 0 ou avaliação > 0; Awin/Lomadee valem
+  sempre. Testado com Playwright (app.js local no site de verdade): selo foi para "Lisinha Sérum 30ml" (542 vendidos).
