@@ -1350,3 +1350,11 @@ Texto para colar numa conversa nova:
   a Shopee passou a limitar mais a nossa conta (o limite exato não é publicado; depois do estouro passam ~1–3 buscas/min).
   Consequência: desde 02/11 quase não há buscas prontas (busca popular sai ao vivo, mais lenta e gastando mais Shopee) e
   visitante pode ver a Shopee vazia. Cada busca no site pede à Shopee 3 páginas na 1ª resposta + até 6 nas seguintes.
+- **Limite da Shopee — o que foi feito (03/11/2026)**: (1) `lib/fontes/shopee.js`: busca pede só páginas 1–2
+  (`MAX_PAGINAS_BUSCA`), vitrine só a 1 (`MAX_PAGINAS_VITRINE`); páginas além voltam [] sem consultar. (2) buscar.js:
+  `FRESCO_MS` 1 h → 6 h; `atualizando` virou Map com pausa de 10 min entre atualizações por trás (antes, com a Shopee
+  recusando, cada visitante disparava outra); resposta com só loja menor em erro (Lomadee) e Shopee ok agora vai pro cache por
+  1 h marcada como velha (antes não ia e cada visitante refazia tudo); "reserva" `&reserva=1` no cache do Cloudflare por 7 dias
+  com a última resposta completa — se a Shopee recusar, o visitante recebe a reserva (cabeçalho `X-Reserva: 1`). (3)
+  robo-precos.yml: `prontas` depois do job `shopee` (`needs: shopee` + `always()`), uma busca por vez, no erro 10030 espera
+  60 s e tenta a mesma até 2 vezes, para aos 70 min; resumo "X de Y buscas guardadas (… esperas)". Sem subir VERSAO_CACHE.
