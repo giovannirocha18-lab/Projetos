@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel · Vai pro Carrinho</title>
   <!-- Painel do Giovanni: só abre em painel.vaiprocarrinho.com.br, com o login do Cloudflare Access (ver lib/painel.js).
-       Esta página não tem nenhum número dentro: tudo vem de /api/painel/dados, que confere o login.
-       Layout inspirado em painéis de mercado (pedido do Giovanni, 03/11/2026): grupos de cartões com ▲▼%, "Em alta",
-       gráfico grande com abas, tabelas com mini-gráfico de 7 dias e um marcador em semicírculo. -->
+       Esta página não tem nenhum número dentro: tudo vem de /api/painel/dados e /api/painel/comissoes, que conferem o login.
+       Tema preto (pedido do Giovanni, 03/11/2026; a loja continua clara). Menu no topo: Métricas e Comissões (#comissoes). -->
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#0b0f17">
+  <meta name="color-scheme" content="dark">
   <link rel="icon" href="/marca/vaiprocarrinho-icone.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,105 +19,173 @@
 <body>
   <header class="topo">
     <div class="topo-linha">
-      <img src="/marca/vaiprocarrinho-icone.svg" alt="" width="30" height="30">
-      <div class="topo-titulo">
-        <h1>Painel</h1>
-        <p class="sub" id="atualizado">Carregando…</p>
-      </div>
+      <a class="marca" href="#metricas">
+        <img src="/marca/vaiprocarrinho-icone.svg" alt="" width="28" height="28">
+        <span>Vai pro Carrinho</span>
+      </a>
+      <nav class="menu" aria-label="Seções do painel">
+        <a href="#metricas" data-vista="metricas">Métricas</a>
+        <a href="#comissoes" data-vista="comissoes">Comissões</a>
+      </nav>
+      <span class="sub atualizado" id="atualizado">Carregando…</span>
       <button type="button" id="recarregar" class="botao">Atualizar</button>
     </div>
-    <div class="faixa" id="faixa" aria-label="Números gerais"></div>
   </header>
+  <div class="faixa-fundo"><div class="faixa" id="faixa" aria-label="Números gerais"></div></div>
 
   <main>
     <p class="aviso" id="erro" hidden></p>
 
-    <div class="trio">
+    <!-- ===================== MÉTRICAS ===================== -->
+    <div class="vista" id="vista-metricas">
+      <div class="trio">
+        <section class="painel">
+          <h2>Resumo da semana</h2>
+          <div class="quadros" id="resumo"></div>
+        </section>
+        <section class="painel">
+          <h2>Em alta <span class="sub">buscas · 7 dias</span></h2>
+          <ol class="ranking" id="em-alta"></ol>
+        </section>
+        <section class="painel">
+          <h2>Visitas <span class="sub">14 dias</span></h2>
+          <div class="quadro quadro-grafico">
+            <div class="mini-numeros" id="visitas-numeros"></div>
+            <div class="barrinhas" id="visitas-barras"></div>
+          </div>
+          <div class="quadros" id="visitas-taxas"></div>
+        </section>
+      </div>
+
       <section class="painel">
-        <h2>Resumo da semana</h2>
-        <div class="quadros" id="resumo"></div>
-      </section>
-      <section class="painel">
-        <h2>Em alta <span class="sub">buscas · 7 dias</span></h2>
-        <ol class="ranking" id="em-alta"></ol>
-      </section>
-      <section class="painel">
-        <h2>Visitas <span class="sub">14 dias</span></h2>
-        <div class="quadro quadro-grafico">
-          <div class="mini-numeros" id="visitas-numeros"></div>
-          <div class="barrinhas" id="visitas-barras"></div>
+        <div class="cabeca-grafico">
+          <div>
+            <h2 id="grafico-titulo">Visitas</h2>
+            <p class="destaque" id="grafico-total"></p>
+          </div>
+          <div class="controles">
+            <div class="abas" role="tablist" aria-label="O que mostrar">
+              <button type="button" role="tab" data-serie="visitas" aria-selected="true">Visitas</button>
+              <button type="button" role="tab" data-serie="buscas" aria-selected="false">Buscas</button>
+              <button type="button" role="tab" data-serie="cliques" aria-selected="false">Cliques</button>
+            </div>
+            <div class="abas" role="tablist" aria-label="Período">
+              <button type="button" role="tab" data-dias="7" aria-selected="false">7D</button>
+              <button type="button" role="tab" data-dias="30" aria-selected="true">30D</button>
+            </div>
+          </div>
         </div>
-        <div class="quadros" id="visitas-taxas"></div>
+        <div class="grafico-area" id="grafico"></div>
+      </section>
+
+      <section class="painel">
+        <h2>Mais buscados <span class="sub">7 dias</span></h2>
+        <div class="tabela-rolagem">
+          <table class="tabela">
+            <thead><tr><th>#</th><th>Busca</th><th class="num">7 dias</th><th class="num">vs. semana anterior</th><th class="num">Últimos 7 dias</th></tr></thead>
+            <tbody id="t-buscas"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="painel">
+        <h2>Lojas <span class="sub">cliques para a loja · 7 dias</span></h2>
+        <div class="tabela-rolagem">
+          <table class="tabela">
+            <thead><tr><th>#</th><th>Loja</th><th class="num">Cliques</th><th class="num">vs. semana anterior</th><th class="num">Produtos no banco</th><th class="num">Últimos 7 dias</th></tr></thead>
+            <tbody id="t-lojas"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="quarteto">
+        <section class="painel">
+          <h2>De onde vêm as visitas <span class="sub">7 dias</span></h2>
+          <ol class="lista" id="l-origens"></ol>
+        </section>
+        <section class="painel">
+          <h2>Celular ou computador <span class="sub">7 dias</span></h2>
+          <div id="aparelhos"></div>
+        </section>
+        <section class="painel">
+          <h2>Produtos mais clicados <span class="sub">7 dias</span></h2>
+          <ol class="lista" id="l-produtos"></ol>
+        </section>
+        <section class="painel">
+          <h2>De onde saem os cliques <span class="sub">7 dias</span></h2>
+          <ol class="lista" id="l-onde"></ol>
+        </section>
+      </div>
+
+      <section class="painel">
+        <h2>Saúde do site</h2>
+        <div class="saude">
+          <div class="quadro quadro-medidor" id="medidor"></div>
+          <ul class="saude-lista" id="saude"></ul>
+        </div>
       </section>
     </div>
 
-    <section class="painel">
-      <div class="cabeca-grafico">
-        <div>
-          <h2 id="grafico-titulo">Visitas</h2>
-          <p class="destaque" id="grafico-total"></p>
-        </div>
-        <div class="controles">
-          <div class="abas" role="tablist" aria-label="O que mostrar">
-            <button type="button" role="tab" data-serie="visitas" aria-selected="true">Visitas</button>
-            <button type="button" role="tab" data-serie="buscas" aria-selected="false">Buscas</button>
-            <button type="button" role="tab" data-serie="cliques" aria-selected="false">Cliques</button>
-          </div>
-          <div class="abas" role="tablist" aria-label="Período">
-            <button type="button" role="tab" data-dias="7" aria-selected="false">7D</button>
-            <button type="button" role="tab" data-dias="30" aria-selected="true">30D</button>
-          </div>
+    <!-- ===================== COMISSÕES ===================== -->
+    <div class="vista" id="vista-comissoes" hidden>
+      <div class="cabeca-vista">
+        <h2 class="titulo-vista">Comissões</h2>
+        <div class="seletor-mes">
+          <button type="button" class="botao-icone" id="mes-anterior" aria-label="Mês anterior">‹</button>
+          <span id="mes-nome">—</span>
+          <button type="button" class="botao-icone" id="mes-seguinte" aria-label="Mês seguinte">›</button>
         </div>
       </div>
-      <div class="grafico-area" id="grafico"></div>
-    </section>
+      <p class="aviso" id="erro-redes" hidden></p>
 
-    <section class="painel">
-      <h2>Mais buscados <span class="sub">7 dias</span></h2>
-      <div class="tabela-rolagem">
-        <table class="tabela">
-          <thead><tr><th>#</th><th>Busca</th><th class="num">7 dias</th><th class="num">vs. semana anterior</th><th class="num">Últimos 7 dias</th></tr></thead>
-          <tbody id="t-buscas"></tbody>
-        </table>
+      <section class="painel">
+        <h2>Resumo do mês</h2>
+        <div class="quadros quadros-4" id="c-resumo"></div>
+      </section>
+
+      <section class="painel">
+        <div class="cabeca-grafico">
+          <div>
+            <h2>Comissão por dia</h2>
+            <p class="destaque" id="c-grafico-total"></p>
+          </div>
+        </div>
+        <div class="grafico-area" id="c-grafico"></div>
+      </section>
+
+      <div class="quarteto">
+        <section class="painel">
+          <h2>Por rede</h2>
+          <div class="tabela-rolagem">
+            <table class="tabela">
+              <thead><tr><th>Rede</th><th class="num">Pedidos</th><th class="num">Vendas</th><th class="num">Comissão</th><th class="num">Situação</th></tr></thead>
+              <tbody id="c-redes"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="painel">
+          <h2>Por loja</h2>
+          <div class="tabela-rolagem">
+            <table class="tabela">
+              <thead><tr><th>#</th><th>Loja</th><th>Rede</th><th class="num">Pedidos</th><th class="num">Comissão</th></tr></thead>
+              <tbody id="c-lojas"></tbody>
+            </table>
+          </div>
+        </section>
       </div>
-    </section>
 
-    <section class="painel">
-      <h2>Lojas <span class="sub">cliques para a loja · 7 dias</span></h2>
-      <div class="tabela-rolagem">
-        <table class="tabela">
-          <thead><tr><th>#</th><th>Loja</th><th class="num">Cliques</th><th class="num">vs. semana anterior</th><th class="num">Produtos no banco</th><th class="num">Últimos 7 dias</th></tr></thead>
-          <tbody id="t-lojas"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <div class="quarteto">
       <section class="painel">
-        <h2>De onde vêm as visitas <span class="sub">7 dias</span></h2>
-        <ol class="lista" id="l-origens"></ol>
+        <h2>Pedidos <span class="sub" id="c-pedidos-sub"></span></h2>
+        <div class="tabela-rolagem">
+          <table class="tabela">
+            <thead><tr><th>Data</th><th>Rede</th><th>Loja</th><th>Produto</th><th class="num">Venda</th><th class="num">Comissão</th><th class="num">Situação</th></tr></thead>
+            <tbody id="c-pedidos"></tbody>
+          </table>
+        </div>
       </section>
-      <section class="painel">
-        <h2>Celular ou computador <span class="sub">7 dias</span></h2>
-        <div id="aparelhos"></div>
-      </section>
-      <section class="painel">
-        <h2>Produtos mais clicados <span class="sub">7 dias</span></h2>
-        <ol class="lista" id="l-produtos"></ol>
-      </section>
-      <section class="painel">
-        <h2>De onde saem os cliques <span class="sub">7 dias</span></h2>
-        <ol class="lista" id="l-onde"></ol>
-      </section>
+      <p class="sub rodape">Números das APIs oficiais de cada rede, guardados por 10 minutos (o botão Atualizar busca de novo).
+        "Pendente" ainda pode ser cancelada pela loja; vale o que a rede aprovar. AliExpress paga em dólar.</p>
     </div>
-
-    <section class="painel">
-      <h2>Saúde do site</h2>
-      <div class="saude">
-        <div class="quadro quadro-medidor" id="medidor"></div>
-        <ul class="saude-lista" id="saude"></ul>
-      </div>
-    </section>
   </main>
 
   <div class="dica" id="dica" role="status" hidden></div>
