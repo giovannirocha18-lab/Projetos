@@ -1374,3 +1374,8 @@ Texto para colar numa conversa nova:
   existe e é a única categoria da busca (busca de marca como "stanley"/"jbl" fica de fora); vale também para respostas "sim"
   antigas guardadas em ia_busca (sem perguntar de novo). Testado com fetch/SDK simulados. Disparados so_ia (ia_esperar=25) e
   so_auditoria (o 1º so_auditoria, com código antigo, foi cancelado).
+  Resultado (03/11, runs #95 so_ia e #97 so_auditoria): IA de categorias pôs em dia 11.561 títulos (lote lido na hora, US$ 0,119;
+  US$ 0,0103 por mil). IA conferindo: 303 buscas, 6.131 títulos perguntados, 376 "não é o produto" (amostra boa: chaveiros/broches
+  em "mochila", capacete de cachorro, mousepads em "mouse", peças de vara de pesca), 244 a conferir, **1.260 categorias corrigidas
+  sozinhas**; US$ 0,096. Números do site (1º relatório): 169 buscas em 7 dias (445 nos 7 anteriores, testes do Giovanni), top:
+  geladeira 16, air fryer 14, boneca 12, ração 10; 2 contas, 1 alerta, 1 carrinho.

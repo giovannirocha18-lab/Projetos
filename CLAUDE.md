@@ -69,7 +69,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (apaga as prontas).
 - **Crédito da Anthropic**: acabou em 03/11, Giovanni recarregou no mesmo dia. IA conferindo as buscas agora também olha os 24
   primeiros de cada busca + 150 buscas reais do mês e **corrige a categoria sozinha** (ia_categorias) quando a busca é de produto
-  com uma categoria só. Rodados `so_ia` (ia_esperar 25) e `so_auditoria` em 03/11 ~18h UTC: conferir o resultado. Relatório novo "Números do site" (robo/numeros-site.mjs, fim da
+  com uma categoria só. 03/11 (#95/#97): 11.561 títulos novos classificados (US$ 0,12); 6.131 perguntados, 376 escondidos,
+  **1.260 categorias corrigidas** (US$ 0,10). Números do site: 169 buscas na semana (geladeira, air fryer, ração…), 2 contas. Relatório novo "Números do site" (robo/numeros-site.mjs, fim da
   auditoria): buscas/dia, mais buscados, contas, alertas. Visitas: Giovanni ligar Web Analytics (CSP já libera).
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
