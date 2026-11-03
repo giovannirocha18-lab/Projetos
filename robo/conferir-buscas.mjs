@@ -8,7 +8,8 @@
 //   (precisa de ANTHROPIC_API_KEY, CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e D1_DATABASE_ID)
 import { readFileSync, appendFileSync } from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
-import { chaveIa } from "../lib/ia.js";
+import { chaveIa, VERSAO_IA, TABELAS_IA } from "../lib/ia.js";
+import { categoriaDoProduto } from "../lib/categorias.js";
 import { TABELA_IA_BUSCA, termoIa, foraDasCategorias, categoriasDaBusca } from "../lib/iaBusca.js";
 
 const MODELO = "claude-haiku-5-5";
@@ -73,11 +74,11 @@ async function gravar(linhas) {
 }
 
 async function jaConferidos() {
-  const vistos = new Set();
+  const vistos = new Map(); // "termo|chave" -> 1 (é o produto) ou 0 (não é)
   for (let desde = 0; ;) {
-    const linhas = await d1("SELECT rowid AS r, termo, chave FROM ia_busca WHERE rowid > ? ORDER BY rowid LIMIT 50000", [desde]);
+    const linhas = await d1("SELECT rowid AS r, termo, chave, ok FROM ia_busca WHERE rowid > ? ORDER BY rowid LIMIT 50000", [desde]);
     if (!linhas.length) break;
-    for (const l of linhas) vistos.add(`${l.termo}|${l.chave}`);
+    for (const l of linhas) vistos.set(`${l.termo}|${l.chave}`, l.ok);
     desde = linhas.at(-1).r;
   }
   return vistos;
@@ -182,6 +183,10 @@ try {
 
 const naoSao = []; // { q, titulo, secao, loja }
 const categoriaDuvidosa = []; // { q, titulo, secao, cats }
+// Categoria corrigida pela IA (03/11/2026): a IA disse que o produto É o buscado, mas ele estava em outra categoria. Só
+// quando a busca é de um produto com categoria conhecida ("smartwatch" = Smartwatches) e a busca tem só essa categoria;
+// busca de marca ("stanley": copo e ferramenta) fica de fora. Grava em ia_categorias, que o site usa acima das regras
+const correcoes = new Map(); // chave do título -> categoria
 let abertas = 0, perguntados = 0;
 const novas = [];
 for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
@@ -194,33 +199,50 @@ for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
     const porChave = new Map();
     const fora = new Set(foraDasCategorias(ofertas));
     const topo = ofertas.filter((o) => !o.acessorio && o.principal).slice(0, TOPO);
+    const catsDaBusca = [...(categoriasDaBusca(ofertas) || [])];
+    const cats = catsDaBusca.map((c) => c || "Outros").join(" + ");
+    const doProduto = categoriaDoProduto(q)?.nome;
+    const corrigeCom = catsDaBusca.length === 1 && doProduto && catsDaBusca[0] === doProduto ? doProduto : null;
     for (const o of [...fora, ...topo]) {
       const chave = chaveIa(o.titulo || "");
-      if (chave && !vistos.has(`${termo}|${chave}`) && !porChave.has(chave)) porChave.set(chave, o);
+      if (!chave) continue;
+      // Já respondido "é o produto" numa noite anterior e ainda fora da categoria: corrige sem perguntar de novo
+      if (vistos.get(`${termo}|${chave}`) === 1 && corrigeCom && fora.has(o)) correcoes.set(chave, corrigeCom);
+      if (!vistos.has(`${termo}|${chave}`) && !porChave.has(chave)) porChave.set(chave, o);
     }
     if (!porChave.size) return;
     const lista = [...porChave.values()];
     perguntados += lista.length;
     const respostas = await perguntar(q, lista.map((o) => o.titulo));
-    const cats = [...(categoriasDaBusca(ofertas) || [])].map((c) => c || "Outros").join(" + ");
     for (const o of lista) {
       if (!respostas.has(o.titulo)) continue;
       const ok = respostas.get(o.titulo);
       novas.push([termo, chaveIa(o.titulo), ok]);
-      vistos.add(`${termo}|${chaveIa(o.titulo)}`);
+      vistos.set(`${termo}|${chaveIa(o.titulo)}`, ok ? 1 : 0);
       const item = { q, titulo: o.titulo, secao: o.secao || "Outros", loja: o.lojaNome || o.loja, cats };
       if (!ok) naoSao.push(item);
-      else if (fora.has(o)) categoriaDuvidosa.push(item);
+      else if (fora.has(o)) {
+        categoriaDuvidosa.push(item);
+        if (corrigeCom) correcoes.set(chaveIa(o.titulo), corrigeCom);
+      }
     }
   }));
   await espera(PAUSA_MS);
 }
 await gravar(novas);
+if (correcoes.size) {
+  await d1(TABELAS_IA[0]);
+  const valores = [...correcoes].map(([chave, cat]) => `(${texto(chave)},${texto(cat)},${VERSAO_IA},${Date.now()})`);
+  for (let i = 0; i < valores.length; i += 300) {
+    await d1(`INSERT OR REPLACE INTO ia_categorias (chave, categoria, versao, quando) VALUES ${valores.slice(i, i + 300).join(",")}`);
+  }
+}
 
 const custo = (entrada * PRECO_ENTRADA + saida * PRECO_SAIDA) / 1e6;
 anotar(`- ${abertas} de ${termos.length} buscas abertas; ${perguntados} produtos perguntados à IA (fora da categoria da busca ou entre os ${TOPO} primeiros) (${falhas} perguntas com erro)`);
 anotar(`- Não são o produto buscado (saem do meio dos resultados daquela busca): ${naoSao.length}`);
-anotar(`- São o produto, mas em outra categoria (conferir as regras de categoria): ${categoriaDuvidosa.length}`);
+anotar(`- São o produto, mas em outra categoria (conferir as regras de categoria): ${categoriaDuvidosa.length}; ` +
+  `categoria corrigida sozinha em ${correcoes.size} (busca de produto com uma categoria só)`);
 anotar(`- Custo: US$ ${custo.toFixed(4)} (${entrada.toLocaleString("pt-BR")} tokens de entrada, ${saida.toLocaleString("pt-BR")} de saída)`);
 const listar = (titulo, itens, comCats) => {
   if (!itens.length) return;
