@@ -71,6 +71,25 @@ function el(tag, attrs = {}, ...filhos) {
   return node;
 }
 
+// Contagem dos cliques que levam às lojas (pedido do Giovanni, 03/11/2026; functions/api/clique.js): os links marcados
+// com marcaClique() avisam o servidor com sendBeacon, sem atrasar a ida à loja. Vai só a loja, o lugar do site e o produto
+const marcaClique = (onde, o = {}) => ({
+  "data-clique": onde, "data-loja": infoLoja(o).nome || "", "data-id": o.id || "", "data-titulo": String(o.titulo || "").slice(0, 120),
+});
+function avisarClique(e) {
+  if (e.type === "auxclick" && e.button !== 1) return; // botão do meio (abre em outra aba)
+  const a = e.target.closest?.("a[data-clique]");
+  if (!a || e.defaultPrevented) return; // a foto no celular abre os detalhes em vez da loja
+  const corpo = JSON.stringify({ onde: a.dataset.clique, loja: a.dataset.loja, id: a.dataset.id, titulo: a.dataset.titulo });
+  try {
+    if (!navigator.sendBeacon?.("/api/clique", new Blob([corpo], { type: "application/json" }))) {
+      fetch("/api/clique", { method: "POST", body: corpo, keepalive: true, headers: { "Content-Type": "application/json" } }).catch(() => {});
+    }
+  } catch { /* sem contagem, mas a pessoa vai para a loja do mesmo jeito */ }
+}
+document.addEventListener("click", avisarClique);
+document.addEventListener("auxclick", avisarClique);
+
 const ICONE_CARRINHO = () => {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
@@ -214,7 +233,7 @@ function desenharFavoritos() {
       el("div", { class: "fav-foto", style: `--fundo-cat:${FUNDO_CATEGORIA[f.categoria] || "var(--bg)"}` },
         f.imagem ? el("img", { src: f.imagem, alt: "" }) : f.emoji || "🛍️"),
       el("div", {},
-        el("a", { href: f.link, target: "_blank", rel: "sponsored noopener" }, f.titulo),
+        el("a", { href: f.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("carrinho", f) }, f.titulo),
         el("strong", {}, `R$ ${brl(f.preco)}`, f.precoAntigo > f.preco && el("s", { class: "fav-antigo" }, `R$ ${brl(f.precoAntigo)}`)),
         el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome)),
       el("button", { class: "fechar", type: "button", "aria-label": "Remover", onclick: () => alternarFavorito(f) }, "✕"));
@@ -565,7 +584,7 @@ function meusAlertas(erro) {
     lista.length > 0 && el("ul", { class: "lista-alertas" }, ...lista.map((a) => el("li", {},
       a.imagem && el("img", { src: a.imagem, alt: "", loading: "lazy" }),
       el("div", {},
-        el("a", { href: a.link, target: "_blank", rel: "sponsored noopener" }, a.titulo),
+        el("a", { href: a.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("alerta", { ...a, loja: a.lojaNome }) }, a.titulo),
         el("span", {}, `${a.alvo ? `Avisar em R$ ${brl(a.alvo)}` : "Avisar quando baixar"} · era R$ ${brl(a.precoInicial)}`
           + `${a.ultimoPreco && a.ultimoPreco !== a.precoInicial ? ` · hoje R$ ${brl(a.ultimoPreco)}` : ""}`)),
       el("button", { class: "botao-link perigo", type: "button", onclick: () => pararAlerta(a.id) }, "Parar")))),
@@ -693,7 +712,7 @@ function abrirComparacao() {
       linha("Vendidos", (o) => (o.vendidos ? el("span", { class: o.vendidos === maisVendido ? "comparar-melhor" : null }, vendidosTexto(o.vendidos)) : "—")),
       linha("Envio", (o) => (o.envioNacional ? "🇧🇷 Do Brasil" : o.internacional ? "🌎 Internacional" : o.freteGratis ? "🚚 Frete grátis" : "Nacional")),
       el("tr", {}, el("th", {}, ""), ...lista.map((o) => el("td", {},
-        el("a", { class: classeBotao(infoLoja(o)), href: o.link, target: "_blank", rel: "sponsored noopener" }, ...textoComprar(infoLoja(o))),
+        el("a", { class: classeBotao(infoLoja(o)), href: o.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("comparar", o) }, ...textoComprar(infoLoja(o))),
         el("button", { class: "botao-link", type: "button", onclick: () => { alternarComparar(o); comparando.size >= 2 ? abrirComparacao() : $("#janela-comparar").close(); } }, "Tirar"))))));
   $("#comparar-conteudo").replaceChildren(
     el("h2", { id: "comparar-titulo" }, "⚖️ Comparar produtos"),
@@ -999,7 +1018,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       class: "favoritar favoritar-foto", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
       "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: (e) => alternarFavorito(o, e.currentTarget),
     }, ICONE_CARRINHO()),
-    el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored noopener", tabindex: "-1", "aria-hidden": "true",
+    el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored noopener", tabindex: "-1", "aria-hidden": "true", ...marcaClique("foto", o),
       onclick: (e) => { if (CELULAR.matches && temDetalhes(o)) { e.preventDefault(); abrirDetalhes(o); } else abrir(); } },
       o.imagem
         // Foto que não carrega (link quebrado da loja) vira o desenho padrão
@@ -1053,7 +1072,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
           class: "favoritar", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
           "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: (e) => alternarFavorito(o, e.currentTarget),
         }, ICONE_CARRINHO()))),
-      el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir },
+      el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir, ...marcaClique("oferta", o) },
         ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
 }
 
@@ -1249,7 +1268,7 @@ function abrirDetalhes(o, { doLink = false } = {}) {
       el("button", { class: "ver-historico", type: "button", onclick: () => { alternarComparar(o); $("#janela-detalhes").close(); } },
         comparando.has(o.id) ? "⚖️ Tirar da comparação" : "⚖️ Comparar")),
     !doLink && el("button", { class: "botao-whatsapp", type: "button", onclick: () => compartilharWhatsApp(o) }, ICONE_WHATSAPP(), "Enviar no WhatsApp"),
-    el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener",
+    el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("detalhes", o),
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}`, onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
       `Comprar ${loja.em} ${loja.nome.length <= 16 ? loja.nome : "loja"}`, el("span", { class: "flecha", "aria-hidden": "true" }, "→")),
     el("p", { class: "detalhes-nota" }, o.descricao
@@ -1294,7 +1313,7 @@ async function abrirHistorico(o) {
       : `Preço acompanhado há ${diasAcompanhando} dias.${o.moeda ? ` Valores convertidos de ${o.moeda} para reais.` : ""}`),
     el("button", { class: "botao-secundario botao-alerta", type: "button", onclick: () => { janela.close(); abrirAlerta(o); } },
       temAlerta(o.id) ? "🔔 Ver meu alerta" : "🔔 Me avise quando baixar"),
-    el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener",
+    el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("historico", o),
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}` },
       ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→")));
 }
@@ -2327,7 +2346,7 @@ function itemCupom(c) {
   const loja = infoLoja(c);
   const codigo = c.codigoMascara && el("code", {}, c.codigoMascara);
   const aviso = el("small", { class: "cupom-aviso", hidden: true });
-  const pegar = el("a", { class: "botao-oferta cupom-ir", href: c.link, target: "_blank", rel: "sponsored noopener",
+  const pegar = el("a", { class: "botao-oferta cupom-ir", href: c.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("cupom", { ...c, id: "", titulo: "" }),
     onclick: async () => {
       if (!c.codigoMascara) return;
       let inteiro = c.codigoInteiro;
@@ -2403,7 +2422,8 @@ function desenharListaLojas() {
     el("div", { class: "lp-botoes" },
       el("button", { type: "button", class: "botao-secundario", onclick: () => { $("#janela-lojas").close(); irParaLoja(l.id); } }, "Ver produtos"),
       // Site da loja pelo link com comissão (/api/ir-loja): vale qualquer compra feita lá dentro do prazo do cookie
-      el("a", { class: "botao-oferta lp-ir", href: `/api/ir-loja?id=${encodeURIComponent(l.id)}`, target: "_blank", rel: "sponsored noopener" },
+      el("a", { class: "botao-oferta lp-ir", href: `/api/ir-loja?id=${encodeURIComponent(l.id)}`, target: "_blank", rel: "sponsored noopener",
+        ...marcaClique("loja-parceira", { lojaNome: l.nome }) },
         "Ir para a loja →")));
   const grandes = lista.filter((l) => l.rede === "marketplace");
   const outras = lista.filter((l) => l.rede !== "marketplace");
