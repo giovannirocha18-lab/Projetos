@@ -1380,3 +1380,10 @@ Texto para colar numa conversa nova:
   sozinhas**; US$ 0,096. Números do site (1º relatório): 169 buscas em 7 dias (445 nos 7 anteriores, testes do Giovanni), top:
   geladeira 16, air fryer 14, boneca 12, ração 10; 2 contas, 1 alerta, 1 carrinho.
 - **Web Analytics (03/11/2026)**: Giovanni ligou no projeto do Pages (Metrics → Web Analytics → enabled); o beacon só entrou nas páginas depois de nova publicação (commit no comentário do _middleware). Playwright: beacon.min.js 200 e /cdn-cgi/rum 204, sem erro de CSP. Ver em Cloudflare → projeto → Metrics → View Web Analytics.
+- **Contagem de cliques (03/11/2026)**: `functions/api/clique.js` (POST; Origin tem que ser o próprio site; `onde` só de uma
+  lista: oferta, foto, detalhes, historico, comparar, carrinho, alerta, cupom, loja-parceira) grava por dia em `cliques`
+  (dia, loja, onde, total) e `cliques_produtos` (dia, oferta_id, titulo, loja, total); nada da pessoa. app.js: `marcaClique(onde, o)`
+  põe data-clique/data-loja/data-id/data-titulo nos 9 tipos de link rel=sponsored; `avisarClique` (click + auxclick do botão do
+  meio, ignora defaultPrevented = foto no celular que abre detalhes) manda com sendBeacon. robo/numeros-site.mjs mostra cliques
+  por dia, loja, lugar e produtos mais clicados. Privacidade atualizada (cliques + Web Analytics sem cookies). Testado: Playwright
+  (102 links marcados; clique abre a loja e manda o aviso) e a função com banco simulado (204/400/403).
