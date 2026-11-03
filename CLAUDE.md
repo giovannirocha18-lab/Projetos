@@ -62,6 +62,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   do robô; decidir Mercado Livre.
 - **Claude**: conferir o robô de cada madrugada (atraso, IA, auditoria — seção "Lojas nas buscas": 🆕 loja nova / ⚠️ invisível); quando loja nova aprovar: `so_awin`, ler o log,
   `so_auditoria` (categorias da loja → completar `REGRAS` em lib/caminhos.js), subir versões e `so_prontas`.
+- **Shopee limitando (desde 02/11)**: buscas prontas salvas caíram de ~445 para ~35 por rodada (erro 10030). Ver histórico
+  "Limite da Shopee"; plano: robô mais devagar, menos páginas da Shopee por busca, cache mais longo, Giovanni pedir limite maior.
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
 

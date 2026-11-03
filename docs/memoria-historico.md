@@ -1344,3 +1344,9 @@ Texto para colar numa conversa nova:
   para saber pela API. Regra nova em app.js: `comProva` — nos marketplaces (shopee, aliexpress) o selo "🏆 Menor preço da
   busca" e o "💰 Mais barato" da Escolha rápida só vão para anúncio com vendidos > 0 ou avaliação > 0; Awin/Lomadee valem
   sempre. Testado com Playwright (app.js local no site de verdade): selo foi para "Lisinha Sérum 30ml" (542 vendidos).
+- **Limite da Shopee (03/11/2026, investigação)**: buscas prontas salvas por rodada — 29/10: 442 de 454; 31/10: 447/470;
+  01/11: 449/471; **02/11 11:36 (manual): 34/476** (ok só no 1º minuto); 02/11 noite: 36/477; 03/11 noite: 38/477; 03/11 13:18:
+  29/478. Quase todas com `shopee: error [10030]: Rate limit exceeded`. Nenhuma mudança nossa na Shopee entre 01 e 02/11 →
+  a Shopee passou a limitar mais a nossa conta (o limite exato não é publicado; depois do estouro passam ~1–3 buscas/min).
+  Consequência: desde 02/11 quase não há buscas prontas (busca popular sai ao vivo, mais lenta e gastando mais Shopee) e
+  visitante pode ver a Shopee vazia. Cada busca no site pede à Shopee 3 páginas na 1ª resposta + até 6 nas seguintes.
