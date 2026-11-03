@@ -434,8 +434,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
   });
   // Produtos de exemplo não contam como busca em alta
   resposta.headers.set("X-Total-Ofertas", reais.length ? String(ofertas.length) : "0");
-  if (!reais.length) resposta.headers.set("Cache-Control", "public, max-age=0");
   const todasOk = Object.values(lojas).every((l) => l.ok);
+  // Sem nenhuma oferta: o navegador não guarda. Com loja em erro (03/11/2026: Shopee "Rate limit exceeded" enquanto o
+  // robô prepara as buscas prontas), guarda só 1 minuto, para a próxima tentativa já trazer a loja de volta
+  if (!ofertas.length) resposta.headers.set("Cache-Control", "public, max-age=0");
+  else if (!todasOk) resposta.headers.set("Cache-Control", "public, max-age=60");
   if (cache && todasOk) await cache.put(chave, paraGuardar(resposta.clone()));
   // Busca pronta: guarda mesmo que uma loja pequena tenha falhado (vindo do robô do GitHub, a Lomadee às vezes
   // trava), desde que a Shopee tenha respondido
