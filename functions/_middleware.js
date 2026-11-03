@@ -11,8 +11,8 @@ const VERIFICACAO_AWIN = "2e195e3c8c68351f1709348e09eae77d";
 
 // O que as páginas podem carregar: código e dados só do próprio site, fontes do Google Fonts e
 // fotos de qualquer loja (https). Estilos "inline" ficam liberados porque o site muda estilos pelo
-// código e a Política de Privacidade tem um <style>. Cloudflare Web Analytics, se for ligado, também
-// funciona. Nenhum outro site pode abrir o nosso dentro de uma moldura (frame-ancestors).
+// código e a Política de Privacidade tem um <style>. Cloudflare Web Analytics (ligado em 03/11/2026)
+// também funciona. Nenhum outro site pode abrir o nosso dentro de uma moldura (frame-ancestors).
 const CSP = [
   "default-src 'self'",
   "script-src 'self' https://static.cloudflareinsights.com",
