@@ -1316,3 +1316,10 @@ Texto para colar numa conversa nova:
   `robo/auditoria.mjs` tem "### Lojas nas buscas": em quantas das 150 buscas cada loja da Awin (20+ produtos) apareceu; se em
   nenhuma, busca a 1ª palavra mais comum dos títulos dela (sofá, colchão); se nem assim = "⚠️ loja invisível" (::warning:: na
   execução). Produtos todos com ≤ 3 dias de histórico = "🆕 loja nova" (::notice::). Conferir essa seção toda madrugada.
+- **Robô 02/11 (#90) e auditoria (03/11/2026)**: tudo ok; nenhuma loja nova (22 aprovadas, 17 usadas); Awin 73.311 produtos,
+  banco 295 MB; IA busca escondeu 148 (US$ 0,013). Auditoria com 10 buscas com suspeitos (antes 0–1): quase todos AliExpress
+  "não começa pelo produto" + racks/painéis de TV da Casa Tema/Efacil em "smart tv 65/50 polegadas" (efeito de todas as lojas
+  entrarem na busca; relevância já diz "não bate", mas sobem porque há poucas TVs exatas). CANDIDATOS_POR_LOJA 150 → 400 (cache
+  v=106; não mudou as TVs da Efacil: o limite antigo também era 400). Auditoria local (v106): 9 buscas / 27 suspeitos; "Lojas nas
+  buscas": as 17 aparecem (Efacil 100/150, Kabum 42, Casa Tema 22, Cama In Box 3 + 🆕). Elements: 39 de 45 produtos com página
+  não encontrada na loja (avisar a loja? só 6 no site).
