@@ -1744,9 +1744,14 @@ function ofertasComparaveis(lista) {
   return semForaDaCurva(base);
 }
 
+// Selo de menor preço só para anúncio com alguma prova (03/11/2026, print "lisinha"): o "Menor preço da busca" era um
+// anúncio da Shopee sem nenhuma venda nem nota, e na Shopee dava "O produto não existe". Nos marketplaces (Shopee,
+// AliExpress) precisa de venda ou avaliação; lojas da Awin/Lomadee não mandam esses números e valem sempre
+const MARKETPLACES = new Set(["shopee", "aliexpress"]);
+const comProva = (o) => !MARKETPLACES.has(o.loja) || o.vendidos > 0 || o.avaliacao > 0;
 function melhorOferta(lista) {
   if (poucosProdutos()) return null; // só peças na lista: o selo iria para uma peça
-  const base = ofertasComparaveis(lista);
+  const base = ofertasComparaveis(lista).filter(comProva);
   return base.length ? base.reduce((a, b) => (b.preco < a.preco ? b : a)) : null;
 }
 
@@ -1773,7 +1778,7 @@ function escolhaRapida(lista) {
     if (o) usados.add(o.id);
     return o;
   };
-  const barato = primeiro([...base], (a, b) => a.preco - b.preco);
+  const barato = primeiro(base.filter(comProva), (a, b) => a.preco - b.preco);
   const avaliado = primeiro(base.filter((o) => o.avaliacao >= 4.5 && o.vendidos >= VENDAS_MINIMAS),
     (a, b) => b.avaliacao - a.avaliacao || b.vendidos - a.vendidos);
   const custo = primeiro(base.filter((o) => o.preco <= mediana && o.vendidos >= VENDAS_MINIMAS && !(o.avaliacao && o.avaliacao < 4.5)),
