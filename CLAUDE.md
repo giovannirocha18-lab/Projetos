@@ -78,8 +78,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   `functions/_middleware.js` (`responderPainel`), `functions/api/painel/dados.js`, `public/painel.html` + `assets/painel.*`.
   Layout novo (03/11, inspirado em painel de mercado: quadros com ▲▼%, Em alta, gráfico de área com abas, tabelas com mini-gráfico,
   medidor das prontas renovadas). Visitas **funcionando** (`lib/visitas.js`, GraphQL Web Analytics; Pages: `CF_ANALYTICS_TOKEN` Secret + `CF_ACCOUNT_ID` Text).
-  **PRÓXIMO**: Comissões
-  (`robo/comissoes.mjs`: Shopee conversionReport, AliExpress order.list, Awin token novo, Lomadee?) e resumo do robô no painel.
+  **Painel preto** com menu Métricas / Comissões (#comissoes). Comissões ao vivo pelas APIs oficiais (`lib/comissoes.js`,
+  `/api/painel/comissoes?mes=`; cache 10 min): Shopee conversionReport, AliExpress order.list (US$), Awin transactions
+  (AWIN_API_TOKEN dos cupons), Lomadee /affiliate/orders (precisa escopo orders:read). **Testado só com respostas simuladas:
+  conferir o 1º print real** (erro de cada rede aparece escrito na aba). Depois: resumo do robô no painel.
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
 

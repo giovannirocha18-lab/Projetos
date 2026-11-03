@@ -1435,3 +1435,14 @@ Texto para colar numa conversa nova:
   medidor em semicírculo "Buscas prontas renovadas na última noite" (criadas nas últimas 30 h / guardadas da versão atual).
   API (`functions/api/painel/dados.js`): topBuscas com `antes` e `serie` (7 dias), cliquesLoja por dia, prontas.recentes.
   Testado: API com banco de mentira (node:sqlite) e passe assinado (200 / 403 sem login / 403 no endereço da loja), Playwright pc e celular.
+- **Painel: tema preto + Comissões (03/11/2026, 22ª sessão)**. Giovanni pediu menu no topo como o do CoinMarketCap (uma seção para
+  comissões, outra para métricas) e estilo preto moderno (só o painel; a loja segue clara). `public/painel.html` tem 2 vistas
+  (#metricas / #comissoes). Comissões: sem robô novo (as chaves das lojas estão só no Pages, não no GitHub), o painel lê ao vivo:
+  `lib/comissoes.js` usa `chamarShopee` (exportado de lib/fontes/shopee.js), `chamar` (lib/fontes/aliexpress.js), `pedirAwin`
+  (lib/cupons.js) e `pedirLomadee`. Shopee: `conversionReport(purchaseTimeStart/End, limit 500, scrollId)`; AliExpress:
+  `aliexpress.affiliate.order.list` por status (Payment Completed / Buyer Confirmed Receipt / Completed Settlement / Invalid),
+  pedaços de 15 dias, valores em dólar; Awin: `/publishers/{conta}/transactions` (todas as contas de /accounts) + nomes por
+  `/programmes?relationship=joined`; Lomadee: `GET /affiliate/orders?from&to` (docs: escopo orders:read; nome da marca pela tabela
+  marcas_lomadee). Status unificado aprovada/pendente/cancelada; totais por moeda ("R$ X + US$ Y"). Aba: resumo do mês,
+  comissão por dia (só reais), por rede (✓ lida / ✕ erro), por loja, pedidos; seletor de mês. Testado com respostas simuladas
+  no formato das docs (consultas reais ainda não conferidas: os nomes de campos da Shopee/AliExpress podem precisar de ajuste).
