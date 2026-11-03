@@ -1427,3 +1427,11 @@ Texto para colar numa conversa nova:
   Cloudflare não valida a consulta sem chave: conferir na 1ª vez com a chave real (erro aparece escrito no cartão).
   Giovanni perguntou do botão "Criar PR" do app (+16.034 linhas): explicado que não precisa (a branch já é a de produção).
   Conferido com print do Giovanni em 03/11: 90 visitas na semana; números do Web Analytics são estimados (amostragem).
+- **Painel: layout novo (03/11/2026, 22ª sessão)**. Giovanni pediu para se inspirar nos cartões e gráficos do CoinMarketCap.
+  Feito (só o estilo, nada da marca deles): faixa de números gerais no topo; trio "Resumo da semana" (quadros com ▲▼% verde/vermelho),
+  "Em alta" (top 7 buscas com mini-gráfico de 7 dias e variação), "Visitas" (barrinhas de 14 dias + buscas/cliques a cada 100 visitas);
+  gráfico grande de área (abas Visitas/Buscas/Cliques, 7D/30D, mira + dica; 30D sem comparação porque a API manda só 30 dias);
+  tabelas "Mais buscados" e "Lojas" (cliques + produtos no banco + mini-gráfico); celular x computador em barra dividida;
+  medidor em semicírculo "Buscas prontas renovadas na última noite" (criadas nas últimas 30 h / guardadas da versão atual).
+  API (`functions/api/painel/dados.js`): topBuscas com `antes` e `serie` (7 dias), cliquesLoja por dia, prontas.recentes.
+  Testado: API com banco de mentira (node:sqlite) e passe assinado (200 / 403 sem login / 403 no endereço da loja), Playwright pc e celular.

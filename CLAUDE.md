@@ -76,7 +76,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **Painel do Giovanni NO AR (03/11, 22ª sessão)**: `painel.vaiprocarrinho.com.br` (domínio no Pages + app "painel" no
   Cloudflare Access, política "Giovanni" com 2 e-mails, código por e-mail). Código: `lib/painel.js` (confere o passe do Access),
   `functions/_middleware.js` (`responderPainel`), `functions/api/painel/dados.js`, `public/painel.html` + `assets/painel.*`.
-  Visitas **funcionando** (`lib/visitas.js`, GraphQL Web Analytics; Pages: `CF_ANALYTICS_TOKEN` Secret + `CF_ACCOUNT_ID` Text).
+  Layout novo (03/11, inspirado em painel de mercado: quadros com ▲▼%, Em alta, gráfico de área com abas, tabelas com mini-gráfico,
+  medidor das prontas renovadas). Visitas **funcionando** (`lib/visitas.js`, GraphQL Web Analytics; Pages: `CF_ANALYTICS_TOKEN` Secret + `CF_ACCOUNT_ID` Text).
   **PRÓXIMO**: Comissões
   (`robo/comissoes.mjs`: Shopee conversionReport, AliExpress order.list, Awin token novo, Lomadee?) e resumo do robô no painel.
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
