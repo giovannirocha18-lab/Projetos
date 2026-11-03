@@ -1466,3 +1466,7 @@ Texto para colar numa conversa nova:
   Largura (pedido do Giovanni): `--largura: 1920px`, margem `clamp(16px, 2.2vw, 40px)`; `.dupla` (2 colunas em 1360 px+) nas tabelas
   Mais buscados/Lojas e Passo a passo/Execuções; Saúde em 2 colunas; 4 cartões numa linha e gráfico 320 px em 1500 px+.
   Testado com Playwright (dados de exemplo, pc e celular) e so_lomadee real (#99): gravou "aviso" (24 marcas; Shopinfo com links quebrados).
+- **Celular: janela do produto torta (03/11/2026)**. Print do Giovanni (AliExpress, Hawas Black): em tela de 360 px a janela
+  de detalhes passava da borda direita. Causa: `.detalhes { grid-template-columns: 1fr }` no celular deixava a fileira de
+  miniaturas (5+ fotos) alargar a coluna (332 px numa janela de 322). Agora `minmax(0, 1fr)` + `.detalhes-galeria { min-width: 0 }`
+  (estilo.css); miniaturas rolam dentro da janela. Conferido em produção com Playwright (360 px).
