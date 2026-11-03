@@ -1387,3 +1387,4 @@ Texto para colar numa conversa nova:
   meio, ignora defaultPrevented = foto no celular que abre detalhes) manda com sendBeacon. robo/numeros-site.mjs mostra cliques
   por dia, loja, lugar e produtos mais clicados. Privacidade atualizada (cliques + Web Analytics sem cookies). Testado: Playwright
   (102 links marcados; clique abre a loja e manda o aviso) e a função com banco simulado (204/400/403).
+- **so_numeros (03/11/2026)**: job `numeros` roda só robo/numeros-site.mjs (~30 s). 1º teste: o clique do Giovanni contou (AliExpress, "oferta", Perfume Rasasi Hawas).

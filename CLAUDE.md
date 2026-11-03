@@ -36,7 +36,7 @@ Ainda escondido do Google (noindex) até o lançamento.
 Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` (histórico), `lomadee` (marcas/páginas),
 `prontas` (buscas prontas), `ia` (Haiku 5.5 classifica categorias em lote + `robo/marcas.mjs` sugestões produto+marca),
 `auditoria` (suspeitos no topo + IA conferindo buscas `robo/conferir-buscas.mjs` + relatório de categorias das lojas).
-Run workflow com `so_awin`, `so_prontas`, `so_lomadee`, `so_auditoria`, `so_ia`. Disparar: GitHub MCP `actions_run_trigger`.
+Run workflow com `so_awin`, `so_prontas`, `so_lomadee`, `so_auditoria`, `so_ia`, `so_numeros` (só o relatório, ~30 s). Disparar: GitHub MCP `actions_run_trigger`.
 Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. Custo da IA ~US$ 0,07/noite (saldo ~US$ 0,80).
 
 ## Situação (31/10/2026, 20ª sessão)
