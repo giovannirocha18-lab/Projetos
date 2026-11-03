@@ -27,7 +27,7 @@ Ainda escondido do Google (noindex) até o lançamento.
 - Principais: `public/index.html`, `public/assets/app.js` (site), `public/assets/estilo.css`, `functions/api/buscar.js`
   (busca), `lib/relevancia.js` (produto x acessório, marca), `lib/categorias.js` (40 categorias), `lib/vocabulario.js`
   (marcas, erros, sugestões), `lib/fontes/*.js` (lojas), `functions/_middleware.js` (lista do que pode abrir).
-- Banco D1 (`DB`), plano Workers Paid. Versões de cache: `VERSAO_CACHE` (buscar.js) = `VERSAO_BUSCA` (app.js), hoje **106**;
+- Banco D1 (`DB`), plano Workers Paid. Versões de cache: `VERSAO_CACHE` (buscar.js) = `VERSAO_BUSCA` (app.js), hoje **107**;
   ao trocar, rodar o robô com `so_prontas`. `/api/vocabulario?v=7`, `/api/lojas` VERSAO e `/api/numeros?v=` também têm versão.
 - Testar local: `npx wrangler pages dev public`; Playwright: Chromium em `/opt/pw-browsers/chromium`,
   import de `/opt/node22/lib/node_modules/playwright/index.mjs`.
@@ -47,6 +47,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   nas buscas → busca Awin agora pega candidatos de cada loja (`candidatosPorLoja`/`revezarLojas` em lib/fontes/awin.js);
   título sem "Cama inBox" (robo/awin.mjs); "Colchão de Molas" é produto. Gráfico do histórico novo; sugestões só com marca que
   tem o produto (`testes/sugestoes.mjs`).
+- 03/11: robô ok; "smart tv 65/50" sem racks no topo ✅. Palavra de 3 letras só vale inteira/plural/com número
+  (`achaPalavra` em lib/relevancia.js: "dry fit" achava fitas "Drykofita"); teste "filtro Awin" em testes/busca.mjs; v107.
+  Elements: 39 de 45 links dão "página não encontrada" na loja; Monte Carlo: 2.454 sem foto (ficam fora sozinhos).
 - Lojas Benoit pausada (`LOJAS_PAUSADAS` em robo/awin.mjs) até corrigir fotos/preços.
 
 ## Pendências
@@ -56,8 +59,6 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **Claude**: conferir o robô de cada madrugada (atraso, IA, auditoria — seção "Lojas nas buscas": 🆕 loja nova / ⚠️ invisível); quando loja nova aprovar: `so_awin`, ler o log,
   `so_auditoria` (categorias da loja → completar `REGRAS` em lib/caminhos.js), subir versões e `so_prontas`.
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
-- **Conferir no robô de 03/11** (1ª noite com v106 e a seção "Lojas nas buscas"): racks/painéis de TV (Casa Tema/Efacil) no
-  topo de "smart tv 65/50 polegadas" — a IA de busca deve esconder; se não, ordenar "não bate" pela categoria da busca.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
 
 ## Comando de recomeço

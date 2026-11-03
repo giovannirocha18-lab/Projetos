@@ -1323,3 +1323,9 @@ Texto para colar numa conversa nova:
   v=106; não mudou as TVs da Efacil: o limite antigo também era 400). Auditoria local (v106): 9 buscas / 27 suspeitos; "Lojas nas
   buscas": as 17 aparecem (Efacil 100/150, Kabum 42, Casa Tema 22, Cama In Box 3 + 🆕). Elements: 39 de 45 produtos com página
   não encontrada na loja (avisar a loja? só 6 no site).
+- **Robô 03/11 (#91), 21ª sessão**: tudo ok (Awin 74.056 produtos, +2.030/−1.285; IA US$ 0,027). "smart tv 65/50 polegadas"
+  sem racks no topo (Shopee e Efacil só TVs) ✅. Auditoria: "camiseta dry fit" trazia fitas "Drykofita/Vedatudo Fita" da Efacil
+  (no fim da lista): `acha` de lib/relevancia.js aceitava qualquer começo de palavra com 3+ letras ("dry"→"Dryko", "fit"→"Fita").
+  Agora `achaPalavra`: 3 letras só inteira, no plural ou grudada num número ("rtx"→"RTX4060"); 4+ letras igual antes. Teste novo
+  "filtro Awin" (temTodasAsPalavras/citaAlgumaPalavra) em testes/busca.mjs. Cache v=107 + `so_prontas`. Elements segue com 39 de
+  45 links quebrados; Monte Carlo 2.454 sem foto.
