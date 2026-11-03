@@ -1454,3 +1454,13 @@ Texto para colar numa conversa nova:
   cupons v11 publicados: 22 cupons da Awin voltaram (conferido em /api/cupons, erroAwin vazio). Lista vazia nos cards do topo
   quebrava 1 palavra por linha → `.ranking li.vazio { display: block }`.
   Giovanni confirmou: Awin "✓ lida" no painel (as 4 redes lidas; ainda sem vendas).
+- **Painel: aba Robô (03/11/2026, 22ª sessão)**. Pedido do Giovanni (resumo do robô no painel). Cada passo do robo-precos.yml
+  anota 1–8 linhas e avisos: scripts Node com `paraPainel(chave, {linhas, avisos})` (robo/painel.mjs grava em $GITHUB_OUTPUT);
+  passos em bash (alertas, shopee, prontas, lomadee) somam com jq e gravam `chave={json}`. Cada job declara `outputs` (chave +
+  `chave_ok` = steps.X.outcome). Job novo `relatorio` (needs todos, `always()`, não roda em so_numeros; permissions actions:read)
+  roda robo/relatorio.mjs: junta NEEDS (toJSON(needs)), horários dos jobs e atraso (created_at − 04:30 UTC, só "schedule") pela
+  API do GitHub e grava 1 linha em `robo_execucoes` (id = run id; guarda 90). Situação: erro (passo falhou/cancelado/não rodou),
+  aviso (tem aviso), ok. Painel: `/api/painel/dados` manda `robo` (20 últimas); aba #robo: última madrugada (situação, começou,
+  atraso, duração), números (prontas X de Y, produtos Awin, escondidos pela IA, custo IA, e-mails), "Precisa de atenção",
+  passo a passo, tabela de execuções (clicar mostra a escolhida). Saúde do site (Métricas) também mostra o robô.
+  Testado com Playwright (dados de exemplo, pc e celular) e so_lomadee real (#99): gravou "aviso" (24 marcas; Shopinfo com links quebrados).

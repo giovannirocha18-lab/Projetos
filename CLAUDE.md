@@ -82,7 +82,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   `/api/painel/comissoes?mes=`; cache 10 min): Shopee conversionReport, AliExpress order.list (US$), Awin transactions
   (AWIN_API_TOKEN dos cupons), Lomadee /affiliate/orders (precisa escopo orders:read). **Testado só com respostas simuladas:
   1º print real: Shopee/AliExpress/Lomadee lidas; Awin tinha chave vencida (trocada 03/11, cupons da Awin voltaram); as 4 redes ✓ lidas.**
-  Depois: resumo do robô no painel.
+  **Aba Robô no painel (03/11)**: cada passo anota linhas (`robo/painel.mjs` → saídas do Actions), job `relatorio` grava
+  em `robo_execucoes` (`robo/relatorio.mjs`); painel mostra última madrugada, atraso, avisos, passo a passo, execuções.
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
 
