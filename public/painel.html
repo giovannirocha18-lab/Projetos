@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel · Vai pro Carrinho</title>
   <!-- Painel do Giovanni: só abre em painel.vaiprocarrinho.com.br, com o login do Cloudflare Access (ver lib/painel.js).
-       Esta página não tem nenhum número dentro: tudo vem de /api/painel/dados, que confere o login. -->
+       Esta página não tem nenhum número dentro: tudo vem de /api/painel/dados, que confere o login.
+       Layout inspirado em painéis de mercado (pedido do Giovanni, 03/11/2026): grupos de cartões com ▲▼%, "Em alta",
+       gráfico grande com abas, tabelas com mini-gráfico de 7 dias e um marcador em semicírculo. -->
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#6d28d9">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="/marca/vaiprocarrinho-icone.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,71 +17,106 @@
   <link rel="stylesheet" href="assets/painel.css">
 </head>
 <body>
-  <header class="topo"><div class="topo-linha">
-    <img src="/marca/vaiprocarrinho-icone.svg" alt="" width="32" height="32">
-    <div>
-      <h1>Painel</h1>
-      <p class="sub" id="atualizado">Carregando…</p>
+  <header class="topo">
+    <div class="topo-linha">
+      <img src="/marca/vaiprocarrinho-icone.svg" alt="" width="30" height="30">
+      <div class="topo-titulo">
+        <h1>Painel</h1>
+        <p class="sub" id="atualizado">Carregando…</p>
+      </div>
+      <button type="button" id="recarregar" class="botao">Atualizar</button>
     </div>
-    <button type="button" id="recarregar" class="botao">Atualizar</button>
-  </div></header>
+    <div class="faixa" id="faixa" aria-label="Números gerais"></div>
+  </header>
 
   <main>
     <p class="aviso" id="erro" hidden></p>
 
-    <section class="cartoes" id="cartoes" aria-label="Resumo da semana"></section>
+    <div class="trio">
+      <section class="painel">
+        <h2>Resumo da semana</h2>
+        <div class="quadros" id="resumo"></div>
+      </section>
+      <section class="painel">
+        <h2>Em alta <span class="sub">buscas · 7 dias</span></h2>
+        <ol class="ranking" id="em-alta"></ol>
+      </section>
+      <section class="painel">
+        <h2>Visitas <span class="sub">14 dias</span></h2>
+        <div class="quadro quadro-grafico">
+          <div class="mini-numeros" id="visitas-numeros"></div>
+          <div class="barrinhas" id="visitas-barras"></div>
+        </div>
+        <div class="quadros" id="visitas-taxas"></div>
+      </section>
+    </div>
 
-    <section class="bloco">
-      <h2>Visitas por dia <span class="sub">últimos 30 dias · loja vaiprocarrinho.com.br</span></h2>
-      <p class="sub funil" id="funil" hidden></p>
-      <div class="grafico" id="g-visitas"></div>
+    <section class="painel">
+      <div class="cabeca-grafico">
+        <div>
+          <h2 id="grafico-titulo">Visitas</h2>
+          <p class="destaque" id="grafico-total"></p>
+        </div>
+        <div class="controles">
+          <div class="abas" role="tablist" aria-label="O que mostrar">
+            <button type="button" role="tab" data-serie="visitas" aria-selected="true">Visitas</button>
+            <button type="button" role="tab" data-serie="buscas" aria-selected="false">Buscas</button>
+            <button type="button" role="tab" data-serie="cliques" aria-selected="false">Cliques</button>
+          </div>
+          <div class="abas" role="tablist" aria-label="Período">
+            <button type="button" role="tab" data-dias="7" aria-selected="false">7D</button>
+            <button type="button" role="tab" data-dias="30" aria-selected="true">30D</button>
+          </div>
+        </div>
+      </div>
+      <div class="grafico-area" id="grafico"></div>
     </section>
 
-    <section class="bloco">
-      <h2>Buscas por dia <span class="sub">últimos 30 dias</span></h2>
-      <div class="grafico" id="g-buscas"></div>
+    <section class="painel">
+      <h2>Mais buscados <span class="sub">7 dias</span></h2>
+      <div class="tabela-rolagem">
+        <table class="tabela">
+          <thead><tr><th>#</th><th>Busca</th><th class="num">7 dias</th><th class="num">vs. semana anterior</th><th class="num">Últimos 7 dias</th></tr></thead>
+          <tbody id="t-buscas"></tbody>
+        </table>
+      </div>
     </section>
 
-    <section class="bloco">
-      <h2>Cliques para as lojas por dia <span class="sub">últimos 30 dias · contados desde 03/11</span></h2>
-      <div class="grafico" id="g-cliques"></div>
+    <section class="painel">
+      <h2>Lojas <span class="sub">cliques para a loja · 7 dias</span></h2>
+      <div class="tabela-rolagem">
+        <table class="tabela">
+          <thead><tr><th>#</th><th>Loja</th><th class="num">Cliques</th><th class="num">vs. semana anterior</th><th class="num">Produtos no banco</th><th class="num">Últimos 7 dias</th></tr></thead>
+          <tbody id="t-lojas"></tbody>
+        </table>
+      </div>
     </section>
 
-    <div class="duas">
-      <section class="bloco">
+    <div class="quarteto">
+      <section class="painel">
         <h2>De onde vêm as visitas <span class="sub">7 dias</span></h2>
         <ol class="lista" id="l-origens"></ol>
       </section>
-      <section class="bloco">
+      <section class="painel">
         <h2>Celular ou computador <span class="sub">7 dias</span></h2>
-        <ol class="lista" id="l-aparelhos"></ol>
+        <div id="aparelhos"></div>
       </section>
-      <section class="bloco">
-        <h2>Mais buscados <span class="sub">7 dias</span></h2>
-        <ol class="lista" id="l-buscas"></ol>
-      </section>
-      <section class="bloco">
-        <h2>Cliques por loja <span class="sub">7 dias</span></h2>
-        <ol class="lista" id="l-lojas"></ol>
-      </section>
-      <section class="bloco">
+      <section class="painel">
         <h2>Produtos mais clicados <span class="sub">7 dias</span></h2>
         <ol class="lista" id="l-produtos"></ol>
       </section>
-      <section class="bloco">
+      <section class="painel">
         <h2>De onde saem os cliques <span class="sub">7 dias</span></h2>
         <ol class="lista" id="l-onde"></ol>
       </section>
     </div>
 
-    <section class="bloco">
+    <section class="painel">
       <h2>Saúde do site</h2>
-      <ul class="saude" id="saude"></ul>
-    </section>
-
-    <section class="bloco">
-      <h2>Lojas da Awin <span class="sub">produtos no banco</span></h2>
-      <ol class="lista" id="l-awin"></ol>
+      <div class="saude">
+        <div class="quadro quadro-medidor" id="medidor"></div>
+        <ul class="saude-lista" id="saude"></ul>
+      </div>
     </section>
   </main>
 
