@@ -26,6 +26,7 @@ a { color: inherit; }
 h2 .sub { margin-left: 4px; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 .vazio { color: var(--suave); }
+.ranking li.vazio { display: block; border-bottom: 0; }
 [hidden] { display: none !important; }
 
 /* Topo com menu */
