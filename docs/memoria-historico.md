@@ -1426,3 +1426,4 @@ Texto para colar numa conversa nova:
   gráfico "Visitas por dia", linha "A cada 100 visitas: X buscas e Y cliques". Sem as variáveis, o cartão diz o que falta. O
   Cloudflare não valida a consulta sem chave: conferir na 1ª vez com a chave real (erro aparece escrito no cartão).
   Giovanni perguntou do botão "Criar PR" do app (+16.034 linhas): explicado que não precisa (a branch já é a de produção).
+  Conferido com print do Giovanni em 03/11: 90 visitas na semana; números do Web Analytics são estimados (amostragem).
