@@ -1449,3 +1449,7 @@ Texto para colar numa conversa nova:
   1º print real (03/11): Shopee, AliExpress e Lomadee "✓ lida" (0 pedidos, sem vendas ainda); **Awin "✕ erro"** (motivo não veio
   no print). Feito: cards Resumo/Por rede/Lojas que mais pagaram no topo (pedido do Giovanni), erro escrito no card, Awin pede
   em UTC (a API só aceita alguns fusos; America/Sao_Paulo era o suspeito), cada conta separada, motivo do erro com o texto da Awin.
+  Awin no painel: erro "401 invalid_token" no /accounts → o AWIN_API_TOKEN do Pages estava inválido (os **cupons da Awin
+  também não vinham**, só os da Lomadee). Giovanni gerou chave nova (ui.awin.com → nome → API Credentials) e trocou no Pages;
+  cupons v11 publicados: 22 cupons da Awin voltaram (conferido em /api/cupons, erroAwin vazio). Lista vazia nos cards do topo
+  quebrava 1 palavra por linha → `.ranking li.vazio { display: block }`.
