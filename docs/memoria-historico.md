@@ -1420,3 +1420,9 @@ Texto para colar numa conversa nova:
   com comparação, mais buscados, cliques por loja/produto/lugar, saúde (buscas prontas guardadas, última coleta de preços,
   lojas da Awin), lojas da Awin. Cartões "Visitas" e "Comissões" ficaram como "Em breve". Testado: passe falso/vencido/de
   outra chave recusado (9 casos), Playwright pc e celular sem erro, produção conferida com curl.
+- **Painel: visitas (03/11/2026, 22ª sessão)**. `lib/visitas.js` pergunta à API GraphQL do Cloudflare
+  (`rumPageloadEventsAdaptiveGroups`, filtro `requestHost: vaiprocarrinho.com.br`, datas UTC): visitas e páginas por dia (30 dias),
+  de onde vêm (refererHost → Google/WhatsApp/Instagram/Direto…) e aparelho (deviceType), 7 dias. Painel: cartão "Visitas · 7 dias",
+  gráfico "Visitas por dia", linha "A cada 100 visitas: X buscas e Y cliques". Sem as variáveis, o cartão diz o que falta. O
+  Cloudflare não valida a consulta sem chave: conferir na 1ª vez com a chave real (erro aparece escrito no cartão).
+  Giovanni perguntou do botão "Criar PR" do app (+16.034 linhas): explicado que não precisa (a branch já é a de produção).
