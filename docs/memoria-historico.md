@@ -1463,4 +1463,6 @@ Texto para colar numa conversa nova:
   aviso (tem aviso), ok. Painel: `/api/painel/dados` manda `robo` (20 últimas); aba #robo: última madrugada (situação, começou,
   atraso, duração), números (prontas X de Y, produtos Awin, escondidos pela IA, custo IA, e-mails), "Precisa de atenção",
   passo a passo, tabela de execuções (clicar mostra a escolhida). Saúde do site (Métricas) também mostra o robô.
+  Largura (pedido do Giovanni): `--largura: 1920px`, margem `clamp(16px, 2.2vw, 40px)`; `.dupla` (2 colunas em 1360 px+) nas tabelas
+  Mais buscados/Lojas e Passo a passo/Execuções; Saúde em 2 colunas; 4 cartões numa linha e gráfico 320 px em 1500 px+.
   Testado com Playwright (dados de exemplo, pc e celular) e so_lomadee real (#99): gravou "aviso" (24 marcas; Shopinfo com links quebrados).
