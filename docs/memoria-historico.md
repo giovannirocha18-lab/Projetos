@@ -1334,3 +1334,8 @@ Texto para colar numa conversa nova:
   (é por data center/cidade) e 10 min no navegador. Agora resposta com X-Total-Ofertas "0" fica 5 min no Cloudflare
   (`VAZIA_SEGUNDOS` em paraGuardar) e max-age=0 no navegador (paraNavegador e resposta nova). Cache v=108 + `so_prontas`
   (o run #92 de v107 foi cancelado).
+  **Correção do mesmo dia**: `reais` em buscar.js são as LOJAS ligadas, não as ofertas (o 1º commit não mudava nada). Busca
+  de teste mostrou a causa real: `"shopee":{"ok":false,"erro":"Shopee: error [10030]: Rate limit exceeded"}` com o robô de
+  buscas prontas rodando (2 em paralelo, ~16 min; à noite isso cai às ~09h por causa do atraso do GitHub). Agora:
+  `chamarShopee` tenta de novo no 10030 (pausas 1,5 s e 3 s, cabe nos 8 s da loja); resposta sem oferta = max-age 0 no
+  navegador; com alguma loja em erro = max-age 60 (antes 600). O cache do Cloudflare já não guardava resposta com loja em erro.
