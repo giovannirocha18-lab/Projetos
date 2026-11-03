@@ -31,7 +31,8 @@ const FONTES_REAIS = [curadoria, shopee, awin, aliexpress, lomadee];
 // Mostrar o guardado e atualizar por trás (pedido do Giovanni, 21/10/2026): a resposta fica no cache do Cloudflare
 // por até 1 dia, mas depois de FRESCO_MS ela é refeita em segundo plano. Quem buscar recebe na hora a guardada,
 // e o próximo já recebe a nova. O navegador guarda só NAVEGADOR_SEGUNDOS (para ver a atualização logo).
-const FRESCO_MS = 60 * 60 * 1000;
+// Era 1 hora; 6 horas desde 03/11/2026 (limite da Shopee: cada busca refeita gasta o limite)
+const FRESCO_MS = 6 * 60 * 60 * 1000;
 const GUARDAR_SEGUNDOS = 24 * 60 * 60;
 const NAVEGADOR_SEGUNDOS = 10 * 60;
 // Busca sem nenhuma oferta de verdade (03/11/2026, print "lisinha": 0 ofertas para o Giovanni, 143 para outra pessoa):
@@ -41,8 +42,13 @@ const VAZIA_SEGUNDOS = 5 * 60;
 const vazia = (resposta) => resposta.headers.get("X-Total-Ofertas") === "0";
 // Busca pronta do robô mais velha que 30 h ainda é mostrada (e refeita por trás) por até 7 dias
 const VELHA_DEMAIS_MS = 7 * 24 * 60 * 60 * 1000;
-// Mesma busca não é refeita 2 vezes ao mesmo tempo (vale dentro de cada servidor do Cloudflare)
-const atualizando = new Set();
+// Mesma busca não é refeita 2 vezes ao mesmo tempo, nem de novo antes de 10 min (se a Shopee recusou, cada visitante
+// pedia outra vez e gastava mais o limite). Vale dentro de cada servidor do Cloudflare
+const atualizando = new Map(); // endereço -> quando começou
+const PAUSA_ENTRE_ATUALIZACOES_MS = 10 * 60 * 1000;
+// Última resposta completa de cada busca, guardada 7 dias no Cloudflare: se a Shopee recusar ("Rate limit exceeded"),
+// o visitante recebe essa em vez da lista sem a Shopee (03/11/2026)
+const RESERVA_SEGUNDOS = 7 * 24 * 60 * 60;
 // Na busca digitada, cada chamada pede 6 páginas de cada loja ao mesmo tempo (Shopee: 48 cada) e responde logo: o site
 // mostra esses e pede sozinho as próximas (desde=7, 13…) até ter uns 100 produtos de verdade. Antes o servidor só
 // respondia com tudo pronto e a primeira busca levava 12–14 s. Eram 3 páginas no plano grátis (50 consultas externas
@@ -134,9 +140,9 @@ const comLimite = (promessa, ms) => Promise.race([promessa,
   new Promise((_, falha) => setTimeout(() => falha(new Error(`demorou mais de ${ms / 1000} s`)), ms))]);
 
 // Cópia para o cache do Cloudflare: vale 1 dia lá e leva a hora em que a busca foi feita nas lojas
-function paraGuardar(resposta, criado = Date.now()) {
+function paraGuardar(resposta, criado = Date.now(), segundos = GUARDAR_SEGUNDOS) {
   const copia = new Response(resposta.body, resposta);
-  copia.headers.set("Cache-Control", `public, max-age=${vazia(resposta) ? VAZIA_SEGUNDOS : GUARDAR_SEGUNDOS}`);
+  copia.headers.set("Cache-Control", `public, max-age=${vazia(resposta) ? VAZIA_SEGUNDOS : segundos}`);
   copia.headers.set("X-Criado", String(criado));
   return copia;
 }
@@ -211,10 +217,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${soLoja ? `&loja=${encodeURIComponent(soLoja.id)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
   // Refaz a busca nas lojas em segundo plano (sem contar como busca)
   const refazerPorTras = (criado) => {
-    if (preparar || atualizar || Date.now() - criado < FRESCO_MS || atualizando.has(chave.url)) return;
-    atualizando.add(chave.url);
-    waitUntil(onRequestGet({ request, env: { ...env, __ATUALIZAR: true }, waitUntil })
-      .catch(() => {}).finally(() => atualizando.delete(chave.url)));
+    if (preparar || atualizar || Date.now() - criado < FRESCO_MS) return;
+    if (Date.now() - (atualizando.get(chave.url) || 0) < PAUSA_ENTRE_ATUALIZACOES_MS) return;
+    if (atualizando.size > 5000) atualizando.clear();
+    atualizando.set(chave.url, Date.now());
+    waitUntil(onRequestGet({ request, env: { ...env, __ATUALIZAR: true }, waitUntil }).catch(() => {}));
   };
   // contar=1: o site usou a busca que adiantou enquanto a pessoa digitava; só falta contar para os "em alta"
   const soContar = params.has("contar");
@@ -440,6 +447,25 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (!ofertas.length) resposta.headers.set("Cache-Control", "public, max-age=0");
   else if (!todasOk) resposta.headers.set("Cache-Control", "public, max-age=60");
   if (cache && todasOk) await cache.put(chave, paraGuardar(resposta.clone()));
+  // Só uma loja menor falhou (a Lomadee trava bastante) e a Shopee respondeu: guarda 1 hora, marcada como velha (o
+  // próximo visitante recebe na hora e ela é refeita por trás). Antes não guardava e cada visitante ia de novo às lojas
+  else if (cache && lojas.shopee?.ok && ofertas.length) await cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60));
+  const chaveReserva = new Request(`${chave.url}&reserva=1`);
+  if (cache && todasOk && ofertas.length) {
+    const reserva = new Response(resposta.clone().body, resposta);
+    reserva.headers.set("Cache-Control", `public, max-age=${RESERVA_SEGUNDOS}`);
+    waitUntil(cache.put(chaveReserva, reserva).catch(() => {}));
+  }
+  // A Shopee recusou: entrega a última resposta completa desta busca, se houver (o navegador guarda só 1 minuto)
+  if (cache && !preparar && !atualizar && lojas.shopee && !lojas.shopee.ok) {
+    const reserva = await cache.match(chaveReserva).catch(() => null);
+    if (reserva) {
+      const copia = new Response(reserva.body, reserva);
+      copia.headers.set("Cache-Control", "public, max-age=60");
+      copia.headers.set("X-Reserva", "1");
+      return contar(copia);
+    }
+  }
   // Busca pronta: guarda mesmo que uma loja pequena tenha falhado (vindo do robô do GitHub, a Lomadee às vezes
   // trava), desde que a Shopee tenha respondido
   const prontaOk = lojas.shopee?.ok && ofertas.length > 0;

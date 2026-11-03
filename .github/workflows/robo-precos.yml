@@ -131,23 +131,39 @@ jobs:
 
   # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
   prontas:
-    if: ${{ !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia }}
+    # Depois do job "shopee" (que também consulta a Shopee): os dois juntos estouravam o limite dela
+    needs: shopee
+    if: ${{ always() && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
     steps:
       - name: Preparar buscas populares
         env:
           CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }} # chave do robô (lib/robo.js); no GitHub vale um dos dois nomes
-        # A 1ª chamada diz quantas são ("partes"); as outras vão de 2 em 2 ao mesmo tempo (até ~1000 buscas;
-        # mais que 2 passaria do limite da Lomadee, 60 consultas por minuto)
+        # A 1ª chamada diz quantas são ("partes"). Uma busca por vez (eram 2 ao mesmo tempo): desde 02/11/2026 a Shopee
+        # recusa ("Rate limit exceeded", erro 10030) quando pedimos rápido demais e só ~35 de ~470 eram guardadas. Se ela
+        # recusar, espera 1 minuto e tenta a mesma busca de novo (até 2 vezes). Para aos 70 minutos: as que faltarem
+        # continuam com a resposta da véspera (vale até 7 dias). A lista vem na ordem das mais procuradas.
         run: |
           echo "### Buscas prontas" >> "$GITHUB_STEP_SUMMARY"
-          r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-buscas?parte=0")
+          pedir() { curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-buscas?parte=$1" || echo "falhou"; }
+          r=$(pedir 0)
           echo "parte 0: $r"
           partes=$(echo "$r" | grep -o '"partes":[0-9]*' | cut -d: -f2)
           [ -z "$partes" ] && { echo "Não deu para saber quantas buscas são"; exit 1; }
-          seq 1 $((partes - 1)) | xargs -P 2 -I{} sh -c 'r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-buscas?parte={}") || r="falhou"; echo "parte {}: $r"'
-          echo "- $partes buscas preparadas" >> "$GITHUB_STEP_SUMMARY"
+          inicio=$(date +%s); parte=1; tentativas=0; guardadas=0; esperas=0
+          echo "$r" | grep -q '"guardada":true' && guardadas=1
+          while [ "$parte" -lt "$partes" ]; do
+            if [ $(( $(date +%s) - inicio )) -gt 4200 ]; then echo "Tempo esgotado na parte $parte"; break; fi
+            r=$(pedir "$parte")
+            echo "parte $parte: $r"
+            if echo "$r" | grep -q 10030 && [ "$tentativas" -lt 2 ]; then
+              tentativas=$((tentativas + 1)); esperas=$((esperas + 1)); sleep 60; continue
+            fi
+            echo "$r" | grep -q '"guardada":true' && guardadas=$((guardadas + 1))
+            tentativas=0; parte=$((parte + 1))
+          done
+          echo "- $guardadas de $partes buscas guardadas (feitas até a parte $parte; $esperas esperas pelo limite da Shopee)" >> "$GITHUB_STEP_SUMMARY"
 
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
   lomadee:
