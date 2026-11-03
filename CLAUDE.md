@@ -39,7 +39,7 @@ Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` 
 Run workflow com `so_awin`, `so_prontas`, `so_lomadee`, `so_auditoria`, `so_ia`, `so_numeros` (só o relatório, ~30 s). Disparar: GitHub MCP `actions_run_trigger`.
 Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. Custo da IA ~US$ 0,07/noite (saldo ~US$ 0,80).
 
-## Situação (31/10/2026, 20ª sessão)
+## Situação (03/11/2026, 21ª sessão)
 - Feito nesta sessão: IA conferindo as buscas (esconde o que não é o produto); filtro de Marcas no alto e categorias só em
   busca ambígua; celular no molde do app do Mercado Livre (abas, atalhos, barra de baixo, gaveta de filtros moderna);
   sugestões "produto + marca" (inclusive HP/LG); busca com marca mostra só a marca (`deOutraMarca`).
@@ -73,6 +73,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   **1.260 categorias corrigidas** (US$ 0,10). Números do site: 169 buscas na semana (geladeira, air fryer, ração…), 2 contas. Relatório novo "Números do site" (robo/numeros-site.mjs, fim da
   auditoria): buscas/dia, mais buscados, contas, alertas. Visitas: **Web Analytics ligado em 03/11** (beacon conferido com Playwright, sem erro de CSP). **Cliques para as lojas** contados
   desde 03/11 (`/api/clique`, tabelas cliques e cliques_produtos; links com `marcaClique()` em app.js) e no relatório.
+- **PRÓXIMO: painel do Giovanni** (decidido em 03/11): `painel.vaiprocarrinho.com.br`, protegido pelo **Cloudflare Access**
+  (Zero Trust, só o e-mail dele). Plano no histórico ("Painel do Giovanni"). 1º passo da conversa nova: guiar o Giovanni
+  (domínio no Pages + Access), depois montar o painel e o robô das comissões.
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
 

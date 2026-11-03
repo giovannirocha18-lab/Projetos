@@ -1388,3 +1388,24 @@ Texto para colar numa conversa nova:
   por dia, loja, lugar e produtos mais clicados. Privacidade atualizada (cliques + Web Analytics sem cookies). Testado: Playwright
   (102 links marcados; clique abre a loja e manda o aviso) e a função com banco simulado (204/400/403).
 - **so_numeros (03/11/2026)**: job `numeros` roda só robo/numeros-site.mjs (~30 s). 1º teste: o clique do Giovanni contou (AliExpress, "oferta", Perfume Rasasi Hawas).
+- **Painel do Giovanni — plano (03/11/2026, fim da 21ª sessão)**. Giovanni pediu uma página só dele para acompanhar os números
+  e as comissões. Decidiu: endereço **painel.vaiprocarrinho.com.br** e acesso pela **proteção do Cloudflare (Access/Zero Trust)**.
+  Plano:
+  1. Giovanni (guiar passo a passo): (a) Cloudflare → Workers & Pages → projeto → Custom domains → Set up a custom domain →
+     painel.vaiprocarrinho.com.br; (b) Zero Trust → Access → Applications → Add → Self-hosted, domínio painel.vaiprocarrinho.com.br,
+     política "Allow" só com o e-mail dele (login por código no e-mail); anotar o "Application Audience (AUD) tag" e o nome do
+     time (xxx.cloudflareaccess.com) → viram variáveis no Pages (não são segredo, mas não pôr na memória); (c) Awin: gerar o
+     token da API de publisher (Awin → Toolbox/API credentials) → Secret no GitHub e no Pages (nome sugerido AWIN_API_TOKEN).
+  2. Código: o mesmo projeto Pages atende o subdomínio; `functions/_middleware.js` vê o hostname `painel.` e serve a página do
+     painel (e só ela; noindex). APIs `/api/painel/*` só respondem no hostname painel E com o cabeçalho `Cf-Access-Jwt-Assertion`
+     válido (conferir assinatura nas chaves públicas `https://<time>.cloudflareaccess.com/cdn-cgi/access/certs`, aud e e-mail).
+     A página do painel pode ficar em public/ (sem dados dentro); os dados só vêm pelas APIs protegidas.
+  3. Dados: D1 (buscas, cliques, cliques_produtos, usuarios, alertas, carrinhos, buscas prontas, ia_*), estado do robô (GitHub
+     API? ou o robô grava um resumo na tabela `resumos`), visitas do Web Analytics (API GraphQL do Cloudflare `rumPageloadEventsAdaptiveGroups`;
+     precisa de token com "Account Analytics: Read" — criar Secret novo).
+  4. Comissões: robô novo `robo/comissoes.mjs` toda madrugada grava em D1 (tabela comissoes: dia, rede, loja, pedido, valor
+     venda, comissão, status): Shopee Open API `conversionReport` (chaves atuais); AliExpress `aliexpress.affiliate.order.list`
+     (chaves atuais); Awin Publisher API `/publishers/{id}/transactions` (token novo); Lomadee: verificar se a API oficial tem
+     relatório de comissões. Sem raspar painel nenhum.
+  5. Painel: cartões (visitas, buscas, cliques, comissão do mês), gráficos por dia, tabelas por loja/produto, saúde (robô,
+     prontas guardadas, erros Shopee 10030, saldo da IA, lojas com links quebrados). Tema claro, celular primeiro.
