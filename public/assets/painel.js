@@ -54,9 +54,10 @@
   document.addEventListener("click", (e) => { if (!e.target.closest(".coluna")) esconderDica(); });
 
   // Barras por dia, com todos os dias do período (dia sem nada = barra vazia)
-  function graficoPorDia(alvo, lista, desde, hoje, palavra) {
+  function graficoPorDia(alvo, lista, desde, hoje, palavra, extra = null) {
     alvo.replaceChildren();
     const mapa = new Map(lista.map((d) => [d.dia, d.n]));
+    const linhas = new Map(lista.map((d) => [d.dia, d]));
     const dias = [];
     for (let d = desde; d <= hoje; d = diasAtras(d, -1)) dias.push(d);
     const max = Math.max(0, ...dias.map((d) => mapa.get(d) || 0));
@@ -71,7 +72,8 @@
       const barra = el("div", "barra");
       barra.style.height = `${(n / max) * 100}%`;
       coluna.append(barra);
-      const texto = `${dataBr(d)}${d === hoje ? " (hoje, até agora)" : ""}: ${num(n)} ${palavra}`;
+      const mais = extra && linhas.has(d) ? ` · ${extra(linhas.get(d))}` : "";
+      const texto = `${dataBr(d)}${d === hoje ? " (hoje, até agora)" : ""}: ${num(n)} ${palavra}${mais}`;
       coluna.setAttribute("aria-label", texto);
       coluna.addEventListener("mouseenter", () => mostrarDica(coluna, texto));
       coluna.addEventListener("mouseleave", esconderDica);
@@ -139,7 +141,7 @@
       for (const id of ["l-origens", "l-aparelhos"]) $(id).replaceChildren(el("li", "vazio", "Sem a chave do Cloudflare."));
       return;
     }
-    graficoPorDia($("g-visitas"), v.porDia, d.desde, d.hoje, "visitas");
+    graficoPorDia($("g-visitas"), v.porDia, d.desde, d.hoje, "visitas", (l) => `${num(l.paginas)} páginas vistas`);
     lista($("l-origens"), v.origens);
     lista($("l-aparelhos"), v.aparelhos);
     // O caminho: de cada 100 visitas, quantas buscas e quantos cliques para as lojas (cliques só desde 03/11)
