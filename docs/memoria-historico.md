@@ -1367,3 +1367,10 @@ Texto para colar numa conversa nova:
   contas, alertas e carrinhos → `robo/numeros-site.mjs` (passo "Números do site" no fim do job auditoria, continue-on-error)
   põe isso no resumo. Visitas/páginas: Web Analytics do Cloudflare (CSP do _middleware já libera static.cloudflareinsights.com
   e cloudflareinsights.com). Não há contagem de cliques em "Comprar" (ideia para depois).
+- **IA com saldo de volta (03/11/2026, noite)**: Giovanni recarregou a Anthropic. robo/conferir-buscas.mjs: (1) além dos fora da
+  categoria, pergunta os `TOPO`=24 primeiros produtos principais de cada busca; (2) soma as `BUSCADAS`=150 buscas reais mais
+  feitas em 30 dias (tabela buscas) às da caixa de sugestões; (3) **correção automática de categoria**: produto que a IA diz ser
+  o buscado e está fora da categoria → grava `ia_categorias` (VERSAO_IA) com a categoria da busca, só se `categoriaDoProduto(q)`
+  existe e é a única categoria da busca (busca de marca como "stanley"/"jbl" fica de fora); vale também para respostas "sim"
+  antigas guardadas em ia_busca (sem perguntar de novo). Testado com fetch/SDK simulados. Disparados so_ia (ia_esperar=25) e
+  so_auditoria (o 1º so_auditoria, com código antigo, foi cancelado).
