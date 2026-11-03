@@ -1,6 +1,6 @@
 // A IA confere as buscas sugeridas (pedido do Giovanni, 30/10/2026; ver lib/iaBusca.js). Roda depois da auditoria.
-// Para cada busca da caixa de sugestões: abre como o visitante (1ª resposta e o lote seguinte), separa os produtos
-// mostrados como "o produto buscado" que estão fora das categorias da busca e pergunta ao Claude Haiku 5.5 se cada um
+// Para cada busca da caixa de sugestões (e, desde 03/11/2026, as mais buscadas pelos visitantes no mês): abre como o visitante (1ª resposta e o lote seguinte), separa os produtos
+// mostrados como "o produto buscado" que estão fora das categorias da busca (e os 24 primeiros) e pergunta ao Claude Haiku 5.5 se cada um
 // é mesmo o que a pessoa procura. "Não" = o site manda para "Ver também… produtos parecidos" daquela busca.
 // "Sim" fora da categoria = categoria talvez errada: vai para o resumo (o Claude corrige as regras).
 // Cada título é perguntado uma vez por busca (tabela ia_busca). Usa a API normal (não o lote): resposta na hora.
@@ -18,6 +18,10 @@ const PRECO_SAIDA = 0.5;
 const SITE = "https://vaiprocarrinho.com.br";
 const QUANTAS = Number(process.argv[2]) || 300;
 const POR_PEDIDO = 80; // títulos por pergunta à IA
+// Também os primeiros produtos de cada busca, mesmo dentro da categoria (03/11/2026): são os que o visitante mais vê
+const TOPO = 24;
+// Buscas reais dos visitantes nos últimos 30 dias (as mais buscadas), além das sugestões da caixa de busca (03/11/2026)
+const BUSCADAS = 150;
 const AO_MESMO_TEMPO = 2; // buscas abertas ao mesmo tempo (limite do Cloudflare: 60 pedidos em 10 s; ver robo/auditoria.mjs)
 const PAUSA_MS = 500;
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -168,6 +172,13 @@ try {
   termos = (await (await fetch(`${SITE}/api/vocabulario?v=3`)).json()).termos || [];
 } catch {}
 termos = termos.slice(0, QUANTAS);
+try {
+  const desde = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+  const buscadas = await d1(
+    "SELECT MAX(texto) AS texto FROM buscas WHERE dia >= ? GROUP BY termo ORDER BY SUM(total) DESC LIMIT ?", [desde, BUSCADAS]);
+  const ja = new Set(termos.map((t) => termoIa(t)));
+  for (const { texto: t } of buscadas) if (t && !ja.has(termoIa(t))) { termos.push(t); ja.add(termoIa(t)); }
+} catch {}
 
 const naoSao = []; // { q, titulo, secao, loja }
 const categoriaDuvidosa = []; // { q, titulo, secao, cats }
@@ -181,7 +192,9 @@ for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
     const { q, ofertas } = busca;
     const termo = termoIa(q);
     const porChave = new Map();
-    for (const o of foraDasCategorias(ofertas)) {
+    const fora = new Set(foraDasCategorias(ofertas));
+    const topo = ofertas.filter((o) => !o.acessorio && o.principal).slice(0, TOPO);
+    for (const o of [...fora, ...topo]) {
       const chave = chaveIa(o.titulo || "");
       if (chave && !vistos.has(`${termo}|${chave}`) && !porChave.has(chave)) porChave.set(chave, o);
     }
@@ -196,7 +209,8 @@ for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
       novas.push([termo, chaveIa(o.titulo), ok]);
       vistos.add(`${termo}|${chaveIa(o.titulo)}`);
       const item = { q, titulo: o.titulo, secao: o.secao || "Outros", loja: o.lojaNome || o.loja, cats };
-      (ok ? categoriaDuvidosa : naoSao).push(item);
+      if (!ok) naoSao.push(item);
+      else if (fora.has(o)) categoriaDuvidosa.push(item);
     }
   }));
   await espera(PAUSA_MS);
@@ -204,7 +218,7 @@ for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
 await gravar(novas);
 
 const custo = (entrada * PRECO_ENTRADA + saida * PRECO_SAIDA) / 1e6;
-anotar(`- ${abertas} de ${termos.length} buscas abertas; ${perguntados} produtos fora da categoria da busca perguntados à IA (${falhas} perguntas com erro)`);
+anotar(`- ${abertas} de ${termos.length} buscas abertas; ${perguntados} produtos perguntados à IA (fora da categoria da busca ou entre os ${TOPO} primeiros) (${falhas} perguntas com erro)`);
 anotar(`- Não são o produto buscado (saem do meio dos resultados daquela busca): ${naoSao.length}`);
 anotar(`- São o produto, mas em outra categoria (conferir as regras de categoria): ${categoriaDuvidosa.length}`);
 anotar(`- Custo: US$ ${custo.toFixed(4)} (${entrada.toLocaleString("pt-BR")} tokens de entrada, ${saida.toLocaleString("pt-BR")} de saída)`);
