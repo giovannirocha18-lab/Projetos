@@ -1359,3 +1359,11 @@ Texto para colar numa conversa nova:
   robo-precos.yml: `prontas` depois do job `shopee` (`needs: shopee` + `always()`), uma busca por vez, no erro 10030 espera
   60 s e tenta a mesma até 2 vezes, para aos 70 min; resumo "X de Y buscas guardadas (… esperas)". Sem subir VERSAO_CACHE.
   Resultado: run #94 (so_prontas, 03/11 14:00–14:49 UTC) guardou **431 de 478** (antes 29), só 10 erros 10030 e alguns 10000 "System Error" da Shopee; ~14 buscas/min depois dos primeiros 15 min. O formulário de ajuda do Shopee Afiliados não tem campo de texto: pedido de limite maior ficou sem enviar.
+- **Auditoria pedida pelo Giovanni (03/11/2026, tarde)**: auditoria da busca depois das prontas novas: 150 buscas, 0 suspeitos
+  no topo. "IA conferindo as buscas": 55 perguntas com erro 400 "Your credit balance is too low" → crédito da API da Anthropic
+  acabou (o resumo dizia saldo ~US$ 0,80). Lojas: Awin "22 aprovadas" = feeds (EINSTAR tem 5) → as mesmas 17 lojas, a última
+  nova foi a Cama In Box; Lomadee: 16 marcas com produtos nesta noite (2 lotes de 6 não conferidos por limite da Lomadee);
+  /api/lojas: 41 lojas, todas com produtos (Elements só 6). Tráfego: o banco só tem buscas (1 por pessoa por termo por dia),
+  contas, alertas e carrinhos → `robo/numeros-site.mjs` (passo "Números do site" no fim do job auditoria, continue-on-error)
+  põe isso no resumo. Visitas/páginas: Web Analytics do Cloudflare (CSP do _middleware já libera static.cloudflareinsights.com
+  e cloudflareinsights.com). Não há contagem de cliques em "Comprar" (ideia para depois).

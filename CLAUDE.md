@@ -67,6 +67,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   pedir limite maior à Shopee (o formulário não tem campo de texto: desistiu). Run #94 (so_prontas, 03/11): **431 de 478**
   guardadas em 49 min (antes 29). **Conferir no robô de 04/11** a linha "X de Y buscas guardadas". Evitar subir VERSAO_CACHE à toa
   (apaga as prontas).
+- **Crédito da Anthropic acabou (03/11)**: IA de categorias e "IA conferindo as buscas" dão "credit balance is too low" →
+  Giovanni recarregar em console.anthropic.com (Billing). Relatório novo "Números do site" (robo/numeros-site.mjs, fim da
+  auditoria): buscas/dia, mais buscados, contas, alertas. Visitas: Giovanni ligar Web Analytics (CSP já libera).
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
 
