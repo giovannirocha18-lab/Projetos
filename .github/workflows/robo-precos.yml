@@ -24,6 +24,10 @@ on:
         description: "Só a auditoria da busca (suspeitos no topo + IA conferindo as categorias das buscas)"
         type: boolean
         default: false
+      so_numeros:
+        description: "Só o relatório Números do site (buscas, cliques, contas)"
+        type: boolean
+        default: false
       so_ia:
         description: "Só o robô da IA (categorias dos produtos pelo Claude Haiku)"
         type: boolean
@@ -39,7 +43,7 @@ on:
 
 jobs:
   awin:
-    if: ${{ !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    if: ${{ !inputs.so_numeros && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     # Uma gravação por vez: duas ao mesmo tempo (madrugada atrasada + Run workflow) gravam por cima uma da outra
     concurrency:
@@ -111,7 +115,7 @@ jobs:
   # Shopee: o site guarda o preço de hoje dos produtos das vitrines e dos mais buscados
   # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
   shopee:
-    if: ${{ !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -133,7 +137,7 @@ jobs:
   prontas:
     # Depois do job "shopee" (que também consulta a Shopee): os dois juntos estouravam o limite dela
     needs: shopee
-    if: ${{ always() && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia }}
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
     steps:
@@ -167,7 +171,7 @@ jobs:
 
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
   lomadee:
-    if: ${{ !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -190,7 +194,7 @@ jobs:
   # a lista serve para corrigir as regras da busca (lib/relevancia.js)
   auditoria:
     needs: prontas
-    if: ${{ always() && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_ia }}
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -234,7 +238,7 @@ jobs:
   # novos num lote (Batch API, metade do preço) e lê o resultado do lote anterior. Custo e exemplos no resumo da execução
   ia:
     needs: awin
-    if: ${{ always() && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria }}
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     concurrency:
@@ -260,6 +264,25 @@ jobs:
       - name: Sugestões de produtos por marca
         continue-on-error: true
         run: node robo/marcas.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+
+  # Só o relatório "Números do site" (Run workflow com so_numeros): à noite ele roda no fim da auditoria
+  numeros:
+    if: ${{ inputs.so_numeros }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: claude/inspiring-hamilton-wafagr
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Números do site
+        run: node robo/numeros-site.mjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
