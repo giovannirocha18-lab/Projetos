@@ -27,7 +27,7 @@ Ainda escondido do Google (noindex) até o lançamento.
 - Principais: `public/index.html`, `public/assets/app.js` (site), `public/assets/estilo.css`, `functions/api/buscar.js`
   (busca), `lib/relevancia.js` (produto x acessório, marca), `lib/categorias.js` (40 categorias), `lib/vocabulario.js`
   (marcas, erros, sugestões), `lib/fontes/*.js` (lojas), `functions/_middleware.js` (lista do que pode abrir).
-- Banco D1 (`DB`), plano Workers Paid. Versões de cache: `VERSAO_CACHE` (buscar.js) = `VERSAO_BUSCA` (app.js), hoje **107**;
+- Banco D1 (`DB`), plano Workers Paid. Versões de cache: `VERSAO_CACHE` (buscar.js) = `VERSAO_BUSCA` (app.js), hoje **108**;
   ao trocar, rodar o robô com `so_prontas`. `/api/vocabulario?v=7`, `/api/lojas` VERSAO e `/api/numeros?v=` também têm versão.
 - Testar local: `npx wrangler pages dev public`; Playwright: Chromium em `/opt/pw-browsers/chromium`,
   import de `/opt/node22/lib/node_modules/playwright/index.mjs`.
@@ -49,6 +49,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   tem o produto (`testes/sugestoes.mjs`).
 - 03/11: robô ok; "smart tv 65/50" sem racks no topo ✅. Palavra de 3 letras só vale inteira/plural/com número
   (`achaPalavra` em lib/relevancia.js: "dry fit" achava fitas "Drykofita"); teste "filtro Awin" em testes/busca.mjs; v107.
+  Print "lisinha" (0 ofertas p/ Giovanni, 143 p/ outro): Shopee respondeu vazio e o cache do Cloudflare (por cidade) guardou
+  1 dia → busca sem oferta agora fica 5 min no Cloudflare e 0 no navegador (`VAZIA_SEGUNDOS`, buscar.js); v108.
   Elements: 39 de 45 links dão "página não encontrada" na loja; Monte Carlo: 2.454 sem foto (ficam fora sozinhos).
 - Lojas Benoit pausada (`LOJAS_PAUSADAS` em robo/awin.mjs) até corrigir fotos/preços.
 

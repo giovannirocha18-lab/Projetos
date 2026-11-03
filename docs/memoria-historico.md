@@ -1329,3 +1329,8 @@ Texto para colar numa conversa nova:
   Agora `achaPalavra`: 3 letras só inteira, no plural ou grudada num número ("rtx"→"RTX4060"); 4+ letras igual antes. Teste novo
   "filtro Awin" (temTodasAsPalavras/citaAlgumaPalavra) em testes/busca.mjs. Cache v=107 + `so_prontas`. Elements segue com 39 de
   45 links quebrados; Monte Carlo 2.454 sem foto.
+- **Print "lisinha" (03/11/2026)**: o Giovanni via "0 ofertas", outra pessoa via a lista; a API respondia 143. Causa provável:
+  a Shopee devolveu lista vazia sem erro, todas as lojas "ok" → `cache.put` guardou o vazio 1 dia no cache do Cloudflare
+  (é por data center/cidade) e 10 min no navegador. Agora resposta com X-Total-Ofertas "0" fica 5 min no Cloudflare
+  (`VAZIA_SEGUNDOS` em paraGuardar) e max-age=0 no navegador (paraNavegador e resposta nova). Cache v=108 + `so_prontas`
+  (o run #92 de v107 foi cancelado).
