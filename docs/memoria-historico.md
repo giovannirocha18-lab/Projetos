@@ -1379,3 +1379,4 @@ Texto para colar numa conversa nova:
   em "mochila", capacete de cachorro, mousepads em "mouse", peças de vara de pesca), 244 a conferir, **1.260 categorias corrigidas
   sozinhas**; US$ 0,096. Números do site (1º relatório): 169 buscas em 7 dias (445 nos 7 anteriores, testes do Giovanni), top:
   geladeira 16, air fryer 14, boneca 12, ração 10; 2 contas, 1 alerta, 1 carrinho.
+- **Web Analytics (03/11/2026)**: Giovanni ligou no projeto do Pages (Metrics → Web Analytics → enabled); o beacon só entrou nas páginas depois de nova publicação (commit no comentário do _middleware). Playwright: beacon.min.js 200 e /cdn-cgi/rum 204, sem erro de CSP. Ver em Cloudflare → projeto → Metrics → View Web Analytics.

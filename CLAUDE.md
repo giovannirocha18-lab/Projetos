@@ -58,7 +58,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 
 ## Pendências
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
-  UptimeRobot; Web Analytics do Cloudflare; INPI (GRU 389, R$ 440, antes de ~21/01/2027); decidir cron-job.org para o atraso
+  UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027); decidir cron-job.org para o atraso
   do robô; decidir Mercado Livre.
 - **Claude**: conferir o robô de cada madrugada (atraso, IA, auditoria — seção "Lojas nas buscas": 🆕 loja nova / ⚠️ invisível); quando loja nova aprovar: `so_awin`, ler o log,
   `so_auditoria` (categorias da loja → completar `REGRAS` em lib/caminhos.js), subir versões e `so_prontas`.
@@ -71,7 +71,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   primeiros de cada busca + 150 buscas reais do mês e **corrige a categoria sozinha** (ia_categorias) quando a busca é de produto
   com uma categoria só. 03/11 (#95/#97): 11.561 títulos novos classificados (US$ 0,12); 6.131 perguntados, 376 escondidos,
   **1.260 categorias corrigidas** (US$ 0,10). Números do site: 169 buscas na semana (geladeira, air fryer, ração…), 2 contas. Relatório novo "Números do site" (robo/numeros-site.mjs, fim da
-  auditoria): buscas/dia, mais buscados, contas, alertas. Visitas: Giovanni ligar Web Analytics (CSP já libera).
+  auditoria): buscas/dia, mais buscados, contas, alertas. Visitas: **Web Analytics ligado em 03/11** (beacon conferido com Playwright, sem erro de CSP).
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).
 
