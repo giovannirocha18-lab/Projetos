@@ -39,7 +39,7 @@ Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` 
 Run workflow com `so_awin`, `so_prontas`, `so_lomadee`, `so_auditoria`, `so_ia`, `so_numeros` (só o relatório, ~30 s). Disparar: GitHub MCP `actions_run_trigger`.
 Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. Custo da IA ~US$ 0,07/noite (saldo ~US$ 0,80).
 
-## Situação (03/11/2026, 21ª sessão)
+## Situação (03/11/2026, 22ª sessão)
 - Feito nesta sessão: IA conferindo as buscas (esconde o que não é o produto); filtro de Marcas no alto e categorias só em
   busca ambígua; celular no molde do app do Mercado Livre (abas, atalhos, barra de baixo, gaveta de filtros moderna);
   sugestões "produto + marca" (inclusive HP/LG); busca com marca mostra só a marca (`deOutraMarca`).
@@ -81,7 +81,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   **Painel preto** com menu Métricas / Comissões (#comissoes). Comissões ao vivo pelas APIs oficiais (`lib/comissoes.js`,
   `/api/painel/comissoes?mes=`; cache 10 min): Shopee conversionReport, AliExpress order.list (US$), Awin transactions
   (AWIN_API_TOKEN dos cupons), Lomadee /affiliate/orders (precisa escopo orders:read). **Testado só com respostas simuladas:
-  1º print real: Shopee/AliExpress/Lomadee lidas; Awin tinha chave vencida (trocada 03/11, cupons da Awin voltaram).**
+  1º print real: Shopee/AliExpress/Lomadee lidas; Awin tinha chave vencida (trocada 03/11, cupons da Awin voltaram); as 4 redes ✓ lidas.**
   Depois: resumo do robô no painel.
 - Pequenos: cupons da Lomadee davam erro 500 do lado deles.
 - ~07/11: começam os selos "✅ Desconto real" (21 dias de histórico); Black Friday 27/11 (`/black-friday`).

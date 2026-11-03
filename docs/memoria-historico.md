@@ -1453,3 +1453,4 @@ Texto para colar numa conversa nova:
   também não vinham**, só os da Lomadee). Giovanni gerou chave nova (ui.awin.com → nome → API Credentials) e trocou no Pages;
   cupons v11 publicados: 22 cupons da Awin voltaram (conferido em /api/cupons, erroAwin vazio). Lista vazia nos cards do topo
   quebrava 1 palavra por linha → `.ranking li.vazio { display: block }`.
+  Giovanni confirmou: Awin "✓ lida" no painel (as 4 redes lidas; ainda sem vendas).
