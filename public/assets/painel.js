@@ -740,7 +740,7 @@
       const pedidoComissoes = carregarComissoes(novo);
       await carregarMetricas();
       await pedidoComissoes;
-      $("atualizado").textContent = `Atualizado às ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+      $("atualizado").textContent = `Atualizado às ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}`;
     } catch (e) {
       $("erro").textContent = e instanceof SyntaxError ? "O login expirou. Recarregue a página e entre de novo." : e.message;
       $("erro").hidden = false;
