@@ -1358,3 +1358,4 @@ Texto para colar numa conversa nova:
   com a última resposta completa — se a Shopee recusar, o visitante recebe a reserva (cabeçalho `X-Reserva: 1`). (3)
   robo-precos.yml: `prontas` depois do job `shopee` (`needs: shopee` + `always()`), uma busca por vez, no erro 10030 espera
   60 s e tenta a mesma até 2 vezes, para aos 70 min; resumo "X de Y buscas guardadas (… esperas)". Sem subir VERSAO_CACHE.
+  Resultado: run #94 (so_prontas, 03/11 14:00–14:49 UTC) guardou **431 de 478** (antes 29), só 10 erros 10030 e alguns 10000 "System Error" da Shopee; ~14 buscas/min depois dos primeiros 15 min. O formulário de ajuda do Shopee Afiliados não tem campo de texto: pedido de limite maior ficou sem enviar.
