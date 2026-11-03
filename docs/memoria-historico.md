@@ -1446,3 +1446,6 @@ Texto para colar numa conversa nova:
   marcas_lomadee). Status unificado aprovada/pendente/cancelada; totais por moeda ("R$ X + US$ Y"). Aba: resumo do mês,
   comissão por dia (só reais), por rede (✓ lida / ✕ erro), por loja, pedidos; seletor de mês. Testado com respostas simuladas
   no formato das docs (consultas reais ainda não conferidas: os nomes de campos da Shopee/AliExpress podem precisar de ajuste).
+  1º print real (03/11): Shopee, AliExpress e Lomadee "✓ lida" (0 pedidos, sem vendas ainda); **Awin "✕ erro"** (motivo não veio
+  no print). Feito: cards Resumo/Por rede/Lojas que mais pagaram no topo (pedido do Giovanni), erro escrito no card, Awin pede
+  em UTC (a API só aceita alguns fusos; America/Sao_Paulo era o suspeito), cada conta separada, motivo do erro com o texto da Awin.
