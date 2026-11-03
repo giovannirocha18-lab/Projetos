@@ -469,7 +469,8 @@
     if (!d) {
       $("c-resumo").replaceChildren(quadro("Comissão do mês", "…", null, "buscando nas redes (pode levar alguns segundos)"));
       for (const id of ["c-grafico", "c-grafico-total"]) $(id).replaceChildren();
-      for (const [id, n] of [["c-redes", 5], ["c-lojas", 5], ["c-pedidos", 7]]) vazioNaTabela($(id), n, "Carregando…");
+      for (const id of ["c-redes", "c-lojas"]) $(id).replaceChildren(el("li", "vazio", "Carregando…"));
+      vazioNaTabela($("c-pedidos"), 7, "Carregando…");
       return;
     }
     const pedidos = d.pedidos;
@@ -481,7 +482,7 @@
     $("erro-redes").textContent = falhas.length ? `Não deu para ler: ${falhas.map((r) => `${r.rede} (${r.erro})`).join(" · ")}` : "";
 
     $("c-resumo").replaceChildren(
-      quadro("Comissão do mês", textoMoedas(somaPorMoeda(v)), null, "aprovada + pendente", "grande"),
+      quadro("Comissão do mês", textoMoedas(somaPorMoeda(v)), null, "aprovada + pendente"),
       quadro("Aprovada", textoMoedas(somaPorMoeda(por("aprovada"))), null, plural(por("aprovada").length, "pedido", "pedidos")),
       quadro("Pendente", textoMoedas(somaPorMoeda(por("pendente"))), null, `${plural(por("pendente").length, "pedido", "pedidos")} · ainda pode cair`),
       quadro("Cancelada", textoMoedas(somaPorMoeda(por("cancelada"))), null, plural(por("cancelada").length, "pedido", "pedidos")),
@@ -506,18 +507,21 @@
       }, (x) => dinheiro(x).replace(/,00$/, ""));
     }
 
-    // Por rede
+    // Por rede (card do topo): comissão, pedidos e se a rede foi lida (o erro vem escrito)
     $("c-redes").replaceChildren(...d.redes.map((r) => {
       const daRede = validos(pedidos.filter((p) => p.rede === r.rede));
+      const li = el("li");
+      const nome = el("span", "nome", r.rede);
+      const valor = el("span", "n", textoMoedas(somaPorMoeda(daRede)));
       const situacao = r.ok ? el("span", "selo ok", "✓ lida") : el("span", "selo erro", "✕ erro");
-      if (!r.ok) situacao.title = r.erro;
-      return linhaDeTabela([
-        [r.rede, "nome"], [num(daRede.length), "num"], [textoMoedas(somaPorMoeda(daRede, "venda")), "num"],
-        [textoMoedas(somaPorMoeda(daRede)), "num forte"], [situacao, "num"],
-      ]);
+      li.append(nome, valor, situacao);
+      li.append(r.ok
+        ? el("span", "detalhe", `${plural(daRede.length, "pedido", "pedidos")} · vendas ${textoMoedas(somaPorMoeda(daRede, "venda"))}`)
+        : el("span", "detalhe erro", r.erro));
+      return li;
     }));
 
-    // Por loja
+    // Lojas que mais pagaram (card do topo)
     const lojas = new Map();
     for (const p of v) {
       const k = `${p.rede}|${p.loja}`;
@@ -526,11 +530,16 @@
       lojas.set(k, x);
     }
     const ordenadas = [...lojas.values()].map((x) => ({ ...x, total: x.pedidos.reduce((s, p) => s + p.comissao, 0) })).sort((a, b) => b.total - a.total);
-    if (!ordenadas.length) vazioNaTabela($("c-lojas"), 5, "Nenhuma venda neste mês ainda.");
+    if (!ordenadas.length) $("c-lojas").replaceChildren(el("li", "vazio", "Nenhuma venda neste mês ainda."));
     else {
-      $("c-lojas").replaceChildren(...ordenadas.slice(0, 20).map((x, i) => linhaDeTabela([
-        [i + 1, "pos"], [x.loja, "nome"], [x.rede], [num(x.pedidos.length), "num"], [textoMoedas(somaPorMoeda(x.pedidos)), "num forte"],
-      ])));
+      $("c-lojas").replaceChildren(...ordenadas.slice(0, 7).map((x, i) => {
+        const li = el("li");
+        const nome = el("span", "nome", x.loja);
+        nome.title = x.loja;
+        nome.append(el("span", "rede-da-loja", `${x.rede} · ${plural(x.pedidos.length, "pedido", "pedidos")}`));
+        li.append(el("span", "pos", i + 1), nome, el("span", "n", textoMoedas(somaPorMoeda(x.pedidos))));
+        return li;
+      }));
     }
 
     // Pedidos (mais novos primeiro)

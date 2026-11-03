@@ -180,6 +180,14 @@ main { max-width: 1240px; margin: 0 auto; padding: 16px; }
 .saude-lista .icone { flex: none; width: 22px; text-align: center; }
 .saude-lista small { color: var(--suave); display: block; }
 
+/* Comissões: cards do topo (por rede / lojas) */
+.ranking.redes li { grid-template-columns: minmax(0, 1fr) auto auto; row-gap: 2px; }
+.ranking.redes .detalhe { grid-column: 1 / -1; color: var(--suave); font-size: .74rem; white-space: normal; }
+.ranking.redes .detalhe.erro { color: var(--desce); }
+.ranking.lojas-comissao li { grid-template-columns: 18px minmax(0, 1fr) auto; }
+.ranking .rede-da-loja { display: block; color: var(--suave); font-size: .72rem; font-weight: 500; }
+.ranking .n small { color: var(--suave); font-weight: 500; }
+
 /* Comissões */
 .cabeca-vista { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
 .titulo-vista { font-size: 1.35rem; }

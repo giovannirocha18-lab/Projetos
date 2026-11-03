@@ -138,10 +138,20 @@
       </div>
       <p class="aviso" id="erro-redes" hidden></p>
 
-      <section class="painel">
-        <h2>Resumo do mês</h2>
-        <div class="quadros quadros-4" id="c-resumo"></div>
-      </section>
+      <div class="trio">
+        <section class="painel">
+          <h2>Resumo do mês</h2>
+          <div class="quadros" id="c-resumo"></div>
+        </section>
+        <section class="painel">
+          <h2>Por rede</h2>
+          <ul class="ranking redes" id="c-redes"></ul>
+        </section>
+        <section class="painel">
+          <h2>Lojas que mais pagaram</h2>
+          <ol class="ranking lojas-comissao" id="c-lojas"></ol>
+        </section>
+      </div>
 
       <section class="painel">
         <div class="cabeca-grafico">
@@ -152,27 +162,6 @@
         </div>
         <div class="grafico-area" id="c-grafico"></div>
       </section>
-
-      <div class="quarteto">
-        <section class="painel">
-          <h2>Por rede</h2>
-          <div class="tabela-rolagem">
-            <table class="tabela">
-              <thead><tr><th>Rede</th><th class="num">Pedidos</th><th class="num">Vendas</th><th class="num">Comissão</th><th class="num">Situação</th></tr></thead>
-              <tbody id="c-redes"></tbody>
-            </table>
-          </div>
-        </section>
-        <section class="painel">
-          <h2>Por loja</h2>
-          <div class="tabela-rolagem">
-            <table class="tabela">
-              <thead><tr><th>#</th><th>Loja</th><th>Rede</th><th class="num">Pedidos</th><th class="num">Comissão</th></tr></thead>
-              <tbody id="c-lojas"></tbody>
-            </table>
-          </div>
-        </section>
-      </div>
 
       <section class="painel">
         <h2>Pedidos <span class="sub" id="c-pedidos-sub"></span></h2>
