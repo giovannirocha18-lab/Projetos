@@ -7,7 +7,7 @@
 // Além disso, todo E tem que vir antes de todo N/A na ordem de "Mais relevantes".
 // Fontes dos termos (pesquisa de 16/10/2026): MELI Trends 2025 (Mercado Livre), "Os Mais Desejados do Ano"
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
-import { separarAcessorios, produtoBuscado } from "../lib/relevancia.js";
+import { separarAcessorios, produtoBuscado, temTodasAsPalavras, citaAlgumaPalavra } from "../lib/relevancia.js";
 import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
 import { categoriaDoProduto, categoriaPorNome, marcarSecoes } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
@@ -38,6 +38,11 @@ const CASOS = {
   "panela de pressão elétrica": {
     E: ["Panela de Pressão Elétrica Mondial 5L com anel de vedação extra"],
     A: ["Midea panela de pressão elétrica anel de borracha anel de vedação panela elétrica de alta pressão"],
+  },
+  // 03/11/2026 (auditoria): palavra de 3 letras é começo de outra ("dry" em "Drykofita", "fit" em "Fita")
+  "camiseta dry fit": {
+    E: ["Camiseta Dry Fit Masculina Academia", "Kit 3 Camisetas Dry Fit Esporte", "Camiseta Dryfit Feminina Corrida"],
+    N: ["Drykofita Fita Aluminizada Impermeabilizante Dryko 10cmx10m", "Vedatudo Fita Aluminizada Impermeabilizante Dryko 5cmx10m"],
   },
   // ---- Prints do Giovanni ----
   // 17/10/2026: suporte, porta-controle e adesivo apareciam no meio; joystick e gamepad são o próprio controle
@@ -116,7 +121,6 @@ const CASOS = {
   "ventilador": { E: ["Ventilador de Mesa Mondial 40cm Turbo", "Ventilador Coluna Arno 6 Pás"], A: ["Hélice Ventilador Arno 40cm Reposição"] },
   "iphone 15": { E: ["Apple iPhone 15 128GB Preto", "iPhone 15 Pro Max 256GB Vitrine"], A: ["Capa para iPhone 15 Magsafe", "Película iPhone 15 Vidro 3D"] },
   "geladeira": { E: ["Geladeira Frost Free Brastemp 375L", "Refrigerador Geladeira Consul 300 Litros"], A: ["Borracha Gaxeta para Geladeira Consul"] },
-  "camiseta dry fit": { E: ["Camiseta Dry Fit Masculina Academia", "Kit 3 Camisetas Dry Fit Esporte"] },
   "creatina": { E: ["Creatina Monohidratada 300g Growth", "Creatina Max Titanium 100% Pura 150g"] },
   "caixa de som boombox": { E: ["Caixa de Som JBL Boombox 3 Bluetooth", "Caixa Som Boombox Portátil Bluetooth 40W"] },
 
@@ -483,6 +487,18 @@ for (const [q, { fica, sai }] of Object.entries(FILTRO_ALIEXPRESS)) {
   const cita = tituloDaBusca(q);
   for (const t of fica) { total++; if (!cita(t)) { falhas++; console.log(`✗ filtro AliExpress "${q}": tirou "${t}"`); } }
   for (const t of sai) { total++; if (cita(t)) { falhas++; console.log(`✗ filtro AliExpress "${q}": deixou "${t}"`); } }
+}
+// Filtro da Awin (lib/fontes/awin.js): título com todas as palavras, ou (3+ palavras) citando alguma do produto
+// 03/11/2026 (auditoria): "dry" achava "Drykofita" e "fit" achava "Fita" (fitas impermeabilizantes da Efacil)
+const FILTRO_AWIN = {
+  "camiseta dry fit": { fica: ["Camiseta Dry Fit Masculina Academia", "Camiseta Dryfit Feminina"],
+    sai: ["Drykofita Fita Aluminizada Impermeabilizante Dryko 10cmx10m", "Drykoprimer Acqua Emulsão Asfáltica Para Aderencia De Fitas 1L"] },
+};
+for (const [q, { fica, sai }] of Object.entries(FILTRO_AWIN)) {
+  const todas = temTodasAsPalavras(q), cita = citaAlgumaPalavra(q);
+  const passa = (t) => todas(t) || cita(t);
+  for (const t of fica) { total++; if (!passa(t)) { falhas++; console.log(`✗ filtro Awin "${q}": tirou "${t}"`); } }
+  for (const t of sai) { total++; if (passa(t)) { falhas++; console.log(`✗ filtro Awin "${q}": deixou "${t}"`); } }
 }
 // Correção de digitação (17/10/2026, print "maquina de lavar eletrolux"): [digitado, q buscado, "Você quis dizer"]
 const CORRECOES = [
