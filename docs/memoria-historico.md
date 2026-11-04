@@ -1485,3 +1485,8 @@ Texto para colar numa conversa nova:
   ou começa/termina com o buscado de 5+ letras; sem marketplaces), `mostrarLojaNaBusca` → faixa `#loja-na-busca` (index.html)
   "Loja parceira" com "Ver produtos da loja"/"Ir para a loja"; busca vazia + loja achada → abre `?loja=` (replaceState).
   "motorola"/"boticario" continuam busca normal com a faixa. Conferido em produção com Playwright.
+- **Cupons só de lojas com produtos (04/11/2026)**. Print do Giovanni ("BioVittare" no pc: 0 resultados; a loja só tinha cupom).
+  Giovanni: "se ela não tem produto não faz sentido manter cupom dela". functions/api/cupons.js `lojasComProdutos`: Lomadee =
+  marcaId em `marcasComProdutos` ou nome em `marcasNaAwin` (Lauri); Awin = loja em lojas_awin (produtos > 0) ou pelo nome
+  (EINSTAR: cupom "einstar", banco "shining-3d-technology-inc"; `marcasNaAwin` agora guarda também `nomeDaLojaAwin`).
+  Banco fora: não tira nada. Cupons: 79 → **42** de 17 lojas. (Faixa "loja só com cupom" na busca foi feita e desfeita.)
