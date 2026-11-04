@@ -11,8 +11,8 @@
   --topo: #0d121c;
   --card: #121826;
   --quadro: #171f30;
-  --texto: #eef1f7;
-  --suave: #98a2b8;
+  --texto: #f5f7fc;
+  --suave: #b9c2d3; /* era #98a2b8: apagado demais no fundo preto (print do Giovanni, 04/11/2026) */
   --borda: #1d2536;
   --borda-forte: #263049;
   --grade: #1f2839;
@@ -22,10 +22,12 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--texto); font: 14px/1.45 "Plus Jakarta Sans", system-ui, sans-serif; }
+/* Inter (04/11/2026): a Plus Jakarta Sans ficava fina e apagada no fundo preto, principalmente no Windows. Peso 500 de base */
+body { margin: 0; background: var(--bg); color: var(--texto); font: 500 15px/1.5 "Inter", "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-feature-settings: "cv11", "ss01"; }
 h1, h2 { margin: 0; }
 a { color: inherit; }
-.sub { color: var(--suave); font-size: .78rem; font-weight: 500; margin: 0; }
+.sub { color: var(--suave); font-size: .82rem; font-weight: 500; margin: 0; }
 h2 .sub { margin-left: 4px; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 .vazio { color: var(--suave); }
@@ -55,7 +57,7 @@ h2 .sub { margin-left: 4px; }
 
 .faixa-fundo { border-bottom: 1px solid var(--borda); }
 .faixa { max-width: var(--largura); margin: 0 auto; padding: 8px var(--lateral); display: flex; gap: 20px; overflow-x: auto;
-  scrollbar-width: none; font-size: .76rem; color: var(--suave); white-space: nowrap; }
+  scrollbar-width: none; font-size: .8rem; color: var(--suave); white-space: nowrap; }
 .faixa::-webkit-scrollbar { display: none; }
 .faixa b { color: var(--acento-forte); font-weight: 700; }
 
@@ -79,15 +81,15 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 .quadros { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 @media (min-width: 860px) { .quadros-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .quadro { background: var(--quadro); border: 1px solid var(--borda-forte); border-radius: 12px; padding: 10px 12px; min-width: 0; }
-.quadro .rotulo { color: var(--suave); font-size: .76rem; font-weight: 600; }
+.quadro .rotulo { color: var(--suave); font-size: .8rem; font-weight: 600; }
 .quadro .valor { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; margin-top: 4px; }
 .quadro .valor strong { font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .quadro .valor .breve { font-size: .95rem; color: var(--suave); font-weight: 600; }
-.quadro .nota { font-size: .72rem; color: var(--suave); margin-top: 2px; }
+.quadro .nota { font-size: .78rem; color: var(--suave); margin-top: 2px; }
 .quadro.grande .valor strong { font-size: 1.6rem; }
 
 /* ▲ 12% / ▼ 5% */
-.var { font-size: .78rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.var { font-size: .82rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .var.sobe { color: var(--sobe); }
 .var.desce { color: var(--desce); }
 .var.igual { color: var(--suave); }
@@ -97,7 +99,7 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 .ranking li { display: grid; grid-template-columns: 18px minmax(0, 1fr) 64px 44px 58px; align-items: center; gap: 8px;
   padding: 8px 0; border-bottom: 1px solid var(--borda); }
 .ranking li:last-child { border-bottom: 0; }
-.ranking .pos { color: var(--suave); font-size: .78rem; }
+.ranking .pos { color: var(--suave); font-size: .82rem; }
 .ranking .nome { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ranking .n { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
 .ranking .var { text-align: right; }
@@ -126,7 +128,7 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 .grafico-area { position: relative; height: 260px; }
 .grafico-area svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .grafico-area .grade line { stroke: var(--grade); }
-.grafico-area .grade text, .grafico-area .eixo text { fill: var(--suave); font-size: 11px; font-family: inherit; }
+.grafico-area .grade text, .grafico-area .eixo text { fill: var(--suave); font-size: 12px; font-family: inherit; }
 .grafico-area .linha { fill: none; stroke: var(--acento-forte); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .grafico-area .mira { stroke: var(--suave); stroke-dasharray: 3 3; }
 .grafico-area .ponto { fill: var(--acento-forte); stroke: var(--card); stroke-width: 2; }
@@ -136,7 +138,7 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 .tabela-rolagem { overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
 @media (min-width: 1500px) { .grafico-area { height: 320px; } }
 .tabela { width: 100%; border-collapse: collapse; font-size: .86rem; }
-.tabela th { color: var(--suave); font-size: .74rem; font-weight: 700; text-align: left; padding: 8px; border-bottom: 1px solid var(--borda-forte);
+.tabela th { color: var(--suave); font-size: .8rem; font-weight: 700; text-align: left; padding: 8px; border-bottom: 1px solid var(--borda-forte);
   white-space: nowrap; }
 .tabela th.num { text-align: right; }
 .tabela td { padding: 10px 8px; border-bottom: 1px solid var(--borda); white-space: nowrap; }
@@ -155,7 +157,7 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 .mini .igual { stroke: #5b6579; }
 
 /* Selos de situação (sempre com texto, não só cor) */
-.selo { display: inline-block; font-size: .72rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
+.selo { display: inline-block; font-size: .78rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
 .selo.aprovada, .selo.ok { color: var(--sobe); background: rgba(22, 199, 132, .12); }
 .selo.pendente { color: var(--alerta); background: rgba(245, 176, 20, .12); }
 .selo.cancelada, .selo.erro { color: var(--desce); background: rgba(234, 57, 67, .12); }
@@ -192,10 +194,10 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 
 /* Comissões: cards do topo (por rede / lojas) */
 .ranking.redes li { grid-template-columns: minmax(0, 1fr) auto auto; row-gap: 2px; }
-.ranking.redes .detalhe { grid-column: 1 / -1; color: var(--suave); font-size: .74rem; white-space: normal; }
+.ranking.redes .detalhe { grid-column: 1 / -1; color: var(--suave); font-size: .8rem; white-space: normal; }
 .ranking.redes .detalhe.erro { color: var(--desce); }
 .ranking.lojas-comissao li { grid-template-columns: 18px minmax(0, 1fr) auto; }
-.ranking .rede-da-loja { display: block; color: var(--suave); font-size: .72rem; font-weight: 500; }
+.ranking .rede-da-loja { display: block; color: var(--suave); font-size: .78rem; font-weight: 500; }
 .ranking .n small { color: var(--suave); font-weight: 500; }
 
 /* Comissões */
@@ -214,7 +216,7 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 .passos > li:last-child { border-bottom: 0; }
 .passos .icone { grid-row: span 2; text-align: center; }
 .passos .titulo-passo { font-weight: 700; }
-.passos .tempo { color: var(--suave); font-size: .76rem; text-align: right; white-space: nowrap; }
+.passos .tempo { color: var(--suave); font-size: .8rem; text-align: right; white-space: nowrap; }
 .passos .detalhes { grid-column: 2 / -1; margin: 0; padding: 0; list-style: none; color: var(--suave); font-size: .84rem; }
 .passos .detalhes .alerta { color: var(--alerta); }
 .passos .detalhes .falha { color: var(--desce); }
@@ -224,8 +226,8 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 #r-execucoes a { color: var(--acento-forte); }
 
 /* "Não contar minhas visitas" no quadro de Visitas */
-.nao-contar { margin: 10px 0 0; font-size: .78rem; color: var(--suave); }
+.nao-contar { margin: 10px 0 0; font-size: .82rem; color: var(--suave); }
 .nao-contar a { color: var(--acento-forte); font-weight: 700; }
 
-.dica { position: fixed; z-index: 5; pointer-events: none; background: #fff; color: #0b0f17; font-size: .78rem; font-weight: 600;
+.dica { position: fixed; z-index: 5; pointer-events: none; background: #fff; color: #0b0f17; font-size: .82rem; font-weight: 600;
   padding: 6px 10px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
