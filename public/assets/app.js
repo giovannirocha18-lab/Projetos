@@ -13,7 +13,8 @@ let inicioAdiantado = ehPaginaInicial
 
 const LOJAS = {
   shopee: { nome: "Shopee", em: "na", cor: "#ee4d2d", texto: "#fff" },
-  mercadolivre: { nome: "Mercado Livre", em: "no", cor: "#ffe600", texto: "#2d3277" },
+  // tag: selo com as cores do site da loja (Mercado Livre: amarelo com azul-escuro; pedido do Giovanni, 04/11/2026)
+  mercadolivre: { nome: "Mercado Livre", em: "no", cor: "#ffe600", texto: "#2d3277", tag: "loja-tag-ml" },
   amazon: { nome: "Amazon", em: "na", cor: "#ff9900", texto: "#131921" },
   aliexpress: { nome: "AliExpress", em: "no", cor: "#6d28d9", texto: "#fff" },
   magalu: { nome: "Magalu", em: "na", cor: "#0086ff", texto: "#fff" },
@@ -235,7 +236,7 @@ function desenharFavoritos() {
       el("div", {},
         el("a", { href: f.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("carrinho", f) }, f.titulo),
         el("strong", {}, `R$ ${brl(f.preco)}`, f.precoAntigo > f.preco && el("s", { class: "fav-antigo" }, `R$ ${brl(f.precoAntigo)}`)),
-        el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome)),
+        el("span", { class: `loja-tag ${loja.tag || ""}`, style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome)),
       el("button", { class: "fechar", type: "button", "aria-label": "Remover", onclick: () => alternarFavorito(f) }, "✕"));
   }));
 }
@@ -700,7 +701,7 @@ function abrirComparacao() {
       el("div", { class: "comparar-foto" }, o.imagem ? el("img", { src: fotoPequena(o.imagem), alt: "", onerror: fotoQuebrada(o) }) : el("span", { class: "foto-emoji" }, o.emoji || "🛍️")),
       el("button", { class: "titulo-botao", type: "button", onclick: () => { $("#janela-comparar").close(); abrirDetalhes(o); } }, o.titulo))))),
     el("tbody", {},
-      linha("Loja", (o) => el("span", { class: "loja-tag", style: `--cor-loja:${infoLoja(o).cor}` }, el("span", { class: "loja-ponto" }), infoLoja(o).nome)),
+      linha("Loja", (o) => el("span", { class: `loja-tag ${infoLoja(o).tag || ""}`, style: `--cor-loja:${infoLoja(o).cor}` }, el("span", { class: "loja-ponto" }), infoLoja(o).nome)),
       linha("Preço", (o) => el("div", { class: o.preco === menor ? "comparar-melhor" : null },
         el("strong", { class: "comparar-preco" }, `R$ ${brl(o.preco)}`),
         o.preco === menor && el("small", {}, "🏆 Menor preço"),
@@ -1050,7 +1051,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         ...selosHistorico(o)))),
     el("div", { class: "oferta-corpo" },
       el("div", { class: "loja-linha" },
-        el("span", { class: "loja-tag" }, el("span", { class: "loja-ponto" }), loja.nome),
+        el("span", { class: `loja-tag ${loja.tag || ""}` }, el("span", { class: "loja-ponto" }), loja.nome),
         o.lojaOficial && el("span", { class: "selo-oficial", title: o.vendedor ? `Vendido por ${o.vendedor}` : null }, "✔ Oficial"),
         botaoCupom(o.loja)),
       el("h3", { class: "oferta-titulo", title: o.titulo }, temDetalhes(o)
@@ -1258,7 +1259,7 @@ function abrirDetalhes(o, { doLink = false } = {}) {
   const [inteiro, decimal] = brl(o.preco).split(",");
   const info = el("div", { class: "detalhes-info" },
     el("div", { class: "detalhes-loja" },
-      el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
+      el("span", { class: `loja-tag ${loja.tag || ""}`, style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
       o.lojaOficial && el("span", { class: "selo-oficial" }, "✔ Loja oficial"),
       botaoCupom(o.loja),
       o.vendedor && el("span", { class: "detalhes-vendedor" }, `Vendido por ${o.vendedor}`)),
@@ -2422,7 +2423,7 @@ function itemCupom(c) {
     } }, c.codigoMascara ? "🎟️ Pegar cupom e ir para a loja" : "Ativar desconto na loja →");
   return el("li", { class: "cupom" },
     el("div", { class: "cupom-topo" },
-      el("span", { class: "loja-tag", style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
+      el("span", { class: `loja-tag ${loja.tag || ""}`, style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome),
       c.ate && el("small", { class: "cupom-validade" }, `Válido até ${validadeCupom(c.ate)}`)),
     el("strong", { class: "cupom-titulo" }, c.titulo),
     c.descricao && c.descricao !== c.titulo && el("p", { class: "cupom-descricao" }, c.descricao),

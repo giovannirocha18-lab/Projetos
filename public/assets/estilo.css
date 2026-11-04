@@ -338,6 +338,9 @@ body.com-comparar .rodape { padding-bottom: 96px; }
   font-size: .8rem; font-weight: 800; color: var(--roxo-forte); background: var(--roxo-claro);
   padding: 3px 10px 3px 8px; border-radius: 999px;
 }
+/* Mercado Livre no estilo do site dele: amarelo, letra azul-escura, sem o ponto (04/11/2026) */
+.loja-tag.loja-tag-ml { color: #2d3277; background: #ffe600; padding: 3px 10px; box-shadow: inset 0 0 0 1px rgba(45, 50, 119, .12); letter-spacing: -.01em; }
+.loja-tag.loja-tag-ml .loja-ponto { display: none; }
 
 .oferta-titulo {
   margin: 0; font-size: .97rem; font-weight: 600; line-height: 1.35;
