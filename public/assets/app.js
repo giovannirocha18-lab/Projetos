@@ -1917,12 +1917,16 @@ function desenharBotaoFrete() {
 // (um marcador invisível no fim da grade). Filtros, contagens e "Escolha rápida" continuam usando a lista inteira.
 const CARTOES_POR_LOTE = 48;
 const observadores = new WeakMap();
-function desenharAosPoucos(grade, lista, fazer) {
+function desenharAosPoucos(grade, lista, fazer, { minimo = 0 } = {}) {
   observadores.get(grade)?.disconnect();
   let feitos = 0;
   const marcador = el("div", { class: "fim-da-grade", "aria-hidden": "true" });
+  // minimo: quantos cartões já estavam na tela (redesenho da mesma busca): desenha pelo menos esses de uma vez, para a
+  // lista não encolher e a tela não pular (04/11/2026)
+  let tamanho = Math.max(CARTOES_POR_LOTE, minimo);
   const mais = () => {
-    const lote = lista.slice(feitos, feitos + CARTOES_POR_LOTE).map((o, j) => fazer(o, feitos + j));
+    const lote = lista.slice(feitos, feitos + tamanho).map((o, j) => fazer(o, feitos + j));
+    tamanho = CARTOES_POR_LOTE;
     feitos += lote.length;
     marcador.before(...lote);
     if (feitos >= lista.length) { observadores.get(grade)?.disconnect(); marcador.remove(); }
@@ -1958,11 +1962,17 @@ function desenharResultados() {
   desenharResumo(lista);
   $("#total").textContent = `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}`;
   const idVendido = idMaisVendido(lista);
-  desenharAosPoucos($("#grade"), lista, (o, i) => {
+  // Mais produtos chegando sozinhos (completarSozinho) redesenham a lista: os cartões que já estavam na tela não refazem
+  // a animação de surgir (todos piscavam e subiam de novo a cada lote: "a tela dá uma pulada", Giovanni 04/11/2026)
+  const grade = $("#grade");
+  const jaNaTela = new Set([...grade.querySelectorAll(":scope > .oferta:not(.carregando)")].map((c) => c.dataset.id));
+  desenharAosPoucos(grade, lista, (o, i) => {
     const c = cartaoOferta(o, { melhor: o.id === idMelhor, maisVendido: o.id === idVendido });
-    c.style.animationDelay = `${Math.min(i, 12) * 30}ms`;
+    c.dataset.id = o.id;
+    if (jaNaTela.has(o.id)) c.style.animation = "none";
+    else c.style.animationDelay = `${jaNaTela.size ? 0 : Math.min(i, 12) * 30}ms`;
     return c;
-  });
+  }, { minimo: jaNaTela.size });
   desenharEscolhaRapida(lista);
   $("#vazio").hidden = lista.length > 0;
   // Botões de baixo seguem as lojas marcadas no card: com todas desligadas não há o que "ver mais"

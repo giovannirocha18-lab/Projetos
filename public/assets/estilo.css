@@ -192,10 +192,12 @@ a { color: inherit; }
   background: var(--card); border: 1px solid var(--borda); border-radius: var(--raio);
   overflow: hidden; box-shadow: var(--sombra);
   transition: transform .2s, box-shadow .2s, border-color .2s;
-  animation: surgir .35s ease both;
+  animation: surgir .3s ease both;
 }
 .oferta:hover { transform: translateY(-5px); box-shadow: var(--sombra-forte); border-color: color-mix(in srgb, var(--roxo) 45%, var(--borda)); }
-@keyframes surgir { from { opacity: 0; transform: translateY(12px); } }
+/* Só clareia, sem subir (04/11/2026, Giovanni: "ao carregar mais produtos a tela dá uma pequena pulada"; antes cada
+   cartão subia 12 px ao aparecer) */
+@keyframes surgir { from { opacity: 0; } }
 
 .oferta.melhor { border: 2px solid var(--verde); }
 
