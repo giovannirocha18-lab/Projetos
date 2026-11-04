@@ -1524,3 +1524,4 @@ Texto para colar numa conversa nova:
   produtos, fotos 40/40, links **2 de 8** (segue quebrada). **Lojas Benoit não aparece como aprovada na conta PJ** (lista: 23
   feeds "active" = 22 + Elements): ela era da conta antiga (PF), que saiu em 30/10. Para voltar: Giovanni pedir a Benoit na
   conta PJ da Awin; quando aprovar, tirar "lojas benoit" de `LOJAS_PAUSADAS` só depois de conferir a linha ⏸️.
+  → 04/11: Giovanni mandou remover a Benoit de vez: `LOJAS_REMOVIDAS` (não entra nem se aprovada de novo; não é conferida).

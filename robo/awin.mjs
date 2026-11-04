@@ -32,7 +32,10 @@ const LISTA_FEEDS = "https://productdata.awin.com/datafeed/list/apikey/";
 // em minúsculas e sem acento. Lojas Benoit (27/10/2026, decisão do Giovanni): 94% das fotos não existem mais e o preço
 // do feed não bate com o site dela (forno R$ 8.699 no feed, ~R$ 10 mil na loja). Tirar daqui quando ela avisar que corrigiu.
 // Elements (04/11/2026, decisão do Giovanni): cadeiras gamer e peças; 39 de 45 links dão "página não encontrada" desde 25/10
-const LOJAS_PAUSADAS = ["lojas benoit", "elements"];
+const LOJAS_PAUSADAS = ["elements"];
+// Lojas removidas de vez (não entram nem se forem aprovadas de novo; não são conferidas). Lojas Benoit (04/11/2026, decisão
+// do Giovanni; estava pausada desde 27/10 por fotos e preços errados e não está mais aprovada na conta PJ)
+const LOJAS_REMOVIDAS = ["lojas benoit"];
 // Regiões aceitas (ex.: "BR" ou "BR,US"). Vazio = todas. Lojas de fora entram marcadas como internacionais.
 const REGIOES = (process.env.ROBO_REGIOES || "").split(",").map((r) => r.trim().toUpperCase()).filter(Boolean);
 // Cotação usada para converter preços em outras moedas (preenchida em main)
@@ -559,7 +562,9 @@ async function feedsDaConta({ nome: nomeSegredo, rotulo, segredo }) {
   console.log(`Situação das lojas na lista: ${JSON.stringify(situacoes)}`);
   const regiao = (f) => pegar(f, "primaryregion", "region", "advertiserregion").toUpperCase();
   const idioma = (f) => pegar(f, "language", "idioma").toLowerCase();
-  const pausada = (f) => LOJAS_PAUSADAS.some((p) => normalizar(pegar(f, "advertisername", "merchantname")).startsWith(p));
+  const nomeNaLista = (f) => normalizar(pegar(f, "advertisername", "merchantname"));
+  const pausada = (f) => [...LOJAS_PAUSADAS, ...LOJAS_REMOVIDAS].some((p) => nomeNaLista(f).startsWith(p));
+  const soPausada = (f) => LOJAS_PAUSADAS.some((p) => nomeNaLista(f).startsWith(p));
   const aprovados = lista.filter((f) =>
     /^(active|joined|yes|true|1)$/i.test(pegar(f, "membershipstatus", "status", "joined"))
     && pegar(f, "url", "downloadurl", "feedurl")
@@ -588,7 +593,7 @@ async function feedsDaConta({ nome: nomeSegredo, rotulo, segredo }) {
   // (conferirPausadas); nada delas é gravado. Um feed por loja (o em português, se houver)
   const pausadasPorLoja = new Map();
   for (const f of lista) {
-    if (!pausada(f) || !/^(active|joined|yes|true|1)$/i.test(pegar(f, "membershipstatus", "status", "joined"))) continue;
+    if (!soPausada(f) || !/^(active|joined|yes|true|1)$/i.test(pegar(f, "membershipstatus", "status", "joined"))) continue;
     if (!pegar(f, "url", "downloadurl", "feedurl")) continue;
     const id = pegar(f, "advertiserid", "merchantid");
     if (!pausadasPorLoja.has(id) || idioma(f).startsWith("pt")) pausadasPorLoja.set(id, f);

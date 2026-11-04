@@ -54,7 +54,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Selo "Menor preço"/"Mais barato" na Shopee/AliExpress só com venda ou nota (`comProva` em app.js): o SIITO Lisinha sem
   vendas dava "O produto não existe" na Shopee, mas a API oficial ainda o manda (não há como conferir sem raspar).
   Elements: 39 de 45 links dão "página não encontrada" na loja; Monte Carlo: 2.454 sem foto (ficam fora sozinhos).
-- Lojas pausadas (`LOJAS_PAUSADAS` em robo/awin.mjs): Lojas Benoit (fotos/preços) e Elements (04/11, cadeiras gamer, 39 de 45 links 404).
+- Elements pausada (`LOJAS_PAUSADAS`, conferida toda noite ⏸️); Lojas Benoit removida de vez (`LOJAS_REMOVIDAS`, 04/11) — robo/awin.mjs.
 - 04/11: Lauri Esporte só pela Awin (marca da Lomadee com nome de loja da Awin sai: `marcasNaAwin` em lomadee.js; fotos
   antigas 404 e repetidos); China in Box, DeÔnibus, Zupper, Bauducco, Jolimont e eles.® fora (não são loja de produtos, `FORA` em lomadee.js; cupons v13); robô: foto boa testada a
   cada 7 dias + amostra de 20 fotos por loja (🔄 = loja trocou as fotos, testa tudo de novo).
