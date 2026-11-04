@@ -1506,5 +1506,5 @@ Texto para colar numa conversa nova:
 - **"pc gamer" na AliExpress (04/11/2026)**. Print: dentro da loja AliExpress, 1 PC e o resto ventoinha/mouse/teclas/mouse pad.
   No site todo "pc gamer" já vinha bem (114 PCs: Shopee, Kabum, Shopinfo). A AliExpress quase não tem PC completo para o
   Brasil (API devolve 2). lib/relevancia.js: `BUSCA_DE_PC` (busca que começa por pc/computador/desktop), título nível 0 com
-  `PERIFERICO_DE_PC` e sem `CONFIGURACAO_DE_PC` → acessório. Caso "pc gamer" em testes/busca.mjs. Vale nas buscas novas
+  `PERIFERICO_DE_PC` e sem `CONFIGURACAO_DE_PC` ("hd"/"rx" só com número: "hd 1tb", "rx 580") → acessório. Caso "pc gamer" em testes/busca.mjs. Vale nas buscas novas
   (as guardadas renovam em até 6 h / robô das prontas).
