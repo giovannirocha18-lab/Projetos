@@ -1532,3 +1532,4 @@ Texto para colar numa conversa nova:
   `registrarBusca`, `/api/clique` não conta. app.js grava/apaga o cookie com `?nao-contar=1`/`0` e mostra aviso. Painel:
   linha `#nao-contar` no quadro Visitas ("Este aparelho entra nas contas · Não contar…" / "✅ … · Voltar a contar"), atualiza
   no foco da janela. Conferido em produção com Playwright: beacon 2 pedidos → 0 → 2.
+- **Painel mais legível (04/11/2026)**: print do Giovanni (texto apagado). Fonte Plus Jakarta Sans → **Inter** (peso 500 de base, 15 px), `--suave` #98a2b8 → #b9c2d3, `--texto` #f5f7fc, tamanhos pequenos +0,04–0,06 rem, eixo dos gráficos 12 px. Só o painel (a loja continua igual).
