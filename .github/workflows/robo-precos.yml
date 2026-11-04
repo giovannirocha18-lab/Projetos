@@ -303,6 +303,8 @@ jobs:
       ia_buscas_ok: ${{ steps.ia_buscas.outcome }}
       caminhos: ${{ steps.caminhos.outputs.caminhos }}
       caminhos_ok: ${{ steps.caminhos.outcome }}
+      variacoes: ${{ steps.variacoes.outputs.variacoes }}
+      variacoes_ok: ${{ steps.variacoes.outcome }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -329,6 +331,16 @@ jobs:
       - name: Categorias das lojas
         id: caminhos
         run: node robo/caminhos.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+      # Variações (04/11/2026): lojas que mandam cada tamanho/cor como anúncio; lista os que o site ainda não junta
+      # num cartão só, para completar a regra de lib/variacoes.js (robo/variacoes.mjs)
+      - name: Variações (tamanhos repetidos)
+        id: variacoes
+        continue-on-error: true
+        run: node robo/variacoes.mjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

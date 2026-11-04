@@ -20,6 +20,7 @@ export const PARTES = [
   ["auditoria", "lojas", "Lojas nas buscas"],
   ["auditoria", "ia_buscas", "IA conferindo as buscas"],
   ["auditoria", "caminhos", "Categorias das lojas"],
+  ["auditoria", "variacoes", "Tamanhos repetidos (variações)"],
 ];
 const PESO = { ok: 0, aviso: 1, erro: 2 };
 const lerJson = (texto, padrao) => { try { return JSON.parse(texto); } catch { return padrao; } };
