@@ -584,7 +584,16 @@ async function feedsDaConta({ nome: nomeSegredo, rotulo, segredo }) {
   }
   console.log(`Awin (${rotulo}): ${lista.length} feeds visíveis, ${aprovados.length} de lojas aprovadas, ${escolhidos.length} usados` +
     `${REGIOES.length ? ` (regiões ${REGIOES.join(", ")})` : ""}`);
-  return escolhidos.map((f) => ({
+  // Lojas pausadas (04/11/2026): o feed delas vem junto, marcado "pausada", só para a conferência do relatório
+  // (conferirPausadas); nada delas é gravado. Um feed por loja (o em português, se houver)
+  const pausadasPorLoja = new Map();
+  for (const f of lista) {
+    if (!pausada(f) || !/^(active|joined|yes|true|1)$/i.test(pegar(f, "membershipstatus", "status", "joined"))) continue;
+    if (!pegar(f, "url", "downloadurl", "feedurl")) continue;
+    const id = pegar(f, "advertiserid", "merchantid");
+    if (!pausadasPorLoja.has(id) || idioma(f).startsWith("pt")) pausadasPorLoja.set(id, f);
+  }
+  const paraFeed = (f, estaPausada) => ({
     nome: `${pegar(f, "advertisername", "merchantname") || "Loja"} (feed ${pegar(f, "feedid", "id")}, ` +
       `${regiao(f) || "?"}/${idioma(f) || "?"})`,
     lojaId: pegar(f, "advertiserid", "merchantid"),
@@ -592,7 +601,36 @@ async function feedsDaConta({ nome: nomeSegredo, rotulo, segredo }) {
     internacional: regiao(f) && regiao(f) !== "BR" ? 1 : 0,
     afiliado: idAfiliado(segredo),
     ler: () => baixarPedacos(pegar(f, "url", "downloadurl", "feedurl"), chave),
-  }));
+    ...(estaPausada && { pausada: true }),
+  });
+  return [...escolhidos.map((f) => paraFeed(f, false)), ...[...pausadasPorLoja.values()].map((f) => paraFeed(f, true))];
+}
+
+// Loja pausada: confere se melhorou, sem colocar nada no site (04/11/2026, Giovanni: "benoit, como está a situação dela
+// hoje"). Lê o feed, testa 40 fotos e 8 links sorteados. O preço não dá para conferir (seria abrir o site da loja)
+async function conferirPausadas(pausadas) {
+  const linhas = [];
+  for (const feed of pausadas) {
+    try {
+      const ofertas = [];
+      let total = 0;
+      const leitor = criarLeitorCsv((p) => {
+        total++;
+        const o = paraOferta(p, feed);
+        if (typeof o !== "string") ofertas.push(o);
+      });
+      for await (const pedaco of await feed.ler()) leitor.parte(pedaco);
+      leitor.fim();
+      const fotos = sortear(ofertas.map((o) => o.imagem).filter(Boolean), 40);
+      const abrem = (await Promise.all(fotos.map((u) => fotoAbre(u)))).filter((ok) => ok === true).length;
+      const links = await lojaComLinksQuebrados(sortear(ofertas.map((o) => o.destino).filter(Boolean), 8), { minimo: 5 });
+      linhas.push(`⏸️ ${feed.lojaNome} (pausada): ${ofertas.length} de ${total} produtos aceitos no feed; ` +
+        `fotos: ${abrem} de ${fotos.length} abrem; links: ${links.abrem} de ${links.testados} abrem`);
+    } catch (erro) {
+      linhas.push(`⏸️ ${feed.lojaNome} (pausada): não deu para ler o feed (${erro.message})`);
+    }
+  }
+  return linhas;
 }
 
 // Cotação do dia em reais (ex.: { USD: 5.41, EUR: 5.93 }), da AwesomeAPI (dados do mercado).
@@ -660,8 +698,10 @@ async function main() {
   }
   COTACOES = { ...COTACOES, ...(await buscarCotacoes()) };
 
-  // 1. Baixa os feeds
-  const feeds = await obterFeeds();
+  // 1. Baixa os feeds (as lojas pausadas só são conferidas, no fim)
+  const todosFeeds = await obterFeeds();
+  const feeds = todosFeeds.filter((f) => !f.pausada);
+  const pausadas = todosFeeds.filter((f) => f.pausada);
   if (!feeds.length) {
     // Também protege contra apagar tudo se a Awin mudar o formato da lista
     console.log("Nenhuma loja aprovada com feed ainda. Nada foi alterado.");
@@ -790,6 +830,7 @@ async function main() {
   comandos.push(...RESUMO_LOJAS_AWIN);
   await enviarEmLotes(banco, comandos);
 
+  relatorio.push(...await conferirPausadas(pausadas).catch((e) => [`⏸️ Lojas pausadas: erro na conferência (${e.message})`]));
   const novos = gravarHoje.filter((o) => !atuais.has(o.id)).length;
   const pendentes = remover.length - removerHoje.length + gravarLista.length - gravarHoje.length;
   const resumo = [
@@ -810,7 +851,7 @@ async function main() {
   const lojasOk = relatorio.filter((l) => l.startsWith("✅")).length;
   paraPainel("awin", {
     linhas: [`${lojasOk} feeds de lojas lidos`, ...resumo.filter((l) => !l.startsWith("Tempo"))],
-    avisos: relatorio.filter((l) => /^(❌|⚠️|🔄|❔)/.test(l)),
+    avisos: relatorio.filter((l) => /^(❌|⚠️|🔄|❔|⏸️)/.test(l)),
   });
 }
 
