@@ -61,7 +61,7 @@ const caminhoSqlite = arg("--sqlite")[0];
 // ---------------------------------------------------------------------
 // Banco: D1 do Cloudflare (pela API) ou SQLite local (para testes)
 // ---------------------------------------------------------------------
-// Tamanho do banco depois da última gravação (o D1 grátis aceita até 500 MB)
+// Tamanho do banco depois da última gravação (D1 no plano Workers Paid: até 10 GB por banco; o grátis era 500 MB)
 let tamanhoBanco = 0;
 async function abrirBanco() {
   if (caminhoSqlite) {
@@ -797,7 +797,7 @@ async function main() {
     `Atualizados: ${gravarHoje.length - novos} (preço mudou em ${precosMudaram})`,
     `Removidos: ${removerHoje.length}`,
     pendentes ? `Ficaram para amanhã (limite diário de ${LIMITE}): ${pendentes}` : null,
-    tamanhoBanco ? `Tamanho do banco: ${Math.round(tamanhoBanco / 1e6)} MB de 500 MB` : null,
+    tamanhoBanco ? `Tamanho do banco: ${Math.round(tamanhoBanco / 1e6)} MB (limite do plano: 10 GB)` : null,
     `Tempo: ${Math.round((Date.now() - inicio) / 1000)} s`,
   ].filter(Boolean);
   resumo.forEach((l) => console.log(l));
