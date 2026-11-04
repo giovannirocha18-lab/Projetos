@@ -1490,3 +1490,11 @@ Texto para colar numa conversa nova:
   marcaId em `marcasComProdutos` ou nome em `marcasNaAwin` (Lauri); Awin = loja em lojas_awin (produtos > 0) ou pelo nome
   (EINSTAR: cupom "einstar", banco "shining-3d-technology-inc"; `marcasNaAwin` agora guarda também `nomeDaLojaAwin`).
   Banco fora: não tira nada. Cupons: 79 → **42** de 17 lojas. (Faixa "loja só com cupom" na busca foi feita e desfeita.)
+- **Lojas na busca e nas sugestões (04/11/2026)**. Print "kabum" (15 peças de robô aspirador da marca Kabum). /api/lojas
+  (v25) marca `marca: true` nas lojas cujo nome tem uma marca de `MARCAS` (Animale, Brinox, Calvin Klein, Karsten, Malwee,
+  Monte Carlo, Motorola, oBoticario, PCYES, Rovitex, Shark-Ninja). app.js `buscar`: nome de loja que não é marca (kabum,
+  efacil, cobasi, cama inbox, lauri…) → abre `?loja=` direto (replaceState); de marca → busca normal + faixa `#loja-na-busca`.
+  Sugestões (`lojasSugeridas`): até 2 lojas no topo com 🏬 e "Loja parceira" (`li.sug-loja`), clique/Enter abre a loja.
+  `carregarLojasParceiras()` no início da página. Robô: foto "sem resposta" (429/403/5xx) testada de novo com 4 ao mesmo
+  tempo e contada no resumo (❔; Casa Tema dá 429). Tênis da Lauri sem foto nas "Ofertas do dia" = busca pronta antiga
+  (o banco já tem a foto nova); some quando o robô refizer as prontas.
