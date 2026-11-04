@@ -85,9 +85,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Foto quebrada no cartão: tenta outras fotos e, na Awin, a foto de hoje (`fotoAtual` em app.js) — Giovanni confirmou ✅.
 
 ## Pendências
-- **Mercado Livre (próximo)**: 1) Giovanni conferir em afiliados ("Cliques"/"Ir para Métricas") se o clique de teste de 04/11
-  contou (link com matt_tool+matt_word; se não contar, repensar o link); 2) ~~robô guardando preços do ML~~ feito 04/11;
-  muitos produtos do catálogo vêm sem vendedor (busca com 16 do catálogo → ~3 com preço; 84 buscas com 0); 3) loja ML em /api/lojas, alertas e ?produto= aceitarem "mercadolivre-".
+- **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
+  2) ✅ robô guardando preços; catálogo 48 → preço até 16 com vendedor; sem vendedor re-perguntado só após 4 dias (04/11,
+  23h; robô refaz 1 vez os catálogos de 16, `CATALOGO_48_DESDE`); 3) loja ML em /api/lojas, alertas e ?produto= aceitarem "mercadolivre-".
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
   UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027); decidir cron-job.org para o atraso
   do robô; decidir Mercado Livre.
