@@ -590,6 +590,14 @@ async function feedsDaConta({ nome: nomeSegredo, rotulo, segredo }) {
   }
   console.log(`Awin (${rotulo}): ${lista.length} feeds visíveis, ${aprovados.length} de lojas aprovadas, ${escolhidos.length} usados` +
     `${REGIOES.length ? ` (regiões ${REGIOES.join(", ")})` : ""}`);
+  // Nomes das lojas aprovadas e de outras lojas com situação diferente de "Not Joined" (04/11/2026: Giovanni viu a JBL na
+  // Awin e não dava para saber pelo relatório se ela já estava aprovada, pendente ou sem feed)
+  console.log(`Lojas aprovadas: ${[...new Set(aprovados.map(nomeNaLista))].sort().join(", ")}`);
+  const outras = lista.filter((f) => !/^not joined$/i.test(pegar(f, "membershipstatus", "status", "joined"))
+    && !aprovados.includes(f));
+  if (outras.length) console.log(`Outras situações: ${[...new Set(outras.map((f) => `${nomeNaLista(f)} (${pegar(f, "membershipstatus", "status", "joined")})`))].join(", ")}`);
+  const jbl = lista.filter((f) => /jbl/.test(nomeNaLista(f)));
+  console.log(`JBL na lista de feeds: ${jbl.length ? jbl.map((f) => `${nomeNaLista(f)} (${pegar(f, "membershipstatus", "status", "joined")})`).join(", ") : "não aparece"}`);
   // Lojas pausadas (04/11/2026): o feed delas vem junto, marcado "pausada", só para a conferência do relatório
   // (conferirPausadas); nada delas é gravado. Um feed por loja (o em português, se houver)
   const pausadasPorLoja = new Map();
