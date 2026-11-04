@@ -829,6 +829,19 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .lojas-lista { overflow-y: auto; margin: 0 -24px -24px; padding: 0 24px 24px; }
 .lojas-lista h3 { margin: 14px 0 6px; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--suave); }
 .lojas-lista ul { list-style: none; margin: 0; padding: 0; }
+/* Buscou o nome de uma loja parceira: atalho acima dos resultados */
+.loja-na-busca { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--borda); border-left: 4px solid var(--cor-loja, var(--roxo)); border-radius: 14px; box-shadow: var(--sombra); }
+.loja-na-busca[hidden] { display: none; }
+.lnb-texto { flex: 1; min-width: 140px; }
+.lnb-texto strong { display: block; font-size: 1.02rem; }
+.lnb-texto small { color: var(--suave); font-size: .8rem; }
+.lnb-botoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.lnb-botoes .botao-secundario { width: auto; margin: 0; padding: 8px 16px; font-size: .88rem; font-weight: 700; color: var(--roxo);
+  border-color: var(--roxo); border-radius: 999px; }
+.lnb-botoes .botao-secundario:hover { background: var(--roxo); color: #fff; }
+.lnb-ir { font-size: .85rem; font-weight: 700; color: var(--roxo); text-decoration: none; white-space: nowrap; }
+.lnb-ir:hover { text-decoration: underline; }
 .lp-linha { display: flex; align-items: center; gap: 12px; padding: 10px 2px; border-bottom: 1px solid var(--borda); }
 .lp-nome { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
 .lp-nome small { display: block; font-weight: 500; font-size: .78rem; color: var(--suave); }

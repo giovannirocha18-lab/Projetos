@@ -2221,6 +2221,7 @@ function desenharResumoBuscando() {
 async function buscar(q) {
   const pedido = ++estado.pedido;
   estado.q = q;
+  mostrarLojaNaBusca(q, pedido);
   estado.foraDaCategoria = null;
   estado.lojasDesmarcadas.clear();
   zerarSecoes();
@@ -2274,6 +2275,16 @@ async function buscar(q) {
     estado.maisBusca = dados.mais;
     estado.temMaisBusca = Boolean(dados.mais);
     estado.completando = estado.temMaisBusca; // a "Escolha rápida" só aparece depois dos lotes automáticos
+    // Buscou o nome de uma loja e nenhum produto tem esse nome no título: abre direto os produtos da loja
+    // (replaceState: o "voltar" não cai de novo na busca vazia)
+    if (!estado.ofertas.length && !estado.temMaisBusca && !lojaAtual()) {
+      const loja = lojaDoNome(q, await carregarLojasParceiras());
+      if (loja && pedido === estado.pedido) {
+        history.replaceState(null, "", `/?loja=${encodeURIComponent(loja.id)}`);
+        mostrar();
+        return;
+      }
+    }
     desenharFiltroLojas();
     desenharResultados();
     completarSozinho(pedido);
@@ -2438,6 +2449,48 @@ function botaoCupomLoja(l) {
   if (l.rede !== "lomadee" && l.rede !== "awin") return null;
   const c = estado.cupons.find((x) => (l.rede === "awin" ? `awin:${x.loja}` === l.id : x.lojaNome === l.nome));
   return c ? botaoCupom(c.loja) : null;
+}
+
+// Busca pelo nome de uma loja parceira (04/11/2026, Giovanni: "quando busco pela marca não aparece nada"): os títulos
+// dos produtos não trazem o nome da loja ("lauri esporte", "efacil" davam 0). Acima dos resultados aparece a loja com
+// "Ver produtos da loja". Não troca a busca: "motorola" continua mostrando os Motorola de todas as lojas
+async function carregarLojasParceiras() {
+  if (!lojasParceiras) {
+    try {
+      const r = await fetch("/api/lojas");
+      if (!r.ok) return [];
+      lojasParceiras = (await r.json()).lojas || [];
+    } catch {
+      return [];
+    }
+  }
+  return lojasParceiras;
+}
+function lojaDoNome(q, lojas) {
+  const buscado = limpo(q).replace(/ /g, "");
+  if (buscado.length < 4) return null;
+  return lojas.find((l) => {
+    if (l.rede === "marketplace") return false;
+    const nome = limpo(l.nome).replace(/ /g, "");
+    // "boticario" = oBoticario, "lauri" = Lauri Esporte, "monte carlo" = Monte Carlo Jóias
+    return nome === buscado || (buscado.length >= 5 && (nome.startsWith(buscado) || nome.endsWith(buscado)));
+  }) || null;
+}
+async function mostrarLojaNaBusca(q, pedido) {
+  const caixa = $("#loja-na-busca");
+  caixa.hidden = true;
+  if (lojaAtual() || naBlackFriday()) return;
+  const loja = lojaDoNome(q, await carregarLojasParceiras());
+  if (!loja || pedido !== estado.pedido || lojaAtual()) return;
+  caixa.style.setProperty("--cor-loja", corDaLoja(loja));
+  caixa.replaceChildren(
+    el("span", { class: "loja-ponto" }),
+    el("div", { class: "lnb-texto" }, el("strong", {}, loja.nome), el("small", {}, "Loja parceira do Vai pro Carrinho")),
+    el("div", { class: "lnb-botoes" },
+      el("button", { type: "button", class: "botao-secundario", onclick: () => irParaLoja(loja.id) }, "Ver produtos da loja"),
+      el("a", { class: "lnb-ir", href: `/api/ir-loja?id=${encodeURIComponent(loja.id)}`, target: "_blank", rel: "sponsored noopener",
+        ...marcaClique("loja-parceira", { lojaNome: loja.nome }) }, "Ir para a loja →")));
+  caixa.hidden = false;
 }
 
 function irParaLoja(id) {
@@ -3001,6 +3054,7 @@ function mostrar() {
   const loja = (new URLSearchParams(location.search).get("loja") || "").trim();
   estado.exato = new URLSearchParams(location.search).has("exato");
   estado.loja = null;
+  $("#loja-na-busca").hidden = true; // atalho da loja buscada: só na busca normal (buscar() mostra de novo)
   const blackFriday = !q && !loja && naBlackFriday();
   if (blackFriday || (loja && !q)) {
     document.body.classList.remove("modo-inicio");
