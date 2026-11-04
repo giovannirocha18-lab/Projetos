@@ -31,7 +31,8 @@ const LISTA_FEEDS = "https://productdata.awin.com/datafeed/list/apikey/";
 // Lojas aprovadas que ficam fora do site (os produtos delas são apagados) até corrigirem o feed. Nome da loja na Awin,
 // em minúsculas e sem acento. Lojas Benoit (27/10/2026, decisão do Giovanni): 94% das fotos não existem mais e o preço
 // do feed não bate com o site dela (forno R$ 8.699 no feed, ~R$ 10 mil na loja). Tirar daqui quando ela avisar que corrigiu.
-const LOJAS_PAUSADAS = ["lojas benoit"];
+// Elements (04/11/2026, decisão do Giovanni): cadeiras gamer e peças; 39 de 45 links dão "página não encontrada" desde 25/10
+const LOJAS_PAUSADAS = ["lojas benoit", "elements"];
 // Regiões aceitas (ex.: "BR" ou "BR,US"). Vazio = todas. Lojas de fora entram marcadas como internacionais.
 const REGIOES = (process.env.ROBO_REGIOES || "").split(",").map((r) => r.trim().toUpperCase()).filter(Boolean);
 // Cotação usada para converter preços em outras moedas (preenchida em main)
