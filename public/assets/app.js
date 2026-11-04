@@ -3454,6 +3454,21 @@ $("#fechar-cupons").addEventListener("click", () => $("#janela-cupons").close())
 $("#cupons-filtro").addEventListener("input", desenharCupons);
 document.querySelectorAll("[data-ver-cupons]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); abrirCupons(); }));
 document.querySelectorAll("[data-black-friday]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); irParaBlackFriday(); }));
+// "Não contar minhas visitas" (pedido do Giovanni, 04/11/2026; botão no painel): /?nao-contar=1 grava o cookie que faz o
+// servidor não contar este aparelho nas visitas, buscas e cliques (lib/naoContar.js); /?nao-contar=0 volta a contar
+(() => {
+  const params = new URLSearchParams(location.search);
+  const valor = params.get("nao-contar");
+  if (valor === null) return;
+  const dominio = /(^|\.)vaiprocarrinho\.com\.br$/.test(location.hostname) ? "; Domain=vaiprocarrinho.com.br" : "";
+  document.cookie = valor === "0"
+    ? `vpc_nao_contar=; Max-Age=0; Path=/; SameSite=Lax; Secure${dominio}`
+    : `vpc_nao_contar=1; Max-Age=63072000; Path=/; SameSite=Lax; Secure${dominio}`;
+  params.delete("nao-contar");
+  history.replaceState(null, "", `${location.pathname}${params.size ? `?${params}` : ""}`);
+  setTimeout(() => toast(valor === "0" ? "Pronto: as visitas deste aparelho voltam a ser contadas"
+    : "Pronto: as visitas deste aparelho não entram mais nas contas do painel ✅"), 300);
+})();
 carregarCupons();
 carregarLojasParceiras(); // a busca pelo nome de uma loja abre a página dela (buscar) e as sugestões mostram as lojas
 // A lista de marcas (filtro "Marcas") vem do vocabulário da busca: baixa logo e redesenha quando chegar

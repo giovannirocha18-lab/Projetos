@@ -5,6 +5,7 @@
 // limite de chamadas, com os cabeçalhos de segurança do public/_headers. Só é seguro porque NADA interno fica em public/.
 import { produtoPorId } from "../lib/produto.js";
 import { ehPainel, quemEntrou } from "../lib/painel.js";
+import { naoContar } from "../lib/naoContar.js";
 
 const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|como-funciona(\.html)?\/?|manifest\.webmanifest|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
 
@@ -34,6 +35,10 @@ const SEGURANCA = {
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
   "Content-Security-Policy": CSP,
 };
+
+// Aparelho que pediu para não ser contado (lib/naoContar.js): a mesma CSP sem o Cloudflare Web Analytics, que assim não
+// carrega nem envia a visita
+const CSP_SEM_CONTAGEM = CSP.replace(" https://static.cloudflareinsights.com", "").replace(" https://cloudflareinsights.com", "");
 
 // Endereço "limpo" para conferir os internos: %2F, %2E, barras repetidas e "/./" não enganam a regra
 function caminhoNormal(caminho) {
@@ -114,7 +119,9 @@ async function comPreviaDoProduto(resposta, env, url) {
 export async function onRequest(contexto) {
   const url = new URL(contexto.request.url);
   const resposta = await comPreviaDoProduto(await responder(contexto), contexto.env, url);
-  return comSeguranca(await comVersaoNosArquivos(resposta, contexto.env, url.origin));
+  const pronta = comSeguranca(await comVersaoNosArquivos(resposta, contexto.env, url.origin));
+  if (naoContar(contexto.request)) pronta.headers.set("Content-Security-Policy", CSP_SEM_CONTAGEM);
+  return pronta;
 }
 
 const naoEncontrada = () => new Response("Página não encontrada", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });

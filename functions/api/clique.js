@@ -2,6 +2,7 @@
 // (pedido do Giovanni, 03/11/2026: é o clique que gera comissão). O site manda com navigator.sendBeacon, sem atrasar a ida
 // à loja. Guarda só contagens por dia: loja + lugar do site, e produto. Nada da pessoa (nem IP) é guardado.
 // O robô lê as contagens toda madrugada (robo/numeros-site.mjs, "Números do site").
+import { naoContar } from "../../lib/naoContar.js";
 
 const TABELAS = [
   `CREATE TABLE IF NOT EXISTS cliques (dia TEXT NOT NULL, loja TEXT NOT NULL, onde TEXT NOT NULL, total INTEGER NOT NULL,
@@ -21,7 +22,7 @@ export async function onRequestPost({ request, env }) {
   // Só conta o que vem das páginas do próprio site
   const origem = request.headers.get("Origin");
   if (origem && new URL(origem).host !== new URL(request.url).host) return vazio(403);
-  if (!env.DB) return vazio();
+  if (!env.DB || naoContar(request)) return vazio(); // aparelho que pediu para não ser contado (lib/naoContar.js)
   let dados;
   try {
     dados = JSON.parse((await request.text()).slice(0, 2000));

@@ -17,6 +17,7 @@ import { awin } from "../../lib/fontes/awin.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
 import { registrarBusca } from "../../lib/buscas.js";
+import { naoContar } from "../../lib/naoContar.js";
 import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
 import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js";
 import { normalizar } from "../../lib/texto.js";
@@ -206,7 +207,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Clique num atalho não conta: senão o atalho se manteria em alta sozinho.
   // O IP só serve para contar cada pessoa uma vez por termo por dia (ver lib/buscas.js); não é guardado.
   const contar = (resposta) => {
-    if (q && pagina === 1 && desde === 1 && !params.has("atalho") && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
+    if (q && pagina === 1 && desde === 1 && !params.has("atalho") && !naoContar(request) && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
       waitUntil(registrarBusca(env, q, request.headers.get("CF-Connecting-IP")).catch(() => {}));
     }
     return resposta;

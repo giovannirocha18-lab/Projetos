@@ -701,6 +701,19 @@
     }));
   }
 
+  // "Não contar minhas visitas" (pedido do Giovanni, 04/11/2026): o link abre o site com ?nao-contar=1, que grava o cookie
+  // vpc_nao_contar no domínio vaiprocarrinho.com.br (o painel também enxerga); com ele o aparelho não entra nas contas
+  function desenharNaoContar() {
+    const fora = /(?:^|;\s*)vpc_nao_contar=1(?:;|$)/.test(document.cookie);
+    const link = el("a", "", fora ? "Voltar a contar" : "Não contar minhas visitas neste aparelho");
+    link.href = `https://vaiprocarrinho.com.br/?nao-contar=${fora ? 0 : 1}`;
+    link.target = "_blank";
+    link.rel = "noopener";
+    $("nao-contar").replaceChildren(fora ? "✅ Este aparelho não entra nas contas · " : "Este aparelho entra nas contas · ", link);
+  }
+  desenharNaoContar();
+  window.addEventListener("focus", desenharNaoContar);
+
   // =================================== MENU E CARGA ===================================
 
   const VISTAS = ["metricas", "comissoes", "robo"];

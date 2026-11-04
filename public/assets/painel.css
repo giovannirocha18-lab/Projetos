@@ -223,5 +223,9 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 #r-execucoes tr.escolhida { background: var(--acento-fundo); }
 #r-execucoes a { color: var(--acento-forte); }
 
+/* "Não contar minhas visitas" no quadro de Visitas */
+.nao-contar { margin: 10px 0 0; font-size: .78rem; color: var(--suave); }
+.nao-contar a { color: var(--acento-forte); font-weight: 700; }
+
 .dica { position: fixed; z-index: 5; pointer-events: none; background: #fff; color: #0b0f17; font-size: .78rem; font-weight: 600;
   padding: 6px 10px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
