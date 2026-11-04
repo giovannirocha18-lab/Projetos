@@ -18,7 +18,8 @@ async function lojasComProdutos(env) {
   ]);
   return (c) => (String(c.loja).startsWith("lomadee-")
     ? !idsLomadee || idsLomadee.has(c.marcaId) || naAwin.has(chaveDoNome(c.lojaNome))
-    : !awin || !awin.size || awin.has(c.loja));
+    // pelo nome também: o cupom da EINSTAR vem como "einstar" e a loja no banco é "shining-3d-technology-inc"
+    : !awin || !awin.size || awin.has(c.loja) || naAwin.has(chaveDoNome(c.lojaNome)));
 }
 
 const CACHE_SEGUNDOS = 3 * 60 * 60;
