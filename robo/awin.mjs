@@ -306,7 +306,11 @@ const lojaDoId = (id) => id.split("-")[1];
 // testado de novo depois de alguns dias, para não pedir dezenas de milhares de fotos às lojas toda madrugada.
 // ---------------------------------------------------------------------
 const ARQUIVO_FOTOS = process.env.ROBO_CACHE_FOTOS || ".cache/fotos.json";
-const DIAS_FOTO_BOA = 14;
+const DIAS_FOTO_BOA = 7; // era 14; 04/11/2026: a Lauri Esporte trocou as fotos e ~80% ficaram "não encontrada" por dias
+// Amostra por loja (04/11/2026): toda noite testa algumas fotos guardadas como boas de cada loja; se várias não abrem
+// mais (a loja trocou as fotos), esquece o teste guardado de todas as fotos daquela loja e testa tudo de novo na hora
+const AMOSTRA_FOTOS_LOJA = 20;
+const AMOSTRA_QUEBRADAS = 3;
 const DIAS_FOTO_RUIM = 3;
 // Trocar para testar de novo todas as fotos guardadas (2: o 403 do Amazon S3 passou a contar como foto quebrada, 27/10/2026)
 const VERSAO_FOTOS = 2;
@@ -351,6 +355,26 @@ async function conferirFotos(ofertas) {
     return fila.length;
   };
   const boa = (u) => guardadas.get(u)?.ok !== false; // sem resposta conta como boa (não tira produto por falha de rede)
+  // Amostra por loja: fotos principais guardadas como boas e ainda dentro do prazo
+  const avisos = [];
+  const porLoja = new Map();
+  for (const o of ofertas) {
+    const g = o.imagem && guardadas.get(o.imagem);
+    if (!g?.ok || vencida(g)) continue;
+    if (!porLoja.has(o.loja_nome)) porLoja.set(o.loja_nome, []);
+    porLoja.get(o.loja_nome).push(o.imagem);
+  }
+  for (const [loja, urls] of porLoja) {
+    const amostra = sortear([...new Set(urls)], AMOSTRA_FOTOS_LOJA);
+    const quebradas = (await Promise.all(amostra.map((u) => fotoAbre(u)))).filter((ok) => ok === false).length;
+    if (quebradas < AMOSTRA_QUEBRADAS) continue;
+    let esquecidas = 0;
+    for (const o of ofertas) {
+      if (o.loja_nome !== loja) continue;
+      for (const u of fotosDe(o)) if (guardadas.delete(u)) esquecidas++;
+    }
+    avisos.push(`🔄 ${loja}: ${quebradas} de ${amostra.length} fotos que abriam não abrem mais; as ${esquecidas} fotos da loja foram testadas de novo`);
+  }
   for (const o of ofertas) if (o.imagem) testar.add(o.imagem);
   let testadas = await rodada(testar);
   const extras = new Set(ofertas.filter((o) => o.imagem && !boa(o.imagem)).flatMap(fotosDe));
@@ -369,7 +393,7 @@ async function conferirFotos(ofertas) {
     const imagens = fotos.length > 1 ? JSON.stringify(fotos) : null;
     resultado.push({ ...o, imagem: fotos[0], imagens, assinatura: assinar({ a: o.assinatura, fotos }) });
   }
-  return { resultado, semFoto, testadas };
+  return { resultado, semFoto, testadas, avisos };
 }
 
 // ---------------------------------------------------------------------
@@ -658,7 +682,8 @@ async function main() {
   // Teste local com arquivo de exemplo (--feed): as fotos são de mentira, não testa
   if (!arquivosFeed.length && !process.env.ROBO_SEM_TESTE_FOTOS) {
     const inicioFotos = Date.now();
-    const { resultado, semFoto, testadas } = await conferirFotos([...novas.values()]);
+    const { resultado, semFoto, testadas, avisos } = await conferirFotos([...novas.values()]);
+    relatorio.push(...avisos);
     const comFoto = new Set(resultado.map((o) => o.id));
     for (const id of novas.keys()) if (!comFoto.has(id)) foraDeProposito.push(id);
     novas.clear();
@@ -758,7 +783,7 @@ async function main() {
   const lojasOk = relatorio.filter((l) => l.startsWith("✅")).length;
   paraPainel("awin", {
     linhas: [`${lojasOk} feeds de lojas lidos`, ...resumo.filter((l) => !l.startsWith("Tempo"))],
-    avisos: relatorio.filter((l) => /^(❌|⚠️)/.test(l)),
+    avisos: relatorio.filter((l) => /^(❌|⚠️|🔄)/.test(l)),
   });
 }
 
