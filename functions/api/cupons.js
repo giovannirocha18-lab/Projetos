@@ -6,7 +6,7 @@
 import { cuponsLomadee, cuponsAwin } from "../../lib/cupons.js";
 
 const CACHE_SEGUNDOS = 3 * 60 * 60;
-const VERSAO = 12; // trocar para descartar o que está guardado (11: chave nova da Awin, 03/11/2026; 12: sem China in Box)
+const VERSAO = 13; // trocar para descartar o que está guardado (11: chave nova da Awin, 03/11/2026; 12: sem China in Box; 13: sem passagens, viagens, comida e remédios)
 
 // Só o começo do código: "BRINOXCHEFE" -> "BRI••••••••"
 const mascara = (codigo) => `${codigo.slice(0, Math.min(3, Math.ceil(codigo.length / 3)))}${"•".repeat(Math.max(codigo.length - 3, 4))}`;
