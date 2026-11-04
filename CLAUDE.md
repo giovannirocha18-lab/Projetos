@@ -50,7 +50,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Selo do ML amarelo/azul (`tag: "loja-tag-ml"`; botão Comprar igual para todas as lojas, decisão do Giovanni). "Frete grátis"
   só ML (API) e Lauri Esporte (feed: frete 0 em tudo; Giovanni conferiu no site dela: grátis num de R$ 197 para RO ✅).
   Página da loja (Awin): um cartão por modelo (Lauri manda cada numeração como produto; `lib/variacoes.js` modeloBase/semTamanho)
-  e os tipos se revezam (1ª palavra da categoria da loja); /api/lojas VERSAO 29. Busca da Awin junta as numerações também.
+  e os tipos se revezam (1ª palavra da categoria da loja); /api/lojas VERSAO 29. Busca da Awin e `semRepetidos` (app.js,
+  cópia de semTamanho) juntam as numerações em todas as listas.
 - Feito nesta sessão: IA conferindo as buscas (esconde o que não é o produto); filtro de Marcas no alto e categorias só em
   busca ambígua; celular no molde do app do Mercado Livre (abas, atalhos, barra de baixo, gaveta de filtros moderna);
   sugestões "produto + marca" (inclusive HP/LG); busca com marca mostra só a marca (`deOutraMarca`).
