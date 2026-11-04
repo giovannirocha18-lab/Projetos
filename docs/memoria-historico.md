@@ -1546,3 +1546,4 @@ Texto para colar numa conversa nova:
   `comInicio` põe `datetime_geq: $inicio` nas consultas (se o Cloudflare recusar, conta o dia inteiro e manda `avisoInicio`).
   Painel: linha "Contando desde 04/11 às 15:42 · Zerar contadores/Zerar de novo" no Resumo da semana (confirm antes).
   Contas, alertas e carrinhos não zeram. As buscas antigas continuam no banco (usadas no site: em alta, prontas, IA).
+- **Foto quebrada em cópia guardada (04/11/2026)**: print do Giovanni (tênis da Lauri sem foto no celular, Ofertas do dia). O banco já tinha a foto nova; respostas guardadas (cache do Cloudflare por colo, navegador 10 min, localStorage 12 h) traziam a antiga. app.js `fotoQuebrada`: original → outras fotos (`o.imagens`) → em produto Awin, `fotoAtual(id)` (/api/produto, resposta `{ oferta }`) → emoji. Testado com Playwright (scratchpad foto.mjs).
