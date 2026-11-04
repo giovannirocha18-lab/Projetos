@@ -40,7 +40,7 @@ Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` 
 Run workflow com `so_awin`, `so_prontas`, `so_lomadee`, `so_auditoria`, `so_ia`, `so_numeros` (só o relatório, ~30 s). Disparar: GitHub MCP `actions_run_trigger`.
 Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. Custo da IA ~US$ 0,07/noite (saldo ~US$ 0,80).
 
-## Situação (03/11/2026, 22ª sessão)
+## Situação (04/11/2026, 23ª sessão)
 - Feito nesta sessão: IA conferindo as buscas (esconde o que não é o produto); filtro de Marcas no alto e categorias só em
   busca ambígua; celular no molde do app do Mercado Livre (abas, atalhos, barra de baixo, gaveta de filtros moderna);
   sugestões "produto + marca" (inclusive HP/LG); busca com marca mostra só a marca (`deOutraMarca`).
@@ -66,6 +66,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   "Não contar minhas visitas": cookie `vpc_nao_contar` (`/?nao-contar=1`/`0`, link no quadro Visitas do painel) tira o aparelho
   das visitas (CSP sem Web Analytics), buscas e cliques (`lib/naoContar.js`). IP: não mostramos (LGPD).
   Botão "Zerar contadores" no painel (`lib/inicioPainel.js`, `/api/painel/zerar`): conta a partir do momento do zerar.
+  Foto quebrada no cartão: tenta outras fotos e, na Awin, a foto de hoje (`fotoAtual` em app.js) — Giovanni confirmou ✅.
 
 ## Pendências
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
