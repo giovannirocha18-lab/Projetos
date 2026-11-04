@@ -336,13 +336,18 @@ async function conferirFotos(ofertas) {
   const testar = new Set();
   const fotosDe = (o) => (o.imagens ? JSON.parse(o.imagens) : [o.imagem]).filter(Boolean);
   // Primeiro só a foto principal; as extras só de quem teve a principal quebrada
-  const rodada = async (urls) => {
+  // Sem resposta (429/403/5xx/tempo): a foto não é tirada, mas não fica guardada e é testada de novo devagar no fim
+  // (04/11/2026: fotos da Lauri Esporte davam 404 no navegador e o robô não tirava; suspeita: o servidor de fotos da loja
+  // limitava os 64 testes ao mesmo tempo)
+  const semResposta = new Set();
+  const rodada = async (urls, aoMesmoTempo = TESTES_AO_MESMO_TEMPO) => {
     const fila = [...urls].filter((u) => vencida(guardadas.get(u)));
     let i = 0, feitas = 0;
-    await Promise.all(Array.from({ length: TESTES_AO_MESMO_TEMPO }, async () => {
+    await Promise.all(Array.from({ length: aoMesmoTempo }, async () => {
       while (i < fila.length) {
         const url = fila[i++];
         const ok = await fotoAbre(url);
+        if (ok === null) semResposta.add(url); else semResposta.delete(url);
         // Foto boa ganha um dia sorteado na última semana: assim as ~83 mil não vencem todas no mesmo dia
         if (ok !== null) guardadas.set(url, { ok, dia: ok ? hoje - Math.floor(Math.random() * 7) : hoje, v: VERSAO_FOTOS });
         // De tempos em tempos grava o que já testou: se o robô passar do tempo, a próxima vez continua daqui
@@ -355,6 +360,13 @@ async function conferirFotos(ofertas) {
     return fila.length;
   };
   const boa = (u) => guardadas.get(u)?.ok !== false; // sem resposta conta como boa (não tira produto por falha de rede)
+  // Segunda chance para as sem resposta: 4 ao mesmo tempo, até 5 mil fotos
+  const novaChance = async () => {
+    if (!semResposta.size) return 0;
+    const lista = [...semResposta].slice(0, 5000);
+    console.log(`Fotos sem resposta: ${semResposta.size}; testando ${lista.length} de novo, devagar`);
+    return rodada(lista, 4);
+  };
   // Amostra por loja: fotos principais guardadas como boas e ainda dentro do prazo
   const avisos = [];
   const porLoja = new Map();
@@ -377,8 +389,22 @@ async function conferirFotos(ofertas) {
   }
   for (const o of ofertas) if (o.imagem) testar.add(o.imagem);
   let testadas = await rodada(testar);
+  testadas += await novaChance();
   const extras = new Set(ofertas.filter((o) => o.imagem && !boa(o.imagem)).flatMap(fotosDe));
   testadas += await rodada(extras);
+  testadas += await novaChance();
+  // O que continuou sem resposta: quantas por loja (a foto fica no site) e o motivo de 3 delas no log
+  if (semResposta.size) {
+    const lojaDaFoto = new Map();
+    for (const o of ofertas) for (const u of fotosDe(o)) lojaDaFoto.set(u, o.loja_nome);
+    const contagem = new Map();
+    for (const u of semResposta) contagem.set(lojaDaFoto.get(u), (contagem.get(lojaDaFoto.get(u)) || 0) + 1);
+    avisos.push(`❔ Fotos sem resposta do servidor da loja (ficam no site): ${[...contagem].map(([l, n]) => `${l} ${n}`).join(", ")}`);
+    for (const u of [...semResposta].slice(0, 3)) {
+      const r = await fetch(u, { method: "HEAD", signal: AbortSignal.timeout(10000) }).catch((e) => ({ status: e.name }));
+      console.log(`Sem resposta: ${r.status} ${u}`);
+    }
+  }
   guardarFotos(guardadas);
   const semFoto = new Map(); // loja -> quantos ficaram de fora
   const resultado = [];
@@ -783,7 +809,7 @@ async function main() {
   const lojasOk = relatorio.filter((l) => l.startsWith("✅")).length;
   paraPainel("awin", {
     linhas: [`${lojasOk} feeds de lojas lidos`, ...resumo.filter((l) => !l.startsWith("Tempo"))],
-    avisos: relatorio.filter((l) => /^(❌|⚠️|🔄)/.test(l)),
+    avisos: relatorio.filter((l) => /^(❌|⚠️|🔄|❔)/.test(l)),
   });
 }
 
