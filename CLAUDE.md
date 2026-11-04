@@ -88,8 +88,6 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **Mercado Livre (próximo)**: 1) Giovanni conferir em afiliados ("Cliques"/"Ir para Métricas") se o clique de teste de 04/11
   contou (link com matt_tool+matt_word; se não contar, repensar o link); 2) ~~robô guardando preços do ML~~ feito 04/11;
   muitos produtos do catálogo vêm sem vendedor (busca com 16 do catálogo → ~3 com preço; 84 buscas com 0); 3) loja ML em /api/lojas, alertas e ?produto= aceitarem "mercadolivre-".
-- **JBL BR** (04/11): aprovada na Awin PJ, mas **sem catálogo** (nem aparece na lista de feeds; o robô agora escreve
-  "JBL na lista de feeds" no log do job awin). Entra sozinha quando tiver feed; avisar o Giovanni.
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
   UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027); decidir cron-job.org para o atraso
   do robô; decidir Mercado Livre.

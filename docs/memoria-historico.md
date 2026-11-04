@@ -1579,3 +1579,5 @@ Texto para colar numa conversa nova:
   Mercado Livre" (robo/relatorio.mjs). 1º teste (#108, so_ml): 386 de 464 buscas, 5.790 preços, 3 esperas de 429; mas só
   1.195 produtos com preço (muitos do catálogo sem vendedor/só usados); 84 buscas sem nenhum. As prontas de 04/11 foram feitas
   antes: ML aparece nelas a partir da madrugada de 05/11.
+- **JBL BR (04/11/2026)**: aprovada na Awin PJ, mas ShopWindow "0 produtos / nunca atualizado" e cookie de 1 dia; Giovanni
+  decidiu sair do programa. O log do job awin lista as lojas aprovadas e "JBL na lista de feeds" (robo/awin.mjs).
