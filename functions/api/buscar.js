@@ -16,6 +16,7 @@ import { shopee } from "../../lib/fontes/shopee.js";
 import { awin } from "../../lib/fontes/awin.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
+import { mercadolivre } from "../../lib/fontes/mercadolivre.js";
 import { registrarBusca } from "../../lib/buscas.js";
 import { naoContar } from "../../lib/naoContar.js";
 import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
@@ -27,7 +28,8 @@ import { corrigirBusca, acentuarBusca, buscaNasLojas } from "../../lib/vocabular
 import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
-const FONTES_REAIS = [curadoria, shopee, awin, aliexpress, lomadee];
+// Mercado Livre desde 04/11/2026 (catálogo + preço de cada produto; ver lib/fontes/mercadolivre.js)
+const FONTES_REAIS = [curadoria, shopee, awin, aliexpress, lomadee, mercadolivre];
 
 // Mostrar o guardado e atualizar por trás (pedido do Giovanni, 21/10/2026): a resposta fica no cache do Cloudflare
 // por até 1 dia, mas depois de FRESCO_MS ela é refeita em segundo plano. Quem buscar recebe na hora a guardada,

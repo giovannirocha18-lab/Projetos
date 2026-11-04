@@ -6,6 +6,7 @@
 import { produtoPorId } from "../lib/produto.js";
 import { ehPainel, quemEntrou } from "../lib/painel.js";
 import { naoContar } from "../lib/naoContar.js";
+import { destinoML, CAMINHO_IR_ML } from "../lib/fontes/mercadolivre.js";
 
 const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|como-funciona(\.html)?\/?|manifest\.webmanifest|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
 
@@ -161,6 +162,14 @@ async function responder(contexto) {
   if (url.pathname === `/${VERIFICACAO_AWIN}.html`) {
     // Mesmo conteúdo do arquivo baixado da Awin
     return new Response(`Validation content="${VERIFICACAO_AWIN}"`, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  }
+  // Botão "Comprar" dos produtos do Mercado Livre: o site mostra só o endereço nosso e aqui leva ao Mercado Livre com as
+  // marcas de afiliado (lib/fontes/mercadolivre.js, destinoML). O destino é sempre www.mercadolivre.com.br
+  if (CAMINHO_IR_ML.test(url.pathname)) {
+    const destino = destinoML(env, url.pathname);
+    if (destino) {
+      return new Response(null, { status: 302, headers: { Location: destino, "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    }
   }
   // O comparador ficava em /previa antes do lançamento: leva para a página principal
   if (/^\/previa(\.html)?\/?$/i.test(url.pathname)) {
