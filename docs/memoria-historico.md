@@ -1533,3 +1533,9 @@ Texto para colar numa conversa nova:
   linha `#nao-contar` no quadro Visitas ("Este aparelho entra nas contas · Não contar…" / "✅ … · Voltar a contar"), atualiza
   no foco da janela. Conferido em produção com Playwright: beacon 2 pedidos → 0 → 2.
 - **Painel mais legível (04/11/2026)**: print do Giovanni (texto apagado). Fonte Plus Jakarta Sans → **Inter** (peso 500 de base, 15 px), `--suave` #98a2b8 → #b9c2d3, `--texto` #f5f7fc, tamanhos pequenos +0,04–0,06 rem, eixo dos gráficos 12 px. Só o painel (a loja continua igual).
+- **País e navegador das visitas (04/11/2026)**. Giovanni: "estes dados são reais? dá pra saber de onde estão vindo?" (print: 80
+  visitas em 04/11). Resposta: reais (Web Analytics), mas **04/11 inclui dezenas de páginas abertas pelos testes do Claude**
+  (Playwright no site no ar, sem o cookie de não contar) e as do próprio Giovanni. lib/visitas.js: `CONSULTA_EXTRA` separada
+  (countryName, userAgentBrowser; se falhar, `erroExtras` aparece nos quadros e o resto segue). Painel: quadros "País das visitas"
+  (sigla → nome com Intl.DisplayNames) e "Navegador" (HeadlessChrome = "robô/teste"); `.quarteto` em 3 colunas a partir de 1500 px.
+  Regra nova no CLAUDE.md: teste no site no ar com cookie `vpc_nao_contar=1`.
