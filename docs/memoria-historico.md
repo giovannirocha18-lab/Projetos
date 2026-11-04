@@ -1518,3 +1518,9 @@ Texto para colar numa conversa nova:
 - **Elements pausada (04/11/2026)**. Giovanni perguntou o que vende: cadeiras gamer e peças (braço, base, pistão); 39 de 45 links
   com "página não encontrada" desde 25/10, só 6 no site. Decisão dele: tirar → `LOJAS_PAUSADAS` + so_awin (6 removidos),
   lojas v27, numeros v12. Awin: 17 lojas (TEKA entrou, Elements saiu); site conta 41 lojas.
+- **Lojas pausadas conferidas toda noite (04/11/2026)**. Giovanni: "benoit, como está a situação dela hoje". robo/awin.mjs:
+  `feedsDaConta` devolve também o feed das lojas pausadas aprovadas (marcado `pausada`), `conferirPausadas` lê o feed e testa
+  40 fotos e 8 links, sem gravar; linha "⏸️ Loja (pausada): …" no resumo e no painel (aviso). 1ª rodada (#108): Elements 45
+  produtos, fotos 40/40, links **2 de 8** (segue quebrada). **Lojas Benoit não aparece como aprovada na conta PJ** (lista: 23
+  feeds "active" = 22 + Elements): ela era da conta antiga (PF), que saiu em 30/10. Para voltar: Giovanni pedir a Benoit na
+  conta PJ da Awin; quando aprovar, tirar "lojas benoit" de `LOJAS_PAUSADAS` só depois de conferir a linha ⏸️.
