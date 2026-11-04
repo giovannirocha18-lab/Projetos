@@ -630,6 +630,7 @@ async function conferirPausadas(pausadas) {
       linhas.push(`⏸️ ${feed.lojaNome} (pausada): não deu para ler o feed (${erro.message})`);
     }
   }
+  linhas.forEach((l) => console.log(l));
   return linhas;
 }
 
