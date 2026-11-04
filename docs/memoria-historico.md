@@ -1515,3 +1515,6 @@ Texto para colar numa conversa nova:
   Piscina → Outros, Protetor de Colchão → Móveis). Feito: `PADRAO_DA_LOJA.teka` forte "Cama e banho" (aceita Mesa posta,
   Decoração, Bebês); `categoriaTravada`: loja forte antes da categoria da IA (aceita confere caminho, IA e título); lojas v26.
   Banco 372 MB (era 45 MB em out.; limite do Workers Paid = 10 GB; mensagem do robô corrigida). Painel aba Robô: 1º resumo da madrugada.
+- **Elements pausada (04/11/2026)**. Giovanni perguntou o que vende: cadeiras gamer e peças (braço, base, pistão); 39 de 45 links
+  com "página não encontrada" desde 25/10, só 6 no site. Decisão dele: tirar → `LOJAS_PAUSADAS` + so_awin (6 removidos),
+  lojas v27, numeros v12. Awin: 17 lojas (TEKA entrou, Elements saiu); site conta 41 lojas.
