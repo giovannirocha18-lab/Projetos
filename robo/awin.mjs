@@ -34,8 +34,9 @@ const LISTA_FEEDS = "https://productdata.awin.com/datafeed/list/apikey/";
 // Elements (04/11/2026, decisão do Giovanni): cadeiras gamer e peças; 39 de 45 links dão "página não encontrada" desde 25/10
 const LOJAS_PAUSADAS = ["elements"];
 // Lojas removidas de vez (não entram nem se forem aprovadas de novo; não são conferidas). Lojas Benoit (04/11/2026, decisão
-// do Giovanni; estava pausada desde 27/10 por fotos e preços errados e não está mais aprovada na conta PJ)
-const LOJAS_REMOVIDAS = ["lojas benoit"];
+// do Giovanni; estava pausada desde 27/10 por fotos e preços errados e não está mais aprovada na conta PJ). Lauri Esporte
+// (04/11/2026, decisão do Giovanni: fotos quebradas de novo, cada numeração como um anúncio e produtos caros)
+const LOJAS_REMOVIDAS = ["lojas benoit", "lauri"];
 // Regiões aceitas (ex.: "BR" ou "BR,US"). Vazio = todas. Lojas de fora entram marcadas como internacionais.
 const REGIOES = (process.env.ROBO_REGIOES || "").split(",").map((r) => r.trim().toUpperCase()).filter(Boolean);
 // Cotação usada para converter preços em outras moedas (preenchida em main)

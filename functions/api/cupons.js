@@ -5,6 +5,7 @@
 // e quem abrisse o endereço da lista via tudo sem passar pelo link)
 import { cuponsLomadee, cuponsAwin } from "../../lib/cupons.js";
 import { lomadee, marcasComProdutos, marcasNaAwin, chaveDoNome } from "../../lib/fontes/lomadee.js";
+import { ehLojaRemovida } from "../../lib/lojasRemovidas.js";
 
 // Só cupons de lojas que têm produtos no site (04/11/2026, Giovanni: "se ela não tem produto não faz sentido manter
 // cupom dela"; ex.: BioVittare). Lomadee: marca com produtos (marcasComProdutos) ou a mesma loja na Awin (Lauri
@@ -23,7 +24,7 @@ async function lojasComProdutos(env) {
 }
 
 const CACHE_SEGUNDOS = 3 * 60 * 60;
-const VERSAO = 13; // trocar para descartar o que está guardado (11: chave nova da Awin, 03/11/2026; 12: sem China in Box; 13: sem passagens, viagens, comida e remédios)
+const VERSAO = 14; // 14: sem a Lauri Esporte (04/11/2026); trocar para descartar o que está guardado (11: chave nova da Awin, 03/11/2026; 12: sem China in Box; 13: sem passagens, viagens, comida e remédios)
 
 // Só o começo do código: "BRINOXCHEFE" -> "BRI••••••••"
 const mascara = (codigo) => `${codigo.slice(0, Math.min(3, Math.ceil(codigo.length / 3)))}${"•".repeat(Math.max(codigo.length - 3, 4))}`;
@@ -62,7 +63,7 @@ async function todos(request, env) {
 
 export async function onRequestGet({ request, env }) {
   const [{ cupons: todosCupons, erroAwin, erroLomadee }, temProdutos] = await Promise.all([todos(request, env), lojasComProdutos(env)]);
-  const cupons = todosCupons.filter(temProdutos);
+  const cupons = todosCupons.filter((c) => temProdutos(c) && !ehLojaRemovida(c.lojaNome) && !ehLojaRemovida(c.loja));
   const id = new URL(request.url).searchParams.get("codigo");
   if (id !== null) {
     const c = cupons.find((x) => x.id === id);
