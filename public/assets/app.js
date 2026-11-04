@@ -2466,22 +2466,23 @@ async function carregarLojasParceiras() {
   }
   return lojasParceiras;
 }
-function lojaDoNome(q, lojas) {
+// "boticario" = oBoticario, "lauri" = Lauri Esporte, "monte carlo" = Monte Carlo Jóias
+function casaComNome(q, nomeLoja) {
   const buscado = limpo(q).replace(/ /g, "");
-  if (buscado.length < 4) return null;
-  return lojas.find((l) => {
-    if (l.rede === "marketplace") return false;
-    const nome = limpo(l.nome).replace(/ /g, "");
-    // "boticario" = oBoticario, "lauri" = Lauri Esporte, "monte carlo" = Monte Carlo Jóias
-    return nome === buscado || (buscado.length >= 5 && (nome.startsWith(buscado) || nome.endsWith(buscado)));
-  }) || null;
+  const nome = limpo(nomeLoja).replace(/ /g, "");
+  if (buscado.length < 4 || !nome) return false;
+  return nome === buscado || (buscado.length >= 5 && (nome.startsWith(buscado) || nome.endsWith(buscado)));
+}
+function lojaDoNome(q, lojas) {
+  return lojas.find((l) => l.rede !== "marketplace" && casaComNome(q, l.nome)) || null;
 }
 async function mostrarLojaNaBusca(q, pedido) {
   const caixa = $("#loja-na-busca");
   caixa.hidden = true;
   if (lojaAtual() || naBlackFriday()) return;
   const loja = lojaDoNome(q, await carregarLojasParceiras());
-  if (!loja || pedido !== estado.pedido || lojaAtual()) return;
+  if (pedido !== estado.pedido || lojaAtual()) return;
+  if (!loja) return;
   caixa.style.setProperty("--cor-loja", corDaLoja(loja));
   caixa.replaceChildren(
     el("span", { class: "loja-ponto" }),

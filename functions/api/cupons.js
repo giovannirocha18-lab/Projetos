@@ -4,6 +4,22 @@
 // também abre a loja pelo link com comissão (teste de invasão de 25/10/2026: a lista mandava todos os códigos inteiros,
 // e quem abrisse o endereço da lista via tudo sem passar pelo link)
 import { cuponsLomadee, cuponsAwin } from "../../lib/cupons.js";
+import { lomadee, marcasComProdutos, marcasNaAwin, chaveDoNome } from "../../lib/fontes/lomadee.js";
+
+// Só cupons de lojas que têm produtos no site (04/11/2026, Giovanni: "se ela não tem produto não faz sentido manter
+// cupom dela"; ex.: BioVittare). Lomadee: marca com produtos (marcasComProdutos) ou a mesma loja na Awin (Lauri
+// Esporte); Awin: loja com produtos no banco (lojas_awin). Se não der para saber (banco fora), não tira nenhum
+async function lojasComProdutos(env) {
+  const [idsLomadee, naAwin, awin] = await Promise.all([
+    lomadee.ativa(env) ? marcasComProdutos(env).then((m) => new Set(m.keys())).catch(() => null) : null,
+    marcasNaAwin(env).catch(() => new Set()),
+    env.DB ? env.DB.prepare("SELECT loja FROM lojas_awin WHERE produtos > 0").all()
+      .then((r) => new Set(r.results.map((x) => x.loja))).catch(() => null) : null,
+  ]);
+  return (c) => (String(c.loja).startsWith("lomadee-")
+    ? !idsLomadee || idsLomadee.has(c.marcaId) || naAwin.has(chaveDoNome(c.lojaNome))
+    : !awin || !awin.size || awin.has(c.loja));
+}
 
 const CACHE_SEGUNDOS = 3 * 60 * 60;
 const VERSAO = 13; // trocar para descartar o que está guardado (11: chave nova da Awin, 03/11/2026; 12: sem China in Box; 13: sem passagens, viagens, comida e remédios)
@@ -44,7 +60,8 @@ async function todos(request, env) {
 }
 
 export async function onRequestGet({ request, env }) {
-  const { cupons, erroAwin, erroLomadee } = await todos(request, env);
+  const [{ cupons: todosCupons, erroAwin, erroLomadee }, temProdutos] = await Promise.all([todos(request, env), lojasComProdutos(env)]);
+  const cupons = todosCupons.filter(temProdutos);
   const id = new URL(request.url).searchParams.get("codigo");
   if (id !== null) {
     const c = cupons.find((x) => x.id === id);
