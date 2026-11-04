@@ -36,8 +36,9 @@ Ainda escondido do Google (noindex) até o lançamento.
 ## Robô (GitHub Actions `robo-precos.yml`, 01:30 de Brasília; o GitHub atrasa ~6 h)
 Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` (histórico), `lomadee` (marcas/páginas),
 `prontas` (buscas prontas), `ia` (Haiku 5.5 classifica categorias em lote + `robo/marcas.mjs` sugestões produto+marca),
-`auditoria` (suspeitos no topo + IA conferindo buscas `robo/conferir-buscas.mjs` + relatório de categorias das lojas).
-Run workflow com `so_awin`, `so_prontas`, `so_lomadee`, `so_auditoria`, `so_ia`, `so_numeros` (só o relatório, ~30 s). Disparar: GitHub MCP `actions_run_trigger`.
+`auditoria` (suspeitos no topo + IA conferindo buscas `robo/conferir-buscas.mjs` + relatório de categorias das lojas + variações),
+`mercadolivre` (preços do ML no D1, antes das prontas).
+Run workflow com `so_awin`, `so_ml`, `so_prontas`, `so_lomadee`, `so_auditoria`, `so_ia`, `so_numeros` (só o relatório, ~30 s). Disparar: GitHub MCP `actions_run_trigger`.
 Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. Custo da IA ~US$ 0,07/noite (saldo ~US$ 0,80).
 
 ## Situação (04/11/2026, 24ª sessão)
@@ -51,7 +52,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   só ML (API) e Lauri Esporte (feed: frete 0 em tudo; Giovanni conferiu no site dela: grátis num de R$ 197 para RO ✅).
   Página da loja (Awin): um cartão por modelo (Lauri manda cada numeração como produto; `lib/variacoes.js` modeloBase/semTamanho)
   e os tipos se revezam (1ª palavra da categoria da loja); /api/lojas VERSAO 29. Busca da Awin e `semRepetidos` (app.js,
-  cópia de semTamanho) juntam as numerações em todas as listas.
+  cópia de semTamanho) juntam as numerações em todas as listas. Auditoria nova `robo/variacoes.mjs` (job auditoria, painel
+  "Tamanhos repetidos"): grupos ≥3 com mesmo preço e nome tirando a última palavra; ⚠️ = o site ainda não junta → completar
+  lib/variacoes.js + semTamanho em app.js. 1ª vez na madrugada de 05/11.
 - Feito nesta sessão: IA conferindo as buscas (esconde o que não é o produto); filtro de Marcas no alto e categorias só em
   busca ambígua; celular no molde do app do Mercado Livre (abas, atalhos, barra de baixo, gaveta de filtros moderna);
   sugestões "produto + marca" (inclusive HP/LG); busca com marca mostra só a marca (`deOutraMarca`).
