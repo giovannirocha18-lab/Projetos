@@ -28,8 +28,9 @@ import { corrigirBusca, acentuarBusca, buscaNasLojas } from "../../lib/vocabular
 import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
-// Mercado Livre desde 04/11/2026 (catálogo + preço de cada produto; ver lib/fontes/mercadolivre.js)
-const FONTES_REAIS = [curadoria, shopee, awin, aliexpress, lomadee, mercadolivre];
+// Mercado Livre desde 04/11/2026 (catálogo + preço de cada produto; ver lib/fontes/mercadolivre.js). Vem primeiro
+// (pedido do Giovanni, 04/11/2026: "prioridade ao Mercado Livre nas buscas"): intercalar() começa cada rodada por ele
+const FONTES_REAIS = [mercadolivre, curadoria, shopee, awin, aliexpress, lomadee];
 
 // Mostrar o guardado e atualizar por trás (pedido do Giovanni, 21/10/2026): a resposta fica no cache do Cloudflare
 // por até 1 dia, mas depois de FRESCO_MS ela é refeita em segundo plano. Quem buscar recebe na hora a guardada,
