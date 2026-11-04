@@ -7,6 +7,7 @@ import { produtoPorId } from "../lib/produto.js";
 import { ehPainel, quemEntrou } from "../lib/painel.js";
 import { naoContar } from "../lib/naoContar.js";
 import { destinoML, CAMINHO_IR_ML } from "../lib/fontes/mercadolivre.js";
+import { concluirAutorizacao } from "../lib/mlConta.js";
 
 const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|como-funciona(\.html)?\/?|manifest\.webmanifest|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
 
@@ -157,6 +158,16 @@ async function responder(contexto) {
     return Response.redirect(`https://vaiprocarrinho.com.br${url.pathname}${url.search}`, 301);
   }
 
+  // Volta da tela "Permitir" do Mercado Livre (conta conectada pelo painel, lib/mlConta.js): só um "state" criado pelo
+  // painel nos últimos 15 minutos é aceito; qualquer outro ?code= na página principal é ignorado
+  if (url.pathname === "/" && url.searchParams.has("code") && url.searchParams.has("state")) {
+    const r = await concluirAutorizacao(env, url.searchParams.get("code"), url.searchParams.get("state")).catch(() => null);
+    if (r) {
+      const destino = new URL("https://painel.vaiprocarrinho.com.br/api/painel/ml-conta");
+      destino.searchParams.set(r.ok ? "ok" : "erro", r.ok ? "1" : String(r.erro).slice(0, 200));
+      return new Response(null, { status: 302, headers: { Location: destino.toString(), "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
+    }
+  }
   // Verificação do site na Awin (método do arquivo). Respondido aqui porque o Cloudflare Pages
   // tiraria o ".html" do endereço com um redirecionamento, e o verificador espera o arquivo direto.
   if (url.pathname === `/${VERIFICACAO_AWIN}.html`) {
