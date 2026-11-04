@@ -13,6 +13,16 @@ import { categoriaDoProduto, categoriaPorNome, marcarSecoes } from "../lib/categ
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 
 const CASOS = {
+  // 04/11/2026 (print do Giovanni, "pc gamer" na AliExpress): ventoinha, mouse, teclas e mouse pad apareciam como o produto
+  "pc gamer": {
+    E: ["PC Gamer Mini TA NK 03 M1A com Intel Core I9 12900H, RTX 3080, 16G DDR4", "Pc Gamer Completo Ryzen 7 5700G, Memoria Ram 16GB, SSD 1TB",
+      "Computador intel I7-4700S pc gamer completo desktop 8/16gb 24 Polegadas", "PC Gamer Completo Intel i5 16GB RAM SSD 480GB Monitor Teclado e Mouse"],
+    A: ["Thermalright TL-C14CW/14C-S 14cm ventilador de refrigeração 5v 3pin argb pc gamer",
+      "ID-COOLING XF-120-K simplicidade eficiência pc gamer computador caso ventilador",
+      "Atk z1v2 mouse para jogos sem fio final duplo 8k paw3950ultra eletrônico pc gamer",
+      "Teclas RGB de Resina Artesanal Mountain And Sea para Teclado Mecânico pc gamer",
+      "90x40cm mouse pad gamer grande computador pc gamer mesa"],
+  },
   // 21/10/2026 (Karsten): "2 Peças" é quantidade; "boné" achava "Boneco Funko Pop"
   "fronha": {
     E: ["Fronha 2 Peças 100% Algodão Tesso Bege", "Fronha Avulsa 200 Fios Ivy Branco"],
