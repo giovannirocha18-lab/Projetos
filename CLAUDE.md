@@ -16,7 +16,7 @@
   afiliado visível (só `rel="sponsored"`); sempre tema claro.
 
 ## O site
-**vaiprocarrinho.com.br** — comparador de preços com links de afiliado. Fontes: Shopee (API), AliExpress (API), Lomadee (API,
+**vaiprocarrinho.com.br** — comparador de preços com links de afiliado. Fontes: Shopee (API), AliExpress (API), **Mercado Livre (API, 04/11)**, Lomadee (API,
 ~24 marcas com produtos), Awin (feeds de ~17 lojas, **só a conta PJ/MEI**, Secret `AWIN_FEED_KEY_PJ`), cupons (Awin + Lomadee).
 Ainda escondido do Google (noindex) até o lançamento.
 
@@ -40,7 +40,11 @@ Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` 
 Run workflow com `so_awin`, `so_prontas`, `so_lomadee`, `so_auditoria`, `so_ia`, `so_numeros` (só o relatório, ~30 s). Disparar: GitHub MCP `actions_run_trigger`.
 Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. Custo da IA ~US$ 0,07/noite (saldo ~US$ 0,80).
 
-## Situação (04/11/2026, 23ª sessão)
+## Situação (04/11/2026, 24ª sessão)
+- **24ª: Mercado Livre ligado** (conta PJ; app no devcenter; `ML_CLIENT_ID`/`ML_CLIENT_SECRET`; afiliado etiqueta
+  vaiprocarrinho). Catálogo (`/products/search`) + preço por produto; link pelo nosso `/ir/ml/<produto>/<anúncio>`; ML
+  primeiro nas buscas. Teste: painel `/api/painel/ml-teste`. **Problema: 429 do ML → poucos produtos dele por busca.**
+  Detalhe no histórico ("Mercado Livre ligado").
 - Feito nesta sessão: IA conferindo as buscas (esconde o que não é o produto); filtro de Marcas no alto e categorias só em
   busca ambígua; celular no molde do app do Mercado Livre (abas, atalhos, barra de baixo, gaveta de filtros moderna);
   sugestões "produto + marca" (inclusive HP/LG); busca com marca mostra só a marca (`deOutraMarca`).
@@ -69,6 +73,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Foto quebrada no cartão: tenta outras fotos e, na Awin, a foto de hoje (`fotoAtual` em app.js) — Giovanni confirmou ✅.
 
 ## Pendências
+- **Mercado Livre (próximo)**: 1) Giovanni conferir em afiliados ("Cliques"/"Ir para Métricas") se o clique de teste de 04/11
+  contou (link com matt_tool+matt_word; se não contar, repensar o link); 2) mais produtos do ML apesar do 429: robô de
+  madrugada guardando os preços do ML das buscas prontas no D1 em ritmo lento (como a Awin) e a busca lendo de lá;
+  3) loja ML em /api/lojas, alertas e ?produto= aceitarem "mercadolivre-".
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
   UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027); decidir cron-job.org para o atraso
   do robô; decidir Mercado Livre.

@@ -1547,3 +1547,25 @@ Texto para colar numa conversa nova:
   Painel: linha "Contando desde 04/11 às 15:42 · Zerar contadores/Zerar de novo" no Resumo da semana (confirm antes).
   Contas, alertas e carrinhos não zeram. As buscas antigas continuam no banco (usadas no site: em alta, prontas, IA).
 - **Foto quebrada em cópia guardada (04/11/2026)**: print do Giovanni (tênis da Lauri sem foto no celular, Ofertas do dia). O banco já tinha a foto nova; respostas guardadas (cache do Cloudflare por colo, navegador 10 min, localStorage 12 h) traziam a antiga. app.js `fotoQuebrada`: original → outras fotos (`o.imagens`) → em produto Awin, `fotoAtual(id)` (/api/produto, resposta `{ oferta }`) → emoji. Testado com Playwright (scratchpad foto.mjs).
+- **Mercado Livre ligado (04/11/2026, 24ª sessão)**. Giovanni: "mais lojas fora da Awin e Lomadee". Sugerido 1º ML (maior,
+  aceita CNPJ), 2º Rakuten Advertising (feeds, como a Awin; lista BR não conferida), 3º Admitad; Amazon só depois de 10 vendas
+  e exige aviso visível. **Cadastro PJ** (MEI: CNAE 7319-0/02 Promoção de vendas, "Promotor de vendas independente" = serve).
+  App "Vai pro Carrinho" em developers.mercadolivre.com.br/**devcenter** (menu do site não mostra "Minhas aplicações": abrir
+  direto), redirect https://vaiprocarrinho.com.br/, Authorization Code + Client Credentials + Refresh Token, Negócios =
+  Mercado Livre, só leitura. Pages: `ML_CLIENT_ID` (Text) + `ML_CLIENT_SECRET` (Secret). Programa de afiliados: a página
+  antiga (/l/comece-a-recomendar) redireciona; entrada certa = **mercadolivre.com.br/afiliados** (logado) → "Quero
+  participar" → Afiliado; aprovado na hora. Etiqueta **vaiprocarrinho** criada; link do gerador = meli.la → /social/<perfil>
+  ?matt_word=vaiprocarrinho&matt_tool=40433824&ref=<fechado> (robô não gera meli.la).
+  **API (teste /api/painel/ml-teste, só no painel, página com cartões e caixa de busca)**: token client_credentials 200;
+  `/sites/MLB/search` **403** mesmo com token; `/items/{id}` 403; **`/products/search` 200** (catálogo: nome, fotos,
+  domain_id); `/products/{id}/items` 200 (preço, original_price, frete, official_store_id; 404 "No winners found" = sem
+  vendedor); highlights 200. Sem vendidos/nota/vendedor.
+  **lib/fontes/mercadolivre.js**: 1 página, 16 produtos (8 na vitrine), preço = oferta nova mais barata; link
+  **vaiprocarrinho.com.br/ir/ml/<produto>/<anúncio>** (pedido do Giovanni: gente apaga o matt_word) → functions/_middleware.js
+  302 para www.mercadolivre.com.br/p/<produto>?pdp_filters=item_id:<anúncio>&matt_tool&matt_word (só códigos MLB; testado no
+  ar). Entra no histórico ao vivo (AO_VIVO em lib/ofertas.js). **Primeiro nas buscas** (FONTES_REAIS começa por ele; pedido
+  do Giovanni). Problemas achados: com 20 consultas juntas a Shopee passava dos 8 s (Cloudflare abre só 6 conexões por
+  chamada) → 2 de cada vez; ML dá **429 local_rate_limited** depois de poucas buscas → ofertas de cada produto guardadas 6 h
+  no cache do Cloudflare e para no 1º 429. Resultado: ML aparece, mas com poucos produtos (aspirador robô xiaomi: 4).
+  Não feito: loja ML em /api/lojas e página da loja, "Ofertas do dia", alertas de preço (lib/alertas.js idValido) e
+  ?produto= (lib/produto.js) não aceitam "mercadolivre-". Giovanni fez 1 clique de teste (janela anônima) em 04/11.
