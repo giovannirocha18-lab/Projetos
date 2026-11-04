@@ -55,6 +55,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   vendas dava "O produto não existe" na Shopee, mas a API oficial ainda o manda (não há como conferir sem raspar).
   Elements: 39 de 45 links dão "página não encontrada" na loja; Monte Carlo: 2.454 sem foto (ficam fora sozinhos).
 - Lojas Benoit pausada (`LOJAS_PAUSADAS` em robo/awin.mjs) até corrigir fotos/preços.
+- 04/11: Lauri Esporte só pela Awin (marca da Lomadee com nome de loja da Awin sai: `marcasNaAwin` em lomadee.js; fotos
+  antigas 404 e repetidos); China in Box fora (restaurante, `FORA` em lomadee.js; cupons v12); robô: foto boa testada a
+  cada 7 dias + amostra de 20 fotos por loja (🔄 = loja trocou as fotos, testa tudo de novo).
 
 ## Pendências
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;

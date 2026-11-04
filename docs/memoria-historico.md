@@ -1470,3 +1470,13 @@ Texto para colar numa conversa nova:
   de detalhes passava da borda direita. Causa: `.detalhes { grid-template-columns: 1fr }` no celular deixava a fileira de
   miniaturas (5+ fotos) alargar a coluna (332 px numa janela de 322). Agora `minmax(0, 1fr)` + `.detalhes-galeria { min-width: 0 }`
   (estilo.css); miniaturas rolam dentro da janela. Conferido em produção com Playwright (360 px).
+- **Lauri Esporte, China in Box e fotos (04/11/2026)**. Print do Giovanni: Tênis Olympikus Corre Grafeno 3 (Lauri) com o
+  desenho no lugar da foto. Medido: 204 de 247 fotos da Lauri davam 404, mas eram da **Lomadee** (ids lomadee-…, fotos antigas
+  "…6885…-large.jpg"); as da Awin abriam. A Lauri está nas duas redes (2 vezes cada tênis e 2 vezes em Lojas parceiras).
+  Feito: `marcasNaAwin` (lib/fontes/lomadee.js, lê lojas_awin, guarda 1 h): marca da Lomadee com o mesmo nome (sem acento/
+  espaço/" BR") de loja da Awin fica fora da busca e de `marcasComProdutos` (Lojas parceiras/contagem); cupons continuam;
+  lojas v24, numeros v11. Robô (robo/awin.mjs): `DIAS_FOTO_BOA` 14 → 7 (na 1ª rodada testou 64 mil fotos em 691 s) e amostra
+  de 20 fotos boas por loja por noite; 3+ quebradas → esquece o teste da loja inteira e testa de novo (aviso 🔄 no resumo/painel).
+  China in Box (Lomadee, só cupons): restaurante de delivery, Giovanni pediu para tirar → `FORA` em lomadee.js (marcas v4), cupons v12.
+  Outras marcas que não são loja de produto comum nos cupons: DeÔnibus (passagens), Zupper (viagens), Bauducco, Vinícola Jolimont
+  (perguntar ao Giovanni se ficam).
