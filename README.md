@@ -28,6 +28,8 @@ Site vaiprocarrinho.com.br: comparador de preços com links de afiliado.
   `ALIEXPRESS_APP_SECRET` forem cadastradas no Cloudflare (App Console do openservice.aliexpress.com).
   `ALIEXPRESS_TRACKING_ID` é opcional (padrão `vaiprocarrinho`). "Ofertas do dia" da AliExpress dependem da
   "Advanced API" (ainda não pedida).
+- **Mercado Livre** (em teste, 04/11/2026): app "Vai pro Carrinho" em developers.mercadolivre.com.br/devcenter (conta
+  PJ). Variáveis `ML_CLIENT_ID` (Text) e `ML_CLIENT_SECRET` (Secret). Teste só no painel: `/api/painel/ml-teste?q=...`.
 - Para adicionar outra loja: criar `lib/fontes/<loja>.js` e incluir em `functions/api/buscar.js`.
 
 ## Cadastro e "Meu carrinho"
