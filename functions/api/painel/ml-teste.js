@@ -50,5 +50,35 @@ export async function onRequestGet({ request, env }) {
     tentar("mais vendidos (highlights, Eletrodomésticos)", `${API}/highlights/MLB/category/MLB5726`, t),
     tentar("categorias (público)", `${API}/sites/MLB/categories`, t),
   ]);
-  return Response.json({ token: { status: rt.status, escopo: tk.scope || null, validade_s: tk.expires_in || null }, busca: q, testes }, { headers: cabecalhos });
+  // Preço, foto, vendedor e link: o catálogo só traz o nome; o preço vem do produto (buy box) ou das ofertas dele
+  const ids = (testes[1].amostra || []).map((p) => p.id).filter(Boolean).slice(0, 2);
+  const detalhes = await Promise.all(ids.map(async (id) => {
+    const lerJson = async (url) => {
+      try {
+        const r = await fetch(url, { headers: { Authorization: `Bearer ${t}`, Accept: "application/json" } });
+        return { status: r.status, dados: await r.json().catch(() => null) };
+      } catch (e) { return { status: 0, dados: { message: String(e?.message || e) } }; }
+    };
+    const [p, it] = await Promise.all([lerJson(`${API}/products/${id}`), lerJson(`${API}/products/${id}/items?limit=3`)]);
+    const bb = p.dados?.buy_box_winner;
+    const ofertas = (it.dados?.results || []).slice(0, 3);
+    let item = null;
+    const idItem = bb?.item_id || ofertas[0]?.item_id;
+    if (idItem) {
+      const ri = await lerJson(`${API}/items/${idItem}`);
+      item = { status: ri.status, titulo: ri.dados?.title, preco: ri.dados?.price, link: ri.dados?.permalink,
+        foto: ri.dados?.pictures?.[0]?.secure_url || ri.dados?.thumbnail, vendidos: ri.dados?.sold_quantity ?? null,
+        erro: ri.status === 200 ? null : (ri.dados?.message || ri.dados?.error) };
+    }
+    return {
+      id, produto: { status: p.status, nome: p.dados?.name, foto: p.dados?.pictures?.[0]?.url || null, link: p.dados?.permalink || null,
+        preco_buybox: bb?.price ?? null, original: bb?.original_price ?? null, frete_gratis: bb?.shipping?.free_shipping ?? null,
+        item_id: bb?.item_id || null, erro: p.status === 200 ? null : (p.dados?.message || p.dados?.error) },
+      ofertas: { status: it.status, total: it.dados?.paging?.total ?? null,
+        lista: ofertas.map((o) => ({ item_id: o.item_id, preco: o.price, original: o.original_price, vendedor: o.seller_id, frete_gratis: o.shipping?.free_shipping })),
+        erro: it.status === 200 ? null : (it.dados?.message || it.dados?.error) },
+      anuncio: item,
+    };
+  }));
+  return Response.json({ token: { status: rt.status, validade_s: tk.expires_in || null }, busca: q, testes, detalhes }, { headers: cabecalhos });
 }
