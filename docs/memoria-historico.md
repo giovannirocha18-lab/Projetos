@@ -1498,3 +1498,8 @@ Texto para colar numa conversa nova:
   `carregarLojasParceiras()` no início da página. Robô: foto "sem resposta" (429/403/5xx) testada de novo com 4 ao mesmo
   tempo e contada no resumo (❔; Casa Tema dá 429). Tênis da Lauri sem foto nas "Ofertas do dia" = busca pronta antiga
   (o banco já tem a foto nova); some quando o robô refizer as prontas.
+- **Sem "pulo" na lista (04/11/2026)**. Giovanni: "ao carregar mais produtos a tela dá uma pequena pulada". Medido
+  (scratchpad pulo2.mjs: linha do tempo do topo da grade): cada cartão subia 12 px ao aparecer (`@keyframes surgir`), na
+  chegada dos produtos e a cada lote de 48 ao rolar. Agora `surgir` só muda a opacidade (estilo.css). `desenharResultados`:
+  cartões que já estavam na tela (`data-id`) não refazem a animação e `desenharAosPoucos(..., { minimo })` desenha pelo menos
+  os que já estavam (lista não encolhe quando chegam lotes sozinhos).
