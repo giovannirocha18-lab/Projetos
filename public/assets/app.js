@@ -1364,7 +1364,7 @@ const CALCADO_ROUPA = /^(tenis|chuteira|sapat|bota|botina|coturno|sandalia|chine
 function semTamanho(titulo) {
   const t = String(titulo || "").trim();
   if (!CALCADO_ROUPA.test(normalizar(t))) return t;
-  const roupa = /\s+(\d?(PP|P|M|G|GG|XG|XGG|EG|EGG|EXG)|G[1-4]|U|UN|[ÚU]NICO|Tam(anho)?\.? \w+)$/i;
+  const roupa = /\s+(\d?(PP|P|M|G|GG|XG|XGG|EG|EGG|EXG)|XXS|XS|S|L|XL|XXL|XXXL|2XL|3XL|G[1-4]|U|UN|[ÚU]NICO|Tam(anho)?\.? \w+)$/i;
   const numero = /\s+(N(º|o|um)?\.?\s*)?\d{1,2}(\s*[\/-]\s*\d{1,2})?( BR)?$/i;
   return (roupa.test(t) ? t.replace(roupa, "") : t.replace(numero, "")).trim() || t;
 }
