@@ -1525,3 +1525,10 @@ Texto para colar numa conversa nova:
   feeds "active" = 22 + Elements): ela era da conta antiga (PF), que saiu em 30/10. Para voltar: Giovanni pedir a Benoit na
   conta PJ da Awin; quando aprovar, tirar "lojas benoit" de `LOJAS_PAUSADAS` só depois de conferir a linha ⏸️.
   → 04/11: Giovanni mandou remover a Benoit de vez: `LOJAS_REMOVIDAS` (não entra nem se aprovada de novo; não é conferida).
+- **"Não contar minhas visitas" (04/11/2026)**. Giovanni perguntou se dá para ver o IP de quem acessa ("pra medir as visitas"):
+  explicado que IP é dado pessoal (LGPD) e conta mal (celular muda, casa divide); ele escolheu o botão de não contar o próprio
+  aparelho. `lib/naoContar.js` (cookie `vpc_nao_contar=1`, Domain=vaiprocarrinho.com.br, 2 anos): `_middleware.js` troca a CSP
+  por `CSP_SEM_CONTAGEM` (sem cloudflareinsights → o beacon do Web Analytics não carrega), `/api/buscar` não chama
+  `registrarBusca`, `/api/clique` não conta. app.js grava/apaga o cookie com `?nao-contar=1`/`0` e mostra aviso. Painel:
+  linha `#nao-contar` no quadro Visitas ("Este aparelho entra nas contas · Não contar…" / "✅ … · Voltar a contar"), atualiza
+  no foco da janela. Conferido em produção com Playwright: beacon 2 pedidos → 0 → 2.

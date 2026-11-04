@@ -62,6 +62,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Cupons só de lojas com produtos no site (`lojasComProdutos` em functions/api/cupons.js): 42 cupons de 17 lojas.
   Robô 04/11 (#104, 7h51 de atraso): **466 de 484 prontas** ✅; 🆕 **TEKA** (Awin, 920, cama/mesa/banho, feed sem categoria) →
   `PADRAO_DA_LOJA` forte "Cama e banho" (loja forte vale acima da IA); banco 372 MB (limite do plano pago: 10 GB).
+  "Não contar minhas visitas": cookie `vpc_nao_contar` (`/?nao-contar=1`/`0`, link no quadro Visitas do painel) tira o aparelho
+  das visitas (CSP sem Web Analytics), buscas e cliques (`lib/naoContar.js`). IP: não mostramos (LGPD).
 
 ## Pendências
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
