@@ -1358,6 +1358,16 @@ const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInici
 // com códigos diferentes. Fica um só, o que vendeu mais, na posição em que apareceu primeiro.
 // Mesmo título com preço até 15% diferente também conta ("Celular Nokia 150 …" por R$ 155, 156, 165, 169 e 175)
 const DIFERENCA_REPETIDO = 1.15;
+// Numeração/tamanho no fim do título de calçado e roupa (04/11/2026: a Lauri Esporte manda cada numeração como um
+// anúncio, com foto própria: "… Azul 40", "… Azul 41"). Mesma regra de lib/variacoes.js (semTamanho)
+const CALCADO_ROUPA = /^(tenis|chuteira|sapat|bota|botina|coturno|sandalia|chinelo|tamanco|mocassim|sapatenis|scarpin|rasteira|papete|crocs|babuch|camis|camiseta|regata|blusa|jaqueta|casaco|moletom|calca|bermuda|short|saia|vestido|legging|top|meia|cueca|calcinha|sutia|maio|biquini|body|macacao|conjunto|agasalho|corta vento|colete|polo|pijama)/;
+function semTamanho(titulo) {
+  const t = String(titulo || "").trim();
+  if (!CALCADO_ROUPA.test(normalizar(t))) return t;
+  const roupa = /\s+(\d?(PP|P|M|G|GG|XG|XGG|EG|EGG|EXG)|G[1-4]|U|UN|[ÚU]NICO|Tam(anho)?\.? \w+)$/i;
+  const numero = /\s+(N(º|o|um)?\.?\s*)?\d{1,2}(\s*[\/-]\s*\d{1,2})?( BR)?$/i;
+  return (roupa.test(t) ? t.replace(roupa, "") : t.replace(numero, "")).trim() || t;
+}
 function semRepetidos(lista) {
   const posicao = new Map();
   const porTitulo = new Map(); // loja + título -> posições na saída
@@ -1367,16 +1377,21 @@ function semRepetidos(lista) {
       `id|${o.id}`,
       o.imagem && `f|${o.loja}|${o.imagem.replace(/_tn$/, "")}`,
     ].filter(Boolean);
-    const titulo = `${o.loja}|${normalizar(o.titulo || "").slice(0, 60)}`;
+    const titulo = `${o.loja}|${normalizar(semTamanho(o.titulo)).slice(0, 60)}`;
     let i = chaves.map((c) => posicao.get(c)).find((x) => x !== undefined);
     i ??= (porTitulo.get(titulo) || []).find((j) => o.preco > 0 && saida[j].preco > 0
       && Math.max(o.preco, saida[j].preco) <= Math.min(o.preco, saida[j].preco) * DIFERENCA_REPETIDO);
+    const anterior = i === undefined ? null : saida[i];
     if (i === undefined) {
       i = saida.length;
       porTitulo.set(titulo, [...(porTitulo.get(titulo) || []), i]);
       saida.push(o);
     } else if ((o.vendidos || 0) > (saida[i].vendidos || 0)) {
       saida[i] = o;
+    }
+    // Juntou numerações diferentes: o cartão fica sem o número (o tamanho se escolhe na loja)
+    if (anterior && anterior.titulo !== o.titulo && semTamanho(anterior.titulo) === semTamanho(o.titulo)) {
+      saida[i] = { ...saida[i], titulo: semTamanho(saida[i].titulo) };
     }
     chaves.forEach((c) => posicao.set(c, i));
   }
