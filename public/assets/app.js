@@ -958,12 +958,31 @@ const fotoPequena = (url) => {
   return url;
 };
 
-// Foto que não carregou: se era a versão pequena (ou a miniatura da Shopee), tenta a original; senão, mostra o emoji
+// Foto que não carregou: se era a versão pequena (ou a miniatura da Shopee), tenta a original; depois as outras fotos do
+// produto; nos produtos da Awin, pergunta ao banco a foto de hoje (a lista pode ser uma cópia guardada antes de a loja
+// trocar as fotos: print do Giovanni, 04/11/2026, tênis da Lauri Esporte); sem nenhuma, mostra o emoji
+const fotosAtuais = new Map(); // id -> promessa da foto atual (uma consulta por produto)
+const fotoAtual = (id) => {
+  if (!fotosAtuais.has(id)) {
+    fotosAtuais.set(id, fetch(`/api/produto?id=${encodeURIComponent(id)}`).then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.oferta?.imagem || d?.imagem || null).catch(() => null));
+  }
+  return fotosAtuais.get(id);
+};
 const fotoQuebrada = (o) => (e) => {
   const img = e.target;
-  if (/_tn$/.test(img.src)) img.src = img.src.replace(/_tn$/, "");
-  else if (o.imagem && img.src !== o.imagem && !img.dataset.original) { img.dataset.original = "1"; img.src = o.imagem; }
-  else img.replaceWith(el("span", { class: "foto-emoji" }, o.emoji || "🛍️"));
+  const emoji = () => img.isConnected && img.replaceWith(el("span", { class: "foto-emoji" }, o.emoji || "🛍️"));
+  if (/_tn$/.test(img.src)) { img.src = img.src.replace(/_tn$/, ""); return; }
+  if (o.imagem && img.src !== o.imagem && !img.dataset.original) { img.dataset.original = "1"; img.src = o.imagem; return; }
+  const tentadas = new Set([o.imagem, ...(img.dataset.tentadas || "").split("|")]);
+  const outra = (o.imagens || []).find((u) => u && !tentadas.has(u));
+  if (outra) { img.dataset.tentadas = [...tentadas, outra].filter(Boolean).join("|"); img.src = outra; return; }
+  if (/^awin-/.test(o.id || "") && !img.dataset.atual) {
+    img.dataset.atual = "1";
+    fotoAtual(o.id).then((u) => { if (u && !tentadas.has(u) && img.isConnected) img.src = u; else emoji(); });
+    return;
+  }
+  emoji();
 };
 
 // Texto do botão: verbo + loja ("Comprar na Shopee"). No celular (cartão estreito), em 2 linhas: "Comprar" e,
