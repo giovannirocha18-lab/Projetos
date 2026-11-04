@@ -183,7 +183,7 @@ jobs:
           echo "### Mercado Livre" >> "$GITHUB_STEP_SUMMARY"
           n() { echo "$1" | jq -r "$2 // 0" 2>/dev/null | grep -E '^[0-9]+$' || echo 0; } # número de dentro da resposta
           pedir() { curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-ml?parte=$1&horas=$2" || echo "falhou"; }
-          inicio=$(date +%s); renovadas=0; precos=0; esperas=0; partes=0; parou=""
+          inicio=$(date +%s); renovadas=0; precos=0; esperas=0; partes=0; parou=""; fichas=0; ofertas=0
           for horas in 44 20; do
             parte=0; seguidas=0
             while :; do
@@ -193,6 +193,7 @@ jobs:
               echo "$r" | grep -q CHAVE_ROBO && exit 1 # chave recusada: falha visível (e-mail do GitHub)
               p=$(n "$r" .partes); [ "$p" -gt 0 ] && partes=$p
               consultas=$(n "$r" .consultas); precos=$((precos + $(n "$r" .precos)))
+              fichas=$((fichas + $(n "$r" .fichasComOferta))); ofertas=$((ofertas + $(n "$r" .ofertasNasFichas)))
               [ "$consultas" -gt 0 ] && renovadas=$((renovadas + 1))
               if echo "$r" | grep -q '"limite":true'; then
                 esperas=$((esperas + 1)); seguidas=$((seguidas + 1))
@@ -205,8 +206,10 @@ jobs:
               [ "$consultas" -gt 0 ] && sleep 1
             done
           done
+          media=""; [ "$fichas" -gt 0 ] && media="$(awk "BEGIN {printf \"%.1f\", $ofertas / $fichas}") ofertas por ficha com vendedor ($fichas fichas)"
           echo "- $renovadas buscas renovadas, $precos preços guardados, $esperas esperas de 1 minuto pelo limite ${parou:+($parou)}" >> "$GITHUB_STEP_SUMMARY"
-          echo "ml=$(jq -cn --arg l "$renovadas buscas renovadas, $precos preços guardados ($partes buscas)" --arg e "$esperas esperas de 1 minuto pelo limite do Mercado Livre" --arg a "$parou" '{linhas: [$l, $e], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
+          [ -n "$media" ] && echo "- Média: $media" >> "$GITHUB_STEP_SUMMARY"
+          echo "ml=$(jq -cn --arg l "$renovadas buscas renovadas, $precos preços guardados ($partes buscas)" --arg e "$esperas esperas de 1 minuto pelo limite do Mercado Livre" --arg m "$media" --arg a "$parou" '{linhas: [$l, $e, ($m | select(. != ""))], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
 
   # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
   prontas:
