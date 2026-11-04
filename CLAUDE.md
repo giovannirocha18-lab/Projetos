@@ -44,7 +44,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **24ª: Mercado Livre ligado** (conta PJ; app no devcenter; `ML_CLIENT_ID`/`ML_CLIENT_SECRET`; afiliado etiqueta
   vaiprocarrinho). Catálogo (`/products/search`) + preço por produto; link pelo nosso `/ir/ml/<produto>/<anúncio>`; ML
   primeiro nas buscas. Teste: painel `/api/painel/ml-teste`. **Problema: 429 do ML → poucos produtos dele por busca.**
-  Detalhe no histórico ("Mercado Livre ligado").
+  Detalhe no histórico ("Mercado Livre ligado"). **04/11 (25ª)**: job `mercadolivre` no robô (`/api/preparar-ml`, `so_ml`):
+  guarda catálogo+preços das prontas no D1 (`ml_catalogo`/`ml_ofertas`) antes do job `prontas`; a busca lê de lá (preço vale 48 h).
+  1º teste (#108): 386 de 464 buscas em 30 min, 5.790 preços, só 3 esperas de 429. Conferir na madrugada de 05/11 se as prontas trazem ML.
 - Feito nesta sessão: IA conferindo as buscas (esconde o que não é o produto); filtro de Marcas no alto e categorias só em
   busca ambígua; celular no molde do app do Mercado Livre (abas, atalhos, barra de baixo, gaveta de filtros moderna);
   sugestões "produto + marca" (inclusive HP/LG); busca com marca mostra só a marca (`deOutraMarca`).
@@ -74,9 +76,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) Giovanni conferir em afiliados ("Cliques"/"Ir para Métricas") se o clique de teste de 04/11
-  contou (link com matt_tool+matt_word; se não contar, repensar o link); 2) mais produtos do ML apesar do 429: robô de
-  madrugada guardando os preços do ML das buscas prontas no D1 em ritmo lento (como a Awin) e a busca lendo de lá;
-  3) loja ML em /api/lojas, alertas e ?produto= aceitarem "mercadolivre-".
+  contou (link com matt_tool+matt_word; se não contar, repensar o link); 2) ~~robô guardando preços do ML~~ feito 04/11;
+  muitos produtos do catálogo vêm sem vendedor (busca com 16 do catálogo → ~3 com preço; 84 buscas com 0); 3) loja ML em /api/lojas, alertas e ?produto= aceitarem "mercadolivre-".
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
   UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027); decidir cron-job.org para o atraso
   do robô; decidir Mercado Livre.

@@ -1569,3 +1569,13 @@ Texto para colar numa conversa nova:
   no cache do Cloudflare e para no 1º 429. Resultado: ML aparece, mas com poucos produtos (aspirador robô xiaomi: 4).
   Não feito: loja ML em /api/lojas e página da loja, "Ofertas do dia", alertas de preço (lib/alertas.js idValido) e
   ?produto= (lib/produto.js) não aceitam "mercadolivre-". Giovanni fez 1 clique de teste (janela anônima) em 04/11.
+- **Mercado Livre: robô guardando os preços (04/11/2026, 25ª sessão)**. Por causa do 429, job novo `mercadolivre` no
+  robo-precos.yml (roda junto com o "shopee"; o "prontas" espera os dois; opção `so_ml`): chama `/api/preparar-ml?parte=N&horas=H`
+  (functions/api/preparar-ml.js; mesma lista das prontas: `listaDasProntas` em preparar-buscas.js, termo = corrigirBusca(q)).
+  Cada parte: catálogo do termo (16) + preço de cada produto, 1 por vez, guardados no D1 (`ml_catalogo` termo→produtos,
+  `ml_ofertas` produto→ofertas; lib/fontes/mercadolivre.js `preparar`). 1ª volta só o que tem >44 h (continua de onde a
+  madrugada anterior parou), 2ª volta >20 h; 429 = espera 1 min e repete (5 seguidas = para); para aos 30 min. A busca do
+  site lê catálogo (até 4 dias) e preços (até 48 h) do banco e só pergunta ao ML o que falta (e guarda). Painel: "Preços do
+  Mercado Livre" (robo/relatorio.mjs). 1º teste (#108, so_ml): 386 de 464 buscas, 5.790 preços, 3 esperas de 429; mas só
+  1.195 produtos com preço (muitos do catálogo sem vendedor/só usados); 84 buscas sem nenhum. As prontas de 04/11 foram feitas
+  antes: ML aparece nelas a partir da madrugada de 05/11.
