@@ -58,6 +58,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - 04/11: Lauri Esporte só pela Awin (marca da Lomadee com nome de loja da Awin sai: `marcasNaAwin` em lomadee.js; fotos
   antigas 404 e repetidos); China in Box, DeÔnibus, Zupper, Bauducco, Jolimont e eles.® fora (não são loja de produtos, `FORA` em lomadee.js; cupons v13); robô: foto boa testada a
   cada 7 dias + amostra de 20 fotos por loja (🔄 = loja trocou as fotos, testa tudo de novo).
+  Busca pelo nome de loja parceira: faixa com atalho; se vier vazia, abre a loja (`lojaDoNome` em app.js).
 
 ## Pendências
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;

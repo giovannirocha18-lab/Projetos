@@ -1480,3 +1480,8 @@ Texto para colar numa conversa nova:
   China in Box (Lomadee, só cupons): restaurante de delivery, Giovanni pediu para tirar → `FORA` em lomadee.js (marcas v4), cupons v12.
   Outras marcas que não são loja de produto comum nos cupons: DeÔnibus (passagens), Zupper (viagens), Bauducco, Vinícola Jolimont
   → Giovanni: "tire todos que não fazem parte da loja": saíram também + eles.® (remédios com receita); cupons v13, marcas v5.
+- **Busca pelo nome da loja (04/11/2026)**. Giovanni: "quando busco pela marca não aparece nada" ("lauri esporte", "efacil",
+  "cobasi" davam 0 ou quase: o título dos produtos não traz o nome da loja). app.js: `lojaDoNome` (nome limpo sem espaços igual,
+  ou começa/termina com o buscado de 5+ letras; sem marketplaces), `mostrarLojaNaBusca` → faixa `#loja-na-busca` (index.html)
+  "Loja parceira" com "Ver produtos da loja"/"Ir para a loja"; busca vazia + loja achada → abre `?loja=` (replaceState).
+  "motorola"/"boticario" continuam busca normal com a faixa. Conferido em produção com Playwright.
