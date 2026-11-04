@@ -1503,3 +1503,8 @@ Texto para colar numa conversa nova:
   chegada dos produtos e a cada lote de 48 ao rolar. Agora `surgir` só muda a opacidade (estilo.css). `desenharResultados`:
   cartões que já estavam na tela (`data-id`) não refazem a animação e `desenharAosPoucos(..., { minimo })` desenha pelo menos
   os que já estavam (lista não encolhe quando chegam lotes sozinhos).
+- **"pc gamer" na AliExpress (04/11/2026)**. Print: dentro da loja AliExpress, 1 PC e o resto ventoinha/mouse/teclas/mouse pad.
+  No site todo "pc gamer" já vinha bem (114 PCs: Shopee, Kabum, Shopinfo). A AliExpress quase não tem PC completo para o
+  Brasil (API devolve 2). lib/relevancia.js: `BUSCA_DE_PC` (busca que começa por pc/computador/desktop), título nível 0 com
+  `PERIFERICO_DE_PC` e sem `CONFIGURACAO_DE_PC` → acessório. Caso "pc gamer" em testes/busca.mjs. Vale nas buscas novas
+  (as guardadas renovam em até 6 h / robô das prontas).
