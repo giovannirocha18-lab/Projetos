@@ -30,7 +30,8 @@ Ainda escondido do Google (noindex) até o lançamento.
 - Banco D1 (`DB`), plano Workers Paid. Versões de cache: `VERSAO_CACHE` (buscar.js) = `VERSAO_BUSCA` (app.js), hoje **108**;
   ao trocar, rodar o robô com `so_prontas`. `/api/vocabulario?v=7`, `/api/lojas` VERSAO e `/api/numeros?v=` também têm versão.
 - Testar local: `npx wrangler pages dev public`; Playwright: Chromium em `/opt/pw-browsers/chromium`,
-  import de `/opt/node22/lib/node_modules/playwright/index.mjs`.
+  import de `/opt/node22/lib/node_modules/playwright/index.mjs`. **Teste no site no ar: cookie `vpc_nao_contar=1`**
+  (`ctx.addCookies`) senão as visitas do teste entram no painel (04/11: ~dezenas de visitas de teste).
 
 ## Robô (GitHub Actions `robo-precos.yml`, 01:30 de Brasília; o GitHub atrasa ~6 h)
 Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` (histórico), `lomadee` (marcas/páginas),

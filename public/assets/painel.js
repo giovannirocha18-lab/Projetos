@@ -415,6 +415,15 @@
     aparelhos(d);
     lista($("l-produtos"), d.topProdutos, (i) => i.nome, (i) => `· ${i.loja}`);
     lista($("l-onde"), d.cliquesOnde, (i) => ONDE[i.nome] || i.nome);
+    // País: o Cloudflare manda a sigla ("BR"); aqui vira o nome em português
+    const nomesPaises = typeof Intl.DisplayNames === "function" ? new Intl.DisplayNames(["pt-BR"], { type: "region" }) : null;
+    const pais = (sigla) => { try { return (sigla && sigla.length === 2 && nomesPaises?.of(sigla)) || sigla; } catch { return sigla; } };
+    lista($("l-paises"), d.visitas?.erro ? [] : d.visitas?.paises, (i) => pais(i.nome));
+    // Navegador automático (testes, robôs) aparece com o nome dele: "HeadlessChrome" não é gente
+    lista($("l-navegadores"), d.visitas?.erro ? [] : d.visitas?.navegadores, (i) => (/headless/i.test(i.nome) ? `${i.nome} (robô/teste)` : i.nome));
+    if (d.visitas?.erroExtras) {
+      for (const id of ["l-paises", "l-navegadores"]) $(id).replaceChildren(el("li", "vazio", `O Cloudflare não mandou: ${d.visitas.erroExtras}`));
+    }
     medidor(d);
     saude(d);
     montarRobo();

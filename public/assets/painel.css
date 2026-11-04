@@ -77,7 +77,7 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 @media (min-width: 980px) { .trio { grid-template-columns: 1fr 1fr 1fr; } }
 .quarteto { display: grid; gap: 16px; }
 @media (min-width: 860px) { .quarteto { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 1500px) { .quarteto { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 1500px) { .quarteto { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .quadros { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 @media (min-width: 860px) { .quadros-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .quadro { background: var(--quadro); border: 1px solid var(--borda-forte); border-radius: 12px; padding: 10px 12px; min-width: 0; }
