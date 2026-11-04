@@ -24,6 +24,10 @@ on:
         description: "Só a auditoria da busca (suspeitos no topo + IA conferindo as categorias das buscas)"
         type: boolean
         default: false
+      so_ml:
+        description: "Só guardar os preços do Mercado Livre das buscas prontas (sem as outras lojas)"
+        type: boolean
+        default: false
       so_numeros:
         description: "Só o relatório Números do site (buscas, cliques, contas)"
         type: boolean
@@ -43,7 +47,7 @@ on:
 
 jobs:
   awin:
-    if: ${{ !inputs.so_numeros && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     # Uma gravação por vez: duas ao mesmo tempo (madrugada atrasada + Run workflow) gravam por cima uma da outra
     concurrency:
@@ -128,7 +132,7 @@ jobs:
   # Shopee: o site guarda o preço de hoje dos produtos das vitrines e dos mais buscados
   # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
   shopee:
-    if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -158,11 +162,58 @@ jobs:
           [ "$falhas" -gt 0 ] && aviso="$aviso${aviso:+; }$falhas partes não responderam"
           echo "shopee=$(jq -cn --arg l "$gravados preços guardados para o histórico ($feitas partes)" --arg a "$aviso" '{linhas: [$l], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
 
+  # Mercado Livre (04/11/2026): ele recusa ("429 local_rate_limited") quando pedimos rápido, então a busca do site trazia
+  # poucos produtos dele. Aqui o robô passa devagar pelas buscas prontas (uma por chamada, um preço por vez) e guarda o
+  # catálogo e os preços no banco (/api/preparar-ml); o job "prontas" vem depois e já monta as buscas com eles.
+  # 1ª volta: só o que tem mais de 44 h (a madrugada anterior não alcançou); 2ª volta: mais de 20 h, se sobrar tempo.
+  # Recusou: espera 1 minuto e repete a mesma busca (5 recusas seguidas = para). Para aos 30 minutos.
+  mercadolivre:
+    if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      ml: ${{ steps.ml.outputs.ml }}
+      ml_ok: ${{ steps.ml.outcome }}
+    steps:
+      - name: Guardar preços do Mercado Livre
+        id: ml
+        env:
+          CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }} # chave do robô (lib/robo.js); no GitHub vale um dos dois nomes
+        run: |
+          echo "### Mercado Livre" >> "$GITHUB_STEP_SUMMARY"
+          n() { echo "$1" | jq -r "$2 // 0" 2>/dev/null | grep -E '^[0-9]+$' || echo 0; } # número de dentro da resposta
+          pedir() { curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-ml?parte=$1&horas=$2" || echo "falhou"; }
+          inicio=$(date +%s); renovadas=0; precos=0; esperas=0; partes=0; parou=""
+          for horas in 44 20; do
+            parte=0; seguidas=0
+            while :; do
+              if [ $(( $(date +%s) - inicio )) -gt 1800 ]; then parou="parou aos 30 minutos (volta de $horas h, busca $parte de $partes)"; break 2; fi
+              r=$(pedir "$parte" "$horas")
+              echo "volta $horas h, parte $parte: $r"
+              echo "$r" | grep -q CHAVE_ROBO && exit 1 # chave recusada: falha visível (e-mail do GitHub)
+              p=$(n "$r" .partes); [ "$p" -gt 0 ] && partes=$p
+              consultas=$(n "$r" .consultas); precos=$((precos + $(n "$r" .precos)))
+              [ "$consultas" -gt 0 ] && renovadas=$((renovadas + 1))
+              if echo "$r" | grep -q '"limite":true'; then
+                esperas=$((esperas + 1)); seguidas=$((seguidas + 1))
+                if [ "$seguidas" -ge 5 ]; then parou="parou: o Mercado Livre recusou 5 vezes seguidas (busca $parte de $partes)"; break 2; fi
+                sleep 60; continue
+              fi
+              seguidas=0
+              echo "$r" | grep -q '"fim":true' && break
+              parte=$((parte + 1))
+              [ "$consultas" -gt 0 ] && sleep 1
+            done
+          done
+          echo "- $renovadas buscas renovadas, $precos preços guardados, $esperas esperas de 1 minuto pelo limite ${parou:+($parou)}" >> "$GITHUB_STEP_SUMMARY"
+          echo "ml=$(jq -cn --arg l "$renovadas buscas renovadas, $precos preços guardados ($partes buscas)" --arg e "$esperas esperas de 1 minuto pelo limite do Mercado Livre" --arg a "$parou" '{linhas: [$l, $e], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
+
   # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
   prontas:
-    # Depois do job "shopee" (que também consulta a Shopee): os dois juntos estouravam o limite dela
-    needs: shopee
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia }}
+    # Depois do job "shopee" (que também consulta a Shopee): os dois juntos estouravam o limite dela. E depois do
+    # "mercadolivre", que deixa os preços do Mercado Livre no banco
+    needs: [shopee, mercadolivre]
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
     outputs:
@@ -204,7 +255,7 @@ jobs:
 
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
   lomadee:
-    if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -240,7 +291,7 @@ jobs:
   # a lista serve para corrigir as regras da busca (lib/relevancia.js)
   auditoria:
     needs: prontas
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_ia }}
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_ia }}
     runs-on: ubuntu-latest
     timeout-minutes: 50
     outputs:
@@ -296,7 +347,7 @@ jobs:
   # novos num lote (Batch API, metade do preço) e lê o resultado do lote anterior. Custo e exemplos no resumo da execução
   ia:
     needs: awin
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria }}
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     concurrency:
@@ -356,7 +407,7 @@ jobs:
   # Resumo para o painel do Giovanni (03/11/2026): depois de todos os jobs (mesmo se algum falhar), junta o que cada
   # passo anotou e se deu certo e grava no banco (robo/relatorio.mjs, tabela robo_execucoes); aparece na aba "Robô"
   relatorio:
-    needs: [awin, shopee, prontas, lomadee, auditoria, ia]
+    needs: [awin, shopee, mercadolivre, prontas, lomadee, auditoria, ia]
     if: ${{ always() && !inputs.so_numeros }}
     runs-on: ubuntu-latest
     timeout-minutes: 5

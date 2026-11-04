@@ -85,7 +85,7 @@ node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite /tmp/teste.sqlite
 ```
 
 `CHAVE_ROBO` (no GitHub e no Cloudflare, o mesmo valor) é a chave que o robô manda para os endereços que só ele pode
-chamar (`/api/preparar-buscas`, `/api/coletar-precos`, `/api/conferir-alertas`, `/api/conferir-lojas`; ver `lib/robo.js`).
+chamar (`/api/preparar-buscas`, `/api/preparar-ml`, `/api/coletar-precos`, `/api/conferir-alertas`, `/api/conferir-lojas`; ver `lib/robo.js`).
 
 **Links "Comprar"**: toda madrugada o robô abre 8 produtos de cada loja da Awin direto no site da loja (sem o rastreio
 da Awin), e a conferência da Lomadee abre 4 de cada marca. Loja da Awin com até 3 mil produtos e 2+ links quebrados na

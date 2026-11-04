@@ -15,16 +15,14 @@ import { recusarSeNaoForRobo } from "../../lib/robo.js";
 const MAX_PRONTAS = 1000;
 const BUSCADOS_NO_MES = 600;
 
-export async function onRequestGet({ request, env, waitUntil }) {
-  const recusa = await recusarSeNaoForRobo(request, env);
-  if (recusa) return recusa;
-  const parte = Math.max(parseInt(new URL(request.url).searchParams.get("parte"), 10) || 0, 0);
+// A lista das buscas prontas (também usada pelo robô do Mercado Livre, /api/preparar-ml)
+export async function listaDasProntas(env) {
   const [buscados, doMes] = await Promise.all([
     maisBuscados(env, { ateOntem: true }).catch(() => []),
     termosBuscados(env, BUSCADOS_NO_MES).catch(() => []),
   ]);
   const vistos = new Set();
-  const lista = [
+  return [
     { q: "" }, // "Ofertas do dia" da página inicial
     ...Array.from({ length: PAGINAS_INICIO_PRONTAS - 1 }, (_, i) => ({ q: "", pagina: i + 2 })), // e as próximas páginas
     ...categoriasParaPreparar().map((c) => ({ q: c.busca, cat: c.nome })),
@@ -33,6 +31,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const chave = `${b.q.toLowerCase()}|${b.cat || ""}|${b.pagina || 1}`;
     return !vistos.has(chave) && vistos.add(chave);
   }).slice(0, MAX_PRONTAS);
+}
+
+export async function onRequestGet({ request, env, waitUntil }) {
+  const recusa = await recusarSeNaoForRobo(request, env);
+  if (recusa) return recusa;
+  const parte = Math.max(parseInt(new URL(request.url).searchParams.get("parte"), 10) || 0, 0);
+  const lista = await listaDasProntas(env);
   const fim = parte + 1 >= lista.length;
   if (parte >= lista.length) return Response.json({ parte, partes: lista.length, fim: true });
 
