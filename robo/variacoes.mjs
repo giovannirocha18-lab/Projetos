@@ -1,5 +1,5 @@
 // Auditoria das variações (04/11/2026, pedido do Giovanni: "um robô só pra filtrar esses casos pra não poluir o site").
-// Algumas lojas mandam cada tamanho/numeração como um produto ("Tênis … Azul 40", "… Azul 41"…). O site junta essas
+// Só calçados e roupas. Algumas lojas mandam cada tamanho/numeração como um produto ("Tênis … Azul 40", "… Azul 41"…). O site junta essas
 // variações num cartão só pela regra de lib/variacoes.js (modeloBase) e pela cópia dela em app.js (semTamanho).
 // Este relatório (job "auditoria" do robo-precos.yml) procura, em cada loja da Awin, grupos de anúncios com o mesmo preço
 // e o mesmo nome tirando a última palavra, e diz quantos o site já junta e quais ainda NÃO junta (com exemplos),
@@ -8,7 +8,7 @@
 import { appendFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { paraPainel } from "./painel.mjs";
-import { modeloBase } from "../lib/variacoes.js";
+import { modeloBase, CALCADO_ROUPA } from "../lib/variacoes.js";
 import { normalizar } from "../lib/texto.js";
 
 const MINIMO_NO_GRUPO = 3; // 2 iguais podem ser coincidência; 3+ com só o fim diferente quase sempre é tamanho/cor
@@ -18,6 +18,8 @@ export function auditarVariacoes(linhas) {
   const grupos = new Map();
   for (const l of linhas) {
     const t = normalizar(String(l.titulo || "")).replace(/[^a-z0-9\/ ]+/g, " ").replace(/\s+/g, " ").trim();
+    // Só calçado e roupa (Giovanni, 04/11/2026: "tv não precisa mexer, este caso é mais pra calçados, roupas")
+    if (!CALCADO_ROUPA.test(t)) continue;
     const palavras = t.split(" ");
     if (palavras.length < 3) continue;
     const chave = `${l.loja_nome}|${Number(l.preco).toFixed(2)}|${palavras.slice(0, -1).join(" ")}`;
