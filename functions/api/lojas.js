@@ -11,16 +11,26 @@ import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoViv
 import { carregarMapa, aplicarMapa } from "../../lib/mapaCategorias.js";
 import { marcarSecoes } from "../../lib/categorias.js";
 import { comCategoriaDaIa } from "../../lib/ia.js";
+import { MARCAS } from "../../lib/vocabulario.js";
+import { normalizar } from "../../lib/texto.js";
 
 const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
 const POR_PAGINA = 48;
 const MAX_PAGINA = 20;
-const VERSAO = 24; // 24: Lauri Esporte só pela Awin (04/11/2026); 23: só a conta PJ da Awin (30/10/2026); 22: Moda infantil (30/10/2026); 21: categorias da IA (29/10/2026); 20: Motorola "moto g" não é moto; 19: Central Ar toda em Eletrodomésticos; 18: Central Ar, Motorola e Calvin Klein (28/10/2026); 17: categoria da loja trava a categoria (28/10/2026); 16: Pets exclusiva (28/10/2026); 15: oBoticario e Efacil (28/10/2026); 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
+const VERSAO = 25; // 25: "marca" nas lojas que também são marca (04/11/2026); 24: Lauri Esporte só pela Awin (04/11/2026); 23: só a conta PJ da Awin (30/10/2026); 22: Moda infantil (30/10/2026); 21: categorias da IA (29/10/2026); 20: Motorola "moto g" não é moto; 19: Central Ar toda em Eletrodomésticos; 18: Central Ar, Motorola e Calvin Klein (28/10/2026); 17: categoria da loja trava a categoria (28/10/2026); 16: Pets exclusiva (28/10/2026); 15: oBoticario e Efacil (28/10/2026); 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
 
 function responder(dados, segundos) {
   return Response.json(dados, { headers: { "Cache-Control": `public, max-age=${segundos}`, "X-Robots-Tag": "noindex" } });
 }
+
+const MARCAS_LIMPAS = MARCAS.map((m) => ` ${normalizar(m).replace(/[^a-z0-9]+/g, " ").trim()} `);
+const ehMarca = (nome) => {
+  const n = ` ${normalizar(nome).replace(/[^a-z0-9]+/g, " ").trim()} `;
+  // junto também ("oBoticario" tem "boticario"), só marca de 6+ letras
+  const junto = n.replace(/ /g, "");
+  return MARCAS_LIMPAS.some((m) => n.includes(m) || (m.trim().length >= 6 && junto.includes(m.replace(/ /g, ""))));
+};
 
 async function listarLojas(env) {
   const marketplaces = [
@@ -34,7 +44,10 @@ async function listarLojas(env) {
   const lojas = [
     ...(daAwin || []).map((l) => ({ id: `awin:${l.loja}`, nome: nomeDaLojaAwin(l.nome) || l.loja, rede: "awin", produtos: l.n, internacional: Boolean(l.internacional) || undefined })),
     ...[...marcas].map(([id, m]) => ({ id: `lomadee:${id}`, nome: m.nome, rede: "lomadee", produtos: m.produtos, produtosMais: m.produtosMais })),
-  ].filter((l) => !lojaPequena(l.produtos, l.produtosMais)).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
+  ].filter((l) => !lojaPequena(l.produtos, l.produtosMais)).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }))
+    // Loja que também é marca (Motorola, Calvin Klein, Boticário…): buscar o nome dela mostra a marca em todas as lojas;
+    // nas outras (Kabum, Efacil, Cobasi…) o site abre direto a página da loja (app.js, buscar)
+    .map((l) => (ehMarca(l.nome) ? { ...l, marca: true } : l));
   return { lojas: [...marketplaces, ...lojas], completo: (!lomadee.ativa(env) || marcas.size > 0) && daAwin !== null };
 }
 

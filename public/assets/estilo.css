@@ -148,6 +148,10 @@ a { color: inherit; }
 .sugestoes li::before { content: "🔍"; font-size: .85rem; opacity: .6; }
 .sugestoes li[aria-selected="true"], .sugestoes li:hover { background: var(--roxo-claro); }
 .sugestoes mark { background: none; color: var(--roxo); font-weight: 700; }
+/* Loja parceira na lista de sugestões: ícone de loja e "Loja parceira" à direita */
+.sugestoes li.sug-loja::before { content: "🏬"; opacity: 1; }
+.sugestoes li.sug-loja > span { font-weight: 700; }
+.sugestoes li.sug-loja small { margin-left: auto; color: var(--suave); font-size: .75rem; white-space: nowrap; }
 
 /* ---------- loja (bolinha colorida) ---------- */
 .loja-ponto { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--cor-loja); box-shadow: 0 0 0 3px color-mix(in srgb, var(--cor-loja) 25%, transparent); }

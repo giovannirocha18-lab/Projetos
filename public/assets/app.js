@@ -2220,6 +2220,16 @@ function desenharResumoBuscando() {
 
 async function buscar(q) {
   const pedido = ++estado.pedido;
+  // Buscou o nome de uma loja que não é marca ("kabum", "efacil", "cobasi"): abre direto a página dela (pedido do
+  // Giovanni, 04/11/2026; "kabum" trazia peças de robô aspirador da marca). Loja que é marca ("motorola") busca normal
+  if (!lojaAtual() && !categoriaAtual()) {
+    const lojaBuscada = lojaDoNome(q, await carregarLojasParceiras());
+    if (pedido !== estado.pedido) return;
+    if (lojaBuscada && !lojaBuscada.marca) {
+      history.replaceState(null, "", `/?loja=${encodeURIComponent(lojaBuscada.id)}`);
+      return mostrar();
+    }
+  }
   estado.q = q;
   mostrarLojaNaBusca(q, pedido);
   estado.foraDaCategoria = null;
@@ -2276,8 +2286,9 @@ async function buscar(q) {
     estado.temMaisBusca = Boolean(dados.mais);
     estado.completando = estado.temMaisBusca; // a "Escolha rápida" só aparece depois dos lotes automáticos
     // Buscou o nome de uma loja e nenhum produto tem esse nome no título: abre direto os produtos da loja
-    // (replaceState: o "voltar" não cai de novo na busca vazia)
-    if (!estado.ofertas.length && !estado.temMaisBusca && !lojaAtual()) {
+    // (replaceState: o "voltar" não cai de novo na busca vazia). "kabum" trazia 15 peças "parecidas" (print 04/11/2026):
+    // vale também quando nada bate de verdade
+    if (!estado.ofertas.some((o) => o.bate && !o.acessorio) && !lojaAtual()) {
       const loja = lojaDoNome(q, await carregarLojasParceiras());
       if (loja && pedido === estado.pedido) {
         history.replaceState(null, "", `/?loja=${encodeURIComponent(loja.id)}`);
@@ -2472,6 +2483,18 @@ function casaComNome(q, nomeLoja) {
   const nome = limpo(nomeLoja).replace(/ /g, "");
   if (buscado.length < 4 || !nome) return false;
   return nome === buscado || (buscado.length >= 5 && (nome.startsWith(buscado) || nome.endsWith(buscado)));
+}
+// Lojas para a lista de sugestões enquanto digita: o nome (ou uma palavra dele) começa com o digitado ("kab" = Kabum,
+// "inbox" = Cama In Box); 3+ letras; no máximo 2
+function lojasSugeridas(texto) {
+  const digitado = limpo(texto);
+  if (digitado.length < 3 || !lojasParceiras) return [];
+  const junto = digitado.replace(/ /g, "");
+  return lojasParceiras.filter((l) => {
+    const nome = limpo(l.nome);
+    return nome.startsWith(digitado) || nome.replace(/ /g, "").startsWith(junto)
+      || (digitado.length >= 4 && nome.split(" ").some((p) => p.startsWith(digitado)));
+  }).slice(0, 2);
 }
 function lojaDoNome(q, lojas) {
   return lojas.find((l) => l.rede !== "marketplace" && casaComNome(q, l.nome)) || null;
@@ -3240,15 +3263,25 @@ function prepararBusca(form) {
     else input.removeAttribute("aria-activedescendant");
   };
 
+  // Loja escolhida na lista: abre a página dela
+  const abrirLojaSugerida = (l) => { input.value = ""; fechar(); input.blur(); irParaLoja(l.id); };
   function desenhar() {
     if (document.activeElement !== input) return;
-    itens = sugerir(input.value);
+    // Lojas parceiras primeiro (pedido do Giovanni, 04/11/2026: "quando digitar o nome da loja, mostrar na lista com
+    // ícone de loja"); dentro de uma loja aberta, não
+    const lojas = lojaAtual() ? [] : lojasSugeridas(input.value).map((l) => ({ loja: l }));
+    itens = [...lojas, ...sugerir(input.value)].slice(0, 8);
     if (!itens.length) return fechar();
-    lista.replaceChildren(...itens.map((s, n) => el("li", {
-      role: "option", id: `${idLista}-${n}`, "aria-selected": "false",
-      onmouseenter: () => adiantarBusca(s, categoriaAtual()),
-      onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual(), loja: lojaAtual() }); },
-    }, textoSugestao(s, input.value))));
+    lista.replaceChildren(...itens.map((s, n) => (s.loja
+      ? el("li", {
+        role: "option", id: `${idLista}-${n}`, "aria-selected": "false", class: "sug-loja",
+        onmousedown: (e) => { e.preventDefault(); abrirLojaSugerida(s.loja); },
+      }, textoSugestao(s.loja.nome, input.value), el("small", {}, "Loja parceira"))
+      : el("li", {
+        role: "option", id: `${idLista}-${n}`, "aria-selected": "false",
+        onmouseenter: () => adiantarBusca(s, categoriaAtual()),
+        onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual(), loja: lojaAtual() }); },
+      }, textoSugestao(s, input.value)))));
     ativo = -1;
     lista.hidden = false;
     input.setAttribute("aria-expanded", "true");
@@ -3260,16 +3293,21 @@ function prepararBusca(form) {
   input.addEventListener("input", () => {
     desenhar();
     clearTimeout(timerAdiantar);
-    timerAdiantar = setTimeout(() => { if (document.activeElement === input && itens.length) adiantarBusca(itens[0], categoriaAtual()); }, 600);
+    const primeira = itens.find((i) => typeof i === "string");
+    timerAdiantar = setTimeout(() => { if (document.activeElement === input && primeira) adiantarBusca(primeira, categoriaAtual()); }, 600);
   });
   input.addEventListener("focus", carregarVocabulario);
+  // Lista de lojas para as sugestões: chegou depois de começar a digitar, desenha de novo
+  input.addEventListener("focus", () => { if (!lojasParceiras) carregarLojasParceiras().then(() => { if (input.value.trim()) desenhar(); }); });
   vocab.aoChegar.push(() => { if (input.value.trim()) desenhar(); });
   input.addEventListener("blur", fechar);
   input.addEventListener("keydown", (e) => {
     if (lista.hidden) return;
-    if (e.key === "ArrowDown") { ativo = (ativo + 1) % itens.length; marcar(); adiantarBusca(itens[ativo], categoriaAtual()); e.preventDefault(); }
-    else if (e.key === "ArrowUp") { ativo = (ativo - 1 + itens.length) % itens.length; marcar(); adiantarBusca(itens[ativo], categoriaAtual()); e.preventDefault(); }
+    const adiantar = () => { if (typeof itens[ativo] === "string") adiantarBusca(itens[ativo], categoriaAtual()); };
+    if (e.key === "ArrowDown") { ativo = (ativo + 1) % itens.length; marcar(); adiantar(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { ativo = (ativo - 1 + itens.length) % itens.length; marcar(); adiantar(); e.preventDefault(); }
     else if (e.key === "Escape") fechar();
+    else if (e.key === "Enter" && ativo >= 0 && itens[ativo]?.loja) { e.preventDefault(); abrirLojaSugerida(itens[ativo].loja); }
     else if (e.key === "Enter" && ativo >= 0) { input.value = itens[ativo]; }
   });
 
@@ -3407,6 +3445,7 @@ $("#cupons-filtro").addEventListener("input", desenharCupons);
 document.querySelectorAll("[data-ver-cupons]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); abrirCupons(); }));
 document.querySelectorAll("[data-black-friday]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); irParaBlackFriday(); }));
 carregarCupons();
+carregarLojasParceiras(); // a busca pelo nome de uma loja abre a página dela (buscar) e as sugestões mostram as lojas
 // A lista de marcas (filtro "Marcas") vem do vocabulário da busca: baixa logo e redesenha quando chegar
 vocab.aoChegar.push(() => { if (!estado.buscando) { desenharFiltroMarcas(); } });
 carregarVocabulario();
