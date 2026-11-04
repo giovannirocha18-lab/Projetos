@@ -1508,3 +1508,10 @@ Texto para colar numa conversa nova:
   Brasil (API devolve 2). lib/relevancia.js: `BUSCA_DE_PC` (busca que começa por pc/computador/desktop), título nível 0 com
   `PERIFERICO_DE_PC` e sem `CONFIGURACAO_DE_PC` ("hd"/"rx" só com número: "hd 1tb", "rx 580") → acessório. Caso "pc gamer" em testes/busca.mjs. Vale nas buscas novas
   (as guardadas renovam em até 6 h / robô das prontas).
+- **Robô de 04/11/2026 (#104)**: agendado 01:30, começou 09:21 (7h51 de atraso), terminou 10:18. Tudo ✅ com avisos: Awin 76.116
+  produtos (Elements 39 de 45 links quebrados); Shopee 648 preços (54 buscas com erro 10030); **prontas 466 de 484** (2 esperas);
+  Lomadee 23 marcas; IA 2.213 títulos novos em lote (lido na próxima); IA conferindo: 303 buscas, 1.025 perguntados, 196 escondidos,
+  936 categorias corrigidas (US$ 0,03); auditoria 0 suspeitos; 🆕 **TEKA** (920 produtos, 0% com categoria da loja: Toalha de
+  Piscina → Outros, Protetor de Colchão → Móveis). Feito: `PADRAO_DA_LOJA.teka` forte "Cama e banho" (aceita Mesa posta,
+  Decoração, Bebês); `categoriaTravada`: loja forte antes da categoria da IA (aceita confere caminho, IA e título); lojas v26.
+  Banco 372 MB (era 45 MB em out.; limite do Workers Paid = 10 GB; mensagem do robô corrigida). Painel aba Robô: 1º resumo da madrugada.

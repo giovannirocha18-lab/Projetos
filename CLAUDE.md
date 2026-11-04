@@ -60,6 +60,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   cada 7 dias + amostra de 20 fotos por loja (🔄 = loja trocou as fotos, testa tudo de novo).
   Busca pelo nome de loja parceira: faixa com atalho; se vier vazia, abre a loja (`lojaDoNome` em app.js).
   Cupons só de lojas com produtos no site (`lojasComProdutos` em functions/api/cupons.js): 42 cupons de 17 lojas.
+  Robô 04/11 (#104, 7h51 de atraso): **466 de 484 prontas** ✅; 🆕 **TEKA** (Awin, 920, cama/mesa/banho, feed sem categoria) →
+  `PADRAO_DA_LOJA` forte "Cama e banho" (loja forte vale acima da IA); banco 372 MB (limite do plano pago: 10 GB).
 
 ## Pendências
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
@@ -70,7 +72,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **Shopee limitando (desde 02/11)**: buscas prontas salvas caíram de ~445 para ~35 por rodada (erro 10030). Feito em 03/11:
   2 páginas por busca, cache 6 h, reserva 7 dias, robô 1 por vez com espera (ver histórico "Limite da Shopee"). Giovanni vai
   pedir limite maior à Shopee (o formulário não tem campo de texto: desistiu). Run #94 (so_prontas, 03/11): **431 de 478**
-  guardadas em 49 min (antes 29). **Conferir no robô de 04/11** a linha "X de Y buscas guardadas". Evitar subir VERSAO_CACHE à toa
+  guardadas em 49 min (antes 29); robô de 04/11: 466 de 484 ✅. Evitar subir VERSAO_CACHE à toa
   (apaga as prontas).
 - **Crédito da Anthropic**: acabou em 03/11, Giovanni recarregou no mesmo dia. IA conferindo as buscas agora também olha os 24
   primeiros de cada busca + 150 buscas reais do mês e **corrige a categoria sozinha** (ia_categorias) quando a busca é de produto
