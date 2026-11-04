@@ -47,6 +47,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Detalhe no histórico ("Mercado Livre ligado"). **04/11 (25ª)**: job `mercadolivre` no robô (`/api/preparar-ml`, `so_ml`):
   guarda catálogo+preços das prontas no D1 (`ml_catalogo`/`ml_ofertas`) antes do job `prontas`; a busca lê de lá (preço vale 48 h).
   1º teste (#108): 386 de 464 buscas em 30 min, 5.790 preços, só 3 esperas de 429. Conferir na madrugada de 05/11 se as prontas trazem ML.
+  Selo do ML amarelo/azul (`tag: "loja-tag-ml"`; botão Comprar igual para todas as lojas, decisão do Giovanni). "Frete grátis"
+  só ML (API) e Lauri Esporte (feed: frete 0 em tudo; Giovanni conferiu no site dela: grátis num de R$ 197 para RO ✅).
 - Feito nesta sessão: IA conferindo as buscas (esconde o que não é o produto); filtro de Marcas no alto e categorias só em
   busca ambígua; celular no molde do app do Mercado Livre (abas, atalhos, barra de baixo, gaveta de filtros moderna);
   sugestões "produto + marca" (inclusive HP/LG); busca com marca mostra só a marca (`deOutraMarca`).
