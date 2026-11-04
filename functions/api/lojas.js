@@ -13,12 +13,13 @@ import { marcarSecoes } from "../../lib/categorias.js";
 import { comCategoriaDaIa } from "../../lib/ia.js";
 import { MARCAS } from "../../lib/vocabulario.js";
 import { normalizar } from "../../lib/texto.js";
+import { modeloBase, grupoDaCategoria, semTamanho } from "../../lib/variacoes.js";
 
 const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
 const POR_PAGINA = 48;
 const MAX_PAGINA = 20;
-const VERSAO = 27; // 27: sem a Elements (04/11/2026); 26: TEKA em Cama e banho (04/11/2026); 25: "marca" nas lojas que também são marca (04/11/2026); 24: Lauri Esporte só pela Awin (04/11/2026); 23: só a conta PJ da Awin (30/10/2026); 22: Moda infantil (30/10/2026); 21: categorias da IA (29/10/2026); 20: Motorola "moto g" não é moto; 19: Central Ar toda em Eletrodomésticos; 18: Central Ar, Motorola e Calvin Klein (28/10/2026); 17: categoria da loja trava a categoria (28/10/2026); 16: Pets exclusiva (28/10/2026); 15: oBoticario e Efacil (28/10/2026); 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
+const VERSAO = 28; // 28: um cartão por modelo e tipos revezados na página da loja (04/11/2026); 27: sem a Elements (04/11/2026); 26: TEKA em Cama e banho (04/11/2026); 25: "marca" nas lojas que também são marca (04/11/2026); 24: Lauri Esporte só pela Awin (04/11/2026); 23: só a conta PJ da Awin (30/10/2026); 22: Moda infantil (30/10/2026); 21: categorias da IA (29/10/2026); 20: Motorola "moto g" não é moto; 19: Central Ar toda em Eletrodomésticos; 18: Central Ar, Motorola e Calvin Klein (28/10/2026); 17: categoria da loja trava a categoria (28/10/2026); 16: Pets exclusiva (28/10/2026); 15: oBoticario e Efacil (28/10/2026); 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
 
 function responder(dados, segundos) {
   return Response.json(dados, { headers: { "Cache-Control": `public, max-age=${segundos}`, "X-Robots-Tag": "noindex" } });
@@ -51,6 +52,38 @@ async function listarLojas(env) {
   return { lojas: [...marketplaces, ...lojas], completo: (!lomadee.ativa(env) || marcas.size > 0) && daAwin !== null };
 }
 
+// Ordem dos produtos de uma loja da Awin na página dela: um por modelo, revezando os tipos (ver produtosDaLoja).
+// Guardada 1 hora em cada servidor do Cloudflare (as páginas 2, 3… usam a mesma)
+const ordens = new Map();
+async function ordemDaLoja(db, loja) {
+  const guardada = ordens.get(loja);
+  if (guardada && Date.now() - guardada.em < PRODUTOS_SEGUNDOS * 1000) return guardada.ids;
+  ordens.delete(loja);
+  const { results } = await db.prepare(
+    "SELECT id, titulo, categoria, desconto FROM ofertas WHERE loja = ? AND +fonte = 'awin' ORDER BY desconto DESC",
+  ).bind(loja).all();
+  const vistos = new Map(); // modelo -> 1º id
+  const variados = new Set(); // ids que representam mais de um tamanho
+  const grupos = new Map();
+  for (const l of results) {
+    const modelo = modeloBase(l.titulo);
+    if (vistos.has(modelo)) { variados.add(vistos.get(modelo)); continue; }
+    vistos.set(modelo, l.id);
+    const g = grupoDaCategoria(l.categoria);
+    if (!grupos.has(g)) grupos.set(g, []);
+    grupos.get(g).push(l.id);
+  }
+  // Um de cada tipo por vez (os tipos na ordem do maior desconto de cada um)
+  const filas = [...grupos.values()];
+  const ids = [];
+  for (let i = 0; ids.length < MAX_PAGINA * POR_PAGINA && filas.some((f) => i < f.length); i++) {
+    for (const f of filas) if (i < f.length) ids.push(f[i]);
+  }
+  if (ordens.size > 200) ordens.clear();
+  ordens.set(loja, { ids, variados, em: Date.now() });
+  return ids;
+}
+
 async function produtosDaLoja(env, id, pagina, waitUntil) {
   if (id === "shopee" || id === "aliexpress") {
     const fonte = id === "shopee" ? shopee : aliexpress;
@@ -66,16 +99,22 @@ async function produtosDaLoja(env, id, pagina, waitUntil) {
     return r.nome ? { ...r, ofertas: await semFotosQuebradas(env.DB, r.ofertas, { waitUntil }), temMais: r.temMais && pagina < MAX_PAGINA } : null;
   }
   if (rede === "awin" && chave && env.DB) {
-    // Primeiro os com desconto (maior primeiro), depois o resto. "ORDER BY desconto DESC" segue o índice (loja, desconto)
-    // e para ao juntar a página: com COALESCE ou outra coluna na ordem, o D1 leria todas as ofertas da loja a cada página.
-    // "+fonte" impede o banco de preferir o índice (fonte, desconto), que percorre as ofertas de todas as lojas da Awin
-    const { results } = await env.DB.prepare(
-      `SELECT ${COLUNAS_OFERTA} FROM ofertas WHERE loja = ? AND +fonte = 'awin'
-       ORDER BY desconto DESC LIMIT ${POR_PAGINA + 1} OFFSET ${(pagina - 1) * POR_PAGINA}`,
-    ).bind(chave).all();
-    if (!results.length && pagina === 1) return null;
-    const ofertas = await comHistorico(env.DB, results.slice(0, POR_PAGINA).map(linhaParaOferta));
-    return { nome: ofertas[0]?.lojaNome || chave, ofertas, temMais: results.length > POR_PAGINA && pagina < MAX_PAGINA };
+    // 04/11/2026 (Giovanni: na Lauri Esporte "vem milhares de anúncio só de tênis"): a loja manda cada numeração como um
+    // produto e a lista era só por desconto, então as primeiras páginas eram o mesmo tênis em 10 tamanhos. Agora: um cartão
+    // por modelo (lib/variacoes.js) e os tipos da loja se revezam (tênis, jaqueta, bota, camiseta…), cada um do maior
+    // desconto para o menor. A ordem sai de uma consulta leve (id, título, categoria, desconto) de toda a loja; depois só
+    // os 48 da página vêm completos
+    const ordem = await ordemDaLoja(env.DB, chave);
+    if (!ordem.length && pagina === 1) return null;
+    const ids = ordem.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
+    if (!ids.length) return { nome: chave, ofertas: [], temMais: false };
+    const { results } = await env.DB.prepare(`SELECT ${COLUNAS_OFERTA} FROM ofertas WHERE id IN (${ids.map(() => "?").join(",")})`)
+      .bind(...ids).all();
+    const porId = new Map(results.map((l) => [l.id, l]));
+    const variados = ordens.get(chave)?.variados || new Set();
+    const ofertas = await comHistorico(env.DB, ids.map((id) => porId.get(id)).filter(Boolean).map(linhaParaOferta)
+      .map((o) => (variados.has(o.id) ? { ...o, titulo: semTamanho(o.titulo) } : o)));
+    return { nome: ofertas[0]?.lojaNome || chave, ofertas, temMais: ordem.length > pagina * POR_PAGINA && pagina < MAX_PAGINA };
   }
   return null;
 }
