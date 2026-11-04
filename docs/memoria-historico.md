@@ -1479,4 +1479,4 @@ Texto para colar numa conversa nova:
   de 20 fotos boas por loja por noite; 3+ quebradas → esquece o teste da loja inteira e testa de novo (aviso 🔄 no resumo/painel).
   China in Box (Lomadee, só cupons): restaurante de delivery, Giovanni pediu para tirar → `FORA` em lomadee.js (marcas v4), cupons v12.
   Outras marcas que não são loja de produto comum nos cupons: DeÔnibus (passagens), Zupper (viagens), Bauducco, Vinícola Jolimont
-  (perguntar ao Giovanni se ficam).
+  → Giovanni: "tire todos que não fazem parte da loja": saíram também + eles.® (remédios com receita); cupons v13, marcas v5.

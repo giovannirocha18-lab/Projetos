@@ -56,7 +56,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Elements: 39 de 45 links dão "página não encontrada" na loja; Monte Carlo: 2.454 sem foto (ficam fora sozinhos).
 - Lojas Benoit pausada (`LOJAS_PAUSADAS` em robo/awin.mjs) até corrigir fotos/preços.
 - 04/11: Lauri Esporte só pela Awin (marca da Lomadee com nome de loja da Awin sai: `marcasNaAwin` em lomadee.js; fotos
-  antigas 404 e repetidos); China in Box fora (restaurante, `FORA` em lomadee.js; cupons v12); robô: foto boa testada a
+  antigas 404 e repetidos); China in Box, DeÔnibus, Zupper, Bauducco, Jolimont e eles.® fora (não são loja de produtos, `FORA` em lomadee.js; cupons v13); robô: foto boa testada a
   cada 7 dias + amostra de 20 fotos por loja (🔄 = loja trocou as fotos, testa tudo de novo).
 
 ## Pendências
