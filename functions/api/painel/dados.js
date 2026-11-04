@@ -5,6 +5,7 @@
 // (tabela robo_execucoes, gravada por robo/relatorio.mjs). As comissões vêm de /api/painel/comissoes.
 import { ehPainel, quemEntrou } from "../../../lib/painel.js";
 import { visitasDoSite } from "../../../lib/visitas.js";
+import { inicioDaContagem, diaEmBrasilia } from "../../../lib/inicioPainel.js";
 
 const DIAS = 30;
 const hoje = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
@@ -24,9 +25,13 @@ export async function onRequestGet({ request, env }) {
   }
   if (!env.DB) return Response.json({ erro: "sem banco" }, { status: 503, headers: cabecalhos });
   const dia = hoje();
-  const desde = diasAtras(dia, DIAS - 1);
-  const semana = diasAtras(dia, 6);
-  const duasSemanas = diasAtras(dia, 13);
+  // "Zerar contadores" (lib/inicioPainel.js): buscas e cliques só do dia do zerar em diante; visitas, do minuto
+  const inicio = await inicioDaContagem(env.DB);
+  const diaInicio = inicio ? diaEmBrasilia(inicio) : "";
+  const aPartir = (d) => (diaInicio > d ? diaInicio : d);
+  const desde = aPartir(diasAtras(dia, DIAS - 1));
+  const semana = aPartir(diasAtras(dia, 6));
+  const duasSemanas = aPartir(diasAtras(dia, 13));
   const semanaMs = Date.now() - 7 * 864e5;
   // Tabela que ainda não existe conta como vazia
   const consulta = (sql, ...params) => env.DB.prepare(sql).bind(...params).all().then((r) => r.results).catch(() => []);
@@ -48,7 +53,7 @@ export async function onRequestGet({ request, env }) {
       WHERE versao = (SELECT MAX(versao) FROM buscas_prontas_gz)`, Date.now() - 30 * 36e5),
     consulta("SELECT nome, produtos AS n FROM lojas_awin ORDER BY produtos DESC"),
     consulta("SELECT MAX(dia) AS dia FROM coletas"),
-    visitasDoSite(env, { desde, ate: dia, semana }),
+    visitasDoSite(env, { desde, ate: dia, semana, inicio }),
     // Resumo das execuções do robô (robo/relatorio.mjs grava no fim de cada uma): aba Robô
     consulta("SELECT id, numero, evento, modo, inicio, fim, situacao, dados FROM robo_execucoes ORDER BY inicio DESC LIMIT 20"),
   ]);
@@ -77,6 +82,7 @@ export async function onRequestGet({ request, env }) {
   return Response.json({
     hoje: dia,
     desde,
+    inicio,
     buscasDia,
     topBuscas: emAlta,
     cliquesDia,

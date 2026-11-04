@@ -426,6 +426,7 @@
     }
     medidor(d);
     saude(d);
+    desenharInicio(d);
     montarRobo();
   }
 
@@ -722,6 +723,30 @@
   }
   desenharNaoContar();
   window.addEventListener("focus", desenharNaoContar);
+
+  // "Zerar contadores" (pedido do Giovanni, 04/11/2026): visitas, buscas e cliques começam do zero a partir de agora
+  // (functions/api/painel/zerar.js, lib/inicioPainel.js). Contas, alertas e carrinhos continuam
+  function desenharInicio(d) {
+    const quando = d.inicio
+      ? `Contando desde ${new Date(d.inicio).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).replace(",", " às")}`
+      : "Contando desde o começo do site";
+    const botao = el("button", "botao-link", d.inicio ? "Zerar de novo" : "Zerar contadores");
+    botao.type = "button";
+    botao.addEventListener("click", zerar);
+    $("inicio-contagem").replaceChildren(`${quando} · `, botao);
+    if (d.visitas?.avisoInicio) $("inicio-contagem").append(el("small", "", " (visitas contadas desde o começo do dia)"));
+  }
+  async function zerar() {
+    const ok = confirm("Zerar os contadores?\n\nVisitas, buscas e cliques começam do zero a partir de agora (os números de antes saem do painel). Contas, alertas de preço e carrinhos continuam.");
+    if (!ok) return;
+    try {
+      const r = await fetch("/api/painel/zerar", { method: "POST", headers: { "X-Painel": "1" }, credentials: "same-origin" });
+      if (!r.ok) throw new Error(`O servidor respondeu ${r.status}`);
+      await carregarTudo(true);
+    } catch (e) {
+      alert(`Não deu para zerar agora: ${e.message}`);
+    }
+  }
 
   // =================================== MENU E CARGA ===================================
 
