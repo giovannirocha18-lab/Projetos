@@ -65,6 +65,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   `PADRAO_DA_LOJA` forte "Cama e banho" (loja forte vale acima da IA); banco 372 MB (limite do plano pago: 10 GB).
   "Não contar minhas visitas": cookie `vpc_nao_contar` (`/?nao-contar=1`/`0`, link no quadro Visitas do painel) tira o aparelho
   das visitas (CSP sem Web Analytics), buscas e cliques (`lib/naoContar.js`). IP: não mostramos (LGPD).
+  Botão "Zerar contadores" no painel (`lib/inicioPainel.js`, `/api/painel/zerar`): conta a partir do momento do zerar.
 
 ## Pendências
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;

@@ -1539,3 +1539,10 @@ Texto para colar numa conversa nova:
   (countryName, userAgentBrowser; se falhar, `erroExtras` aparece nos quadros e o resto segue). Painel: quadros "País das visitas"
   (sigla → nome com Intl.DisplayNames) e "Navegador" (HeadlessChrome = "robô/teste"); `.quarteto` em 3 colunas a partir de 1500 px.
   Regra nova no CLAUDE.md: teste no site no ar com cookie `vpc_nao_contar=1`.
+- **"Zerar contadores" no painel (04/11/2026)**. Giovanni: "dá pra resetar todos esses contadores e começar a partir de hoje?"
+  (visitas dos EUA eram testes do Claude, servidor nos EUA). `lib/inicioPainel.js` (tabela painel_config, chave "inicio" em ms;
+  `zerarContadores` apaga buscas/buscas_marcas/cliques/cliques_produtos do próprio dia), `functions/api/painel/zerar.js` (POST,
+  Access + Origin + cabeçalho X-Painel). dados.js: `aPartir(dia)` = buscas/cliques do dia do zerar em diante; lib/visitas.js
+  `comInicio` põe `datetime_geq: $inicio` nas consultas (se o Cloudflare recusar, conta o dia inteiro e manda `avisoInicio`).
+  Painel: linha "Contando desde 04/11 às 15:42 · Zerar contadores/Zerar de novo" no Resumo da semana (confirm antes).
+  Contas, alertas e carrinhos não zeram. As buscas antigas continuam no banco (usadas no site: em alta, prontas, IA).
