@@ -24,7 +24,7 @@ const ini = src.indexOf("const normalizar = ");
 const fim = src.indexOf("// Destaca o pedaço já digitado");
 let voc;
 try {
-  voc = await (await fetch("https://vaiprocarrinho.com.br/api/vocabulario?v=10")).json();
+  voc = await (await fetch("https://vaiprocarrinho.com.br/api/vocabulario?v=11")).json();
 } catch {
   console.log("⚠ Sem internet para pegar o vocabulário do site; teste das sugestões pulado.");
   process.exit(0);
