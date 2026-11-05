@@ -35,7 +35,8 @@ Ainda escondido do Google (noindex) até o lançamento.
 
 ## Robô (GitHub Actions `robo-precos.yml`)
 **Desde 05/11: disparado ~01:14 de Brasília pela tarefa agendada do Claude "Robô da madrugada"** (trig_01V7N1fkme6rhQcj6aqyC1F7,
-sessão nova a cada noite, dispara + confere + resumo; push no celular). O cron do GitHub (06:17) é só reserva: job `guarda`
+sessão nova a cada noite: dispara, confere, **corrige e roda de novo o que falhar** (autorizado pelo Giovanni
+05/11; limites: não remove/pausa loja, não sobe VERSAO_CACHE à toa, nada grande/arriscado), resumo; push no celular). O cron do GitHub (06:17) é só reserva: job `guarda`
 só deixa rodar se nenhum workflow_dispatch foi criado desde 03:30 UTC. Aviso: a tarefa foi criada sem conectores; se o
 GitHub falhar nela, a reserva roda (e dá para recriar a tarefa pela tela de rotinas do claude.ai).
 Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` (histórico), `lomadee` (marcas/páginas),
