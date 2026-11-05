@@ -427,16 +427,28 @@ async function conferirFotos(ofertas) {
   guardarFotos(guardadas);
   const semFoto = new Map(); // loja -> quantos ficaram de fora
   const resultado = [];
+  const exemploQuebrada = new Map(); // loja -> 1ª foto quebrada (para o relatório mostrar o que o servidor respondeu)
   for (const o of ofertas) {
     const fotos = fotosDe(o).filter(boa);
     if (!o.imagem || !fotos.length) {
       semFoto.set(o.loja_nome, (semFoto.get(o.loja_nome) || 0) + 1);
+      if (o.imagem && !exemploQuebrada.has(o.loja_nome)) exemploQuebrada.set(o.loja_nome, o.imagem);
       continue;
     }
     if (fotos[0] === o.imagem && fotos.length === fotosDe(o).length) { resultado.push(o); continue; }
     // Foto principal trocada pela 1ª extra que abre: a assinatura muda para o produto ser regravado
     const imagens = fotos.length > 1 ? JSON.stringify(fotos) : null;
     resultado.push({ ...o, imagem: fotos[0], imagens, assinatura: assinar({ a: o.assinatura, fotos }) });
+  }
+  // Loja com 20+ produtos e TODOS sem foto que abre: mostra no relatório o que o servidor da foto respondeu (05/11/2026,
+  // Stanley: 122 de 122 de fora)
+  const total = new Map();
+  for (const o of ofertas) total.set(o.loja_nome, (total.get(o.loja_nome) || 0) + 1);
+  for (const [loja, url] of exemploQuebrada) {
+    if ((total.get(loja) || 0) < 20 || semFoto.get(loja) !== total.get(loja)) continue;
+    const r = await fetch(url, { signal: AbortSignal.timeout(10000) }).catch((e) => ({ status: e.name, headers: new Map() }));
+    r.body?.cancel?.().catch(() => {});
+    console.log(`Foto da ${loja} não abre: ${r.status} ${r.headers.get("content-type") || "-"} ${url}`);
   }
   return { resultado, semFoto, testadas, avisos };
 }
