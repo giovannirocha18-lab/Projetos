@@ -3500,6 +3500,29 @@ avisoDeLojaInstavel();
 
 $("#mais-ofertas").addEventListener("click", carregarMaisOfertas);
 $("#mais-resultados").addEventListener("click", () => (estado.loja ? carregarMaisDaLoja() : carregarMaisResultados()));
+
+// Rolagem infinita (pedido do Giovanni, 05/11/2026: "como no app do ML, quando chega no fim carrega os novos"): quando o
+// botão "Ver mais ofertas"/"Ver mais resultados" chega perto da tela, a próxima página vem sozinha. O botão continua lá
+// (para quem não rola, e se der erro). No máximo 40 seguidas por busca/loja, para não ficar pedindo sem parar
+(function rolagemInfinita() {
+  if (!("IntersectionObserver" in window)) return;
+  let pedidoVisto = -1;
+  let seguidas = 0;
+  const obs = new IntersectionObserver((entradas) => {
+    for (const e of entradas) {
+      const botao = e.target;
+      if (!e.isIntersecting || botao.hidden || botao.disabled) continue;
+      if (estado.pedido !== pedidoVisto) { pedidoVisto = estado.pedido; seguidas = 0; }
+      if (seguidas >= 40) continue;
+      seguidas++;
+      const carga = botao.id === "mais-ofertas" ? carregarMaisOfertas()
+        : estado.loja ? carregarMaisDaLoja({ sozinho: true }) : carregarMaisResultados({ sozinho: true });
+      // Depois de carregar, observa de novo: se o botão ainda está à vista (veio pouca coisa), pede a próxima
+      Promise.resolve(carga).finally(() => { obs.unobserve(botao); requestAnimationFrame(() => obs.observe(botao)); });
+    }
+  }, { rootMargin: "0px 0px 900px 0px" });
+  for (const id of ["#mais-ofertas", "#mais-resultados"]) obs.observe($(id));
+})();
 document.querySelectorAll("[data-abrir-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(true)));
 document.querySelectorAll("[data-fechar-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(false)));
 $("#abrir-favoritos").addEventListener("click", () => abrirPainel(true));
