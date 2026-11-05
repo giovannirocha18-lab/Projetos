@@ -1622,3 +1622,10 @@ Texto para colar numa conversa nova:
   4+ palavras sem nenhum principal no fim das regras: vale quem tem todas menos uma e começa pelo produto. 2 casos novos em
   CASOS_PRECO (testes/busca.mjs). A resposta já guardada daquela busca exata só renova depois de 6 h (FRESCO_MS).
   Também: no fim da busca, "Ver também N acessórios…" entra sozinho (rolagemInfinita).
+- **Auditoria do site (05/11/2026, pedido do Giovanni)**: 35 buscas pela API (0,4–1,3 s as comuns; 1ª vez de busca nova
+  até ~9 s), links de compra (Shopee/AliExpress/ML/Awin redirecionam com afiliado), produto/histórico/lojas/cupons/em-alta/
+  vocabulário/Black Friday OK. Playwright PC + iPhone 13: início, rolagem infinita, busca, menor preço, faixa de preço,
+  detalhes, comparar, carrinho/alerta (pedem conta: abre "Entrar", certo), loja ML (14.729), cupons (44), lojas (41),
+  gaveta de filtros do celular (marca Fila + menor preço ✅), sugestões; 0 erros de JS e 0 HTTP ≥400. Corrigido: Shopee
+  "System Error" (10000) agora tenta de novo. Pequeno, não feito: em "microondas", peças (tubo magnetron, fonte, transformador)
+  aparecem como "parecidos" depois dos 19 micro-ondas.
