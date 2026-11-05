@@ -695,6 +695,9 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .rodape p { margin: 4px 0; }
 .rodape .logo-texto { color: var(--texto); font-size: 1.05rem; }
 .rodape-aviso { max-width: 460px; }
+/* Listas longas (rolagem infinita, 05/11/2026): o navegador só desenha os cartões perto da tela; os outros guardam o
+   tamanho (auto = o último medido), então a página não pula */
+#grade > .oferta, #destaques > .oferta { content-visibility: auto; contain-intrinsic-size: auto 420px; }
 /* Celular: sem rodapé (pedido do Giovanni, 05/11/2026, com a rolagem infinita); os links dele ficam na janela Conta */
 @media (max-width: 640px) { .rodape { display: none; } }
 .links-legais { margin: 18px 0 0; text-align: center; font-size: .82rem; color: var(--suave); }
