@@ -433,7 +433,7 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .chip-acao:hover { background: rgba(255, 255, 255, .3); }
 .resumo-acoes { margin-top: 10px; }
 /* Atalhos de categoria da loja Mercado Livre (05/11/2026): rolam de lado no celular */
-.atalhos-loja { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 10px; }
+.atalhos-loja { position: relative; display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 10px; }
 .chip-atalho-loja {
   display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer;
   padding: 6px 12px; border-radius: 999px; color: #fff; background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .35);
