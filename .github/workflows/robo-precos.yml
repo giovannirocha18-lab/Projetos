@@ -5,7 +5,10 @@ name: Robô de preços
 
 on:
   schedule:
-    - cron: "30 4 * * *" # 01:30 de Brasília (30/10/2026, pedido do Giovanni; o GitHub costuma atrasar horas)
+    # Desde 05/11/2026 quem dispara o robô de madrugada é uma tarefa agendada do Claude (~01:14 de Brasília, pontual; o
+    # agendamento do GitHub atrasava até 8 h). Este horário fica de RESERVA (06:17 de Brasília): o job "guarda" só deixa
+    # rodar se ninguém disparou o robô desde 00:30 de Brasília
+    - cron: "17 9 * * *"
   workflow_dispatch:
     inputs:
       so_awin:
@@ -46,8 +49,38 @@ on:
         default: "0"
 
 jobs:
+  # Reserva (05/11/2026): no agendamento do GitHub, só roda se a tarefa do Claude não disparou o robô nesta madrugada
+  # (alguma execução "workflow_dispatch" criada desde 03:30 UTC = 00:30 de Brasília). Disparado à mão: sempre roda
+  guarda:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      actions: read
+    outputs:
+      rodar: ${{ steps.guarda.outputs.rodar }}
+    steps:
+      - id: guarda
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENTO: ${{ github.event_name }}
+        run: |
+          if [ "$EVENTO" != "schedule" ]; then echo "rodar=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          desde=$(date -u +%Y-%m-%dT03:30:00Z)
+          n=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/robo-precos.yml/runs?event=workflow_dispatch&created=%3E%3D$desde&per_page=5" \
+            | jq -r '.total_count // 0' 2>/dev/null || echo 0)
+          echo "Execuções disparadas desde $desde: $n"
+          if [ "${n:-0}" -gt 0 ]; then
+            echo "rodar=false" >> "$GITHUB_OUTPUT"
+            echo "### Reserva: o robô já rodou nesta madrugada (disparado pela tarefa do Claude); nada a fazer" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "rodar=true" >> "$GITHUB_OUTPUT"
+            echo "### ⚠️ Reserva: a tarefa do Claude não disparou o robô nesta madrugada; rodando pelo agendamento do GitHub" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   awin:
-    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    needs: guarda
+    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     # Uma gravação por vez: duas ao mesmo tempo (madrugada atrasada + Run workflow) gravam por cima uma da outra
     concurrency:
@@ -132,7 +165,8 @@ jobs:
   # Shopee: o site guarda o preço de hoje dos produtos das vitrines e dos mais buscados
   # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
   shopee:
-    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    needs: guarda
+    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -168,7 +202,8 @@ jobs:
   # 1ª volta: só o que tem mais de 44 h (a madrugada anterior não alcançou); 2ª volta: mais de 20 h, se sobrar tempo.
   # Recusou: espera 1 minuto e repete a mesma busca (5 recusas seguidas = para). Para aos 30 minutos.
   mercadolivre:
-    if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    needs: guarda
+    if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     outputs:
@@ -228,8 +263,8 @@ jobs:
   prontas:
     # Depois do job "shopee" (que também consulta a Shopee): os dois juntos estouravam o limite dela. E depois do
     # "mercadolivre", que deixa os preços do Mercado Livre no banco
-    needs: [shopee, mercadolivre]
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia }}
+    needs: [guarda, shopee, mercadolivre]
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
     outputs:
@@ -271,7 +306,8 @@ jobs:
 
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
   lomadee:
-    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia }}
+    needs: guarda
+    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -306,8 +342,8 @@ jobs:
   # no resumo os produtos suspeitos no topo (de brinquedo, peça, preço fora do normal…). Não muda nada no site:
   # a lista serve para corrigir as regras da busca (lib/relevancia.js)
   auditoria:
-    needs: prontas
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_ia }}
+    needs: [guarda, prontas]
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 50
     outputs:
@@ -374,8 +410,8 @@ jobs:
   # Robô da IA (29/10/2026): o Claude Haiku 5.5 diz a categoria de cada produto (robo/ia.mjs, lib/ia.js). Manda os títulos
   # novos num lote (Batch API, metade do preço) e lê o resultado do lote anterior. Custo e exemplos no resumo da execução
   ia:
-    needs: awin
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria }}
+    needs: [guarda, awin]
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     concurrency:
@@ -415,7 +451,8 @@ jobs:
 
   # Só o relatório "Números do site" (Run workflow com so_numeros): à noite ele roda no fim da auditoria
   numeros:
-    if: ${{ inputs.so_numeros }}
+    needs: guarda
+    if: ${{ inputs.so_numeros && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -435,8 +472,8 @@ jobs:
   # Resumo para o painel do Giovanni (03/11/2026): depois de todos os jobs (mesmo se algum falhar), junta o que cada
   # passo anotou e se deu certo e grava no banco (robo/relatorio.mjs, tabela robo_execucoes); aparece na aba "Robô"
   relatorio:
-    needs: [awin, shopee, mercadolivre, prontas, lomadee, auditoria, ia]
-    if: ${{ always() && !inputs.so_numeros }}
+    needs: [guarda, awin, shopee, mercadolivre, prontas, lomadee, auditoria, ia]
+    if: ${{ always() && !inputs.so_numeros && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
