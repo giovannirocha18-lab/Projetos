@@ -109,6 +109,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   job mercadolivre até 50 min (mais vendidos até 25 min). #114 (05/11): **3.798 mais vendidos** de 400 categorias, 504 buscas
   (com tendências), média 10 produtos do ML por busca. Loja até 80 páginas (VERSAO 34); mais vendidos: produto antes de acessório.
   05/11 07h: tarefa da madrugada falhou (sem GitHub) → robô completo disparado à mão (~07h25) e tarefa refeita (ver Robô).
+  Run #115 (05/11, manual) ✅ tudo verde, 486 prontas; ML nas buscas comuns: Ofertas do dia 19, air fryer 12, geladeira 10,
+  celular 16, smart tv 22, fone bluetooth 24. Variações: "Sapateira" (móvel) saía como calçado → regra só com o 1º nome
+  inteiro de calçado/roupa (lib/variacoes.js + app.js); Animale 6.432 anúncios juntados em 1.551 cartões.
 - **App Android do painel (05/11)**: `app-android/` (WebView de painel.vaiprocarrinho.com.br, "Painel VPC"; `construir.sh` =
   aapt2+javac+d8+apksigner, SDK baixado com sdkmanager). Chave de assinatura NÃO guardada (bloqueado guardar no repo; Giovanni: "deixe
   assim"): versão nova = desinstalar e instalar. Layout do painel muda sozinho no app (ele só abre o site).
