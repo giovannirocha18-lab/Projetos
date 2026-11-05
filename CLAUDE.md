@@ -14,6 +14,9 @@
   `node testes/busca.mjs`, `sugestoes.mjs` e `modulos.mjs` têm que passar antes de publicar mudança na busca.
 - Regras fixas: nunca raspar páginas das lojas (só APIs/feeds oficiais); nada de urgência/escassez falsa; sem aviso de
   afiliado visível (só `rel="sponsored"`); sempre tema claro.
+- **Regra do Giovanni (05/11): toda busca tem que trazer produtos ATUAIS/modernos, qualquer que seja o termo** ("celular"
+  na loja ML trazia 1 aparelho antigo). Ao mexer em busca/fonte: mais vendidos e produtos com venda/vendedor primeiro; modelo
+  velho/sem vendedor nunca no topo. ML: mais vendidos (`ml_destaques`) que batem com a busca vêm antes do catálogo.
 
 ## O site
 **vaiprocarrinho.com.br** — comparador de preços com links de afiliado. Fontes: Shopee (API), AliExpress (API), **Mercado Livre (API, 04/11)**, Lomadee (API,
