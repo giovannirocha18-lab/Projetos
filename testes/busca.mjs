@@ -13,6 +13,11 @@ import { categoriaDoProduto, categoriaPorNome, marcarSecoes } from "../lib/categ
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 
 const CASOS = {
+  // 05/11/2026 (print do Giovanni, "air fryer 5 litros"): o Mercado Livre escreve "de 5L"; 4L e 25L não são 5 litros
+  "air fryer 5 litros": {
+    E: ["Air fryer Mondial Air Fryer AFN-50-BI de 5L preto 127V", "Fritadeira Elétrica Air Fryer 5 Litros Sem Óleo", "Air Fryer Britânia 5 L Preta"],
+    N: ["Air fryer Bak Air Fryer BK-ARFYM110 de 4L preto", "Air fryer Mondial Air Fryer AFO-25L-BI de 25L preto 127V"],
+  },
   // 04/11/2026 (print do Giovanni, "pc gamer" na AliExpress): ventoinha, mouse, teclas e mouse pad apareciam como o produto
   "pc gamer": {
     E: ["PC Gamer Mini TA NK 03 M1A com Intel Core I9 12900H, RTX 3080, 16G DDR4", "Pc Gamer Completo Ryzen 7 5700G, Memoria Ram 16GB, SSD 1TB",
