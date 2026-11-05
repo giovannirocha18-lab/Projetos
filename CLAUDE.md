@@ -92,7 +92,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   highlights (mais vendidos), trends e preço das fichas → token da conta é reserva no 429. **Mais vendidos** (05/11):
   robô `?destaques=N` → `ml_destaques` (416 de 27 categorias, #113); Ofertas do dia = os com desconto; vitrine = os que batem
   primeiro. Busca: "5L" = "5 litros"; fichas que batem com a busca primeiro. #113: média 8,2 produtos do ML por busca,
-  4,3 ofertas por ficha. Conferir 05/11 cedo se as prontas trazem ML; 3) loja ML em /api/lojas, alertas e ?produto= aceitarem "mercadolivre-".
+  4,3 ofertas por ficha. Conferir 05/11 cedo se as prontas trazem ML; 3) ✅ **loja ML** (05/11): Lojas parceiras,
+  página = mais vendidos (`produtosDaLojaML`), busca na loja, ir-loja com matt_*, "mercado livre" abre a loja, ?produto= e
+  alertas aceitam "mercadolivre-" (`ofertaMLPorId`); /api/lojas VERSAO 33.
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
   UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027); decidir cron-job.org para o atraso
   do robô; decidir Mercado Livre.
