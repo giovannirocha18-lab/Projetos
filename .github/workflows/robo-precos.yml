@@ -232,6 +232,21 @@ jobs:
             [ "$(n "$r" .faltam)" -eq 0 ] && break
             sleep 1
           done
+          # 1b) O que mais se busca em cada categoria principal e subcategoria (ml_tendencias; 05/11/2026): 30 categorias por
+          #     chamada, até faltar 0 (no máximo 8 minutos). Viram sugestões da caixa de busca, buscas prontas e buscas do ML
+          tend=0; tendtermos=0; tendguardadas=0; tenderros=0
+          while [ "$tend" -lt 30 ] && [ $(( $(date +%s) - inicio )) -lt 1080 ]; do
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 90 "https://vaiprocarrinho.com.br/api/preparar-ml?tendencias=1" || echo "falhou")
+            echo "tendências: $r"
+            echo "$r" | grep -q CHAVE_ROBO && exit 1
+            tend=$((tend + 1))
+            if echo "$r" | grep -q '"limite":true'; then esperas=$((esperas + 1)); sleep 60; continue; fi
+            tendtermos=$((tendtermos + $(n "$r" .termos))); tenderros=$((tenderros + $(n "$r" .comErro)))
+            g=$(n "$r" .guardadas); [ "$g" -gt 0 ] && tendguardadas=$g
+            [ "$(n "$r" .faltam)" -eq 0 ] && break
+            sleep 1
+          done
+          echo "- Tendências do Mercado Livre: $tendtermos lidas agora, $tendguardadas guardadas ($tenderros categorias com erro)" >> "$GITHUB_STEP_SUMMARY"
           # 2) Mais vendidos das categorias principais e subcategorias (níveis 1 e 2), no máximo 25 minutos (as
           #    sub-subcategorias ficam para o job "maisvendidos", que roda junto com as buscas prontas)
           maisvendidos=0; cat=0; seguidas=0; falhas=0
@@ -268,23 +283,25 @@ jobs:
               fi
               seguidas=0
               echo "$r" | grep -q '"fim":true' && break
-              parte=$((parte + 1))
+              # proxima: o site já pulou junto as buscas que estavam novas no banco (05/11/2026)
+              prox=$(n "$r" .proxima); if [ "$prox" -gt "$parte" ]; then parte=$prox; else parte=$((parte + 1)); fi
               [ "$consultas" -gt 0 ] && sleep 1
             done
           done
           media=""; [ "$fichas" -gt 0 ] && media="$(awk "BEGIN {printf \"%.1f\", $ofertas / $fichas}") ofertas por ficha com vendedor ($fichas fichas)"
           echo "- $renovadas buscas renovadas, $precos preços guardados, $esperas esperas de 1 minuto pelo limite ${parou:+($parou)}" >> "$GITHUB_STEP_SUMMARY"
           [ -n "$media" ] && echo "- Média: $media" >> "$GITHUB_STEP_SUMMARY"
-          echo "ml=$(jq -cn --arg l "$renovadas buscas renovadas, $precos preços guardados ($partes buscas)" --arg e "$esperas esperas de 1 minuto pelo limite do Mercado Livre" --arg m "$media" --arg v "$maisvendidos mais vendidos guardados ($cat categorias principais e subcategorias)" --arg a "$parou" '{linhas: [$v, $l, $e, ($m | select(. != ""))], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
+          echo "ml=$(jq -cn --arg l "$renovadas buscas renovadas, $precos preços guardados ($partes buscas)" --arg e "$esperas esperas de 1 minuto pelo limite do Mercado Livre" --arg m "$media" --arg v "$maisvendidos mais vendidos guardados ($cat categorias principais e subcategorias)" --arg t "$tendguardadas buscas mais populares do ML guardadas ($tendtermos lidas agora)" --arg te "$([ "$tenderros" -gt 0 ] && echo "Tendências: $tenderros categorias com erro (ver o log)" || true)" --arg a "$parou" '{linhas: [$v, $t, $l, $e, ($m | select(. != ""))], avisos: [$a, $te | select(. != "")]}')" >> "$GITHUB_OUTPUT"
 
   # Mais vendidos das ~2.700 sub-subcategorias do Mercado Livre (05/11/2026, "o máximo de produtos do ML"): depois do job
   # "mercadolivre" (que faz as principais e subcategorias), ao mesmo tempo que as buscas prontas. Revezando: as mais antigas
-  # primeiro, até 75 minutos; o que não der fica para a madrugada seguinte (os produtos valem 4 dias no site).
+  # primeiro, até 75 minutos; o que não der fica para a madrugada seguinte (os produtos valem 4 dias no site). Depois, até
+  # os 95 minutos, continua as buscas do Mercado Livre (as tendências de cada categoria que o job "mercadolivre" não alcançou).
   maisvendidos:
     needs: [guarda, mercadolivre]
     if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 85
+    timeout-minutes: 105
     outputs:
       mv: ${{ steps.mv.outputs.mv }}
       mv_ok: ${{ steps.mv.outcome }}
@@ -316,7 +333,22 @@ jobs:
             echo "$r" | grep -q '"fim":true' && break
           done
           echo "- $total mais vendidos guardados ($cats categorias), $esperas esperas de 1 minuto ${parou:+($parou)}" >> "$GITHUB_STEP_SUMMARY"
-          echo "mv=$(jq -cn --arg l "$total mais vendidos guardados ($cats categorias)" --arg e "$esperas esperas de 1 minuto pelo limite do Mercado Livre" --arg a "$parou" '{linhas: [$l, $e], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
+          # Buscas do Mercado Livre que faltaram (tendências das categorias), até os 95 minutos
+          renovadas=0; seguidas=0; parte=0; partes=0
+          while [ -z "$parou" ] && [ $(( $(date +%s) - inicio )) -lt 5700 ]; do
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-ml?parte=$parte&horas=44" || echo "falhou")
+            echo "busca $parte: $r"
+            p=$(n "$r" .partes); [ "$p" -gt 0 ] && partes=$p
+            if echo "$r" | grep -q '"limite":true'; then
+              esperas=$((esperas + 1)); seguidas=$((seguidas + 1)); [ "$seguidas" -ge 5 ] && break; sleep 60; continue
+            fi
+            seguidas=0
+            [ "$(n "$r" .consultas)" -gt 0 ] && renovadas=$((renovadas + 1))
+            echo "$r" | grep -q '"fim":true' && break
+            prox=$(n "$r" .proxima); if [ "$prox" -gt "$parte" ]; then parte=$prox; else parte=$((parte + 1)); fi
+          done
+          echo "- $renovadas buscas do Mercado Livre renovadas depois (parou na $parte de $partes)" >> "$GITHUB_STEP_SUMMARY"
+          echo "mv=$(jq -cn --arg l "$total mais vendidos guardados ($cats categorias)" --arg b "$renovadas buscas do ML renovadas depois (até a $parte de $partes)" --arg e "$esperas esperas de 1 minuto pelo limite do Mercado Livre" --arg a "$parou" '{linhas: [$l, $b, $e], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
 
   # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
   prontas:

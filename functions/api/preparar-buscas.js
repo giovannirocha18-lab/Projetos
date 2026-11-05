@@ -3,7 +3,8 @@
 // O robô do GitHub (robo-precos.yml) chama parte por parte toda madrugada (duas ao mesmo tempo): uma busca por chamada.
 import { onRequestGet as buscar, PAGINAS_INICIO_PRONTAS } from "./buscar.js";
 import { categoriasParaPreparar, buscasDasVitrines } from "../../lib/categorias.js";
-import { maisBuscados, termosBuscados } from "../../lib/buscas.js";
+import { maisBuscados, termosBuscados, tendenciaAceitavel } from "../../lib/buscas.js";
+import { tendenciasDasCategorias, tendenciasML } from "../../lib/fontes/mercadolivre.js";
 import { carregarMapa } from "../../lib/mapaCategorias.js";
 import { POPULARES, termosParaSugestoes } from "../../lib/vocabulario.js";
 import { guardarDaBusca } from "../../lib/blackfriday.js";
@@ -15,18 +16,28 @@ import { recusarSeNaoForRobo } from "../../lib/robo.js";
 const MAX_PRONTAS = 1000;
 const BUSCADOS_NO_MES = 600;
 
+// O que mais se busca no Mercado Livre (05/11/2026, Giovanni: "trazer o que o público mais está buscando"): as gerais e as
+// primeiras de cada categoria, no fim da lista (as primeiras a ficar de fora se faltar lugar). Cada busca pronta leva ~5 s
+// (a Shopee limita), por isso só TENDENCIAS_PRONTAS; as outras ficam prontas só com o Mercado Livre (/api/preparar-ml)
+const TENDENCIAS_PRONTAS = 150;
+async function tendenciasParaProntas(env) {
+  const [gerais, dasCategorias] = await Promise.all([tendenciasML(env).catch(() => []), tendenciasDasCategorias(env, 600)]);
+  return [...gerais, ...dasCategorias].filter(tendenciaAceitavel).slice(0, TENDENCIAS_PRONTAS);
+}
+
 // A lista das buscas prontas (também usada pelo robô do Mercado Livre, /api/preparar-ml)
 export async function listaDasProntas(env) {
-  const [buscados, doMes] = await Promise.all([
+  const [buscados, doMes, tendencias] = await Promise.all([
     maisBuscados(env, { ateOntem: true }).catch(() => []),
     termosBuscados(env, BUSCADOS_NO_MES).catch(() => []),
+    tendenciasParaProntas(env),
   ]);
   const vistos = new Set();
   return [
     { q: "" }, // "Ofertas do dia" da página inicial
     ...Array.from({ length: PAGINAS_INICIO_PRONTAS - 1 }, (_, i) => ({ q: "", pagina: i + 2 })), // e as próximas páginas
     ...categoriasParaPreparar().map((c) => ({ q: c.busca, cat: c.nome })),
-    ...[...POPULARES, ...buscados, ...doMes, ...buscasDasVitrines(), ...termosParaSugestoes()].map((q) => ({ q })),
+    ...[...POPULARES, ...buscados, ...doMes, ...buscasDasVitrines(), ...termosParaSugestoes(), ...tendencias].map((q) => ({ q })),
   ].filter((b) => {
     const chave = `${b.q.toLowerCase()}|${b.cat || ""}|${b.pagina || 1}`;
     return !vistos.has(chave) && vistos.add(chave);
