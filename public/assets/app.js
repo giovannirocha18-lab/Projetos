@@ -2685,10 +2685,12 @@ async function mostrarLoja(id) {
 
 // A loja chega de 48 em 48: o site pede as próximas sozinho até uns 200 produtos, como na busca
 // (pergunta do Giovanni, 28/10/2026: "ao escolher uma loja só carrega 40 produtos")
+// Loja Mercado Livre: o dobro (05/11/2026, Giovanni: "quero que apareçam mais opções de produtos"; são ~3.800 mais vendidos)
 async function completarLoja(pedido) {
-  for (let i = 0; i < PEDIDOS_AUTOMATICOS; i++) {
+  const ml = estado.loja?.id === "mercadolivre";
+  for (let i = 0; i < PEDIDOS_AUTOMATICOS * (ml ? 3 : 1); i++) {
     if (pedido !== estado.pedido || !estado.temMaisBusca) return;
-    if (estado.ofertas.length >= PRODUTOS_DESEJADOS) return;
+    if (estado.ofertas.length >= PRODUTOS_DESEJADOS * (ml ? 2.5 : 1)) return;
     await carregarMaisDaLoja({ sozinho: true });
   }
 }
