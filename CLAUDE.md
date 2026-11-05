@@ -87,7 +87,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
   2) ✅ robô guardando preços; catálogo 48 → preço até 16 com vendedor; sem vendedor re-perguntado só após 4 dias (04/11,
-  23h; robô refaz 1 vez os catálogos de 16, `CATALOGO_48_DESDE`); 3) loja ML em /api/lojas, alertas e ?produto= aceitarem "mercadolivre-".
+  23h; robô refaz 1 vez os catálogos de 16, `CATALOGO_48_DESDE`); conta PJ do ML conectada (05/11, painel
+  `/api/painel/ml-conta`, lib/mlConta.js, tokens cifrados em `ml_conta`): busca de anúncios e /items seguem 403; abrem
+  highlights (mais vendidos), trends e preço das fichas → token da conta é reserva no 429; ideia: mais vendidos nas vitrines; 3) loja ML em /api/lojas, alertas e ?produto= aceitarem "mercadolivre-".
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
   UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027); decidir cron-job.org para o atraso
   do robô; decidir Mercado Livre.
