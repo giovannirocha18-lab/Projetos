@@ -50,7 +50,10 @@ Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` 
 Run workflow com `so_awin`, `so_ml`, `so_prontas`, `so_lomadee`, `so_auditoria`, `so_ia`, `so_numeros` (só o relatório, ~30 s). Disparar: GitHub MCP `actions_run_trigger`.
 Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. Custo da IA ~US$ 0,07/noite (saldo ~US$ 0,80).
 
-## Situação (05/11/2026, 25ª sessão)
+## Situação (05/11/2026, 26ª sessão)
+- **26ª: ML com mais vendidos de TODAS as categorias** (27 + 389 + 2.740 sub-subcategorias; tabela `ml_categorias`, robô
+  `?arvore=1` / `?proxima=1`, job novo `maisvendidos` até 75 min em revezamento; busca lê só um índice leve). Conferir no
+  run de teste e na madrugada de 06/11 quantos mais vendidos entraram (antes 3.798). Detalhe no histórico ("TODAS as categorias").
 - **24ª: Mercado Livre ligado** (conta PJ; app no devcenter; `ML_CLIENT_ID`/`ML_CLIENT_SECRET`; afiliado etiqueta
   vaiprocarrinho). Catálogo (`/products/search`) + preço por produto; link pelo nosso `/ir/ml/<produto>/<anúncio>`; ML
   primeiro nas buscas. Teste: painel `/api/painel/ml-teste`. **Problema: 429 do ML → poucos produtos dele por busca.**

@@ -1589,3 +1589,16 @@ Texto para colar numa conversa nova:
   `robo/variacoes.mjs` (só calçado/roupa, 1º nome inteiro). Tarefa agendada "Robô da madrugada" (1ª versão falhou sem GitHub →
   refeita numa conversa própria) + reserva do GitHub com job `guarda`. App Android "Painel VPC" (WebView; sem chave guardada).
   Rolagem infinita sem pulos; celular sem rodapé (links na janela Conta). Painel: linha ML em Comissões (sem API de ganhos).
+- **ML: mais vendidos de TODAS as categorias (05/11/2026, 26ª sessão; pergunta do Giovanni "dá pra pegar mais produtos?")**.
+  Antes: 400 categorias (27 principais + subcategorias, cortado em 400) → 3.798 mais vendidos; o job ML terminava em 19 de
+  50 min com só 2 esperas de 429. O ML tem 27 principais, 389 subcategorias e **2.740 sub-subcategorias** (`/categories/{id}`
+  é público). Feito: tabela `ml_categorias` (id, pai, principal, nivel, filhas_em, destaques_em); `/api/preparar-ml?arvore=1`
+  (monta a árvore, 25 subcategorias por chamada, filhas relidas a cada 7 dias) e `?proxima=1[&nivel=2]` (próxima categoria
+  da vez: níveis 1–2 não renovados em 20 h primeiro, depois nível 3 mais antigo primeiro). Job `mercadolivre`: árvore +
+  níveis 1–2 (até 25 min) + buscas; **job novo `maisvendidos`** (depois do mercadolivre, junto com as prontas, até 75 min):
+  nível 3 em revezamento; painel "Mais vendidos do ML (sub-subcategorias)". Mais vendidos valem 4 dias (Ofertas do dia só os
+  de < 30 h); 3 fichas ao mesmo tempo por categoria. `ml_destaques` ganhou colunas titulo, desconto e busca
+  (`textoParaFiltro` = nome com sinônimos sem espaços). A busca/loja/Ofertas do dia leem só o **índice** (código, nome,
+  categoria, desconto; 30 min na memória) e depois os dados só dos que aparecem (`dadosDosDestaques`); filtro rápido
+  `palavrasObrigatorias` antes de `temTodasAsPalavras` (conferido: 0 diferenças em 183 mil pares dos testes; 30 mil nomes
+  em ~10 ms em vez de ~500 ms); até 400 que batem vão para separarAcessorios.
