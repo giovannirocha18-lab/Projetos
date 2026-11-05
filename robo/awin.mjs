@@ -212,7 +212,17 @@ function numero(v) {
 }
 
 const nomeDaLoja = (nome) => String(nome || "").replace(/\s+BR$/i, "").trim();
-const httpsOuNada = (url) => (/^https:\/\//i.test(url || "") ? url : null);
+// Foto com https (o site é https e o navegador bloqueia foto http). Foto http vira https (05/11/2026: a Stanley manda
+// as fotos com http e todas ficavam de fora); o teste de fotos confere depois se a versão https abre
+const httpsOuNada = (url) => {
+  const u = String(url || "").trim();
+  if (/^https:\/\//i.test(u)) return u;
+  if (/^http:\/\//i.test(u)) return u.replace(/^http:/i, "https:");
+  if (/^\/\//.test(u)) return `https:${u}`;
+  return null;
+};
+// Loja sem nenhuma foto reconhecida: guarda um exemplo dos campos de foto do feed para o relatório (05/11/2026)
+const exemploSemFoto = new Map();
 const assinar = (dados) => createHash("sha1").update(JSON.stringify(dados)).digest("hex").slice(0, 16);
 
 // Link com o código de afiliado. Feeds no formato Google às vezes trazem só o
@@ -272,6 +282,10 @@ function paraOferta(p, feed = {}) {
   const imagem = httpsOuNada(p.merchant_image_url) || httpsOuNada(p.large_image) || httpsOuNada(p.image_link)
     || httpsOuNada(p.aw_image_url);
   const imagens = [...new Set([imagem, ...extras.map(httpsOuNada)].filter(Boolean))].slice(0, 5);
+  if (!imagem && !exemploSemFoto.has(lojaNome)) {
+    exemploSemFoto.set(lojaNome, ["merchant_image_url", "large_image", "image_link", "aw_image_url", "aw_thumb_url", "merchant_thumb_url", "additional_image_link"]
+      .map((c) => `${c}=${String(p[c] ?? "").slice(0, 90)}`).join(" | "));
+  }
   const dados = {
     id: `awin-${lojaId}-${produtoId}`,
     fonte: "awin",
@@ -773,6 +787,7 @@ async function main() {
     const fora = [...semFoto].map(([loja, n]) => `${loja} ${n}`).join(", ");
     relatorio.push(`📷 Fotos: ${testadas} testadas em ${Math.round((Date.now() - inicioFotos) / 1000)} s; ` +
       (fora ? `produtos sem foto que abre (ficam de fora): ${fora}` : "nenhum produto sem foto"));
+    for (const [loja, exemplo] of exemploSemFoto) console.log(`Sem foto reconhecida no feed (${loja}): ${exemplo}`);
     const links = await conferirLinks([...novas.values()]);
     const ficam = new Set(links.resultado.map((o) => o.id));
     for (const id of novas.keys()) if (!ficam.has(id)) foraDeProposito.push(id);
