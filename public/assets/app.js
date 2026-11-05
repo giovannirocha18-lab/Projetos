@@ -1004,6 +1004,12 @@ function idMaisVendido(lista) {
   return campeao && campeao.vendidos >= 100 ? campeao.id : null;
 }
 
+// Mercado Livre (05/11/2026): não manda vendas nem nota; manda a posição no ranking de mais vendidos da categoria (rankML)
+const RANK_COM_SELO = 10;
+const rankTexto = (o) => (o.rankML > 0 && o.rankML <= RANK_COM_SELO ? `🔥 ${o.rankML}º mais vendido da categoria` : null);
+// Peso de "vende muito" para comparar lojas: vendas da Shopee/AliExpress; no ML, o 1º do ranking vale 1.000 vendas, o 2º
+// 500, o 5º 200… (a Shopee com "1,4 mil vendidos" ainda passa na frente do 1º do ML)
+const pesoVendas = (o) => o.vendidos || (o.rankML > 0 ? Math.round(1000 / o.rankML) : 0);
 function vendidosTexto(n) {
   if (!n) return null;
   return n >= 1000 ? `${(n / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil vendidos` : `${n} vendidos`;
@@ -1060,11 +1066,12 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       el("h3", { class: "oferta-titulo", title: o.titulo }, temDetalhes(o)
         ? el("button", { class: "titulo-botao", type: "button", onclick: () => abrirDetalhes(o) }, o.titulo)
         : o.titulo),
-      (o.avaliacao || o.vendidos) && el("div", { class: "nota" },
+      (o.avaliacao || o.vendidos || rankTexto(o)) && el("div", { class: "nota" },
         o.avaliacao && el("span", { class: "estrelas", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
         o.avaliacao && el("span", {}, String(o.avaliacao).replace(".", ",")),
         o.vendidos && el("span", { class: o.vendidos >= 1000 ? "vendidos-muitos" : null },
-          `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`)),
+          `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`),
+        !o.vendidos && rankTexto(o) && el("span", { class: "vendidos-muitos" }, rankTexto(o))),
       el("div", { class: "precos" },
         // No celular o desconto sai de cima da foto e vem em verde ao lado do preço antigo ("60% OFF")
         o.precoAntigo && el("span", { class: "linha-de" },
@@ -1267,11 +1274,12 @@ function abrirDetalhes(o, { doLink = false } = {}) {
       botaoCupom(o.loja),
       o.vendedor && el("span", { class: "detalhes-vendedor" }, `Vendido por ${o.vendedor}`)),
     el("h2", { id: "detalhes-titulo" }, o.titulo),
-    (o.avaliacao || o.vendidos) && el("div", { class: "nota" },
+    (o.avaliacao || o.vendidos || rankTexto(o)) && el("div", { class: "nota" },
       o.avaliacao && el("span", { class: "estrelas", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
       o.avaliacao && el("span", {}, String(o.avaliacao).replace(".", ",")),
       o.vendidos && el("span", { class: o.vendidos >= 1000 ? "vendidos-muitos" : null },
-        `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`)),
+        `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`),
+      !o.vendidos && rankTexto(o) && el("span", { class: "vendidos-muitos" }, rankTexto(o))),
     el("div", { class: "precos" },
       o.precoAntigo && el("span", { class: "preco-antigo" }, `R$ ${brl(o.precoAntigo)}`, o.desconto && ` (-${o.desconto}%)`),
       el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", { class: "centavos" }, `,${decimal}`)),
@@ -1526,7 +1534,7 @@ function filtrar() {
     maior: (a, b) => b.preco - a.preco,
     desconto: (a, b) => nivelDesconto(a) - nivelDesconto(b) || percentual(b) - percentual(a),
     economia: (a, b) => nivelDesconto(a) - nivelDesconto(b) || economia(b) - economia(a),
-    vendidos: (a, b) => (b.vendidos || 0) - (a.vendidos || 0),
+    vendidos: (a, b) => pesoVendas(b) - pesoVendas(a),
   }[ordem];
   // Com busca, qualquer ordem segue a categoria do que foi buscado (regra do Giovanni, 17/10/2026): primeiro os produtos
   // dessa categoria, depois os de outras. Sem busca ("Ofertas do dia"), a ordem vale para todas as ofertas
@@ -1838,8 +1846,9 @@ function escolhaRapida(lista) {
   const barato = primeiro(base.filter(comProva), (a, b) => a.preco - b.preco);
   const avaliado = primeiro(base.filter((o) => o.avaliacao >= 4.5 && o.vendidos >= VENDAS_MINIMAS),
     (a, b) => b.avaliacao - a.avaliacao || b.vendidos - a.vendidos);
-  const custo = primeiro(base.filter((o) => o.preco <= mediana && o.vendidos >= VENDAS_MINIMAS && !(o.avaliacao && o.avaliacao < 4.5)),
-    (a, b) => b.vendidos - a.vendidos);
+  // Mercado Livre entra pelo ranking de mais vendidos (até o 5º da categoria; pesoVendas), 05/11/2026
+  const custo = primeiro(base.filter((o) => o.preco <= mediana && (o.vendidos >= VENDAS_MINIMAS || (o.rankML > 0 && o.rankML <= 5))
+    && !(o.avaliacao && o.avaliacao < 4.5)), (a, b) => pesoVendas(b) - pesoVendas(a));
   const escolhas = [
     barato && { o: barato, titulo: "💰 Mais barato", porque: "O menor preço entre os produtos desta lista" },
     custo && { o: custo, titulo: "🏆 Custo-benefício", porque: "O mais vendido entre os que custam menos que a média desta lista" },

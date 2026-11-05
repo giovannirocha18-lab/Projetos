@@ -232,6 +232,10 @@ jobs:
             [ "$(n "$r" .faltam)" -eq 0 ] && break
             sleep 1
           done
+          # 0) Teste das notas do ML (05/11/2026, para a Escolha rápida): só anota no log o que cada caminho responde
+          notas=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-ml?testarNotas=1" || echo "falhou")
+          echo "teste das notas do ML: $notas"
+          echo "- Teste das notas do ML: $(echo "$notas" | jq -r 'if .abriu then "ABRIU (ver o log)" else "não abriu: " + ([.resultados[]? | "\(.caminho|split("?")[0]|split("/")[1:3]|join("/")) \(.token)=\(.status)"] | unique | join(", ")) end' 2>/dev/null || echo "$notas" | head -c 200)" >> "$GITHUB_STEP_SUMMARY"
           # 1b) O que mais se busca em cada categoria principal e subcategoria (ml_tendencias; 05/11/2026): 30 categorias por
           #     chamada, até faltar 0 (no máximo 8 minutos). Viram sugestões da caixa de busca, buscas prontas e buscas do ML
           tend=0; tendtermos=0; tendguardadas=0; tenderros=0
