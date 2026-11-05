@@ -1360,7 +1360,7 @@ const estado = { q: "", ofertas: [], inicio: null, paginaInicio: 1, temMaisInici
 const DIFERENCA_REPETIDO = 1.15;
 // Numeração/tamanho no fim do título de calçado e roupa (04/11/2026: a Lauri Esporte manda cada numeração como um
 // anúncio, com foto própria: "… Azul 40", "… Azul 41"). Mesma regra de lib/variacoes.js (semTamanho)
-const CALCADO_ROUPA = /^(tenis|chuteira|sapat|bota|botina|coturno|sandalia|chinelo|tamanco|mocassim|sapatenis|scarpin|rasteira|papete|crocs|babuch|camis|camiseta|regata|blusa|jaqueta|casaco|moletom|calca|bermuda|short|saia|vestido|legging|top|meia|cueca|calcinha|sutia|maio|biquini|body|macacao|conjunto|agasalho|corta vento|colete|polo|pijama)/;
+const CALCADO_ROUPA = /^(tenis|chuteiras?|sapatos?|sapatilhas?|sapatenis|botas?|botinas?|coturnos?|sandalias?|chinelos?|tamancos?|mocassins?|scarpins?|rasteiras?|papetes?|crocs|babuchas?|camisas?|camisetas?|camisolas?|regatas?|blusas?|blusoes?|blusao|jaquetas?|casacos?|moletons?|moletom|calcas?|bermudas?|shorts?|saias?|vestidos?|leggings?|tops?|meias?|cuecas?|calcinhas?|sutias?|maios?|biquinis?|body|bodies|macacoes?|macacao|agasalhos?|corta vento|coletes?|polos?|pijamas?)( |$)/;
 function semTamanho(titulo) {
   const t = String(titulo || "").trim();
   if (!CALCADO_ROUPA.test(normalizar(t))) return t;
