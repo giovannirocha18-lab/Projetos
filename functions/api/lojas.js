@@ -20,7 +20,7 @@ const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
 const POR_PAGINA = 48;
 const MAX_PAGINA = 80; // era 20 (05/11/2026: a loja Mercado Livre tem ~3.800 mais vendidos)
-const VERSAO = 36; // 36: total da loja ML; 35: "sapateira" não é sapato (variações); 34: até 80 páginas por loja; 33: loja Mercado Livre (05/11/2026); 32: Lauri fora também pela Lomadee; 31: sem a Lauri Esporte (04/11/2026); 30: tamanhos em inglês (XS, S, L, XL); 29: tamanhos "42 BR" e "2GG"; 28: um cartão por modelo e tipos revezados na página da loja (04/11/2026); 27: sem a Elements (04/11/2026); 26: TEKA em Cama e banho (04/11/2026); 25: "marca" nas lojas que também são marca (04/11/2026); 24: Lauri Esporte só pela Awin (04/11/2026); 23: só a conta PJ da Awin (30/10/2026); 22: Moda infantil (30/10/2026); 21: categorias da IA (29/10/2026); 20: Motorola "moto g" não é moto; 19: Central Ar toda em Eletrodomésticos; 18: Central Ar, Motorola e Calvin Klein (28/10/2026); 17: categoria da loja trava a categoria (28/10/2026); 16: Pets exclusiva (28/10/2026); 15: oBoticario e Efacil (28/10/2026); 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
+const VERSAO = 37; // 37: atalhos da loja ML; 36: total da loja ML; 35: "sapateira" não é sapato (variações); 34: até 80 páginas por loja; 33: loja Mercado Livre (05/11/2026); 32: Lauri fora também pela Lomadee; 31: sem a Lauri Esporte (04/11/2026); 30: tamanhos em inglês (XS, S, L, XL); 29: tamanhos "42 BR" e "2GG"; 28: um cartão por modelo e tipos revezados na página da loja (04/11/2026); 27: sem a Elements (04/11/2026); 26: TEKA em Cama e banho (04/11/2026); 25: "marca" nas lojas que também são marca (04/11/2026); 24: Lauri Esporte só pela Awin (04/11/2026); 23: só a conta PJ da Awin (30/10/2026); 22: Moda infantil (30/10/2026); 21: categorias da IA (29/10/2026); 20: Motorola "moto g" não é moto; 19: Central Ar toda em Eletrodomésticos; 18: Central Ar, Motorola e Calvin Klein (28/10/2026); 17: categoria da loja trava a categoria (28/10/2026); 16: Pets exclusiva (28/10/2026); 15: oBoticario e Efacil (28/10/2026); 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
 
 function responder(dados, segundos) {
   return Response.json(dados, { headers: { "Cache-Control": `public, max-age=${segundos}`, "X-Robots-Tag": "noindex" } });
@@ -87,7 +87,7 @@ async function ordemDaLoja(db, loja) {
   return ids;
 }
 
-async function produtosDaLoja(env, id, pagina, waitUntil) {
+async function produtosDaLoja(env, id, pagina, waitUntil, cat = null) {
   if (id === "shopee" || id === "aliexpress") {
     const fonte = id === "shopee" ? shopee : aliexpress;
     if (!fonte.ativa(env)) return null;
@@ -95,7 +95,7 @@ async function produtosDaLoja(env, id, pagina, waitUntil) {
     return { nome: id === "shopee" ? "Shopee" : "AliExpress", ofertas, temMais: ofertas.length >= 10 && pagina < MAX_PAGINA };
   }
   // Mercado Livre (05/11/2026): os mais vendidos de cada categoria guardados pelo robô (lib/fontes/mercadolivre.js)
-  if (id === "mercadolivre") return mercadolivre.ativa(env) ? produtosDaLojaML(env, pagina, POR_PAGINA) : null;
+  if (id === "mercadolivre") return mercadolivre.ativa(env) ? produtosDaLojaML(env, pagina, POR_PAGINA, cat) : null;
   const [rede, ...resto] = id.split(":");
   const chave = resto.join(":");
   if (rede === "lomadee" && chave && lomadee.ativa(env)) {
@@ -128,8 +128,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const params = new URL(request.url).searchParams;
   const id = (params.get("id") || "").slice(0, 120);
   const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), MAX_PAGINA);
+  // Atalho de categoria da loja Mercado Livre (?mlcat=MLB1051; 05/11/2026)
+  const cat = /^MLB\d{1,12}$/.test(params.get("mlcat") || "") ? params.get("mlcat") : null;
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/lojas?v=${VERSAO}${id ? `&id=${encodeURIComponent(id)}&pagina=${pagina}` : ""}`, request.url));
+  const chave = new Request(new URL(`/api/lojas?v=${VERSAO}${id ? `&id=${encodeURIComponent(id)}&pagina=${pagina}` : ""}${cat ? `&mlcat=${cat}` : ""}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return respostaSemFotosQuebradas(env.DB, guardada, waitUntil);
 
@@ -141,7 +143,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   } else {
     let dados;
     try {
-      dados = await produtosDaLoja(env, id, pagina, waitUntil);
+      dados = await produtosDaLoja(env, id, pagina, waitUntil, cat);
     } catch (erro) {
       // 500 (o Cloudflare troca a resposta 502 pela página dele)
       return Response.json({ erro: "Não foi possível carregar os produtos desta loja agora", detalhe: String(erro?.message || erro).slice(0, 200) }, { status: 500 });
@@ -159,7 +161,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         // D1 indisponível: segue sem histórico
       }
     }
-    resposta = responder({ nome: dados.nome, ofertas, temMais: dados.temMais }, PRODUTOS_SEGUNDOS);
+    resposta = responder({ nome: dados.nome, ofertas, temMais: dados.temMais, ...(dados.atalhos && { atalhos: dados.atalhos, total: dados.total }) }, PRODUTOS_SEGUNDOS);
   }
   if (cache) waitUntil(cache.put(chave, resposta.clone()));
   return resposta;

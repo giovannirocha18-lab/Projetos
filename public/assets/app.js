@@ -2575,7 +2575,7 @@ function desenharResumoLoja(lista) {
   if (estado.loja.id === BLACK_FRIDAY) return desenharResumoBlackFriday(lista);
   const total = estado.ofertas.length;
   // Lojas da Awin: o total do catálogo vem da lista de lojas (o site carrega 48 por vez)
-  const doCatalogo = lojasParceiras?.find((l) => l.id === estado.loja.id)?.produtos || 0;
+  const doCatalogo = estado.loja.total || lojasParceiras?.find((l) => l.id === estado.loja.id)?.produtos || 0;
   $("#resumo").replaceChildren(el("div", {},
     el("h1", {}, `🏬 ${nomeDaLojaVista()}`),
     el("p", {}, lista.length
@@ -2584,9 +2584,25 @@ function desenharResumoLoja(lista) {
         : `${lista.length} ${lista.length === 1 ? "produto" : "produtos"}${lista.length < total ? ` de ${total}` : ""} desta loja`)
       : total ? "Nenhum produto com esses filtros"
         : "Esta loja ainda não enviou a lista de produtos dela para a nossa rede de parceiros. Volte em breve!"),
+    atalhosDaLoja(),
     el("small", { class: "resumo-lojas-nota" },
       el("button", { type: "button", class: "botao-link-claro", onclick: abrirLojas }, "Ver outras lojas parceiras"), " ", AVISO_CUPOM),
     el("div", { class: "resumo-acoes" }, botaoLimparFiltros())));
+}
+
+// Atalhos de categoria da loja Mercado Livre (pedido do Giovanni, 05/11/2026): as categorias do ML com quantos mais
+// vendidos cada uma tem; tocar filtra a loja (?mlcat=); "Tudo" volta
+function atalhosDaLoja() {
+  const atalhos = estado.loja?.atalhos;
+  if (!atalhos?.length) return null;
+  const ir = (cat) => {
+    history.pushState(null, "", `/?loja=${encodeURIComponent(estado.loja.id)}${cat ? `&mlcat=${encodeURIComponent(cat)}` : ""}`);
+    mostrar();
+  };
+  const chip = (cat, nome, n) => el("button", { type: "button", class: "chip-atalho-loja", "aria-pressed": String((estado.loja.cat || null) === cat),
+    onclick: () => ir(cat) }, nome, n ? el("span", { class: "qtd" }, n.toLocaleString("pt-BR")) : null);
+  return el("div", { class: "atalhos-loja", role: "group", "aria-label": "Categorias da loja" },
+    chip(null, "Tudo", 0), ...atalhos.map((a) => chip(a.id, a.nome, a.n)));
 }
 
 // ---------------------------------------------------------------------
@@ -2632,7 +2648,8 @@ function desenharResumoBlackFriday(lista) {
 }
 
 async function pedirLoja(id, pagina) {
-  const r = await fetch(id === BLACK_FRIDAY ? `/api/black-friday?pagina=${pagina}` : `/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}`);
+  const cat = estado.loja?.id === id && estado.loja?.cat ? `&mlcat=${encodeURIComponent(estado.loja.cat)}` : "";
+  const r = await fetch(id === BLACK_FRIDAY ? `/api/black-friday?pagina=${pagina}` : `/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}${cat}`);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
@@ -2640,7 +2657,10 @@ async function pedirLoja(id, pagina) {
 async function mostrarLoja(id) {
   const pedido = ++estado.pedido;
   estado.q = "";
-  estado.loja = { id, nome: id === BLACK_FRIDAY ? "Black Friday" : lojasParceiras?.find((l) => l.id === id)?.nome || null };
+  // Loja Mercado Livre: atalho de categoria escolhido (?mlcat=MLB1051; 05/11/2026)
+  const mlcat = new URLSearchParams(location.search).get("mlcat");
+  estado.loja = { id, nome: id === BLACK_FRIDAY ? "Black Friday" : lojasParceiras?.find((l) => l.id === id)?.nome || null,
+    cat: id === "mercadolivre" && /^MLB\d+$/.test(mlcat || "") ? mlcat : null };
   estado.paginaLoja = 1;
   estado.lojasDesmarcadas.clear();
   zerarSecoes();
@@ -2667,6 +2687,7 @@ async function mostrarLoja(id) {
     estado.loja.nome = dados.nome || estado.loja.nome;
     if (estado.loja.nome) { nomesDeLojas[id] = estado.loja.nome; marcarCategoria(); }
     estado.loja.totais = dados.totais;
+    if (dados.atalhos) { estado.loja.atalhos = dados.atalhos; estado.loja.total = dados.total; }
     document.title = id === BLACK_FRIDAY ? "Black Friday de verdade — Vai pro Carrinho" : `${estado.loja.nome} — Vai pro Carrinho`;
     estado.ofertas = semRepetidos(dados.ofertas || []);
     estado.temMaisBusca = Boolean(dados.temMais);

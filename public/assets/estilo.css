@@ -432,6 +432,20 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .chip-acao { color: #fff; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35); }
 .chip-acao:hover { background: rgba(255, 255, 255, .3); }
 .resumo-acoes { margin-top: 10px; }
+/* Atalhos de categoria da loja Mercado Livre (05/11/2026): rolam de lado no celular */
+.atalhos-loja { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 10px; }
+.chip-atalho-loja {
+  display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer;
+  padding: 6px 12px; border-radius: 999px; color: #fff; background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .35);
+  white-space: nowrap; transition: background .15s, color .15s;
+}
+.chip-atalho-loja:hover { background: rgba(255, 255, 255, .28); }
+.chip-atalho-loja[aria-pressed="true"] { color: var(--roxo-forte); background: #fff; border-color: #fff; }
+.chip-atalho-loja .qtd { font-size: .74rem; font-weight: 700; opacity: .8; }
+@media (max-width: 640px) {
+  .atalhos-loja { flex-wrap: nowrap; overflow-x: auto; margin-left: -4px; margin-right: -4px; padding: 2px 4px 6px; scrollbar-width: none; }
+  .atalhos-loja::-webkit-scrollbar { display: none; }
+}
 .chip-limpar { font-weight: 700; }
 .resumo .resumo-lojas-nota { flex-basis: 100%; font-size: .78rem; opacity: .85; }
 
