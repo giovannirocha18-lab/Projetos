@@ -3541,11 +3541,27 @@ $("#mais-resultados").addEventListener("click", () => (estado.loja ? carregarMai
   if (!("IntersectionObserver" in window)) return;
   let pedidoVisto = -1;
   let seguidas = 0;
+  let acessoriosAbertos = -1;
   const obs = new IntersectionObserver((entradas) => {
     for (const e of entradas) {
       const botao = e.target;
       if (!e.isIntersecting || botao.hidden || botao.disabled) continue;
       if (estado.pedido !== pedidoVisto) { pedidoVisto = estado.pedido; seguidas = 0; }
+      // No fim da lista, quando só sobra "Ver também N acessórios e produtos parecidos" (sem mais resultados para
+      // carregar), eles entram sozinhos (pedido do Giovanni, 05/11/2026). Uma vez por busca: se a pessoa desmarcar
+      // "acessórios" depois, não volta a abrir
+      if (botao.id === "ver-acessorios") {
+        if (acessoriosAbertos === estado.pedido) continue;
+        if (!$("#mais-resultados").hidden || estado.buscando) {
+          // Ainda carregando ou com mais resultados por vir: olha de novo daqui a pouco (o botão pode continuar à vista)
+          obs.unobserve(botao);
+          setTimeout(() => obs.observe(botao), 1500);
+          continue;
+        }
+        acessoriosAbertos = estado.pedido;
+        botao.click();
+        continue;
+      }
       if (seguidas >= 40) continue;
       seguidas++;
       const carga = botao.id === "mais-ofertas" ? carregarMaisOfertas()
@@ -3554,7 +3570,7 @@ $("#mais-resultados").addEventListener("click", () => (estado.loja ? carregarMai
       Promise.resolve(carga).finally(() => { obs.unobserve(botao); requestAnimationFrame(() => obs.observe(botao)); });
     }
   }, { rootMargin: "0px 0px 900px 0px" });
-  for (const id of ["#mais-ofertas", "#mais-resultados"]) obs.observe($(id));
+  for (const id of ["#mais-ofertas", "#mais-resultados", "#ver-acessorios"]) obs.observe($(id));
 })();
 document.querySelectorAll("[data-abrir-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(true)));
 document.querySelectorAll("[data-fechar-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(false)));
