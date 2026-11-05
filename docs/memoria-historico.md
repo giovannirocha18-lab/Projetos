@@ -1581,3 +1581,11 @@ Texto para colar numa conversa nova:
   antes: ML aparece nelas a partir da madrugada de 05/11.
 - **JBL BR (04/11/2026)**: aprovada na Awin PJ, mas ShopWindow "0 produtos / nunca atualizado" e cookie de 1 dia; Giovanni
   decidiu sair do programa. O log do job awin lista as lojas aprovadas e "JBL na lista de feeds" (robo/awin.mjs).
+- **25ª sessão (04–05/11/2026), resumo**: ML no máximo (robô `mercadolivre` com mais vendidos de 400 categorias → ~3.200–3.800
+  produtos, catálogo 96 fichas, 24 por busca, tendências; conta PJ conectada como reserva no 429; loja ML com atalhos de
+  categoria, total e ~600 de cara; "5L" = "5 litros"; mais vendidos antes do catálogo; regra "produtos atuais primeiro").
+  Selo amarelo do ML; frete grátis só ML/Lauri. Lauri Esporte removida (decisão do Giovanni); JBL sem catálogo (Giovanni saiu);
+  Stanley aprovada mas fotos 410 (fica fora sozinha). Variações (tamanhos) juntadas em um cartão (lib/variacoes.js) + auditoria
+  `robo/variacoes.mjs` (só calçado/roupa, 1º nome inteiro). Tarefa agendada "Robô da madrugada" (1ª versão falhou sem GitHub →
+  refeita numa conversa própria) + reserva do GitHub com job `guarda`. App Android "Painel VPC" (WebView; sem chave guardada).
+  Rolagem infinita sem pulos; celular sem rodapé (links na janela Conta). Painel: linha ML em Comissões (sem API de ganhos).
