@@ -5,8 +5,9 @@
 // "prontas", que então monta as buscas prontas com o Mercado Livre lendo do banco.
 // horas = só renova o que tiver mais que isso (1ª volta 44 h: começa pelo que a madrugada anterior não alcançou;
 // 2ª volta 20 h, se sobrar tempo). limite: true = o Mercado Livre recusou (o robô espera 1 minuto e repete a parte).
+// ?arvore=1 e ?proxima=1: mais vendidos de todas as categorias do Mercado Livre (05/11/2026, ver abaixo)
 import { listaDasProntas } from "./preparar-buscas.js";
-import { mercadolivre, tendenciasML } from "../../lib/fontes/mercadolivre.js";
+import { mercadolivre, montarArvoreML, tendenciasML } from "../../lib/fontes/mercadolivre.js";
 import { corrigirBusca } from "../../lib/vocabulario.js";
 import { recusarSeNaoForRobo } from "../../lib/robo.js";
 
@@ -18,11 +19,20 @@ export async function onRequestGet({ request, env }) {
   const horas = Math.min(Math.max(Number(params.get("horas")) || 20, 1), 96);
   const semCache = { headers: { "Cache-Control": "no-store" } };
   if (!mercadolivre.ativa(env)) return Response.json({ erro: "Mercado Livre sem chaves (ML_CLIENT_ID/ML_CLIENT_SECRET)", fim: true }, semCache);
-  // ?destaques=N: mais vendidos da N-ésima categoria do Mercado Livre (Ofertas do dia e vitrines; 05/11/2026)
-  if (params.has("destaques")) {
-    const n = Math.max(parseInt(params.get("destaques"), 10) || 0, 0);
+  // ?arvore=1: monta a árvore das categorias do Mercado Livre (ml_categorias; 05/11/2026). Chamar até "faltam" ser 0
+  if (params.has("arvore")) {
     const inicio = Date.now();
-    return Response.json({ destaques: n, ...(await mercadolivre.prepararDestaques(env, n)), segundos: (Date.now() - inicio) / 1000 }, semCache);
+    try {
+      return Response.json({ arvore: true, ...(await montarArvoreML(env)), segundos: (Date.now() - inicio) / 1000 }, semCache);
+    } catch (erro) {
+      return Response.json({ arvore: true, erro: String(erro.message || erro), faltam: 0, limite: / 429\b/.test(erro.message) }, semCache);
+    }
+  }
+  // ?proxima=1[&nivel=2]: mais vendidos da próxima categoria da vez (Ofertas do dia, vitrines, buscas, página da loja ML)
+  if (params.has("proxima")) {
+    const nivel = params.get("nivel") === "2" ? 2 : 3;
+    const inicio = Date.now();
+    return Response.json({ ...(await mercadolivre.prepararProxima(env, nivel)), segundos: (Date.now() - inicio) / 1000 }, semCache);
   }
   // Só as buscas com termo (as "Ofertas do dia" não têm Mercado Livre)
   // + as tendências do Mercado Livre (o que mais se busca lá; 05/11/2026), no fim da lista

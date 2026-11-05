@@ -219,21 +219,37 @@ jobs:
           n() { echo "$1" | jq -r "$2 // 0" 2>/dev/null | grep -E '^[0-9]+$' || echo 0; } # número de dentro da resposta
           pedir() { curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 60 "https://vaiprocarrinho.com.br/api/preparar-ml?parte=$1&horas=$2" || echo "falhou"; }
           inicio=$(date +%s); renovadas=0; precos=0; esperas=0; partes=0; parou=""; fichas=0; ofertas=0
-          # Mais vendidos de cada categoria do Mercado Livre (05/11/2026): "Ofertas do dia" e vitrines. Antes das buscas
-          maisvendidos=0; cat=0; seguidas=0
-          # Até 400 categorias e subcategorias, no máximo 25 minutos (o resto fica para a madrugada seguinte, que começa
-          # pelas mais vendidas de novo: os preços guardados há menos de 20 h não são perguntados de novo)
-          while [ "$cat" -lt 400 ] && [ $(( $(date +%s) - inicio )) -lt 1500 ]; do
-            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 90 "https://vaiprocarrinho.com.br/api/preparar-ml?destaques=$cat" || echo "falhou")
-            echo "mais vendidos, categoria $cat: $r"
+          # Mais vendidos do Mercado Livre (05/11/2026): "Ofertas do dia", vitrines, buscas e página da loja ML. Antes das buscas.
+          # 1) Árvore das categorias (ml_categorias): lê as sub-subcategorias de 25 subcategorias por chamada, até faltar 0
+          #    (na 1ª vez ~16 chamadas; depois só 1 vez por semana)
+          arvore=0
+          while [ "$arvore" -lt 40 ] && [ $(( $(date +%s) - inicio )) -lt 600 ]; do
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 90 "https://vaiprocarrinho.com.br/api/preparar-ml?arvore=1" || echo "falhou")
+            echo "árvore das categorias: $r"
             echo "$r" | grep -q CHAVE_ROBO && exit 1
-            maisvendidos=$((maisvendidos + $(n "$r" .destaques)))
-            if echo "$r" | grep -q '"limite":true' && [ "$seguidas" -lt 3 ]; then seguidas=$((seguidas + 1)); esperas=$((esperas + 1)); sleep 60; continue; fi
-            seguidas=0
-            echo "$r" | grep -q '"fim":true' && break
-            cat=$((cat + 1)); sleep 1
+            arvore=$((arvore + 1))
+            if echo "$r" | grep -q '"limite":true'; then esperas=$((esperas + 1)); sleep 60; continue; fi
+            [ "$(n "$r" .faltam)" -eq 0 ] && break
+            sleep 1
           done
-          echo "- $maisvendidos mais vendidos do Mercado Livre guardados ($cat categorias)" >> "$GITHUB_STEP_SUMMARY"
+          # 2) Mais vendidos das categorias principais e subcategorias (níveis 1 e 2), no máximo 25 minutos (as
+          #    sub-subcategorias ficam para o job "maisvendidos", que roda junto com as buscas prontas)
+          maisvendidos=0; cat=0; seguidas=0; falhas=0
+          while [ $(( $(date +%s) - inicio )) -lt 1500 ]; do
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 90 "https://vaiprocarrinho.com.br/api/preparar-ml?proxima=1&nivel=2" || echo "falhou")
+            echo "mais vendidos: $r"
+            echo "$r" | grep -q CHAVE_ROBO && exit 1
+            # Resposta estranha (erro do site): 5 seguidas = desiste desta parte
+            if ! echo "$r" | grep -q '"categoria"'; then falhas=$((falhas + 1)); [ "$falhas" -ge 5 ] && break; sleep 5; continue; fi; falhas=0
+            if echo "$r" | grep -q '"limite":true' && [ "$seguidas" -lt 3 ]; then seguidas=$((seguidas + 1)); esperas=$((esperas + 1)); sleep 60; continue; fi
+            echo "$r" | grep -q '"limite":true' && break
+            seguidas=0
+            echo "$r" | grep -q '"categoria":null' && break
+            maisvendidos=$((maisvendidos + $(n "$r" .destaques))); cat=$((cat + 1))
+            echo "$r" | grep -q '"fim":true' && break
+            sleep 1
+          done
+          echo "- $maisvendidos mais vendidos do Mercado Livre guardados ($cat categorias principais e subcategorias)" >> "$GITHUB_STEP_SUMMARY"
           for horas in 44 20; do
             parte=0; seguidas=0
             while :; do
@@ -259,7 +275,48 @@ jobs:
           media=""; [ "$fichas" -gt 0 ] && media="$(awk "BEGIN {printf \"%.1f\", $ofertas / $fichas}") ofertas por ficha com vendedor ($fichas fichas)"
           echo "- $renovadas buscas renovadas, $precos preços guardados, $esperas esperas de 1 minuto pelo limite ${parou:+($parou)}" >> "$GITHUB_STEP_SUMMARY"
           [ -n "$media" ] && echo "- Média: $media" >> "$GITHUB_STEP_SUMMARY"
-          echo "ml=$(jq -cn --arg l "$renovadas buscas renovadas, $precos preços guardados ($partes buscas)" --arg e "$esperas esperas de 1 minuto pelo limite do Mercado Livre" --arg m "$media" --arg v "$maisvendidos mais vendidos guardados (Ofertas do dia e vitrines)" --arg a "$parou" '{linhas: [$v, $l, $e, ($m | select(. != ""))], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
+          echo "ml=$(jq -cn --arg l "$renovadas buscas renovadas, $precos preços guardados ($partes buscas)" --arg e "$esperas esperas de 1 minuto pelo limite do Mercado Livre" --arg m "$media" --arg v "$maisvendidos mais vendidos guardados ($cat categorias principais e subcategorias)" --arg a "$parou" '{linhas: [$v, $l, $e, ($m | select(. != ""))], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
+
+  # Mais vendidos das ~2.700 sub-subcategorias do Mercado Livre (05/11/2026, "o máximo de produtos do ML"): depois do job
+  # "mercadolivre" (que faz as principais e subcategorias), ao mesmo tempo que as buscas prontas. Revezando: as mais antigas
+  # primeiro, até 75 minutos; o que não der fica para a madrugada seguinte (os produtos valem 4 dias no site).
+  maisvendidos:
+    needs: [guarda, mercadolivre]
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    outputs:
+      mv: ${{ steps.mv.outputs.mv }}
+      mv_ok: ${{ steps.mv.outcome }}
+    steps:
+      - name: Mais vendidos das sub-subcategorias do Mercado Livre
+        id: mv
+        env:
+          CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }}
+        run: |
+          echo "### Mais vendidos do Mercado Livre (sub-subcategorias)" >> "$GITHUB_STEP_SUMMARY"
+          n() { echo "$1" | jq -r "$2 // 0" 2>/dev/null | grep -E '^[0-9]+$' || echo 0; }
+          inicio=$(date +%s); total=0; cats=0; esperas=0; seguidas=0; faltam=0; parou=""; falhas=0
+          while :; do
+            if [ $(( $(date +%s) - inicio )) -gt 4500 ]; then parou="parou aos 75 minutos ($faltam categorias ficam para a próxima madrugada)"; break; fi
+            r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 90 "https://vaiprocarrinho.com.br/api/preparar-ml?proxima=1" || echo "falhou")
+            echo "categoria $cats: $r"
+            echo "$r" | grep -q CHAVE_ROBO && exit 1
+            if ! echo "$r" | grep -q '"categoria"'; then
+              falhas=$((falhas + 1)); [ "$falhas" -ge 5 ] && { parou="parou: o site respondeu com erro 5 vezes seguidas"; break; }; sleep 5; continue
+            fi; falhas=0
+            if echo "$r" | grep -q '"limite":true'; then
+              esperas=$((esperas + 1)); seguidas=$((seguidas + 1))
+              if [ "$seguidas" -ge 5 ]; then parou="parou: o Mercado Livre recusou 5 vezes seguidas ($faltam categorias ficam para a próxima madrugada)"; break; fi
+              sleep 60; continue
+            fi
+            seguidas=0
+            echo "$r" | grep -q '"categoria":null' && break
+            total=$((total + $(n "$r" .destaques))); cats=$((cats + 1)); faltam=$(n "$r" .faltam)
+            echo "$r" | grep -q '"fim":true' && break
+          done
+          echo "- $total mais vendidos guardados ($cats categorias), $esperas esperas de 1 minuto ${parou:+($parou)}" >> "$GITHUB_STEP_SUMMARY"
+          echo "mv=$(jq -cn --arg l "$total mais vendidos guardados ($cats categorias)" --arg e "$esperas esperas de 1 minuto pelo limite do Mercado Livre" --arg a "$parou" '{linhas: [$l, $e], avisos: [$a | select(. != "")]}')" >> "$GITHUB_OUTPUT"
 
   # Buscas populares prontas: refaz nas lojas as buscas mais comuns e guarda no banco, para o site responder na hora
   prontas:
@@ -474,7 +531,7 @@ jobs:
   # Resumo para o painel do Giovanni (03/11/2026): depois de todos os jobs (mesmo se algum falhar), junta o que cada
   # passo anotou e se deu certo e grava no banco (robo/relatorio.mjs, tabela robo_execucoes); aparece na aba "Robô"
   relatorio:
-    needs: [guarda, awin, shopee, mercadolivre, prontas, lomadee, auditoria, ia]
+    needs: [guarda, awin, shopee, mercadolivre, maisvendidos, prontas, lomadee, auditoria, ia]
     if: ${{ always() && !inputs.so_numeros && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
