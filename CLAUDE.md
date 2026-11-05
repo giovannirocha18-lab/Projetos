@@ -115,7 +115,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Loja ML: total na lista ("Mostrando 600 de 3.180"), abre com ~600 (2,5x) e **atalhos de categoria** do ML (25, com contagem;
   `?mlcat=`, `arvoreML` em ml_listas id 3, `produtosDaLojaML(…, cat)`; celular/câmera antes de acessório); /api/lojas VERSAO 38.
   Painel Comissões: linha "Mercado Livre" com link (ML não tem API de ganhos de afiliado). **Rolagem infinita** (05/11,
-  `rolagemInfinita` em app.js): perto do fim, "Ver mais" sozinho (busca, lojas, Ofertas do dia; máx. 40 seguidas). Celular sem
+  `rolagemInfinita` em app.js): perto do fim, "Ver mais" sozinho (busca, lojas, Ofertas do dia; máx. 40 seguidas);
+  sem pulos: `desenharAosPoucos` mantém os cartões já na tela (`desenhados`), busca põe os novos depois, content-visibility. Celular sem
   rodapé (links Como funciona/Privacidade na janela Conta, `.links-legais`).
 - **Stanley** (Awin, aprovada 05/11, 122 produtos): TODAS as fotos do feed dão **410** (stanley.fbitsstatic.net) → fora do site
   sozinha (produto sem foto não entra). Robô agora aceita foto http→https e mostra "Foto da X não abre: status url" quando uma
