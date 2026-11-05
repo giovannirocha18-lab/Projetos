@@ -804,7 +804,10 @@ function desenharConta() {
           el("a", { href: "privacidade", target: "_blank" }, "Política de Privacidade"), ".")),
     ];
   }
-  $("#conta-conteudo").replaceChildren(...conteudo.filter(Boolean));
+  // Links do rodapé (no celular o rodapé some desde 05/11/2026; a rolagem infinita não deixa chegar nele)
+  const legais = el("p", { class: "links-legais" }, el("a", { href: "/como-funciona" }, "Como funciona"), " · ",
+    el("a", { href: "/privacidade" }, "Política de Privacidade"));
+  $("#conta-conteudo").replaceChildren(...conteudo.filter(Boolean), legais);
   $("#janela-conta").classList.toggle("janela-larga", Boolean(conta.usuario && conta.etapa === "personagem"));
 }
 
