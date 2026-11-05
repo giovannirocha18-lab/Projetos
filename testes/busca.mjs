@@ -549,7 +549,10 @@ for (const [digitado, q, sugestao] of CORRECOES) {
 }
 // Busca de uma palavra que nas lojas só traz acessório: pesquisa outro termo (o site mostra o digitado)
 for (const [q, esperado] of [["tv", "smart tv"], ["Televisão", "smart tv"], ["impressora", "impressora multifuncional"],
-  ["tv box", "tv box"], ["impressora térmica", "impressora térmica"]]) {
+  ["tv box", "tv box"], ["impressora térmica", "impressora térmica"],
+  // 05/11/2026 (Giovanni): "microondas" trazia 36 produtos e "micro-ondas" 95 (a eFácil só acha com hífen)
+  ["microondas", "micro-ondas"], ["Microondas Electrolux 20L", "micro-ondas Electrolux 20L"], ["forno microondas", "forno micro-ondas"],
+  ["micro ondas", "micro ondas"]]) {
   total++;
   if (termoNasLojas(q) !== esperado) { falhas++; console.log(`✗ termo nas lojas "${q}": ${termoNasLojas(q)} (esperado ${esperado})`); }
 }
