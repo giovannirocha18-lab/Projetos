@@ -242,6 +242,10 @@ const CASOS_PRECO = [
     ["Drone DJI Neo com 3 baterias e o hub de carregamento! Sem controle Cor: cinza", 2000], ["Hub Carregamento Rápido 10a - 6 Usbs P/ Celulares E Gadgets", 90]],
     { "Hub De Carregamento Dji Mini 5 Pro": "P", "Hub de carregamento DJI (Mini 2/2 SE/SE) BR - DJI1034": "P", "Hub De Carregamento Dji Avata 360": "N",
       "Hub Carregamento Rápido 10a - 6 Usbs P/ Celulares E Gadgets": "N" }],
+  // Mesma busca: "para DJI" é compatibilidade, não a marca desejada; os hubs de outras marcas feitos para DJI Mini são o produto
+  ["Hub de Carregamento Bidirecional para DJI Mini", [["Hub de carregamento bidirecional para DJI Mini 4 Pro/mini 3 Series", 400],
+    ["Hub De Carregamento Bidirecional Para DJI Mini 2 SE/4K Bateria Carregador", 150], ["Hub De Carregamento Dji Mini 5 Pro", 386]],
+    { "Hub de carregamento bidirecional para DJI Mini 4 Pro/mini 3 Series": "P", "Hub De Carregamento Bidirecional Para DJI Mini 2 SE/4K Bateria Carregador": "P" }],
   ["geladeira", [...geladeiras, ["Imã de Geladeira Dragon Ball", 21]], { "Imã de Geladeira Dragon Ball": "A", "Geladeira Consul 300L": "P" }],
   ["geladeira", [...geladeiras, ["Toalha de Geladeira em PVC Rendada", 9]], { "Toalha de Geladeira em PVC Rendada": "A" }],
   ["celular", [...celulares, ["LG B220 Celular Simples Para Idosos 2G", 120]], { "LG B220 Celular Simples Para Idosos 2G": "P" }],
