@@ -2339,7 +2339,7 @@ async function buscar(q) {
     estado.corrigidaDe = null;
     if (dados.q && normalizar(dados.q) !== normalizar(q)) {
       // Só hífen/espaço ("microondas" -> "micro-ondas", 05/11/2026): não é erro de digitação, não avisa "Corrigimos"
-      estado.corrigidaDe = normalizar(dados.q).replace(/ /g, "") === normalizar(q).replace(/ /g, "") ? null : q;
+      estado.corrigidaDe = normalizar(dados.q).replace(/[\s-]/g, "") === normalizar(q).replace(/[\s-]/g, "") ? null : q;
       estado.q = dados.q;
       const params = new URLSearchParams(location.search);
       params.set("q", dados.q);
