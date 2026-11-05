@@ -236,6 +236,12 @@ const geladeiras = [["Geladeira Frost Free 400L Electrolux", 2800], ["Geladeira 
 const celulares = [["Celular Samsung Galaxy A06", 700], ["Celular Motorola Moto G24", 900], ["Celular Xiaomi Redmi 13", 1100],
   ["Smartphone Samsung Galaxy S24", 4000], ["iPhone 15 Celular Apple 128GB", 4500], ["Celular Realme C61", 800]];
 const CASOS_PRECO = [
+  // 05/11/2026 (print do Giovanni): nome de produto colado; nenhuma loja escreve "bidirecional" e o site dizia "não está à venda"
+  ["Hub de Carregamento Bidirecional para DJI Mini", [["Hub De Carregamento Dji Mini 5 Pro", 700], ["Hub de carregamento DJI (Mini 2/2 SE/SE) BR - DJI1034", 400],
+    ["Hub de Carregamento Startrc para 4 Baterias Drone DJI Mini 3 Pro", 250], ["Hub De Carregamento Dji Avata 360", 500],
+    ["Drone DJI Neo com 3 baterias e o hub de carregamento! Sem controle Cor: cinza", 2000], ["Hub Carregamento Rápido 10a - 6 Usbs P/ Celulares E Gadgets", 90]],
+    { "Hub De Carregamento Dji Mini 5 Pro": "P", "Hub de carregamento DJI (Mini 2/2 SE/SE) BR - DJI1034": "P", "Hub De Carregamento Dji Avata 360": "N",
+      "Hub Carregamento Rápido 10a - 6 Usbs P/ Celulares E Gadgets": "N" }],
   ["geladeira", [...geladeiras, ["Imã de Geladeira Dragon Ball", 21]], { "Imã de Geladeira Dragon Ball": "A", "Geladeira Consul 300L": "P" }],
   ["geladeira", [...geladeiras, ["Toalha de Geladeira em PVC Rendada", 9]], { "Toalha de Geladeira em PVC Rendada": "A" }],
   ["celular", [...celulares, ["LG B220 Celular Simples Para Idosos 2G", 120]], { "LG B220 Celular Simples Para Idosos 2G": "P" }],
