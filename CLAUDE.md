@@ -59,7 +59,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   13.606 termos guardados no #122, 0 erros; ~2.400 viram sugestão); viram **sugestões da caixa de busca** (1.063 → ~3.440), **150 buscas prontas** (fim da lista) e até 1.500
   buscas preparadas com o ML (jobs mercadolivre + maisvendidos até 95 min; #122: lista do ML 1.918 buscas, job mercadolivre
   chegou na 725 em 50 min, 216 renovadas; maisvendidos continuou até a 1.339 (+606); cada busca nova custa até ~96 consultas ao ML). Filtro `tendenciaAceitavel` (lib/buscas.js: sex shop,
-  vape, armas, bebidas, réplicas…; **decisão do Giovanni 05/11: adulto e bebidas/seringas também ficam fora**); Giovanni pode mandar print de sugestão imprópria → completar BLOQUEADOS_TENDENCIAS.
+  vape, armas, bebidas (por nome também), réplicas…; **decisão do Giovanni 05/11: adulto e bebidas/seringas também ficam fora**); Giovanni pode mandar print de sugestão imprópria → completar BLOQUEADOS_TENDENCIAS.
+- **26ª: palavras compostas** (micro-ondas, guarda-roupa, lava-louças, pré-treino…): junta/separada/hífen = mesma busca
+  (`COMPOSTAS`/`comCompostas` em lib/vocabulario.js; para incluir outra, pôr na lista). Busca: marca depois de "para" é
+  compatibilidade; nome colado de 4+ palavras aceita "todas menos uma". Auditoria do site 05/11: 0 erros (ver histórico).
 - **24ª: Mercado Livre ligado** (conta PJ; app no devcenter; `ML_CLIENT_ID`/`ML_CLIENT_SECRET`; afiliado etiqueta
   vaiprocarrinho). Catálogo (`/products/search`) + preço por produto; link pelo nosso `/ir/ml/<produto>/<anúncio>`; ML
   primeiro nas buscas. Teste: painel `/api/painel/ml-teste`. **Problema: 429 do ML → poucos produtos dele por busca.**

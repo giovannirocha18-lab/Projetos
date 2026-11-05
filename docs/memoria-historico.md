@@ -1633,3 +1633,12 @@ Texto para colar numa conversa nova:
   lojas o digitado; "microondas" dava 36 visíveis e "micro-ondas" 95 (eFácil só acha com hífen). `PALAVRAS_NAS_LOJAS` em
   lib/vocabulario.js (termoNasLojas troca a palavra também dentro de buscas maiores); casos em testes/busca.mjs. No ar:
   "microondas 30 litros" passou a trazer a eFácil (10). A resposta guardada de "microondas" renova sozinha em ~6 h.
+- **Palavras compostas (05/11/2026, Giovanni: "as duas buscas têm que coincidir independente da grafia, vale para outros
+  produtos com '-'")**: `COMPOSTAS` + `comCompostas` em lib/vocabulario.js (micro-ondas, guarda-roupa(s), guarda-chuva/sol,
+  porta-retrato/joias/copos/chaves/temperos…, lava-louças/roupas/jato, pré/pós-treino, quebra-cabeça, pula-pula,
+  pisca-pisca, beija-flor, abre-latas, saca-rolhas, alto-falante, cata-vento, mata-mosquito, tira-manchas…; "para-sol" e
+  "para-choque" NÃO: "óculos para sol"). `corrigirBusca`/`acentuarBusca` trocam junta/separada/hífen pela forma com hífen
+  antes de tudo (mesma chave de cache, busca pronta e consulta às lojas). Awin: FTS `((micro* AND ondas*) OR microondas*)`
+  (`juntaDeComposta`). app.js: sem "Corrigimos" quando só muda hífen/espaço. No ar: microondas = micro ondas = micro-ondas
+  = 186 ofertas/95 visíveis; guardaroupa = guarda roupa = guarda-roupa = 757/472. As prontas "guarda roupa"/"lava louças"
+  passam a ser guardadas com o hífen na próxima madrugada. Substitui PALAVRAS_NAS_LOJAS (removido).
