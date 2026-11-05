@@ -542,6 +542,22 @@ const CORRECOES = [
   ["natural", "natural", null], ["nivel a laser", "nível a laser", null], ["cross", "cross", null],
   ["invictus", "invictus", null], ["conversor hdmi", "conversor hdmi", null], ["stranger things", "stranger things", null],
 ];
+// Palavras compostas (05/11/2026, Giovanni: "microondas" trazia 36 produtos e "micro-ondas" 95): qualquer grafia vira a com
+// hífen, então as buscas coincidem; "óculos para sol", "usb-c" e "wi-fi" ficam como estão
+for (const [digitado, esperado] of [["microondas", "micro-ondas"], ["micro ondas", "micro-ondas"], ["Micro-Ondas", "micro-ondas"],
+  ["Microondas Electrolux 20L", "micro-ondas Electrolux 20L"], ["forno microondas", "forno micro-ondas"], ["guarda roupa casal", "guarda-roupa casal"],
+  ["guardaroupa", "guarda-roupa"], ["lava loucas", "lava-louças"], ["pretreino", "pré-treino"], ["alto falante bluetooth", "alto-falante bluetooth"],
+  ["oculos para sol", "óculos para sol"], ["usb-c", "usb-c"], ["wi-fi", "wi-fi"]]) {
+  total++;
+  const r = corrigirBusca(digitado);
+  if (r.q !== esperado) { falhas++; console.log(`✗ composta "${digitado}": ${r.q} (esperado ${esperado})`); }
+}
+// E a palavra composta escrita junta, separada ou com hífen no título continua sendo o produto
+for (const [q, titulo] of [["micro-ondas", "Microondas Electrolux 20L"], ["micro-ondas", "Micro Ondas Philco 25L"], ["guarda-roupa", "Guardaroupa Casal 6 Portas"],
+  ["guarda-roupa", "Guarda Roupa Solteiro 3 Portas"], ["lava-louças", "Lava Louças Brastemp 8 Serviços"], ["pré-treino", "Pre Treino Horus 300g"]]) {
+  total++;
+  if (!temTodasAsPalavras(q)(titulo)) { falhas++; console.log(`✗ composta no título "${q}": ${titulo}`); }
+}
 for (const [digitado, q, sugestao] of CORRECOES) {
   total++;
   const r = corrigirBusca(digitado);
@@ -549,10 +565,7 @@ for (const [digitado, q, sugestao] of CORRECOES) {
 }
 // Busca de uma palavra que nas lojas só traz acessório: pesquisa outro termo (o site mostra o digitado)
 for (const [q, esperado] of [["tv", "smart tv"], ["Televisão", "smart tv"], ["impressora", "impressora multifuncional"],
-  ["tv box", "tv box"], ["impressora térmica", "impressora térmica"],
-  // 05/11/2026 (Giovanni): "microondas" trazia 36 produtos e "micro-ondas" 95 (a eFácil só acha com hífen)
-  ["microondas", "micro-ondas"], ["Microondas Electrolux 20L", "micro-ondas Electrolux 20L"], ["forno microondas", "forno micro-ondas"],
-  ["micro ondas", "micro ondas"]]) {
+  ["tv box", "tv box"], ["impressora térmica", "impressora térmica"]]) {
   total++;
   if (termoNasLojas(q) !== esperado) { falhas++; console.log(`✗ termo nas lojas "${q}": ${termoNasLojas(q)} (esperado ${esperado})`); }
 }
