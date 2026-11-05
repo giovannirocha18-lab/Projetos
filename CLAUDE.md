@@ -33,7 +33,11 @@ Ainda escondido do Google (noindex) até o lançamento.
   import de `/opt/node22/lib/node_modules/playwright/index.mjs`. **Teste no site no ar: cookie `vpc_nao_contar=1`**
   (`ctx.addCookies`) senão as visitas do teste entram no painel (04/11: ~dezenas de visitas de teste).
 
-## Robô (GitHub Actions `robo-precos.yml`, 01:30 de Brasília; o GitHub atrasa ~6 h)
+## Robô (GitHub Actions `robo-precos.yml`)
+**Desde 05/11: disparado ~01:14 de Brasília pela tarefa agendada do Claude "Robô da madrugada"** (trig_01V7N1fkme6rhQcj6aqyC1F7,
+sessão nova a cada noite, dispara + confere + resumo; push no celular). O cron do GitHub (06:17) é só reserva: job `guarda`
+só deixa rodar se nenhum workflow_dispatch foi criado desde 03:30 UTC. Aviso: a tarefa foi criada sem conectores; se o
+GitHub falhar nela, a reserva roda (e dá para recriar a tarefa pela tela de rotinas do claude.ai).
 Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` (histórico), `lomadee` (marcas/páginas),
 `prontas` (buscas prontas), `ia` (Haiku 5.5 classifica categorias em lote + `robo/marcas.mjs` sugestões produto+marca),
 `auditoria` (suspeitos no topo + IA conferindo buscas `robo/conferir-buscas.mjs` + relatório de categorias das lojas + variações),
@@ -96,8 +100,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   página = mais vendidos (`produtosDaLojaML`), busca na loja, ir-loja com matt_*, "mercado livre" abre a loja, ?produto= e
   alertas aceitam "mercadolivre-" (`ofertaMLPorId`); /api/lojas VERSAO 33.
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
-  UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027); decidir cron-job.org para o atraso
-  do robô; decidir Mercado Livre.
+  UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027).
 - **Claude**: conferir o robô de cada madrugada (atraso, IA, auditoria — seção "Lojas nas buscas": 🆕 loja nova / ⚠️ invisível); quando loja nova aprovar: `so_awin`, ler o log,
   `so_auditoria` (categorias da loja → completar `REGRAS` em lib/caminhos.js), subir versões e `so_prontas`.
 - **Shopee limitando (desde 02/11)**: buscas prontas salvas caíram de ~445 para ~35 por rodada (erro 10030). Feito em 03/11:
