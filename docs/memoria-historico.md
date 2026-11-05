@@ -1606,3 +1606,13 @@ Texto para colar numa conversa nova:
   vendidos; job maisvendidos: as 2.740 sub-subcategorias em 42 min (1.192 sem ficha de catálogo = 0), 15.260 gravações, 1
   espera de 429. Loja ML: **14.729 produtos** (antes 3.180). Buscas no ar 0,7–1,9 s (fone bluetooth 24, furadeira 24, panela de
   pressão 24, tênis masculino 13, air fryer 12 do ML). Próximo possível: tendências por categoria (/trends/MLB/{cat}) como buscas.
+- **Tendências do ML por categoria (05/11/2026, 26ª; Giovanni: "nosso site trazer o que o público mais está buscando")**.
+  `/trends/MLB/{categoria}` só abre com token (403 sem). `prepararTendenciasML` (30 categorias de nível 1–2 por chamada,
+  `ml_categorias.tendencias_em`, renovadas a cada 20 h) → `ml_tendencias` (termo normalizado, texto, categoria, principal,
+  posicao; melhor posição fica; vale 7 dias); `tendenciasDasCategorias(env, n)` = 1º de cada categoria primeiro. Usos:
+  `/api/vocabulario` (até 2.500, v=10; sem tendências não guarda 6 h), `listaDasProntas` (+150 no fim, `TENDENCIAS_PRONTAS`),
+  `/api/preparar-ml` (prontas + tendências gerais + 1.500 das categorias; as novas no banco são puladas juntas, `proxima`,
+  até 80/15 s). Job maisvendidos: depois do nível 3, continua as buscas do ML até 95 min (timeout 105). 1ª leitura (#122):
+  vocabulário 1.063 → 3.470 termos; conferido à mão: tirados sexshop/sexyshop, bomba peniana, cassino, vaper, arminha,
+  seringa, bebidas, réplica/primeira linha, desbloqueado, essência, playboy, sensual (`BLOQUEADOS_TENDENCIAS`, lib/buscas.js).
+  Playwright: "dji mi" → dji mini 5 pro; "ring li" → ring light; "polaro" → polaroid.

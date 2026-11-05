@@ -31,7 +31,7 @@ Ainda escondido do Google (noindex) até o lançamento.
   (busca), `lib/relevancia.js` (produto x acessório, marca), `lib/categorias.js` (40 categorias), `lib/vocabulario.js`
   (marcas, erros, sugestões), `lib/fontes/*.js` (lojas), `functions/_middleware.js` (lista do que pode abrir).
 - Banco D1 (`DB`), plano Workers Paid. Versões de cache: `VERSAO_CACHE` (buscar.js) = `VERSAO_BUSCA` (app.js), hoje **108**;
-  ao trocar, rodar o robô com `so_prontas`. `/api/vocabulario?v=7`, `/api/lojas` VERSAO e `/api/numeros?v=` também têm versão.
+  ao trocar, rodar o robô com `so_prontas`. `/api/vocabulario?v=10`, `/api/lojas` VERSAO e `/api/numeros?v=` também têm versão.
 - Testar local: `npx wrangler pages dev public`; Playwright: Chromium em `/opt/pw-browsers/chromium`,
   import de `/opt/node22/lib/node_modules/playwright/index.mjs`. **Teste no site no ar: cookie `vpc_nao_contar=1`**
   (`ctx.addCookies`) senão as visitas do teste entram no painel (04/11: ~dezenas de visitas de teste).
@@ -55,6 +55,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   `?arvore=1` / `?proxima=1`, job novo `maisvendidos` até 75 min; busca lê só um índice leve). Run #120 (so_ml): árvore 2.740,
   as 2.740 sub-subcategorias em 42 min (1 espera), **loja ML 3.180 → 14.729 produtos**; buscas 0,7–1,9 s. Conferir a madrugada
   de 06/11 (job maisvendidos no painel). Detalhe no histórico ("TODAS as categorias").
+- **26ª: tendências do ML por categoria** ("o que o público mais busca"): `?tendencias=1` → `ml_tendencias` (421 categorias,
+  ~2.400 termos); viram **sugestões da caixa de busca** (1.063 → ~3.440), **150 buscas prontas** (fim da lista) e até 1.500
+  buscas preparadas com o ML (jobs mercadolivre + maisvendidos até 95 min). Filtro `tendenciaAceitavel` (lib/buscas.js: sex shop,
+  vape, armas, bebidas, réplicas…); Giovanni pode mandar print de sugestão imprópria → completar BLOQUEADOS_TENDENCIAS.
 - **24ª: Mercado Livre ligado** (conta PJ; app no devcenter; `ML_CLIENT_ID`/`ML_CLIENT_SECRET`; afiliado etiqueta
   vaiprocarrinho). Catálogo (`/products/search`) + preço por produto; link pelo nosso `/ir/ml/<produto>/<anúncio>`; ML
   primeiro nas buscas. Teste: painel `/api/painel/ml-teste`. **Problema: 429 do ML → poucos produtos dele por busca.**
