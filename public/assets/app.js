@@ -1955,22 +1955,48 @@ function desenharBotaoFrete() {
 // (um marcador invisível no fim da grade). Filtros, contagens e "Escolha rápida" continuam usando a lista inteira.
 const CARTOES_POR_LOTE = 48;
 const observadores = new WeakMap();
+// Cartões já na tela de cada grade (ids e elementos, na ordem). 05/11/2026 (Giovanni: "a rolagem automática buga conforme
+// avança a quantidade e o efeito fica visível"): ao carregar mais uma página, a grade inteira era refeita (centenas de
+// cartões apagados e montados de novo: a tela piscava e pulava). Agora os cartões do começo que continuam iguais ficam
+// onde estão e só o que mudou (normalmente só os novos, no fim) é montado
+const desenhados = new WeakMap();
 function desenharAosPoucos(grade, lista, fazer, { minimo = 0 } = {}) {
   observadores.get(grade)?.disconnect();
-  let feitos = 0;
+  const antes = desenhados.get(grade);
+  let iguais = 0;
+  if (antes && antes.nos.every((n) => n.parentNode === grade)) {
+    while (iguais < antes.ids.length && iguais < lista.length && antes.ids[iguais] === lista[iguais]?.id) iguais++;
+  }
+  const ids = antes ? antes.ids.slice(0, iguais) : [];
+  const nos = antes ? antes.nos.slice(0, iguais) : [];
+  let feitos = iguais;
   const marcador = el("div", { class: "fim-da-grade", "aria-hidden": "true" });
   // minimo: quantos cartões já estavam na tela (redesenho da mesma busca): desenha pelo menos esses de uma vez, para a
   // lista não encolher e a tela não pular (04/11/2026)
-  let tamanho = Math.max(CARTOES_POR_LOTE, minimo);
+  let tamanho = Math.max(CARTOES_POR_LOTE, minimo - iguais);
   const mais = () => {
     const lote = lista.slice(feitos, feitos + tamanho).map((o, j) => fazer(o, feitos + j));
+    ids.push(...lista.slice(feitos, feitos + lote.length).map((o) => o?.id));
+    nos.push(...lote);
     tamanho = CARTOES_POR_LOTE;
     feitos += lote.length;
     marcador.before(...lote);
     if (feitos >= lista.length) { observadores.get(grade)?.disconnect(); marcador.remove(); }
   };
-  grade.replaceChildren(marcador);
+  if (iguais) {
+    // Tira só o que vem depois dos cartões iguais (e o marcador antigo)
+    for (const n of antes.nos.slice(iguais)) n.remove();
+    for (const m of grade.querySelectorAll(":scope > .fim-da-grade")) m.remove();
+    const ficam = new Set(nos);
+    const intrusos = [...grade.children].filter((n) => !ficam.has(n));
+    for (const n of intrusos) n.remove();
+    grade.append(marcador);
+  } else {
+    grade.replaceChildren(marcador);
+  }
+  desenhados.set(grade, { ids, nos });
   if (!lista.length) return marcador.remove();
+  if (feitos >= lista.length) return marcador.remove();
   mais();
   if (feitos < lista.length && "IntersectionObserver" in window) {
     // Depois de cada lote o marcador é observado de novo: se ainda está perto da tela, vem o próximo lote
@@ -2850,9 +2876,13 @@ async function carregarMaisResultados({ sozinho = false } = {}) {
     const todas = semRepetidos([...estado.ofertas, ...dados.ofertas]);
     estado.maisBusca = dados.mais;
     estado.temMaisBusca = Boolean(dados.mais && todas.length > antes);
-    // Produtos antes, acessórios (escondidos) no fim
-    // Produtos que começam pelo que foi buscado ("Console PS5 …") na frente, depois os outros, acessórios no fim
-    estado.ofertas = [...todas.filter((o) => o.principal), ...todas.filter((o) => !o.principal && !o.acessorio), ...todas.filter((o) => o.acessorio)];
+    // Produtos que começam pelo que foi buscado ("Console PS5 …") na frente, depois os outros, acessórios (escondidos) no fim.
+    // 05/11/2026 (rolagem infinita): os que já estavam na tela ficam no mesmo lugar e os novos entram DEPOIS deles; antes a
+    // lista toda era reordenada a cada página e produtos novos entravam no meio (a tela pulava)
+    const ordenar = (l) => [...l.filter((o) => o.principal), ...l.filter((o) => !o.principal && !o.acessorio)];
+    const jaNaTela = todas.slice(0, antes);
+    const novas = todas.slice(antes);
+    estado.ofertas = [...jaNaTela.filter((o) => !o.acessorio), ...ordenar(novas), ...todas.filter((o) => o.acessorio)];
     desenharFiltroLojas();
     desenharResultados();
   } catch {
