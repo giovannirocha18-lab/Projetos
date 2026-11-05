@@ -6,7 +6,7 @@
 // horas = só renova o que tiver mais que isso (1ª volta 44 h: começa pelo que a madrugada anterior não alcançou;
 // 2ª volta 20 h, se sobrar tempo). limite: true = o Mercado Livre recusou (o robô espera 1 minuto e repete a parte).
 import { listaDasProntas } from "./preparar-buscas.js";
-import { mercadolivre } from "../../lib/fontes/mercadolivre.js";
+import { mercadolivre, tendenciasML } from "../../lib/fontes/mercadolivre.js";
 import { corrigirBusca } from "../../lib/vocabulario.js";
 import { recusarSeNaoForRobo } from "../../lib/robo.js";
 
@@ -25,7 +25,9 @@ export async function onRequestGet({ request, env }) {
     return Response.json({ destaques: n, ...(await mercadolivre.prepararDestaques(env, n)), segundos: (Date.now() - inicio) / 1000 }, semCache);
   }
   // Só as buscas com termo (as "Ofertas do dia" não têm Mercado Livre)
-  const termos = [...new Set((await listaDasProntas(env)).map((b) => corrigirBusca(b.q).q).filter(Boolean))];
+  // + as tendências do Mercado Livre (o que mais se busca lá; 05/11/2026), no fim da lista
+  const [prontas, tendencias] = await Promise.all([listaDasProntas(env), tendenciasML(env).catch(() => [])]);
+  const termos = [...new Set([...prontas.map((b) => corrigirBusca(b.q).q), ...tendencias.map((t) => corrigirBusca(t).q)].filter(Boolean))];
   if (parte >= termos.length) return Response.json({ parte, partes: termos.length, fim: true }, semCache);
   const inicio = Date.now();
   const r = await mercadolivre.preparar(termos[parte], env, horas);

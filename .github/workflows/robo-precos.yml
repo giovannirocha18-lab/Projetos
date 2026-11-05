@@ -200,12 +200,12 @@ jobs:
   # poucos produtos dele. Aqui o robô passa devagar pelas buscas prontas (uma por chamada, um preço por vez) e guarda o
   # catálogo e os preços no banco (/api/preparar-ml); o job "prontas" vem depois e já monta as buscas com eles.
   # 1ª volta: só o que tem mais de 44 h (a madrugada anterior não alcançou); 2ª volta: mais de 20 h, se sobrar tempo.
-  # Recusou: espera 1 minuto e repete a mesma busca (5 recusas seguidas = para). Para aos 30 minutos.
+  # Recusou: espera 1 minuto e repete a mesma busca (5 recusas seguidas = para). Para aos 50 minutos (eram 30; 05/11/2026).
   mercadolivre:
     needs: guarda
     if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     outputs:
       ml: ${{ steps.ml.outputs.ml }}
       ml_ok: ${{ steps.ml.outcome }}
@@ -221,7 +221,9 @@ jobs:
           inicio=$(date +%s); renovadas=0; precos=0; esperas=0; partes=0; parou=""; fichas=0; ofertas=0
           # Mais vendidos de cada categoria do Mercado Livre (05/11/2026): "Ofertas do dia" e vitrines. Antes das buscas
           maisvendidos=0; cat=0; seguidas=0
-          while [ "$cat" -lt 60 ]; do
+          # Até 400 categorias e subcategorias, no máximo 25 minutos (o resto fica para a madrugada seguinte, que começa
+          # pelas mais vendidas de novo: os preços guardados há menos de 20 h não são perguntados de novo)
+          while [ "$cat" -lt 400 ] && [ $(( $(date +%s) - inicio )) -lt 1500 ]; do
             r=$(curl -sS --retry 2 -H "Authorization: Bearer $CHAVE_ROBO" --max-time 90 "https://vaiprocarrinho.com.br/api/preparar-ml?destaques=$cat" || echo "falhou")
             echo "mais vendidos, categoria $cat: $r"
             echo "$r" | grep -q CHAVE_ROBO && exit 1
@@ -235,7 +237,7 @@ jobs:
           for horas in 44 20; do
             parte=0; seguidas=0
             while :; do
-              if [ $(( $(date +%s) - inicio )) -gt 1800 ]; then parou="parou aos 30 minutos (volta de $horas h, busca $parte de $partes)"; break 2; fi
+              if [ $(( $(date +%s) - inicio )) -gt 3000 ]; then parou="parou aos 50 minutos (volta de $horas h, busca $parte de $partes)"; break 2; fi
               r=$(pedir "$parte" "$horas")
               echo "volta $horas h, parte $parte: $r"
               echo "$r" | grep -q CHAVE_ROBO && exit 1 # chave recusada: falha visível (e-mail do GitHub)
