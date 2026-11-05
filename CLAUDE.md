@@ -117,6 +117,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Painel Comissões: linha "Mercado Livre" com link (ML não tem API de ganhos de afiliado). **Rolagem infinita** (05/11,
   `rolagemInfinita` em app.js): perto do fim, "Ver mais" sozinho (busca, lojas, Ofertas do dia; máx. 40 seguidas). Celular sem
   rodapé (links Como funciona/Privacidade na janela Conta, `.links-legais`).
+- **Stanley** (Awin, aprovada 05/11, 122 produtos): TODAS as fotos do feed dão **410** (stanley.fbitsstatic.net) → fora do site
+  sozinha (produto sem foto não entra). Robô agora aceita foto http→https e mostra "Foto da X não abre: status url" quando uma
+  loja inteira falha. Entra sozinha quando a Stanley arrumar o feed (Giovanni pode avisá-la pela Awin).
 - **App Android do painel (05/11)**: `app-android/` (WebView de painel.vaiprocarrinho.com.br, "Painel VPC"; `construir.sh` =
   aapt2+javac+d8+apksigner, SDK baixado com sdkmanager). Chave de assinatura NÃO guardada (bloqueado guardar no repo; Giovanni: "deixe
   assim"): versão nova = desinstalar e instalar. Layout do painel muda sozinho no app (ele só abre o site).
