@@ -183,7 +183,7 @@ const descompactar = (bytes) =>
 function lojaDaBusca(id) {
   const [rede, ...resto] = String(id || "").trim().slice(0, 120).split(":");
   const chave = resto.join(":");
-  if (rede === "shopee" || rede === "aliexpress") return { id: rede, rede, chave: null };
+  if (rede === "shopee" || rede === "aliexpress" || rede === "mercadolivre") return { id: rede, rede, chave: null };
   if ((rede === "awin" || rede === "lomadee") && chave) return { id: `${rede}:${chave}`, rede, chave };
   return null;
 }
@@ -202,7 +202,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const { q, sugestao } = params.has("exato") ? { q: acentuarBusca(digitado), sugestao: null } : corrigirBusca(digitado);
   const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const desde = Math.min(Math.max(parseInt(params.get("desde"), 10) || 1, 1), MAX_DESDE);
-  // Busca dentro de uma loja (id como em /api/lojas: shopee, aliexpress, awin:<loja>, lomadee:<marca>). A categoria não vale junto
+  // Busca dentro de uma loja (id como em /api/lojas: shopee, aliexpress, mercadolivre, awin:<loja>, lomadee:<marca>). A categoria não vale junto
   const soLoja = q ? lojaDaBusca(params.get("loja")) : null;
   const categoria = q && !soLoja ? categoriaPorNome(params.get("cat")) : null;
 

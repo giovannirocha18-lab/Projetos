@@ -6,6 +6,7 @@
 import { shopee, linkShopee } from "../../lib/fontes/shopee.js";
 import { aliexpress, linkAliExpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee, marcasAprovadas } from "../../lib/fontes/lomadee.js";
+import { mercadolivre, linkAfiliadoML } from "../../lib/fontes/mercadolivre.js";
 import { redirecionaBem } from "../../lib/links.js";
 
 const GUARDAR_SEGUNDOS = 7 * 24 * 60 * 60;
@@ -27,6 +28,8 @@ async function linkAwin(env, loja) {
 async function gerar(env, id) {
   if (id === "shopee") return shopee.ativa(env) ? linkShopee(env) : null;
   if (id === "aliexpress") return aliexpress.ativa(env) ? linkAliExpress(env) : null;
+  // Mercado Livre: página inicial com as marcas de afiliado (matt_tool/matt_word, como nos produtos)
+  if (id === "mercadolivre") return mercadolivre.ativa(env) ? linkAfiliadoML(env, "https://www.mercadolivre.com.br/") : null;
   const [rede, chave] = id.split(":");
   if (rede === "awin" && /^[a-z0-9-]{1,80}$/.test(chave || "")) return linkAwin(env, chave);
   if (rede === "lomadee" && /^[0-9a-f-]{20,40}$/i.test(chave || "") && lomadee.ativa(env)) {

@@ -634,7 +634,7 @@ const ICONE_WHATSAPP = () => {
 };
 
 function linkDoProduto(o) {
-  if (/^(awin|shopee|aliexpress)-/.test(o.id)) return `${location.origin}/?produto=${encodeURIComponent(o.id)}`;
+  if (/^(awin|shopee|aliexpress|mercadolivre)-/.test(o.id)) return `${location.origin}/?produto=${encodeURIComponent(o.id)}`;
   return `${location.origin}/?q=${encodeURIComponent(o.titulo.split(/\s+/).slice(0, 6).join(" "))}`;
 }
 
@@ -2542,7 +2542,8 @@ function lojasSugeridas(texto) {
   }).slice(0, 2);
 }
 function lojaDoNome(q, lojas) {
-  return lojas.find((l) => l.rede !== "marketplace" && casaComNome(q, l.nome)) || null;
+  // Shopee e AliExpress não (buscar "shopee" mostra produtos); Mercado Livre sim: abre os mais vendidos dele (05/11/2026)
+  return lojas.find((l) => (l.rede !== "marketplace" || l.id === "mercadolivre") && casaComNome(q, l.nome)) || null;
 }
 async function mostrarLojaNaBusca(q, pedido) {
   const caixa = $("#loja-na-busca");
