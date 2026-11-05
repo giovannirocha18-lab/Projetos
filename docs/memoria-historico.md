@@ -1616,3 +1616,9 @@ Texto para colar numa conversa nova:
   vocabulário 1.063 → 3.470 termos; conferido à mão: tirados sexshop/sexyshop, bomba peniana, cassino, vaper, arminha,
   seringa, bebidas, réplica/primeira linha, desbloqueado, essência, playboy, sensual (`BLOQUEADOS_TENDENCIAS`, lib/buscas.js).
   Playwright: "dji mi" → dji mini 5 pro; "ring li" → ring light; "polaro" → polaroid.
+- **Busca de nome colado (05/11/2026, print "Hub de Carregamento Bidirecional para DJI Mini": "não está à venda")**: 2 causas
+  em lib/relevancia.js `separarAcessorios`: 1) marca depois de "para/compatível" na busca virava a marca desejada → os hubs de
+  outras marcas "para DJI Mini" (os bidirecionais, o próprio produto) iam para "Ver também" (`deCompatibilidade`); 2) busca de
+  4+ palavras sem nenhum principal no fim das regras: vale quem tem todas menos uma e começa pelo produto. 2 casos novos em
+  CASOS_PRECO (testes/busca.mjs). A resposta já guardada daquela busca exata só renova depois de 6 h (FRESCO_MS).
+  Também: no fim da busca, "Ver também N acessórios…" entra sozinho (rolagemInfinita).
