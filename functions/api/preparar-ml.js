@@ -18,6 +18,12 @@ export async function onRequestGet({ request, env }) {
   const horas = Math.min(Math.max(Number(params.get("horas")) || 20, 1), 96);
   const semCache = { headers: { "Cache-Control": "no-store" } };
   if (!mercadolivre.ativa(env)) return Response.json({ erro: "Mercado Livre sem chaves (ML_CLIENT_ID/ML_CLIENT_SECRET)", fim: true }, semCache);
+  // ?destaques=N: mais vendidos da N-ésima categoria do Mercado Livre (Ofertas do dia e vitrines; 05/11/2026)
+  if (params.has("destaques")) {
+    const n = Math.max(parseInt(params.get("destaques"), 10) || 0, 0);
+    const inicio = Date.now();
+    return Response.json({ destaques: n, ...(await mercadolivre.prepararDestaques(env, n)), segundos: (Date.now() - inicio) / 1000 }, semCache);
+  }
   // Só as buscas com termo (as "Ofertas do dia" não têm Mercado Livre)
   const termos = [...new Set((await listaDasProntas(env)).map((b) => corrigirBusca(b.q).q).filter(Boolean))];
   if (parte >= termos.length) return Response.json({ parte, partes: termos.length, fim: true }, semCache);
