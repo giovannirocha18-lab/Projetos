@@ -1629,3 +1629,7 @@ Texto para colar numa conversa nova:
   gaveta de filtros do celular (marca Fila + menor preço ✅), sugestões; 0 erros de JS e 0 HTTP ≥400. Corrigido: Shopee
   "System Error" (10000) agora tenta de novo. Pequeno, não feito: em "microondas", peças (tubo magnetron, fonte, transformador)
   aparecem como "parecidos" depois dos 19 micro-ondas.
+- **"microondas" = "micro-ondas" (05/11/2026, Giovanni)**: o site já tratava as duas formas como o mesmo produto, mas mandava às
+  lojas o digitado; "microondas" dava 36 visíveis e "micro-ondas" 95 (eFácil só acha com hífen). `PALAVRAS_NAS_LOJAS` em
+  lib/vocabulario.js (termoNasLojas troca a palavra também dentro de buscas maiores); casos em testes/busca.mjs. No ar:
+  "microondas 30 litros" passou a trazer a eFácil (10). A resposta guardada de "microondas" renova sozinha em ~6 h.
