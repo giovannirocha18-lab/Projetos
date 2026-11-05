@@ -37,11 +37,12 @@ Ainda escondido do Google (noindex) até o lançamento.
   (`ctx.addCookies`) senão as visitas do teste entram no painel (04/11: ~dezenas de visitas de teste).
 
 ## Robô (GitHub Actions `robo-precos.yml`)
-**Desde 05/11: disparado ~01:14 de Brasília pela tarefa agendada do Claude "Robô da madrugada"** (trig_01V7N1fkme6rhQcj6aqyC1F7,
-sessão nova a cada noite: dispara, confere, **corrige e roda de novo o que falhar** (autorizado pelo Giovanni
+**Desde 05/11: disparado ~01:14 de Brasília pela tarefa agendada do Claude "Robô da madrugada"** (trig_016Y47cQHQv6k3GSGjBSdQ82,
+cai sempre na MESMA conversa "Robô da madrugada (vaiprocarrinho)", session_014TXWRCgvrUx31PBr3BG21C, que tem o repositório e o
+GitHub; a 1ª versão, com sessão nova a cada noite, falhou em 05/11: sessão sem repositório nem GitHub): dispara, confere, **corrige e roda de novo o que falhar** (autorizado pelo Giovanni
 05/11; limites: não remove/pausa loja, não sobe VERSAO_CACHE à toa, nada grande/arriscado), resumo; push no celular). O cron do GitHub (06:17) é só reserva: job `guarda`
-só deixa rodar se nenhum workflow_dispatch foi criado desde 03:30 UTC. Aviso: a tarefa foi criada sem conectores; se o
-GitHub falhar nela, a reserva roda (e dá para recriar a tarefa pela tela de rotinas do claude.ai).
+só deixa rodar se nenhum workflow_dispatch foi criado desde 03:30 UTC. Se a tarefa
+falhar, a reserva roda (e dá para recriar a tarefa ligada àquela conversa).
 Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` (histórico), `lomadee` (marcas/páginas),
 `prontas` (buscas prontas), `ia` (Haiku 5.5 classifica categorias em lote + `robo/marcas.mjs` sugestões produto+marca),
 `auditoria` (suspeitos no topo + IA conferindo buscas `robo/conferir-buscas.mjs` + relatório de categorias das lojas + variações),
