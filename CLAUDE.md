@@ -58,7 +58,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **26ª: tendências do ML por categoria** ("o que o público mais busca"): `?tendencias=1` → `ml_tendencias` (421 categorias,
   ~2.400 termos); viram **sugestões da caixa de busca** (1.063 → ~3.440), **150 buscas prontas** (fim da lista) e até 1.500
   buscas preparadas com o ML (jobs mercadolivre + maisvendidos até 95 min). Filtro `tendenciaAceitavel` (lib/buscas.js: sex shop,
-  vape, armas, bebidas, réplicas…); Giovanni pode mandar print de sugestão imprópria → completar BLOQUEADOS_TENDENCIAS.
+  vape, armas, bebidas, réplicas…; **decisão do Giovanni 05/11: adulto e bebidas/seringas também ficam fora**); Giovanni pode mandar print de sugestão imprópria → completar BLOQUEADOS_TENDENCIAS.
 - **24ª: Mercado Livre ligado** (conta PJ; app no devcenter; `ML_CLIENT_ID`/`ML_CLIENT_SECRET`; afiliado etiqueta
   vaiprocarrinho). Catálogo (`/products/search`) + preço por produto; link pelo nosso `/ir/ml/<produto>/<anúncio>`; ML
   primeiro nas buscas. Teste: painel `/api/painel/ml-teste`. **Problema: 429 do ML → poucos produtos dele por busca.**
