@@ -2601,8 +2601,14 @@ function atalhosDaLoja() {
   };
   const chip = (cat, nome, n) => el("button", { type: "button", class: "chip-atalho-loja", "aria-pressed": String((estado.loja.cat || null) === cat),
     onclick: () => ir(cat) }, nome, n ? el("span", { class: "qtd" }, n.toLocaleString("pt-BR")) : null);
-  return el("div", { class: "atalhos-loja", role: "group", "aria-label": "Categorias da loja" },
+  const faixa = el("div", { class: "atalhos-loja", role: "group", "aria-label": "Categorias da loja" },
     chip(null, "Tudo", 0), ...atalhos.map((a) => chip(a.id, a.nome, a.n)));
+  // Celular: a faixa rola de lado; o atalho escolhido fica à vista (no meio)
+  requestAnimationFrame(() => {
+    const ativo = faixa.querySelector('[aria-pressed="true"]');
+    if (ativo && faixa.scrollWidth > faixa.clientWidth) faixa.scrollLeft = ativo.offsetLeft - faixa.clientWidth / 2 + ativo.offsetWidth / 2;
+  });
+  return faixa;
 }
 
 // ---------------------------------------------------------------------
