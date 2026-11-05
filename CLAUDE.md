@@ -52,8 +52,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 
 ## Situação (05/11/2026, 26ª sessão)
 - **26ª: ML com mais vendidos de TODAS as categorias** (27 + 389 + 2.740 sub-subcategorias; tabela `ml_categorias`, robô
-  `?arvore=1` / `?proxima=1`, job novo `maisvendidos` até 75 min em revezamento; busca lê só um índice leve). Conferir no
-  run de teste e na madrugada de 06/11 quantos mais vendidos entraram (antes 3.798). Detalhe no histórico ("TODAS as categorias").
+  `?arvore=1` / `?proxima=1`, job novo `maisvendidos` até 75 min; busca lê só um índice leve). Run #120 (so_ml): árvore 2.740,
+  as 2.740 sub-subcategorias em 42 min (1 espera), **loja ML 3.180 → 14.729 produtos**; buscas 0,7–1,9 s. Conferir a madrugada
+  de 06/11 (job maisvendidos no painel). Detalhe no histórico ("TODAS as categorias").
 - **24ª: Mercado Livre ligado** (conta PJ; app no devcenter; `ML_CLIENT_ID`/`ML_CLIENT_SECRET`; afiliado etiqueta
   vaiprocarrinho). Catálogo (`/products/search`) + preço por produto; link pelo nosso `/ir/ml/<produto>/<anúncio>`; ML
   primeiro nas buscas. Teste: painel `/api/painel/ml-teste`. **Problema: 429 do ML → poucos produtos dele por busca.**

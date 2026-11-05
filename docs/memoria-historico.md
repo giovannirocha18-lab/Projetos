@@ -1602,3 +1602,7 @@ Texto para colar numa conversa nova:
   categoria, desconto; 30 min na memória) e depois os dados só dos que aparecem (`dadosDosDestaques`); filtro rápido
   `palavrasObrigatorias` antes de `temTodasAsPalavras` (conferido: 0 diferenças em 183 mil pares dos testes; 30 mil nomes
   em ~10 ms em vez de ~500 ms); até 400 que batem vão para separarAcessorios.
+  Run #120 (so_ml, 05/11 18h20 UTC): árvore em 16 chamadas (27 + 394 + 2.740); níveis 1–2: 421 categorias, 3.844 mais
+  vendidos; job maisvendidos: as 2.740 sub-subcategorias em 42 min (1.192 sem ficha de catálogo = 0), 15.260 gravações, 1
+  espera de 429. Loja ML: **14.729 produtos** (antes 3.180). Buscas no ar 0,7–1,9 s (fone bluetooth 24, furadeira 24, panela de
+  pressão 24, tênis masculino 13, air fryer 12 do ML). Próximo possível: tendências por categoria (/trends/MLB/{cat}) como buscas.
