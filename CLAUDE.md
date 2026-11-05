@@ -125,7 +125,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Painel Comissões: linha "Mercado Livre" com link (ML não tem API de ganhos de afiliado). **Rolagem infinita** (05/11,
   `rolagemInfinita` em app.js): perto do fim, "Ver mais" sozinho (busca, lojas, Ofertas do dia; máx. 40 seguidas);
   sem pulos: `desenharAosPoucos` mantém os cartões já na tela (`desenhados`), busca põe os novos depois, content-visibility. Celular sem
-  rodapé (links Como funciona/Privacidade na janela Conta, `.links-legais`).
+  rodapé (links Como funciona/Privacidade na janela Conta, `.links-legais`). 05/11: no fim da busca, se só sobra "Ver também N
+  acessórios…" (`#ver-acessorios`), eles entram sozinhos (rolagemInfinita, 1 vez por busca).
 - **Stanley** (Awin, aprovada 05/11, 122 produtos): TODAS as fotos do feed dão **410** (stanley.fbitsstatic.net) → fora do site
   sozinha (produto sem foto não entra). Robô agora aceita foto http→https e mostra "Foto da X não abre: status url" quando uma
   loja inteira falha. Entra sozinha quando a Stanley arrumar o feed (Giovanni pode avisá-la pela Awin).
