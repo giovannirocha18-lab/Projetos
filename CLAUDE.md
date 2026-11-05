@@ -115,7 +115,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Loja ML: total na lista ("Mostrando 600 de 3.180"), abre com ~600 (2,5x) e **atalhos de categoria** do ML (25, com contagem;
   `?mlcat=`, `arvoreML` em ml_listas id 3, `produtosDaLojaML(…, cat)`; celular/câmera antes de acessório); /api/lojas VERSAO 38.
   Painel Comissões: linha "Mercado Livre" com link (ML não tem API de ganhos de afiliado). **Rolagem infinita** (05/11,
-  `rolagemInfinita` em app.js): perto do fim, "Ver mais" sozinho (busca, lojas, Ofertas do dia; máx. 40 seguidas).
+  `rolagemInfinita` em app.js): perto do fim, "Ver mais" sozinho (busca, lojas, Ofertas do dia; máx. 40 seguidas). Celular sem
+  rodapé (links Como funciona/Privacidade na janela Conta, `.links-legais`).
 - **App Android do painel (05/11)**: `app-android/` (WebView de painel.vaiprocarrinho.com.br, "Painel VPC"; `construir.sh` =
   aapt2+javac+d8+apksigner, SDK baixado com sdkmanager). Chave de assinatura NÃO guardada (bloqueado guardar no repo; Giovanni: "deixe
   assim"): versão nova = desinstalar e instalar. Layout do painel muda sozinho no app (ele só abre o site).
