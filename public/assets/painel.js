@@ -521,6 +521,19 @@
       }, (x) => dinheiro(x).replace(/,00$/, ""));
     }
 
+    // Mercado Livre (05/11/2026): o programa de afiliados dele não tem API de ganhos para apps; a linha leva ao painel
+    // de afiliados do ML (Métricas), onde aparecem cliques, vendas e ganhos
+    function linhaMercadoLivre() {
+      const li = el("li");
+      const link = el("a", "selo", "Ver no ML ↗");
+      link.href = "https://www.mercadolivre.com.br/afiliados";
+      link.target = "_blank";
+      link.rel = "noopener";
+      li.append(el("span", "nome", "Mercado Livre"), el("span", "n", "—"), link,
+        el("span", "detalhe", "o ML não envia os ganhos por API: veja em Afiliados → Métricas"));
+      return li;
+    }
+
     // Por rede (card do topo): comissão, pedidos e se a rede foi lida (o erro vem escrito)
     $("c-redes").replaceChildren(...d.redes.map((r) => {
       const daRede = validos(pedidos.filter((p) => p.rede === r.rede));
@@ -533,7 +546,7 @@
         ? el("span", "detalhe", `${plural(daRede.length, "pedido", "pedidos")} · vendas ${textoMoedas(somaPorMoeda(daRede, "venda"))}`)
         : el("span", "detalhe erro", r.erro));
       return li;
-    }));
+    }), linhaMercadoLivre());
 
     // Lojas que mais pagaram (card do topo)
     const lojas = new Map();
