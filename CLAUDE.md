@@ -106,7 +106,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   alertas aceitam "mercadolivre-" (`ofertaMLPorId`); /api/lojas VERSAO 33.
   **Máximo de produtos do ML (05/11, pedido do Giovanni: foco no ML)**: mais vendidos das subcategorias (até 400, lista em
   `ml_listas`, fichas em `ml_fichas` 14 dias), catálogo 2 páginas (96), 24 por busca, tendências (/trends/MLB) na lista do robô,
-  job mercadolivre até 50 min (mais vendidos até 25 min). Run so_ml disparado 05/11 ~22h30 para encher o banco.
+  job mercadolivre até 50 min (mais vendidos até 25 min). #114 (05/11): **3.798 mais vendidos** de 400 categorias, 504 buscas
+  (com tendências), média 10 produtos do ML por busca. Loja até 80 páginas (VERSAO 34); mais vendidos: produto antes de acessório.
+  05/11 07h: tarefa da madrugada falhou (sem GitHub) → robô completo disparado à mão (~07h25) e tarefa refeita (ver Robô).
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
   UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027).
 - **Claude**: conferir o robô de cada madrugada (atraso, IA, auditoria — seção "Lojas nas buscas": 🆕 loja nova / ⚠️ invisível); quando loja nova aprovar: `so_awin`, ler o log,
