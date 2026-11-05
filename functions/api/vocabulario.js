@@ -31,10 +31,11 @@ export async function onRequestGet({ request, env }) {
   const resposta = new Response(JSON.stringify({ termos, marcas: MARCAS, erros: ERROS }), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": `public, max-age=${CACHE_SEGUNDOS}`,
+      // Sem as tendências ainda (antes do robô guardá-las): só 10 min, para elas entrarem logo
+      "Cache-Control": `public, max-age=${tendencias.length ? CACHE_SEGUNDOS : 600}`,
       "X-Robots-Tag": "noindex",
     },
   });
-  if (cache) await cache.put(chave, resposta.clone());
+  if (cache && tendencias.length) await cache.put(chave, resposta.clone());
   return resposta;
 }
