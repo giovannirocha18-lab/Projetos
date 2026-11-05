@@ -58,7 +58,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **26ª: tendências do ML por categoria** ("o que o público mais busca"): `?tendencias=1` → `ml_tendencias` (421 categorias,
   13.606 termos guardados no #122, 0 erros; ~2.400 viram sugestão); viram **sugestões da caixa de busca** (1.063 → ~3.440), **150 buscas prontas** (fim da lista) e até 1.500
   buscas preparadas com o ML (jobs mercadolivre + maisvendidos até 95 min; #122: lista do ML 1.918 buscas, job mercadolivre
-  chegou na 725 em 50 min, 216 renovadas; cada busca nova custa até ~96 consultas ao ML). Filtro `tendenciaAceitavel` (lib/buscas.js: sex shop,
+  chegou na 725 em 50 min, 216 renovadas; maisvendidos continuou até a 1.339 (+606); cada busca nova custa até ~96 consultas ao ML). Filtro `tendenciaAceitavel` (lib/buscas.js: sex shop,
   vape, armas, bebidas, réplicas…; **decisão do Giovanni 05/11: adulto e bebidas/seringas também ficam fora**); Giovanni pode mandar print de sugestão imprópria → completar BLOQUEADOS_TENDENCIAS.
 - **24ª: Mercado Livre ligado** (conta PJ; app no devcenter; `ML_CLIENT_ID`/`ML_CLIENT_SECRET`; afiliado etiqueta
   vaiprocarrinho). Catálogo (`/products/search`) + preço por produto; link pelo nosso `/ir/ml/<produto>/<anúncio>`; ML
