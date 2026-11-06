@@ -1670,3 +1670,6 @@ Pedido do Giovanni (ontem o robô falhou sem ninguém ver): vigia com send_later
   em 04/11), Elements pausada (links 2 de 8).
 - Site no ar: air fryer 672 ofertas (19 ML, ML no topo), celular na loja ML 24 (Galaxy A17/A07/A36, Moto G17/G06/g35,
   Edge 60: atuais), Ofertas do dia 61 (6 ML). Nada corrigido.
+- Vigia desta conversa (04h15): entre as 150 prontas das tendências do ML vieram "videos paola oliveira nua", "filhote de mico",
+  "filhotes de lebre", "insetos vivos", "airsoft", "bloqueador bluetooth" → acrescentados em BLOQUEADOS_TENDENCIAS
+  (lib/buscas.js), teste em testes/sugestoes.mjs, vocabulário v12. A pronta já gravada sai da lista na próxima noite.
