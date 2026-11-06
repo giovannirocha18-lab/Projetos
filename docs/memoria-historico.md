@@ -1696,3 +1696,16 @@ Falta: Giovanni testar no celular e conferir se as comissões/cliques da Shopee 
   lojas alternando, sem erros no navegador.
 - Observação: as "Ofertas do dia" do ML (destaques por maior desconto) também abrem com 75% em produtos estranhos; não mexi.
 - Ofertas do dia (06/11, pedido do Giovanni): `mercadolivre.destaques` na ordem do ranking (índice já vem por posição), desconto 5–60%. A pronta das Ofertas do dia só renova na madrugada de 07/11.
+
+## Revisão de segurança e varredura (06/11/2026, pedido do Giovanni)
+- Revisão do código inteiro (ajudante): sem brecha grave. OK: painel (Access JWT conferido no middleware e em cada endpoint,
+  /api/painel* dá 404 no domínio principal), chave do robô (SHA-256 em tempo constante), contas (PBKDF2 600k, cookie HttpOnly/
+  Secure/Lax, Origin+JSON nos POST, link de senha 256 bits/1 h/uso único, Google com state), redirecionamentos (sem open
+  redirect), XSS (só createElement/textContent + CSP script-src 'self'), SQL sempre com parâmetros, cabeçalhos (CSP, XFO, HSTS).
+- Corrigido: `ipDe` (lib/conta.js) agrupa IPv6 por /64; `enviarConfirmacao` no máx. 3 por dia por e-mail (`confirmar-email:`,
+  de propósito fora de `chavesDoEmail` para apagar a conta não zerar); /api/clique exige Origin do site (sem Origin = 403;
+  "Origin: null" dava 500). Testado no ar: sem Origin/null/outro site 403, do site 204.
+- Pendente: limite por IP (Cloudflare WAF Rate limiting) em /api/buscar e /?produto= (cada termo novo chama as lojas ao vivo);
+  "Em alta"/sugestões aceitam termo com 3 pessoas (lib/buscas.js); cadastro diz se o e-mail já existe (aceito como UX).
+- Varredura com Playwright (17 páginas, PC e Pixel 7, cookie vpc_nao_contar): sem erro de JS; o aviso de CSP do beacon do Web
+  Analytics só aparece com o cookie (de propósito, CSP_SEM_CONTAGEM). Busca "<script>" não executa nada.

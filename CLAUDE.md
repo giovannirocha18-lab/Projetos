@@ -77,6 +77,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   loja em cada busca (eram os 8 maiores, só Shopee/AliExpress); /api/black-friday v=6.
   Ofertas do dia do ML também pelo ranking de mais vendidos, 5–60% (`mercadolivre.destaques`; era maior desconto: 75% em
   maçarico/simulador de sutura). Aparece depois da madrugada de 07/11 (a resposta das Ofertas do dia fica guardada): conferir.
+- **06/11: revisão de segurança** (pedido do Giovanni: "remover brecha ou bug"): nada grave (painel, contas, robô, SQL, XSS,
+  redirecionamentos ok). Corrigido: limites por IP usam IPv6 /64 (`ipDe`), máx. 3 e-mails de confirmação/dia por endereço,
+  /api/clique só com Origin do site. Falta (antes do lançamento): regra de limite por IP no Cloudflare (WAF → Rate limiting) em
+  /api/buscar e ?produto= (alguém com script pode gastar o limite da Shopee/ML); "Em alta" aceita termo com só 3 pessoas.
+  Varredura do site no ar (17 páginas, PC e celular): sem erros de JS.
 - **Madrugada 06/11 (#123)**: tudo verde; 623/627 prontas; ML 227+358 buscas renovadas, 14.110 preços, 6 esperas de 429;
   mais vendidos 0 (normal: renovam só após 20 h e foram lidos na noite de 05/11); IA 7.368 títulos em lote; nada corrigido.
   Vigia (06/11 04h15): tendências impróprias viraram prontas ("videos … nua", filhote de mico, airsoft) → bloqueadas em
