@@ -1673,3 +1673,12 @@ Pedido do Giovanni (ontem o robô falhou sem ninguém ver): vigia com send_later
 - Vigia desta conversa (04h15): entre as 150 prontas das tendências do ML vieram "videos paola oliveira nua", "filhote de mico",
   "filhotes de lebre", "insetos vivos", "airsoft", "bloqueador bluetooth" → acrescentados em BLOQUEADOS_TENDENCIAS
   (lib/buscas.js), teste em testes/sugestoes.mjs, vocabulário v12. A pronta já gravada sai da lista na próxima noite.
+
+## 06/11/2026 — Shopee abre no aplicativo (Android)
+Print do Giovanni: produto da Shopee aberto pelo site (app instalado do Vai pro Carrinho → aba do Chrome) abre, mas ao tocar na
+descrição a Shopee dá "Página indisponível" (em todos os produtos, mesmo logado na Shopee no navegador). Nosso link (offerLink
+s.shopee.com.br da API) está certo; o erro é do site móvel da Shopee. Feito: `abrirNoAppShopee` (public/assets/app.js), no
+Android e só em clique normal, troca a ida por `intent://<link>#Intent;scheme=https;package=com.shopee.br;S.browser_fallback_url=<link>;end`
+(app da Shopee recebe o mesmo link de afiliado; sem o app, o Chrome abre o link no navegador). Roda depois de `avisarClique`
+(o clique continua contado). Testado com Playwright (Pixel 7: clique impedido e entregue ao intent; computador: aba nova como antes).
+Falta: Giovanni testar no celular e conferir se as comissões/cliques da Shopee continuam contando.
