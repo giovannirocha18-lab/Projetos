@@ -1682,3 +1682,4 @@ Android e só em clique normal, troca a ida por `intent://<link>#Intent;scheme=h
 (app da Shopee recebe o mesmo link de afiliado; sem o app, o Chrome abre o link no navegador). Roda depois de `avisarClique`
 (o clique continua contado). Testado com Playwright (Pixel 7: clique impedido e entregue ao intent; computador: aba nova como antes).
 Falta: Giovanni testar no celular e conferir se as comissões/cliques da Shopee continuam contando.
+- Giovanni testou (06/11): abre no app da Shopee ✅; sem o app, no navegador o "Compre Agora" funciona ✅ (não há link oficial direto para a compra; fica assim).
