@@ -2,6 +2,14 @@
 // Rodar antes de publicar mudança nas sugestões:   node testes/sugestoes.mjs
 // Cada caso: o que foi digitado -> o que TEM que aparecer (tem) e o que NÃO pode aparecer (nao).
 import fs from "fs";
+import { tendenciaAceitavel } from "../lib/buscas.js";
+
+// Tendências do Mercado Livre que nunca viram sugestão nem busca pronta (robô #123, 06/11/2026)
+for (const [termo, aceita] of [["videos paola oliveira nua", false], ["filhote de mico", false], ["filhotes de lebre", false],
+  ["insetos vivos", false], ["airsoft", false], ["bloqueador bluetooth", false], ["vinho tinto", false],
+  ["celular motorola", true], ["piano digital", true], ["gaiola para calopsita", true], ["vivo y29", true], ["caneta laser", true]]) {
+  if (tendenciaAceitavel(termo) !== aceita) { console.log(`✗ tendência "${termo}": ${aceita ? "devia aceitar" : "devia bloquear"}`); process.exitCode = 1; }
+}
 
 const CASOS = {
   // 31/10/2026: "jogo de" virava "jogo dewalt"; print "geladeira bravecto" (marca de remédio para pet)
@@ -24,7 +32,7 @@ const ini = src.indexOf("const normalizar = ");
 const fim = src.indexOf("// Destaca o pedaço já digitado");
 let voc;
 try {
-  voc = await (await fetch("https://vaiprocarrinho.com.br/api/vocabulario?v=11")).json();
+  voc = await (await fetch("https://vaiprocarrinho.com.br/api/vocabulario?v=12")).json();
 } catch {
   console.log("⚠ Sem internet para pegar o vocabulário do site; teste das sugestões pulado.");
   process.exit(0);
