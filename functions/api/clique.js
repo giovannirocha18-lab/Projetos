@@ -20,8 +20,13 @@ const vazio = (status = 204) => new Response(null, { status, headers: { "Cache-C
 
 export async function onRequestPost({ request, env }) {
   // Só conta o que vem das páginas do próprio site
-  const origem = request.headers.get("Origin");
-  if (origem && new URL(origem).host !== new URL(request.url).host) return vazio(403);
+  // (revisão de segurança de 06/11/2026: sem Origin era aceito, e dava para inventar cliques com qualquer título; e
+  // "Origin: null" derrubava com erro 500). O navegador sempre manda o Origin no sendBeacon/POST
+  let mesmaOrigem = false;
+  try {
+    mesmaOrigem = new URL(request.headers.get("Origin") || "").host === new URL(request.url).host;
+  } catch { /* Origin ausente ou "null" */ }
+  if (!mesmaOrigem) return vazio(403);
   if (!env.DB || naoContar(request)) return vazio(); // aparelho que pediu para não ser contado (lib/naoContar.js)
   let dados;
   try {
