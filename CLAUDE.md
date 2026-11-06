@@ -63,6 +63,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **26ª: palavras compostas** (micro-ondas, guarda-roupa, lava-louças, pré-treino…): junta/separada/hífen = mesma busca
   (`COMPOSTAS`/`comCompostas` em lib/vocabulario.js; para incluir outra, pôr na lista). Busca: marca depois de "para" é
   compatibilidade; nome colado de 4+ palavras aceita "todas menos uma". Auditoria do site 05/11: 0 erros (ver histórico).
+- **26ª: ML na Escolha rápida** pelo ranking de mais vendidos (`rankML`, selo "🔥 Nº mais vendido da categoria", `pesoVendas`).
+  **Conferir em 06/11 no resumo do job mercadolivre a linha "Teste das notas do ML"** (se abrir, ligar no "Mais bem avaliado").
 - **24ª: Mercado Livre ligado** (conta PJ; app no devcenter; `ML_CLIENT_ID`/`ML_CLIENT_SECRET`; afiliado etiqueta
   vaiprocarrinho). Catálogo (`/products/search`) + preço por produto; link pelo nosso `/ir/ml/<produto>/<anúncio>`; ML
   primeiro nas buscas. Teste: painel `/api/painel/ml-teste`. **Problema: 429 do ML → poucos produtos dele por busca.**

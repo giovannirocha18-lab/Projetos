@@ -1642,3 +1642,11 @@ Texto para colar numa conversa nova:
   (`juntaDeComposta`). app.js: sem "Corrigimos" quando só muda hífen/espaço. No ar: microondas = micro ondas = micro-ondas
   = 186 ofertas/95 visíveis; guardaroupa = guarda roupa = guarda-roupa = 757/472. As prontas "guarda roupa"/"lava louças"
   passam a ser guardadas com o hífen na próxima madrugada. Substitui PALAVRAS_NAS_LOJAS (removido).
+- **ML na Escolha rápida (05–06/11/2026, Giovanni: "mercado livre não entra nessas 3?")**: o ML não manda vendas nem nota
+  (catálogo; /items 403). Mais barato: o ML já entrava. Agora `rankML` (posição no ranking de mais vendidos da categoria,
+  `dadosDosDestaques` em lib/fontes/mercadolivre.js) → app.js: selo "🔥 Nº mais vendido da categoria" (até o 10º, `rankTexto`),
+  `pesoVendas` (1º = 3.000 vendas, 2º = 1.500, 3º = 1.000, 5º = 600) no Custo-benefício (ML até o 5º) e na ordem "Mais
+  vendidos". Teste: "smart tv 43" → Custo-benefício = TV Semp do ML (2º mais vendido). As prontas ganham rankML na madrugada.
+  Notas: robô chama `/api/preparar-ml?testarNotas=1` (job mercadolivre, linha "Teste das notas do ML" no resumo): testa
+  /reviews/item, /reviews/item?catalog_product_id, /products/{id}/reviews, /reviews/product, /products, /items com o token do
+  app e o da conta. Se abrir: ligar nota do ML no "Mais bem avaliado".
