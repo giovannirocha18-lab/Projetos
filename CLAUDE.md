@@ -66,7 +66,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (`COMPOSTAS`/`comCompostas` em lib/vocabulario.js; para incluir outra, pôr na lista). Busca: marca depois de "para" é
   compatibilidade; nome colado de 4+ palavras aceita "todas menos uma". Auditoria do site 05/11: 0 erros (ver histórico).
 - **26ª: ML na Escolha rápida** pelo ranking de mais vendidos (`rankML`, selo "🔥 Nº mais vendido da categoria", `pesoVendas`).
-  **Conferir em 06/11 no resumo do job mercadolivre a linha "Teste das notas do ML"** (se abrir, ligar no "Mais bem avaliado").
+  Teste das notas do ML (06/11, #123): **não abriu** (/reviews/item 403 com token do app e da conta) → "Mais bem avaliado" sem ML.
+- **Madrugada 06/11 (#123)**: tudo verde; 623/627 prontas; ML 227+358 buscas renovadas, 14.110 preços, 6 esperas de 429;
+  mais vendidos 0 (normal: renovam só após 20 h e foram lidos na noite de 05/11); IA 7.368 títulos em lote; nada corrigido.
 - **24ª: Mercado Livre ligado** (conta PJ; app no devcenter; `ML_CLIENT_ID`/`ML_CLIENT_SECRET`; afiliado etiqueta
   vaiprocarrinho). Catálogo (`/products/search`) + preço por produto; link pelo nosso `/ir/ml/<produto>/<anúncio>`; ML
   primeiro nas buscas. Teste: painel `/api/painel/ml-teste`. **Problema: 429 do ML → poucos produtos dele por busca.**

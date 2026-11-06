@@ -1659,3 +1659,14 @@ consultada só com o nome digitado. Agora `buscaNasLojas` (lib/vocabulario.js) a
 vem no começo (o aparelho é o que se busca). Casos novos em testes/busca.mjs. A pronta "celular" se refaz no robô da madrugada.
 Pedido do Giovanni (ontem o robô falhou sem ninguém ver): vigia com send_later nesta conversa às 01h45 (começou?) e 04h15
 (resultado, corrige) e aviso no celular às 6h.
+
+## Madrugada 06/11/2026 (run #123, tarefa "Robô da madrugada")
+- Todos os jobs verdes (04:16–06:14 UTC). Awin 17 feeds, 73.121 produtos, +153 novos, banco 483 MB. Shopee 753 preços.
+- ML: árvore 2.740 sub-subcategorias; mais vendidos 0 guardados (janela de 20 h: lidos em #120/#122 na noite de 05/11);
+  job mercadolivre parou aos 50 min na busca 1.556 de 1.914, maisvendidos continuou até a 1.913 (227 + 358 renovadas),
+  14.110 preços, 3,3 ofertas por ficha, 6 esperas de 429. Teste das notas: /reviews/item 403 (app e conta) → não abriu.
+- Prontas 623 de 627, 0 esperas da Shopee. Lomadee 23 marcas. IA: lote de 7.368 títulos (lido na próxima). Auditoria 0
+  suspeitos; IA conferindo 303 buscas, 82 escondidos, 559 categorias corrigidas (US$ 0,01). Avisos: TEKA 🆕 (já tratada
+  em 04/11), Elements pausada (links 2 de 8).
+- Site no ar: air fryer 672 ofertas (19 ML, ML no topo), celular na loja ML 24 (Galaxy A17/A07/A36, Moto G17/G06/g35,
+  Edge 60: atuais), Ofertas do dia 61 (6 ML). Nada corrigido.
