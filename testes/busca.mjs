@@ -576,6 +576,11 @@ for (const [q, buscaEsperada, itens, esperado] of [
     { "Bateria Automotiva Moura M60AD 60Ah 12V": "P", "Bateria Zetta 12V 45AH Polo Positivo": "P", "Bateria Moura Moto 5ah Titan Biz": "A" }],
   ["controle para vídeo game", "joystick para video game", [["Controle Xbox 360 Com Fio Para Video Game", 60]], { "Controle Xbox 360 Com Fio Para Video Game": "P" }],
   ["joystick", "controle video game", [["Joystick Sem Fio Para PS4", 90]], { "Joystick Sem Fio Para PS4": "P" }],
+  // Os dois nomes do mesmo aparelho pesquisam os dois (print "smartphone" x "celular", 06/11/2026)
+  ["smartphone", "celular", [["Celular Samsung Galaxy A17 256gb", 1299]], { "Celular Samsung Galaxy A17 256gb": "P" }],
+  ["celular", "smartphone", [["Smartphone Motorola Moto G06 128GB", 699]], { "Smartphone Motorola Moto G06 128GB": "P" }],
+  ["Smartphone Xiaomi", "celular xiaomi", [["Celular Xiaomi Redmi 15C 256GB", 999]], { "Celular Xiaomi Redmi 15C 256GB": "P" }],
+  ["celular samsung", "smartphone samsung", [["Smartphone Samsung Galaxy A07 128GB", 799]], { "Smartphone Samsung Galaxy A07 128GB": "P" }],
   ["Kindle", "kindle paperwhite",
     [["Kindle Paperwhite 12ª geração 16GB", 1399], ["Kindle kit 2 unidades Card para Capinha de Kindle", 12], ["Kindle Charm Pingente Anti Poeira", 17]],
     { "Kindle Paperwhite 12ª geração 16GB": "P", "Kindle kit 2 unidades Card para Capinha de Kindle": "A", "Kindle Charm Pingente Anti Poeira": "A" }],
