@@ -1650,3 +1650,12 @@ Texto para colar numa conversa nova:
   Notas: robô chama `/api/preparar-ml?testarNotas=1` (job mercadolivre, linha "Teste das notas do ML" no resumo): testa
   /reviews/item, /reviews/item?catalog_product_id, /products/{id}/reviews, /reviews/product, /products, /items com o token do
   app e o da conta. Se abrir: ligar nota do ML no "Mais bem avaliado".
+
+## 06/11/2026 (27ª sessão) — "celular" x "smartphone"
+Print do Giovanni: "smartphone" dava 342 ofertas (Shopee, Efacil, AliExpress, Motorola; sem Mercado Livre) e "celular" 352
+(ML, AliExpress, Shopee). A relevância já tratava os dois como iguais (SINONIMOS em lib/relevancia.js), mas cada API era
+consultada só com o nome digitado. Agora `buscaNasLojas` (lib/vocabulario.js) acrescenta a outra forma (`variantesDeCelular`):
+"smartphone" → ["smartphone", "celular"], "celular samsung" → ["celular samsung", "smartphone samsung"]; só quando a palavra
+vem no começo (o aparelho é o que se busca). Casos novos em testes/busca.mjs. A pronta "celular" se refaz no robô da madrugada.
+Pedido do Giovanni (ontem o robô falhou sem ninguém ver): vigia com send_later nesta conversa às 01h45 (começou?) e 04h15
+(resultado, corrige) e aviso no celular às 6h.

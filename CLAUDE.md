@@ -50,7 +50,9 @@ Jobs: `awin` (feeds → D1, fotos/links quebrados, alertas de preço), `shopee` 
 Run workflow com `so_awin`, `so_ml`, `so_prontas`, `so_lomadee`, `so_auditoria`, `so_ia`, `so_numeros` (só o relatório, ~30 s). Disparar: GitHub MCP `actions_run_trigger`.
 Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. Custo da IA ~US$ 0,07/noite (saldo ~US$ 0,80).
 
-## Situação (05/11/2026, 26ª sessão)
+## Situação (06/11/2026, 27ª sessão)
+- **27ª: "celular" e "smartphone" pesquisam os dois nomes** nas lojas e juntam (`variantesDeCelular` em lib/vocabulario.js;
+  só quando o aparelho vem primeiro; "capa celular" fica 1 consulta). Vigia da madrugada de 06/11: send_later 01h45/04h15 + aviso às 6h.
 - **26ª: ML com mais vendidos de TODAS as categorias** (27 + 389 + 2.740 sub-subcategorias; tabela `ml_categorias`, robô
   `?arvore=1` / `?proxima=1`, job novo `maisvendidos` até 75 min; busca lê só um índice leve). Run #120 (so_ml): árvore 2.740,
   as 2.740 sub-subcategorias em 42 min (1 espera), **loja ML 3.180 → 14.729 produtos**; buscas 0,7–1,9 s. Conferir a madrugada
