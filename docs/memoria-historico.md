@@ -1683,3 +1683,15 @@ Android e só em clique normal, troca a ida por `intent://<link>#Intent;scheme=h
 (o clique continua contado). Testado com Playwright (Pixel 7: clique impedido e entregue ao intent; computador: aba nova como antes).
 Falta: Giovanni testar no celular e conferir se as comissões/cliques da Shopee continuam contando.
 - Giovanni testou (06/11): abre no app da Shopee ✅; sem o app, no navegador o "Compre Agora" funciona ✅ (não há link oficial direto para a compra; fica assim).
+
+## Black Friday com o Mercado Livre (06/11/2026, pedido do Giovanni)
+- Antes: 0 produtos do ML na /black-friday; topo só Shopee/AliExpress com o mesmo sapatênis "Polo Boxster" 6 vezes.
+  Motivos: nível 3 (desconto da loja) guardava só os 8 maiores descontos por busca; página ordenada só por nível+desconto,
+  e o ML ainda não tem histórico (começou em 04/11: "Baixou" por volta de 11/11, "Desconto real" por volta de 25/11).
+- Feito: `guardarDaBusca` até 3 por loja (12 por busca); `listarBlackFriday` com CTE `VISTAS` (ROW_NUMBER: repetido =
+  mesmo começo de nome, 45 letras; `vez` = rodízio das lojas dentro de cada nível); `/api/black-friday` (v=6) mistura
+  `mercadolivre.ofertasBlackFriday` (mais vendidos com 10–60% de desconto, renovados em 30 h, na ordem do ranking; por
+  desconto o topo era só 75% em maçarico/simulador de sutura) com `misturarML` (1 a cada 3, `bf: 3` = 🏷️ Desconto da loja).
+- Conferido no ar: página 1 com 72 cartões (24 ML, todos nº 1 da categoria: Smart TV Philco Roku, liquidificador Walita…),
+  lojas alternando, sem erros no navegador.
+- Observação: as "Ofertas do dia" do ML (destaques por maior desconto) também abrem com 75% em produtos estranhos; não mexi.
