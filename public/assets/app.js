@@ -91,6 +91,22 @@ function avisarClique(e) {
 document.addEventListener("click", avisarClique);
 document.addEventListener("auxclick", avisarClique);
 
+// Shopee no Android abre no aplicativo dela (print do Giovanni, 06/11/2026): no navegador do celular, mesmo logado, a Shopee
+// abre o produto mas dá "Página indisponível" ao tocar na descrição. O link continua o de afiliado (s.shopee.com.br), só que
+// entregue ao app da Shopee (com.shopee.br); sem o app instalado, o Chrome abre o mesmo link no navegador, como antes
+const ANDROID = /Android/i.test(navigator.userAgent);
+function abrirNoAppShopee(e) {
+  if (!ANDROID || e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  const a = e.target.closest?.("a[href]");
+  let url;
+  try { url = new URL(a?.href); } catch { return; }
+  if (url.protocol !== "https:" || !/(^|\.)shopee\.com\.br$/.test(url.hostname)) return;
+  e.preventDefault();
+  const resto = `${url.host}${url.pathname}${url.search}`;
+  location.href = `intent://${resto}#Intent;scheme=https;package=com.shopee.br;S.browser_fallback_url=${encodeURIComponent(url.href)};end`;
+}
+document.addEventListener("click", abrirNoAppShopee);
+
 const ICONE_CARRINHO = () => {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
