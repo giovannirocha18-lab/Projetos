@@ -6,7 +6,7 @@ import { tendenciaAceitavel } from "../lib/buscas.js";
 
 // Tendências do Mercado Livre que nunca viram sugestão nem busca pronta (robô #123, 06/11/2026)
 for (const [termo, aceita] of [["videos paola oliveira nua", false], ["filhote de mico", false], ["filhotes de lebre", false],
-  ["insetos vivos", false], ["airsoft", false], ["bloqueador bluetooth", false], ["vinho tinto", false],
+  ["insetos vivos", false], ["airsoft", false], ["bloqueador bluetooth", false], ["jamer bloqueador bluetooth", false], ["juliana paes nua revistas masculinos", false], ["mascara airsoft", false], ["vinho tinto", false],
   ["celular motorola", true], ["piano digital", true], ["gaiola para calopsita", true], ["vivo y29", true], ["caneta laser", true]]) {
   if (tendenciaAceitavel(termo) !== aceita) { console.log(`✗ tendência "${termo}": ${aceita ? "devia aceitar" : "devia bloquear"}`); process.exitCode = 1; }
 }
