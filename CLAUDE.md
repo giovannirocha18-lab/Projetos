@@ -75,6 +75,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (`mercadolivre.ofertasBlackFriday`), 1 a cada 3 cartões (`misturarML`, 24 por página); página reveza as lojas e tira repetidos
   (mesmos 45 primeiros caracteres do nome; SQL com ROW_NUMBER em `listarBlackFriday`); robô guarda até 3 "desconto da loja" por
   loja em cada busca (eram os 8 maiores, só Shopee/AliExpress); /api/black-friday v=6.
+  Ofertas do dia do ML também pelo ranking de mais vendidos, 5–60% (`mercadolivre.destaques`; era maior desconto: 75% em
+  maçarico/simulador de sutura). Aparece depois da madrugada de 07/11 (a resposta das Ofertas do dia fica guardada): conferir.
 - **Madrugada 06/11 (#123)**: tudo verde; 623/627 prontas; ML 227+358 buscas renovadas, 14.110 preços, 6 esperas de 429;
   mais vendidos 0 (normal: renovam só após 20 h e foram lidos na noite de 05/11); IA 7.368 títulos em lote; nada corrigido.
   Vigia (06/11 04h15): tendências impróprias viraram prontas ("videos … nua", filhote de mico, airsoft) → bloqueadas em

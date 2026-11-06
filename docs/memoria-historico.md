@@ -1695,3 +1695,4 @@ Falta: Giovanni testar no celular e conferir se as comissões/cliques da Shopee 
 - Conferido no ar: página 1 com 72 cartões (24 ML, todos nº 1 da categoria: Smart TV Philco Roku, liquidificador Walita…),
   lojas alternando, sem erros no navegador.
 - Observação: as "Ofertas do dia" do ML (destaques por maior desconto) também abrem com 75% em produtos estranhos; não mexi.
+- Ofertas do dia (06/11, pedido do Giovanni): `mercadolivre.destaques` na ordem do ranking (índice já vem por posição), desconto 5–60%. A pronta das Ofertas do dia só renova na madrugada de 07/11.
