@@ -1007,9 +1007,9 @@ function idMaisVendido(lista) {
 // Mercado Livre (05/11/2026): não manda vendas nem nota; manda a posição no ranking de mais vendidos da categoria (rankML)
 const RANK_COM_SELO = 10;
 const rankTexto = (o) => (o.rankML > 0 && o.rankML <= RANK_COM_SELO ? `🔥 ${o.rankML}º mais vendido da categoria` : null);
-// Peso de "vende muito" para comparar lojas: vendas da Shopee/AliExpress; no ML, o 1º do ranking vale 1.000 vendas, o 2º
-// 500, o 5º 200… (a Shopee com "1,4 mil vendidos" ainda passa na frente do 1º do ML)
-const pesoVendas = (o) => o.vendidos || (o.rankML > 0 ? Math.round(1000 / o.rankML) : 0);
+// Peso de "vende muito" para comparar lojas: vendas da Shopee/AliExpress; no ML, o 1º do ranking vale 3.000 vendas, o 2º
+// 1.500, o 3º 1.000, o 5º 600 (ser dos primeiros do ML numa categoria é muita venda; a Shopee com "4 mil vendidos" passa)
+const pesoVendas = (o) => o.vendidos || (o.rankML > 0 ? Math.round(3000 / o.rankML) : 0);
 function vendidosTexto(n) {
   if (!n) return null;
   return n >= 1000 ? `${(n / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil vendidos` : `${n} vendidos`;
