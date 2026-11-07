@@ -1731,3 +1731,5 @@ Ofertas do dia: 24 do ML, todos nº 1 do ranking, desconto 5–49% ✅ (mudança
   regra: descontoReal > 60% em shopee/aliexpress exige vendidos >= 10 (nivelBlackFriday; a API também refiltra na hora).
 - Resumo "216 ofertas" (só as carregadas) → "Mais de 9.500" (soma dos totais, só sem filtro). Candide: card com selo
   "Desconto real -40%" mas sem preço riscado (Lomadee sem desconto da loja; semDescontoFalso não cobre desconto null) — deixado.
+- Acertado no mesmo dia (pedido do Giovanni): semDescontoFalso põe precoAntigo = habitual e desconto = descontoReal quando a
+  loja não dá "de/por"; /api/black-friday aplica na leitura (v=8). Candide: "40% OFF R$ 332,41 → R$ 199,99" ✅ (print no celular).
