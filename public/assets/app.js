@@ -2691,11 +2691,14 @@ function contagemBlackFriday() {
 
 function desenharResumoBlackFriday(lista) {
   const t = estado.loja.totais || {};
+  // Sem filtro, conta todas as ofertas da página (07/11/2026: dizia "216 ofertas", só as já carregadas, de ~9.500)
+  const total = (t.real || 0) + (t.baixou || 0) + (t.loja || 0);
+  const qtd = lista.length === estado.ofertas.length && total > lista.length ? `Mais de ${total.toLocaleString("pt-BR")}` : lista.length;
   const legenda = (texto, qtd) => el("span", { class: "bf-legenda" }, texto, qtd ? el("span", { class: "qtd" }, qtd) : "");
   $("#resumo").replaceChildren(el("div", {},
     el("h1", {}, "🖤 Black Friday de verdade"),
     el("p", {}, contagemBlackFriday(), " ", lista.length
-      ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"} com desconto que dá para conferir.`
+      ? `${qtd} ${lista.length === 1 ? "oferta" : "ofertas"} com desconto que dá para conferir.`
       : estado.ofertas.length ? "Nenhuma oferta com esses filtros." : "As ofertas aparecem aqui assim que o nosso robô conferir os preços. Volte amanhã!"),
     el("p", { class: "bf-explica" }, "Aqui só entra desconto de verdade: acompanhamos o preço de cada produto todos os dias. ",
       "Se a loja subiu o preço antes para depois dar “desconto”, o produto não aparece."),
