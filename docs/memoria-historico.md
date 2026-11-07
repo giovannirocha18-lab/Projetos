@@ -1723,3 +1723,11 @@ Ofertas do dia: 24 do ML, todos nº 1 do ranking, desconto 5–49% ✅ (mudança
 - A regra "Limite API" (Security > Security rules, 26/10) já cobria /api/buscar. Giovanni editou: `URI Path starts with /api/`
   OR `URI Path equals /` (o ?produto= chama Shopee/AliExpress ao vivo no _middleware). Teste daqui (90 pedidos de uma vez) não
   bloqueou nem /api/: a rede do Claude sai por vários IPs (como em 26/10); conferido só pelo print do Giovanni.
+
+## Black Friday conferida (07/11/2026)
+- /black-friday no PC e Pixel 7: sem erro de JS; 72 por página (48 nossos + 24 do ML), sem repetidos, sem foto faltando.
+  Totais: 1.143 desconto real, 2.520 baixou, 5.837 da loja. Topo tinha bicicleta elétrica AliExpress "-64% real"
+  (habitual R$ 23.254, agora R$ 8.429, 1 venda, preço pulando) e tênis "Polo Boxster" Shopee -64/70% sem venda →
+  regra: descontoReal > 60% em shopee/aliexpress exige vendidos >= 10 (nivelBlackFriday; a API também refiltra na hora).
+- Resumo "216 ofertas" (só as carregadas) → "Mais de 9.500" (soma dos totais, só sem filtro). Candide: card com selo
+  "Desconto real -40%" mas sem preço riscado (Lomadee sem desconto da loja; semDescontoFalso não cobre desconto null) — deixado.

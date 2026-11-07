@@ -82,6 +82,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   /api/clique só com Origin do site. Limite por IP no Cloudflare: a regra "Limite API" (26/10, `/api/`, 60 em 10 s) já existia;
   07/11 Giovanni acrescentou `OR URI Path equals /` (cobre ?produto=). "Em alta" aceita termo com só 3 pessoas.
   Varredura do site no ar (17 páginas, PC e celular): sem erros de JS.
+- **07/11: Black Friday conferida** (PC e celular, sem erro): desconto real >60% na Shopee/AliExpress só com 10+ vendas
+  (`semProvaDeVenda` em lib/blackfriday.js; bicicleta de 1 venda "-64%" e tênis Polo sem venda saíram); resumo diz "Mais de
+  9.500 ofertas" (dizia 216, as carregadas); /api/black-friday v=7. Selos "Desconto real" ✅ (1.143 na página).
 - **Madrugada 07/11 (#125)**: tudo verde; 624/627 prontas; ML 293+203 buscas renovadas, 11.316 preços, 5 esperas de 429; mais vendidos
   3.808 + 15.276 (2.740 sub-subcategorias); Awin 73.349 produtos (+625), banco 529 MB; IA US$ 0,14. Ofertas do dia do ML pelo ranking ✅
   (5–49%, sem lixo de 75%). Nada corrigido.
