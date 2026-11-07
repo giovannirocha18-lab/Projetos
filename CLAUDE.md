@@ -86,6 +86,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (`semProvaDeVenda` em lib/blackfriday.js; bicicleta de 1 venda "-64%" e tênis Polo sem venda saíram); resumo diz "Mais de
   9.500 ofertas" (dizia 216, as carregadas); /api/black-friday v=8. Desconto real sem "de/por" da loja agora mostra o
   habitual riscado e -X% (`semDescontoFalso` em lib/ofertas.js; vale também nas buscas). Selos "Desconto real" ✅ (1.143 na página).
+- **07/11: bug Frete grátis + Bem avaliados** (print do Giovanni): juntas = 0 (frete só ML, nota só Shopee) e a opção dizia 224;
+  ficava "Carregando…". Agora cada contagem considera a outra (`desenharBotaoFrete`), a opção some com 0, tela vazia com
+  "✕ Limpar filtros" e a rolagem infinita para após 3 páginas sem nada (`estado.qtdFiltrada`).
 - **Madrugada 07/11 (#125)**: tudo verde; 624/627 prontas; ML 293+203 buscas renovadas, 11.316 preços, 5 esperas de 429; mais vendidos
   3.808 + 15.276 (2.740 sub-subcategorias); Awin 73.349 produtos (+625), banco 529 MB; IA US$ 0,14. Ofertas do dia do ML pelo ranking ✅
   (5–49%, sem lixo de 75%). Nada corrigido.

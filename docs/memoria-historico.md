@@ -1733,3 +1733,10 @@ Ofertas do dia: 24 do ML, todos nº 1 do ranking, desconto 5–49% ✅ (mudança
   "Desconto real -40%" mas sem preço riscado (Lomadee sem desconto da loja; semDescontoFalso não cobre desconto null) — deixado.
 - Acertado no mesmo dia (pedido do Giovanni): semDescontoFalso põe precoAntigo = habitual e desconto = descontoReal quando a
   loja não dá "de/por"; /api/black-friday aplica na leitura (v=8). Candide: "40% OFF R$ 332,41 → R$ 199,99" ✅ (print no celular).
+
+## Bug Frete grátis + Bem avaliados (07/11/2026, print do Giovanni)
+- Ofertas do dia com os dois marcados: 0 produtos (frete grátis só vem do ML, que não manda nota; nota só Shopee) e a opção
+  "Bem avaliados" mostrava 224; rolagem infinita pedia até 40 páginas ("Carregando…" sem fim).
+- Corrigido em app.js: contagem de frete considera "Bem avaliados" e vice-versa (com frete marcado, "Bem avaliados" some);
+  filtrar() guarda `estado.qtdFiltrada`; rolagemInfinita com lista filtrada vazia pede no máximo 3 páginas; "Nenhuma oferta
+  do dia com esses filtros." ganha botão "✕ Limpar filtros" (botao-secundario, limparFiltros). Testado no ar com Playwright.
