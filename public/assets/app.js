@@ -2816,7 +2816,7 @@ function desenharInicio(lista) {
     desenharAosPoucos($("#destaques"), [], null);
     $("#destaques").replaceChildren(estado.ofertas.length
       ? el("div", { class: "vazio" }, el("p", {}, "Nenhuma oferta do dia com esses filtros."),
-        el("button", { type: "button", class: "chip-acao chip-limpar", onclick: limparFiltros }, "✕ Limpar filtros"))
+        el("button", { type: "button", class: "botao-secundario", onclick: limparFiltros }, "✕ Limpar filtros"))
       : el("p", { class: "vazio" }, "Nenhuma oferta do dia agora."));
   } else {
     desenharAosPoucos($("#destaques"), lista, (o) => {
