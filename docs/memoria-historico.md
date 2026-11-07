@@ -1709,3 +1709,12 @@ Falta: Giovanni testar no celular e conferir se as comissões/cliques da Shopee 
   "Em alta"/sugestões aceitam termo com 3 pessoas (lib/buscas.js); cadastro diz se o e-mail já existe (aceito como UX).
 - Varredura com Playwright (17 páginas, PC e Pixel 7, cookie vpc_nao_contar): sem erro de JS; o aviso de CSP do beacon do Web
   Analytics só aparece com o cookie (de propósito, CSP_SEM_CONTAGEM). Busca "<script>" não executa nada.
+
+## Madrugada 07/11/2026 (run #125)
+Todos os jobs verdes. Awin 18 feeds, 73.349 produtos, +625 novos, 397 removidos, banco 529 MB. Shopee 632 preços.
+ML: 3.808 mais vendidos (421 cat.), 15.276 nas 2.740 sub-subcategorias, 293 buscas renovadas no job mercadolivre
+(parou aos 50 min, busca 305 de 1.902) + 203 no maisvendidos (até a 1.893), 11.316 preços, 4+1 esperas de 429.
+Prontas 624/627, 0 esperas Shopee. IA lote 7.368 títulos (US$ 0,075); conferindo 303 buscas, 755 escondidos,
+891 categorias corrigidas (US$ 0,06). Auditoria: 1 suspeito (mochila). Avisos: TEKA 🆕 (já tratada), Elements pausada (links 1 de 8).
+Site no ar: air fryer 21 do ML; celular na loja ML = aparelhos atuais (Galaxy A17/A07/A36, Moto G17/G06/Edge 60);
+Ofertas do dia: 24 do ML, todos nº 1 do ranking, desconto 5–49% ✅ (mudança de 06/11 funcionando).

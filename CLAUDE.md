@@ -82,6 +82,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   /api/clique só com Origin do site. Falta (antes do lançamento): regra de limite por IP no Cloudflare (WAF → Rate limiting) em
   /api/buscar e ?produto= (alguém com script pode gastar o limite da Shopee/ML); "Em alta" aceita termo com só 3 pessoas.
   Varredura do site no ar (17 páginas, PC e celular): sem erros de JS.
+- **Madrugada 07/11 (#125)**: tudo verde; 624/627 prontas; ML 293+203 buscas renovadas, 11.316 preços, 5 esperas de 429; mais vendidos
+  3.808 + 15.276 (2.740 sub-subcategorias); Awin 73.349 produtos (+625), banco 529 MB; IA US$ 0,14. Ofertas do dia do ML pelo ranking ✅
+  (5–49%, sem lixo de 75%). Nada corrigido.
 - **Madrugada 06/11 (#123)**: tudo verde; 623/627 prontas; ML 227+358 buscas renovadas, 14.110 preços, 6 esperas de 429;
   mais vendidos 0 (normal: renovam só após 20 h e foram lidos na noite de 05/11); IA 7.368 títulos em lote; nada corrigido.
   Vigia (06/11 04h15): tendências impróprias viraram prontas ("videos … nua", filhote de mico, airsoft) → bloqueadas em
