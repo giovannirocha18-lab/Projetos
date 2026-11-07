@@ -1718,3 +1718,8 @@ Prontas 624/627, 0 esperas Shopee. IA lote 7.368 títulos (US$ 0,075); conferind
 891 categorias corrigidas (US$ 0,06). Auditoria: 1 suspeito (mochila). Avisos: TEKA 🆕 (já tratada), Elements pausada (links 1 de 8).
 Site no ar: air fryer 21 do ML; celular na loja ML = aparelhos atuais (Galaxy A17/A07/A36, Moto G17/G06/Edge 60);
 Ofertas do dia: 24 do ML, todos nº 1 do ranking, desconto 5–49% ✅ (mudança de 06/11 funcionando).
+
+## Limite por IP (07/11/2026)
+- A regra "Limite API" (Security > Security rules, 26/10) já cobria /api/buscar. Giovanni editou: `URI Path starts with /api/`
+  OR `URI Path equals /` (o ?produto= chama Shopee/AliExpress ao vivo no _middleware). Teste daqui (90 pedidos de uma vez) não
+  bloqueou nem /api/: a rede do Claude sai por vários IPs (como em 26/10); conferido só pelo print do Giovanni.
