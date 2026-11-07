@@ -1543,6 +1543,7 @@ function passaNosFiltros(comMarca = true) {
 function filtrar() {
   const passa = passaNosFiltros();
   const lista = estado.ofertas.filter((o) => !estado.lojasDesmarcadas.has(o.loja) && passa(o));
+  estado.qtdFiltrada = lista.length; // a rolagem infinita para cedo quando os filtros não deixam nada (ver rolagemInfinita)
 
   const ordem = $("input[name=ordem]:checked").value;
   const ordenar = {
@@ -1956,15 +1957,18 @@ function desenharResumo(lista) {
 // pelo menos FRETE_MINIMO ofertas com frete grátis (para não frustrar com 1 ou 2 resultados).
 const FRETE_MINIMO = 8;
 function desenharBotaoFrete() {
-  const qtd = estado.ofertas.filter((o) => o.freteGratis).length;
   const ligado = $("#so-frete").checked;
+  const bem = $("#bem-avaliados").checked;
+  // Cada contagem leva em conta a outra opção (07/11/2026, print do Giovanni: "Frete grátis" + "Bem avaliados" davam 0 e
+  // a opção dizia 224). Hoje frete grátis só vem do Mercado Livre, que não manda nota: juntas, as duas não têm produto
+  const temNota = (o) => o.avaliacao >= NOTA_BOA;
+  const qtd = estado.ofertas.filter((o) => o.freteGratis && (!bem || temNota(o))).length;
   // Nenhuma loja parceira informa frete hoje (Shopee, AliExpress e Lomadee não mandam; os feeds da Awin vêm sem; conferido
   // em 23/10/2026): a opção da barra lateral só aparece quando há produto com frete grátis informado pela loja
   // ("Com desconto" saiu em 24/10/2026: "Maior desconto" em "Ordenar por" já faz isso; sem frete, "Mais opções" some)
   $("#opcao-frete").hidden = !qtd && !ligado;
   // "⭐ Bem avaliados" (26/10/2026): só a Shopee manda nota; a opção aparece quando há produtos com nota na lista
-  const avaliados = estado.ofertas.filter((o) => o.avaliacao >= NOTA_BOA && !(escondeAcessorios() && o.acessorio)).length;
-  const bem = $("#bem-avaliados").checked;
+  const avaliados = estado.ofertas.filter((o) => temNota(o) && (!ligado || o.freteGratis) && !(escondeAcessorios() && o.acessorio)).length;
   $("#opcao-avaliados").hidden = !avaliados && !bem;
   $("#qtd-avaliados").textContent = avaliados || "";
   $("#mais-opcoes").hidden = $("#opcao-frete").hidden && $("#opcao-avaliados").hidden;
@@ -2810,7 +2814,10 @@ function desenharInicio(lista) {
   const idVendido = idMaisVendido(lista);
   if (!lista.length) {
     desenharAosPoucos($("#destaques"), [], null);
-    $("#destaques").replaceChildren(el("p", { class: "vazio" }, estado.ofertas.length ? "Nenhuma oferta do dia com esses filtros." : "Nenhuma oferta do dia agora."));
+    $("#destaques").replaceChildren(estado.ofertas.length
+      ? el("div", { class: "vazio" }, el("p", {}, "Nenhuma oferta do dia com esses filtros."),
+        el("button", { type: "button", class: "chip-acao chip-limpar", onclick: limparFiltros }, "✕ Limpar filtros"))
+      : el("p", { class: "vazio" }, "Nenhuma oferta do dia agora."));
   } else {
     desenharAosPoucos($("#destaques"), lista, (o) => {
       const c = cartaoOferta(o, { maisVendido: o.id === idVendido });
@@ -3592,6 +3599,8 @@ $("#mais-resultados").addEventListener("click", () => (estado.loja ? carregarMai
         continue;
       }
       if (seguidas >= 40) continue;
+      // Filtros que não deixam nenhum produto: tenta só mais 3 páginas (07/11/2026: ficava "Carregando…" sem fim)
+      if (estado.qtdFiltrada === 0 && seguidas >= 3) continue;
       seguidas++;
       const carga = botao.id === "mais-ofertas" ? carregarMaisOfertas()
         : estado.loja ? carregarMaisDaLoja({ sozinho: true }) : carregarMaisResultados({ sozinho: true });
