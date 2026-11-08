@@ -2,5 +2,5 @@
 import { campanhasSheinAtivas } from "../../lib/shein.js";
 
 export function onRequestGet() {
-  return Response.json({ campanhas: campanhasSheinAtivas() }, { headers: { "Cache-Control": "public, max-age=1800", "X-Robots-Tag": "noindex" } });
+  return Response.json({ campanhas: campanhasSheinAtivas() }, { headers: { "Cache-Control": "public, max-age=60", "X-Robots-Tag": "noindex" } });
 }
