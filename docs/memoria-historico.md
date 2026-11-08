@@ -1784,3 +1784,6 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
   mais vendidos 90%, roupas femininas 80%, joias e acessórios 90% (sem data: Giovanni não informou), lojas favoritas (15/02/2027), 500 mais vendidos.
 - 08/11: +3 campanhas (moda masculina 67m7zqg7e0cb, casa e decoração 67m819p0piy1, mais bem avaliados 67m80m0pk8fe) = 10; 67m83oidnxxn = mesma campanha 1265 (500 mais vendidos), não incluída.
 - 08/11: Escolhas do Giovanni (60 produtos via Claude in Chrome no Centro de Afiliados; código de indicação na página Escolhas; link 67md2qkcn75x → campaign=main_campaign) = 2º cartão.
+- 08/11: branch teste + prévia teste.vaiprocarrinho.pages.dev (Giovanni ligou Preview branches); _middleware manda /api e /ir da prévia
+  para o site real. 1ª mudança pelo teste: faixa da Shein em buscas/categorias de moda, beleza e acessórios (CATEGORIAS_SHEIN,
+  sheinNaBusca em app.js; usa categoriasDaBusca). Aprovada e publicada (merge teste → produção; teste realinhada).
