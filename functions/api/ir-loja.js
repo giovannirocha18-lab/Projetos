@@ -8,6 +8,7 @@ import { aliexpress, linkAliExpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee, marcasAprovadas } from "../../lib/fontes/lomadee.js";
 import { mercadolivre, linkAfiliadoML } from "../../lib/fontes/mercadolivre.js";
 import { redirecionaBem } from "../../lib/links.js";
+import { LINK_SHEIN } from "../../lib/shein.js";
 
 const GUARDAR_SEGUNDOS = 7 * 24 * 60 * 60;
 const VERSAO = 1;
@@ -40,6 +41,8 @@ async function gerar(env, id) {
 
 export async function onRequestGet({ request, env }) {
   const id = (new URL(request.url).searchParams.get("id") || "").slice(0, 120);
+  // Shein: link fixo (lib/shein.js), sem guardar no cache (trocar o link vale na hora)
+  if (id === "shein") return Response.redirect(LINK_SHEIN, 302);
   const voltar = () => Response.redirect(new URL(`/?loja=${encodeURIComponent(id)}`, request.url).toString(), 302);
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const chave = new Request(new URL(`/api/ir-loja?v=${VERSAO}&id=${encodeURIComponent(id)}`, request.url));

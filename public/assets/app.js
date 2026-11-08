@@ -2381,7 +2381,7 @@ async function buscar(q) {
   if (!lojaAtual() && !categoriaAtual()) {
     const lojaBuscada = lojaDoNome(q, await carregarLojasParceiras());
     if (pedido !== estado.pedido) return;
-    if (lojaBuscada && !lojaBuscada.marca) {
+    if (lojaBuscada && !lojaBuscada.marca && !lojaBuscada.soLink) {
       history.replaceState(null, "", `/?loja=${encodeURIComponent(lojaBuscada.id)}`);
       return mostrar();
     }
@@ -2447,7 +2447,7 @@ async function buscar(q) {
     // vale também quando nada bate de verdade
     if (!estado.ofertas.some((o) => o.bate && !o.acessorio) && !lojaAtual()) {
       const loja = lojaDoNome(q, await carregarLojasParceiras());
-      if (loja && pedido === estado.pedido) {
+      if (loja && !loja.soLink && pedido === estado.pedido) {
         history.replaceState(null, "", `/?loja=${encodeURIComponent(loja.id)}`);
         mostrar();
         return;
@@ -2594,12 +2594,13 @@ function desenharListaLojas() {
   const linha = (l) => el("li", { class: "lp-linha", style: `--cor-loja:${corDaLoja(l)}` },
     el("span", { class: "loja-ponto" }),
     el("span", { class: "lp-nome" }, l.nome,
-      el("small", {}, l.rede === "marketplace" ? "Milhões de produtos" : l.produtos ? (l.produtosMais ? `Mais de ${Math.max(Math.floor(l.produtos / 10) * 10, 10)} produtos`
+      el("small", {}, l.soLink ? "Compre direto no site da loja" : l.rede === "marketplace" ? "Milhões de produtos" : l.produtos ? (l.produtosMais ? `Mais de ${Math.max(Math.floor(l.produtos / 10) * 10, 10)} produtos`
         : `${l.produtos.toLocaleString("pt-BR")} ${l.produtos === 1 ? "produto" : "produtos"}`) : "",
         l.internacional ? " · 🌎 Internacional" : ""),
       botaoCupomLoja(l)),
     el("div", { class: "lp-botoes" },
-      el("button", { type: "button", class: "botao-secundario", onclick: () => { $("#janela-lojas").close(); irParaLoja(l.id); } }, "Ver produtos"),
+      // Loja só com link (Shein, lib/shein.js): sem produtos no site, só o "Ir para a loja"
+      l.soLink ? null : el("button", { type: "button", class: "botao-secundario", onclick: () => { $("#janela-lojas").close(); irParaLoja(l.id); } }, "Ver produtos"),
       // Site da loja pelo link com comissão (/api/ir-loja): vale qualquer compra feita lá dentro do prazo do cookie
       el("a", { class: "botao-oferta lp-ir", href: `/api/ir-loja?id=${encodeURIComponent(l.id)}`, target: "_blank", rel: "sponsored noopener",
         ...marcaClique("loja-parceira", { lojaNome: l.nome }) },
@@ -2655,7 +2656,8 @@ function lojasSugeridas(texto) {
 }
 function lojaDoNome(q, lojas) {
   // Shopee e AliExpress não (buscar "shopee" mostra produtos); Mercado Livre sim: abre os mais vendidos dele (05/11/2026)
-  return lojas.find((l) => (l.rede !== "marketplace" || l.id === "mercadolivre") && casaComNome(q, l.nome)) || null;
+  // Shein (só link): a faixa com "Ir para a loja" aparece, mas a busca continua normal (não há página da loja)
+  return lojas.find((l) => (l.rede !== "marketplace" || l.id === "mercadolivre" || l.soLink) && casaComNome(q, l.nome)) || null;
 }
 async function mostrarLojaNaBusca(q, pedido) {
   const caixa = $("#loja-na-busca");
@@ -2667,9 +2669,10 @@ async function mostrarLojaNaBusca(q, pedido) {
   caixa.style.setProperty("--cor-loja", corDaLoja(loja));
   caixa.replaceChildren(
     el("span", { class: "loja-ponto" }),
-    el("div", { class: "lnb-texto" }, el("strong", {}, loja.nome), el("small", {}, "Loja parceira do Vai pro Carrinho")),
+    el("div", { class: "lnb-texto" }, el("strong", {}, loja.nome),
+      el("small", {}, loja.soLink ? "Loja parceira: compre direto no site dela" : "Loja parceira do Vai pro Carrinho")),
     el("div", { class: "lnb-botoes" },
-      el("button", { type: "button", class: "botao-secundario", onclick: () => irParaLoja(loja.id) }, "Ver produtos da loja"),
+      loja.soLink ? null : el("button", { type: "button", class: "botao-secundario", onclick: () => irParaLoja(loja.id) }, "Ver produtos da loja"),
       el("a", { class: "lnb-ir", href: `/api/ir-loja?id=${encodeURIComponent(loja.id)}`, target: "_blank", rel: "sponsored noopener",
         ...marcaClique("loja-parceira", { lojaNome: loja.nome }) }, "Ir para a loja →")));
   caixa.hidden = false;
