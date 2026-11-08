@@ -1759,3 +1759,4 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
 - Teste no ar (Pixel 7): "Frete grátis (3318)" ao abrir; marcado e rolando, 194 cartões, todos com frete; ML nas buscas ok (air fryer 24).
 - Piscada 49 → 3318 ao atualizar (print do Giovanni): total guardado no localStorage (vpc_frete_total, 30 h), /api/frete-gratis pedido no início de
   carregarDestaques e, sem total conhecido, botão sem número. Teste no ar (1ª visita e 2 atualizações): só "Frete grátis (3318)".
+- 08/11: título "🔍 Buscando ofertas do dia…" removido (pedido do Giovanni): sempre "⚡ Ofertas do dia" (index.html + tituloOfertas); os esqueletos mostram o carregamento.
