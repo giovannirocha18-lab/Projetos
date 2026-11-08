@@ -1757,3 +1757,5 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
   pela oferta nova mais barata; se essa consulta falhar, cai para a sem frete). app.js: total no botão ao abrir (só página inicial e
   sem "Bem avaliados"), marcar junta as 48 na lista e o "Ver mais"/rolagem traz as próximas com frete.
 - Teste no ar (Pixel 7): "Frete grátis (3318)" ao abrir; marcado e rolando, 194 cartões, todos com frete; ML nas buscas ok (air fryer 24).
+- Piscada 49 → 3318 ao atualizar (print do Giovanni): total guardado no localStorage (vpc_frete_total, 30 h), /api/frete-gratis pedido no início de
+  carregarDestaques e, sem total conhecido, botão sem número. Teste no ar (1ª visita e 2 atualizações): só "Frete grátis (3318)".
