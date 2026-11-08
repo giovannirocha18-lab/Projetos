@@ -1,0 +1,22 @@
+# Teste do feed de produtos da Shopee (08/11/2026): só baixa e mostra o que vem no arquivo (robo/feed-shopee-teste.mjs).
+# Não grava nada. Para rodar: aba Actions > Teste do feed da Shopee > Run workflow
+name: Teste do feed da Shopee
+
+on:
+  workflow_dispatch:
+
+jobs:
+  teste:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: claude/inspiring-hamilton-wafagr
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Baixar e conferir o feed
+        run: node robo/feed-shopee-teste.mjs
+        env:
+          SHOPEE_FEED_OFICIAL: ${{ secrets.SHOPEE_FEED_OFICIAL }}
