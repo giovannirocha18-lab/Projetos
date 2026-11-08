@@ -2572,16 +2572,16 @@ function itemCupom(c) {
       } catch (erro) { copiado = Promise.reject(erro); }
       copiado.catch(() => {}); // a falha é tratada abaixo, quando o código chegar
       promessa.then((inteiro) => {
-        if (!inteiro) return avisar("Não foi possível mostrar o código agora. O desconto pode aparecer direto na loja que abriu.");
+        if (!inteiro) return avisar("Não foi possível mostrar o código agora. O desconto pode aparecer direto na loja parceira.");
         codigo.textContent = inteiro;
         codigo.parentElement.classList.add("revelado");
         copiar.hidden = false;
         copiado.then(
-          () => avisar("✓ Código copiado. Cole no carrinho da loja que abriu."),
+          () => avisar("✓ Código copiado. Cole no carrinho da loja parceira."),
           () => navigator.clipboard?.writeText(inteiro).then(
-            () => avisar("✓ Código copiado. Cole no carrinho da loja que abriu."),
-            () => avisar("Toque em “📋 Copiar” e cole o código no carrinho da loja que abriu."),
-          ) ?? avisar("Toque em “📋 Copiar” e cole o código no carrinho da loja que abriu."),
+            () => avisar("✓ Código copiado. Cole no carrinho da loja parceira."),
+            () => avisar("Toque em “📋 Copiar” e cole o código no carrinho da loja parceira."),
+          ) ?? avisar("Toque em “📋 Copiar” e cole o código no carrinho da loja parceira."),
         );
       });
     } }, c.codigoMascara ? "🎟️ Pegar cupom e ir para a loja" : "Ativar desconto na loja →");
