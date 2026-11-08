@@ -828,9 +828,9 @@ function desenharConta() {
         el("button", { class: "botao-primario", type: "submit" }, cadastro ? "Criar conta" : "Entrar"),
         el("div", { class: "links-conta" }, cadastro
           ? [linkEtapa("entrar", "Já tenho conta")]
-          : [linkEtapa("cadastrar", "Criar conta"), linkEtapa("esqueci", "Esqueci minha senha")]),
-        el("p", { class: "legal" }, "Guardamos só o seu nome, e-mail, os itens do carrinho, os alertas de preço que você criar e o personagem, se você montar um. Ao continuar, você concorda com a ",
-          el("a", { href: "privacidade", target: "_blank" }, "Política de Privacidade"), ".")),
+          : [linkEtapa("cadastrar", "Criar conta"), linkEtapa("esqueci", "Esqueci minha senha")])),
+      // (08/11/2026, pedido do Giovanni: saiu o aviso "Guardamos só o seu nome…" da tela de entrar; a Política de
+      // Privacidade continua nos links da janela Conta)
     ];
   }
   // Links do rodapé (no celular o rodapé some desde 05/11/2026; a rolagem infinita não deixa chegar nele)
