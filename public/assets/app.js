@@ -1956,13 +1956,49 @@ function desenharResumo(lista) {
 // para afiliados, então hoje só lojas da Awin têm essa informação: o botão só aparece quando a lista tem
 // pelo menos FRETE_MINIMO ofertas com frete grátis (para não frustrar com 1 ou 2 resultados).
 const FRETE_MINIMO = 8;
+// Frete grátis nas Ofertas do dia (08/11/2026, print do Giovanni: abria com "Frete grátis (41)" e só aparecia mais rolando a
+// lista com ele marcado): /api/frete-gratis manda, de 48 em 48, as ofertas do dia com frete grátis e quantas são ao todo. O
+// total aparece no botão logo ao abrir; marcando, elas entram na lista e o "Ver mais" traz as próximas com frete grátis
+const freteInicio = { total: 0, pagina: 0, temMais: true, lista: [], pedido: null };
+function pedirFreteGratis() {
+  freteInicio.pedido ||= fetch(`/api/frete-gratis?pagina=${freteInicio.pagina + 1}`).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+    .then((d) => {
+      if (!d?.ofertas) { freteInicio.temMais = false; return false; }
+      freteInicio.pagina += 1;
+      freteInicio.total = Math.max(freteInicio.total, d.total || 0);
+      freteInicio.temMais = Boolean(d.temMais);
+      freteInicio.lista.push(...d.ofertas);
+      return d.ofertas.length > 0;
+    })
+    .finally(() => { freteInicio.pedido = null; });
+  return freteInicio.pedido;
+}
+const naPaginaInicial = () => !estado.q && !estado.loja && !$("#inicio").hidden;
+function juntarFreteNoInicio() {
+  if (!estado.inicio || !freteInicio.lista.length) return;
+  estado.inicio = semRepetidos([...estado.inicio, ...freteInicio.lista]);
+  freteInicio.lista = [];
+  if (naPaginaInicial()) {
+    estado.ofertas = estado.inicio;
+    desenharFiltroLojas();
+    desenharResultados();
+  }
+}
+// Marcou "Frete grátis" na página inicial: as já trazidas entram na lista (e, se ainda não vieram, pede a 1ª página)
+function freteMarcadoNoInicio() {
+  if (!$("#so-frete").checked || !naPaginaInicial()) return;
+  if (freteInicio.lista.length) juntarFreteNoInicio();
+  else if (freteInicio.temMais && !freteInicio.pagina) pedirFreteGratis().then(juntarFreteNoInicio);
+}
 function desenharBotaoFrete() {
   const ligado = $("#so-frete").checked;
   const bem = $("#bem-avaliados").checked;
   // Cada contagem leva em conta a outra opção (07/11/2026, print do Giovanni: "Frete grátis" + "Bem avaliados" davam 0 e
   // a opção dizia 224). Hoje frete grátis só vem do Mercado Livre, que não manda nota: juntas, as duas não têm produto
   const temNota = (o) => o.avaliacao >= NOTA_BOA;
-  const qtd = estado.ofertas.filter((o) => o.freteGratis && (!bem || temNota(o))).length;
+  const carregados = estado.ofertas.filter((o) => o.freteGratis && (!bem || temNota(o))).length;
+  // Na página inicial, o total de ofertas do dia com frete grátis (não só as já carregadas; ver pedirFreteGratis)
+  const qtd = !estado.q && !estado.loja && !bem ? Math.max(carregados, freteInicio.total) : carregados;
   // Nenhuma loja parceira informa frete hoje (Shopee, AliExpress e Lomadee não mandam; os feeds da Awin vêm sem; conferido
   // em 23/10/2026): a opção da barra lateral só aparece quando há produto com frete grátis informado pela loja
   // ("Com desconto" saiu em 24/10/2026: "Maior desconto" em "Ordenar por" já faz isso; sem frete, "Mais opções" some)
@@ -2850,6 +2886,19 @@ function carregarMaisOfertas() {
 }
 async function trazerMaisOfertas() {
   const botao = $("#mais-ofertas");
+  // Com "Frete grátis" marcado, o "Ver mais" traz as próximas ofertas do dia com frete grátis (ver pedirFreteGratis)
+  if ($("#so-frete").checked && !estado.q && (freteInicio.lista.length || freteInicio.temMais)) {
+    botao.disabled = true;
+    botao.textContent = "Carregando…";
+    try {
+      if (!freteInicio.lista.length) await pedirFreteGratis();
+      juntarFreteNoInicio();
+      return true;
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Ver mais ofertas";
+    }
+  }
   botao.disabled = true;
   botao.textContent = "Carregando…";
   try {
@@ -3074,6 +3123,7 @@ async function carregarDestaques() {
     $("#aviso-teste").hidden = !dados.exemplo;
     mostrarInicio();
     if (!seguintes) completarInicio(estado.pedido); // mostrarInicio() trocou o número do pedido
+    if (!freteInicio.pagina) pedirFreteGratis().then(() => { if (naPaginaInicial()) desenharBotaoFrete(); });
   } catch {
     tituloOfertas(false);
     if (pedido !== estado.pedido || guardado) return; // com as guardadas na tela, fica com elas
@@ -3509,13 +3559,14 @@ let timerPreco;
   clearTimeout(timerPreco);
   timerPreco = setTimeout(desenharResultados, 300);
 }));
-$("#so-frete").addEventListener("change", desenharResultados);
+$("#so-frete").addEventListener("change", () => { desenharResultados(); freteMarcadoNoInicio(); });
 $("#bem-avaliados").addEventListener("change", () => { desenharResultados(); if ($("#bem-avaliados").checked) completarBemAvaliados(); });
 // Mostrar/esconder acessórios muda também a contagem de cada loja
 $("#com-acessorios").addEventListener("change", () => { desenharFiltroLojas(); desenharResultados(); });
 document.querySelectorAll("[data-frete]").forEach((b) => b.addEventListener("click", () => {
   $("#so-frete").checked = !$("#so-frete").checked;
   desenharResultados();
+  freteMarcadoNoInicio();
 }));
 $("#ver-acessorios").addEventListener("click", () => { $("#com-acessorios").checked = true; desenharFiltroLojas(); desenharResultados(); });
 document.querySelectorAll("input[name=ordem], input[name=envio]").forEach((r) => r.addEventListener("change", desenharResultados));
