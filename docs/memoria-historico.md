@@ -1778,3 +1778,5 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
 - Shein: Centro de Afiliados (programa KOC, Instagram do site), só "Converter Link" (produto/campanha; página inicial não).
   lib/shein.js LINK_SHEIN = campanha bestsellers (onelink …/67lf9sa5w8kb); /api/ir-loja?id=shein sem cache; LOJA_SHEIN soLink em
   /api/lojas (v40); app.js: sem "Ver produtos", busca "shein" mostra a faixa e segue a busca normal.
+- Ofertas da Shein (08/11): CAMPANHAS_SHEIN em lib/shein.js (titulo, detalhe, emoji, link onelink, ate AAAA-MM-DD), /api/shein,
+  faixa #campanhas-shein (início) e #campanhas-shein-busca (Black Friday e busca "shein"); some no fim (ate). 1ª: 500 mais vendidos.

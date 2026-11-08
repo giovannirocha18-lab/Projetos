@@ -100,7 +100,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   gera o link de afiliado no clique (`destinoShopee`, cache 30 dias; conferido: utm_source=an_183…). 1ª carga 99.942, banco 632 MB.
   Teste: +3 a +29 produtos da Shopee por busca nova. Teste do feed à parte: workflow teste-feed-shopee.yml.
 - **08/11: Shein** só com "Ir para a loja" (lib/shein.js: link da campanha "500 mais quentes"; sem feed/API para afiliado BR;
-  Centro de Afiliados com Instagram do site); Lojas parceiras `soLink`, /api/lojas v40.
+  Centro de Afiliados com Instagram do site); Lojas parceiras `soLink`, /api/lojas v40. Faixa "Ofertas da Shein" = `CAMPANHAS_SHEIN`
+  (lib/shein.js; Giovanni manda nome + link do botão "Ganhe" + dias; cartão some na data `ate`).
 - **Madrugada 08/11 (#127)**: tudo verde; 624/627 prontas; ML 435+448 buscas renovadas, 5.864 preços, 4 esperas; mais vendidos
   3.809 + 15.212; Awin 73.279 (+248), banco 546 MB; IA lote de 11.433 títulos enviado (lido amanhã). Lomadee 18 marcas (parte 3
   sem resposta da Lomadee: ficam como estavam). Black Friday já com 48 "✅ Desconto real" na 1ª página. Nada corrigido.
