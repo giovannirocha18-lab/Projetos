@@ -158,6 +158,15 @@ async function responder(contexto) {
   if (url.hostname === "vaiprocarrinho.pages.dev") {
     return Response.redirect(`https://vaiprocarrinho.com.br${url.pathname}${url.search}`, 301);
   }
+  // Site de teste (teste.vaiprocarrinho.pages.dev, 08/11/2026, pedido do Giovanni: mudanças primeiro no teste): a prévia não
+  // tem o banco nem as chaves das lojas, então as chamadas /api e /ir vão para o site real (a parte visual vem da branch)
+  if (/\.vaiprocarrinho\.pages\.dev$/.test(url.hostname) && !env.DB && /^\/(api|ir)\//.test(url.pathname)) {
+    const cabecalhos = new Headers();
+    for (const [k, v] of request.headers) if (!/^(host|cf-|x-forwarded|x-real-ip)/i.test(k)) cabecalhos.set(k, v);
+    const corpo = ["GET", "HEAD"].includes(request.method) ? undefined : await request.arrayBuffer();
+    const r = await fetch(`https://vaiprocarrinho.com.br${url.pathname}${url.search}`, { method: request.method, headers: cabecalhos, body: corpo, redirect: "manual" });
+    return new Response(r.body, r);
+  }
 
   // Volta da tela "Permitir" do Mercado Livre (conta conectada pelo painel, lib/mlConta.js): só um "state" criado pelo
   // painel nos últimos 15 minutos é aceito; qualquer outro ?code= na página principal é ignorado
