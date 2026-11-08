@@ -105,6 +105,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **08/11: Shein** só com "Ir para a loja" (lib/shein.js: link da campanha "500 mais quentes"; sem feed/API para afiliado BR;
   Centro de Afiliados com Instagram do site); Lojas parceiras `soLink`, /api/lojas v40. Faixa "Ofertas da Shein" = `CAMPANHAS_SHEIN`
   (lib/shein.js; Giovanni manda nome + link do botão "Ganhe" + dias; cartão some na data `ate`).
+- **08/11: ML não fica mais guardado vazio** (429 nos preços = erro com parciais, busca refeita por trás) e **fila do ML**
+  (`lib/mlFila.js`, tabela `ml_fila`): busca de visitante com ML incompleto (<8 ou erro) entra; /api/preparar-ml prepara a fila
+  primeiro (até 400, 14 dias; resposta da parte 0 traz `fila`). Conferir na madrugada de 09/11+ o tamanho da fila.
 - **Madrugada 08/11 (#127)**: tudo verde; 624/627 prontas; ML 435+448 buscas renovadas, 5.864 preços, 4 esperas; mais vendidos
   3.809 + 15.212; Awin 73.279 (+248), banco 546 MB; IA lote de 11.433 títulos enviado (lido amanhã). Lomadee 18 marcas (parte 3
   sem resposta da Lomadee: ficam como estavam). Black Friday já com 48 "✅ Desconto real" na 1ª página. Nada corrigido.

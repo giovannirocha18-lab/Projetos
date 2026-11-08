@@ -1791,3 +1791,5 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
 - 08/11: cartão "Casa e decoração" da Shein saiu (abria lojas para seguir); teste responde /api/shein da própria branch. 10 cartões.
 - 08/11: print "panela ceramica" sem ML: comPrecos (site) com 429 devolvia 0 produtos com ok:true → busca guardada 6 h sem ML. Agora 429
   com menos que o alvo = erro com erro.parciais (mercadolivre.buscar junta os mais vendidos) → ML ok:false, resposta provisória e refeita por trás.
+- 08/11: fila do ML (lib/mlFila.js): buscar.js anota (waitUntil) q com ML ok:false ou < POUCOS_ML=8 (pág. 1, sem loja, não robô);
+  preparar-ml põe filaML(400, por vezes) antes das prontas e tendências; termos somem após 14 dias sem nova busca.
