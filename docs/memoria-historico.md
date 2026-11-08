@@ -1782,3 +1782,4 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
   faixa #campanhas-shein (início) e #campanhas-shein-busca (Black Friday e busca "shein"); some no fim (ate). 1ª: 500 mais vendidos.
 - 08/11: 7 campanhas na faixa (links 67lh…; nomes pelo og:title/imagem): seleção (comissão extra, até 15/02/2027), 11.11 (até 14/12),
   mais vendidos 90%, roupas femininas 80%, joias e acessórios 90% (sem data: Giovanni não informou), lojas favoritas (15/02/2027), 500 mais vendidos.
+- 08/11: +3 campanhas (moda masculina 67m7zqg7e0cb, casa e decoração 67m819p0piy1, mais bem avaliados 67m80m0pk8fe) = 10; 67m83oidnxxn = mesma campanha 1265 (500 mais vendidos), não incluída.
