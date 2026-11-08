@@ -2675,9 +2675,11 @@ function lojaDoNome(q, lojas) {
 async function mostrarLojaNaBusca(q, pedido) {
   const caixa = $("#loja-na-busca");
   caixa.hidden = true;
+  desenharCampanhasShein("campanhas-shein-busca", naBlackFriday());
   if (lojaAtual() || naBlackFriday()) return;
   const loja = lojaDoNome(q, await carregarLojasParceiras());
   if (pedido !== estado.pedido || lojaAtual()) return;
+  if (loja?.id === "shein") desenharCampanhasShein("campanhas-shein-busca", true);
   if (!loja) return;
   caixa.style.setProperty("--cor-loja", corDaLoja(loja));
   caixa.replaceChildren(
@@ -2688,6 +2690,33 @@ async function mostrarLojaNaBusca(q, pedido) {
       loja.soLink ? null : el("button", { type: "button", class: "botao-secundario", onclick: () => irParaLoja(loja.id) }, "Ver produtos da loja"),
       el("a", { class: "lnb-ir", href: `/api/ir-loja?id=${encodeURIComponent(loja.id)}`, target: "_blank", rel: "sponsored noopener",
         ...marcaClique("loja-parceira", { lojaNome: loja.nome }) }, "Ir para a loja →")));
+  caixa.hidden = false;
+}
+
+// Ofertas da Shein (08/11/2026): cartões das campanhas (lib/shein.js, /api/shein) na página inicial, na Black Friday e na busca
+// por "shein". Cada cartão leva à campanha pelo link de afiliado do Giovanni; some sozinho quando a campanha acaba
+let campanhasShein = null;
+async function carregarCampanhasShein() {
+  if (!campanhasShein) {
+    campanhasShein = fetch("/api/shein").then((r) => (r.ok ? r.json() : { campanhas: [] })).then((d) => d.campanhas || []).catch(() => []);
+  }
+  return campanhasShein;
+}
+async function desenharCampanhasShein(id, mostrar) {
+  const caixa = $(`#${id}`);
+  if (!mostrar) { caixa.hidden = true; return; }
+  const lista = await carregarCampanhasShein();
+  if (!lista.length) { caixa.hidden = true; return; }
+  const prazo = (c) => (c.diasRestantes == null ? "Campanha da Shein" : c.diasRestantes <= 0 ? "Termina hoje"
+    : c.diasRestantes === 1 ? "Termina amanhã" : `Termina em ${c.diasRestantes} dias`);
+  caixa.replaceChildren(
+    el("h3", {}, el("span", { class: "selo-shein" }, "SHEIN"), "Ofertas da Shein"),
+    el("div", { class: "campanhas-lista" }, ...lista.map((c) => el("a", {
+      class: "campanha", href: c.link, target: "_blank", rel: "sponsored noopener",
+      ...marcaClique("campanha-shein", { loja: "shein", titulo: c.titulo }) },
+    el("span", { class: "ce", "aria-hidden": "true" }, c.emoji || "🛍️"),
+    el("span", { class: "ct" }, el("strong", {}, c.titulo), c.detalhe ? el("small", {}, c.detalhe) : null,
+      el("small", {}, prazo(c)), el("span", { class: "cir" }, "Ver na Shein →"))))));
   caixa.hidden = false;
 }
 
@@ -2803,6 +2832,8 @@ async function mostrarLoja(id) {
   zerarSecoes();
   estado.ofertas = [];
   estado.buscando = true;
+  $("#loja-na-busca").hidden = true;
+  desenharCampanhasShein("campanhas-shein-busca", id === BLACK_FRIDAY); // Ofertas da Shein também na Black Friday
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
   document.title = `${estado.loja.nome || "Loja parceira"} — Vai pro Carrinho`;
   $("#resumo").replaceChildren(id === BLACK_FRIDAY
@@ -3013,6 +3044,7 @@ async function carregarMaisResultados({ sozinho = false } = {}) {
 
 function mostrarInicio() {
   estado.pedido++; // busca que ainda está carregando não pode mais desenhar nada
+  desenharCampanhasShein("campanhas-shein", true);
   estado.q = "";
   estado.lojasDesmarcadas.clear();
   zerarSecoes();
