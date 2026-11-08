@@ -1760,3 +1760,21 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
 - Piscada 49 → 3318 ao atualizar (print do Giovanni): total guardado no localStorage (vpc_frete_total, 30 h), /api/frete-gratis pedido no início de
   carregarDestaques e, sem total conhecido, botão sem número. Teste no ar (1ª visita e 2 atualizações): só "Frete grátis (3318)".
 - 08/11: título "🔍 Buscando ofertas do dia…" removido (pedido do Giovanni): sempre "⚡ Ofertas do dia" (index.html + tituloOfertas); os esqueletos mostram o carregamento.
+
+## Lista oficial da Shopee e Shein (08/11/2026)
+- Feed de produto da área de afiliados da Shopee: 2 feeds ("Shopee Oficial BR - 2022" e "Shopee Brasil - 2022"), cada um 1 CSV de
+  100 mil (196 MB, CSV puro, link affiliate.shopee.com.br/api/v1/datafeed/download?id=… → mkt-proxy). 24 colunas: itemid, title,
+  price, sale_price, discount_percentage, item_rating (≥4), shop_rating, like, global_catid1-3, image_link(+_3), shop_name,
+  cb_option, condition, model_ids/names, product_link, "product_short link" (shope.ee → produto só com utm_term/v4, SEM an_…).
+- robo/shopee-lista.mjs (job shopeelista, concurrency robo-shopee-lista): baixa, grava shopee_lista (num, id shopee-<itemid>, …, link
+  = vaiprocarrinho.com.br/ir/shopee/<shop>/<item>, curto, curtidas, categorias JSON, internacional) + shopee_lista_fts + precos;
+  só o que mudou (assinatura); lista com < metade de ontem não apaga. 1ª carga 364 s; regravação 293 s.
+- Busca: lib/fontes/shopee.js pág. 1 (não vitrine) = API + buscarNaListaShopee (FTS 2000 candidatos, ORDER BY curtidas, título com
+  todas as palavras; 3+ palavras: menos uma), API primeiro, sem repetir. buscar.js: páginas com allSettled e erro.parciais.
+- /ir/shopee (_middleware): só se o item está em shopee_lista; generateShortLink do produto (cache 30 dias), reserva = curto.
+  Android: app.js busca ?json=1 e abre no app. Conferido: s.shopee.com.br com utm_source/mmp_pid an_183…, utm_medium=affiliates.
+- Teste (buscas novas): fone sem fio bluetooth 5.3 +15, vestido longo floral +8, bolsa feminina transversal +29, power bank +11;
+  tempo do servidor 4–7,5 s (igual a antes: quase tudo é esperar as lojas). As prontas ganham a lista na madrugada.
+- Shein: Centro de Afiliados (programa KOC, Instagram do site), só "Converter Link" (produto/campanha; página inicial não).
+  lib/shein.js LINK_SHEIN = campanha bestsellers (onelink …/67lf9sa5w8kb); /api/ir-loja?id=shein sem cache; LOJA_SHEIN soLink em
+  /api/lojas (v40); app.js: sem "Ver produtos", busca "shein" mostra a faixa e segue a busca normal.

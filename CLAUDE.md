@@ -93,6 +93,14 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   com frete) e, marcado, traz de 48 em 48 (`/api/frete-gratis`, `mercadolivre.ofertasFreteGratis`; coluna `frete` em ml_destaques,
   gravada pelo robô, calculada por SQL nos antigos; app.js `freteInicio`/`pedirFreteGratis`; total guardado no aparelho
   `vpc_frete_total`, sem número até saber: atualizando mostrava 49 → 3318). Testado no ar (celular) ✅.
+- **08/11: lista oficial da Shopee** (Feed de produto > "Shopee Oficial BR", Secret `SHOPEE_FEED_OFICIAL`, 1 link, ~100 mil
+  produtos nota 4+, sem vendas): job `shopeelista` (robo/shopee-lista.mjs, ~5 min, antes das prontas; `so_shopee_lista`) →
+  tabela `shopee_lista` + FTS + precos; busca soma na pág. 1 depois da Shopee ao vivo (`buscarNaListaShopee`, lib/shopeeLista.js;
+  se a API recusar, vão como `erro.parciais`). Link curto da lista NÃO tem an_… → "Comprar" = `/ir/shopee/<loja>/<item>` que
+  gera o link de afiliado no clique (`destinoShopee`, cache 30 dias; conferido: utm_source=an_183…). 1ª carga 99.942, banco 632 MB.
+  Teste: +3 a +29 produtos da Shopee por busca nova. Teste do feed à parte: workflow teste-feed-shopee.yml.
+- **08/11: Shein** só com "Ir para a loja" (lib/shein.js: link da campanha "500 mais quentes"; sem feed/API para afiliado BR;
+  Centro de Afiliados com Instagram do site); Lojas parceiras `soLink`, /api/lojas v40.
 - **Madrugada 08/11 (#127)**: tudo verde; 624/627 prontas; ML 435+448 buscas renovadas, 5.864 preços, 4 esperas; mais vendidos
   3.809 + 15.212; Awin 73.279 (+248), banco 546 MB; IA lote de 11.433 títulos enviado (lido amanhã). Lomadee 18 marcas (parte 3
   sem resposta da Lomadee: ficam como estavam). Black Friday já com 48 "✅ Desconto real" na 1ª página. Nada corrigido.
@@ -177,9 +185,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **App Android do painel (05/11)**: `app-android/` (WebView de painel.vaiprocarrinho.com.br, "Painel VPC"; `construir.sh` =
   aapt2+javac+d8+apksigner, SDK baixado com sdkmanager). Chave de assinatura NÃO guardada (bloqueado guardar no repo; Giovanni: "deixe
   assim"): versão nova = desinstalar e instalar. Layout do painel muda sozinho no app (ele só abre o site).
-- **Shein (08/11, Giovanni vai ver depois)**: programa oficial (Centro de Afiliados, app Shein → Eu; feito para redes sociais,
-  2–20%) sem API/feed conhecido no BR → proposta: "Ir para a loja" com o link dele em Lojas parceiras; produtos só se o Centro
-  tiver feed (ou curadoria). Lomadee paga 0,4%. Perguntar à Shein por feed/rede parceira (Awin só UK/US/FR).
+- **Shein**: falta saber se existe feed/API (perguntar à Shein; Awin só UK/US/FR). Trocar o link por campanha de Black Friday.
 - **08/11: 1ª compra do site** (Shopee, contou o Giovanni): conferir no painel Comissões (Shopee conversionReport).
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
   UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027).
