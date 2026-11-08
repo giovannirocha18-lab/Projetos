@@ -10,6 +10,9 @@
   aparecem na tela. Ele manda prints. Pedir que nunca mande senhas/chaves no chat.
 - Conversa longa (~20% do contexto): atualizar esta memória, commit/push com `[skip ci]` e avisar "Abra uma conversa nova e
   cole o comando de recomeço". Não resumir/compactar.
+- **Regra do Giovanni (08/11): toda mudança vai PRIMEIRO para a branch `teste`** (prévia https://teste.vaiprocarrinho.pages.dev;
+  sem banco, /api e /ir vão para o site real pelo _middleware) → mandar o link → só depois de ele aprovar, levar para a branch de
+  produção (merge/cherry-pick). Prévia precisa de "Preview branches: teste" no Cloudflare (Giovanni ligando em 08/11).
 - **Todo print de erro de busca vira caso novo em `testes/busca.mjs`** (de sugestão, em `testes/sugestoes.mjs`);
   `node testes/busca.mjs`, `sugestoes.mjs` e `modulos.mjs` têm que passar antes de publicar mudança na busca.
 - Regras fixas: nunca raspar páginas das lojas (só APIs/feeds oficiais); nada de urgência/escassez falsa; sem aviso de
