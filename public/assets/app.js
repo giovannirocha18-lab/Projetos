@@ -2539,28 +2539,51 @@ function itemCupom(c) {
   const loja = infoLoja(c);
   const codigo = c.codigoMascara && el("code", {}, c.codigoMascara);
   const aviso = el("small", { class: "cupom-aviso", hidden: true });
+  // Código inteiro do cupom (pedido no clique; /api/cupons manda só o começo)
+  const pedirCodigo = async () => {
+    if (c.codigoInteiro) return c.codigoInteiro;
+    try {
+      const r = await fetch(`/api/cupons?codigo=${encodeURIComponent(c.id)}`);
+      c.codigoInteiro = r.ok ? (await r.json()).codigo || null : null;
+    } catch { c.codigoInteiro = null; }
+    return c.codigoInteiro;
+  };
+  const avisar = (texto) => { aviso.textContent = texto; aviso.hidden = false; };
+  // Botão "📋 Copiar" ao lado do código revelado: se a cópia automática falhar (o navegador bloqueia quando a loja
+  // abre na frente), a pessoa volta e toca aqui (08/11/2026, Giovanni: "testei e não copiou")
+  const copiar = el("button", { type: "button", class: "cupom-copiar", hidden: true, onclick: async () => {
+    try { await navigator.clipboard.writeText(c.codigoInteiro); avisar("✓ Código copiado. Cole no carrinho da loja."); }
+    catch { avisar("Selecione o código e copie: ele está destacado acima."); }
+  } }, "📋 Copiar");
   const pegar = el("a", { class: "botao-oferta cupom-ir", href: c.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("cupom", { ...c, id: "", titulo: "" }),
-    onclick: async () => {
+    onclick: () => {
       if (!c.codigoMascara) return;
-      let inteiro = c.codigoInteiro;
-      if (!inteiro) {
-        try {
-          const r = await fetch(`/api/cupons?codigo=${encodeURIComponent(c.id)}`);
-          inteiro = r.ok ? (await r.json()).codigo : null;
-        } catch { inteiro = null; }
-      }
-      if (!inteiro) {
-        aviso.textContent = "Não foi possível mostrar o código agora. O desconto pode aparecer direto na loja que abriu.";
-        aviso.hidden = false;
-        return;
-      }
-      c.codigoInteiro = inteiro;
-      codigo.textContent = inteiro;
-      codigo.parentElement.classList.add("revelado");
-      navigator.clipboard?.writeText(inteiro).then(
-        () => { aviso.textContent = "✓ Código copiado. Cole no carrinho da loja que abriu."; },
-        () => { aviso.textContent = "Use este código no carrinho da loja que abriu."; },
-      ).finally(() => { aviso.hidden = false; });
+      const promessa = pedirCodigo();
+      // A cópia é pedida AGORA, ainda no clique e com o site na frente (antes a loja abria primeiro e o navegador recusava);
+      // o texto chega quando o código vier do servidor
+      let copiado;
+      try {
+        copiado = typeof ClipboardItem !== "undefined" && navigator.clipboard?.write
+          ? navigator.clipboard.write([new ClipboardItem({ "text/plain": promessa.then((t) => {
+            if (!t) throw new Error("sem código");
+            return new Blob([t], { type: "text/plain" });
+          }) })])
+          : Promise.reject(new Error("sem ClipboardItem"));
+      } catch (erro) { copiado = Promise.reject(erro); }
+      copiado.catch(() => {}); // a falha é tratada abaixo, quando o código chegar
+      promessa.then((inteiro) => {
+        if (!inteiro) return avisar("Não foi possível mostrar o código agora. O desconto pode aparecer direto na loja que abriu.");
+        codigo.textContent = inteiro;
+        codigo.parentElement.classList.add("revelado");
+        copiar.hidden = false;
+        copiado.then(
+          () => avisar("✓ Código copiado. Cole no carrinho da loja que abriu."),
+          () => navigator.clipboard?.writeText(inteiro).then(
+            () => avisar("✓ Código copiado. Cole no carrinho da loja que abriu."),
+            () => avisar("Toque em “📋 Copiar” e cole o código no carrinho da loja que abriu."),
+          ) ?? avisar("Toque em “📋 Copiar” e cole o código no carrinho da loja que abriu."),
+        );
+      });
     } }, c.codigoMascara ? "🎟️ Pegar cupom e ir para a loja" : "Ativar desconto na loja →");
   return el("li", { class: "cupom" },
     el("div", { class: "cupom-topo" },
@@ -2569,7 +2592,7 @@ function itemCupom(c) {
     el("strong", { class: "cupom-titulo" }, c.titulo),
     c.descricao && c.descricao !== c.titulo && el("p", { class: "cupom-descricao" }, c.descricao),
     el("div", { class: "cupom-acoes" },
-      c.codigoMascara ? el("span", { class: "cupom-codigo" }, codigo) : el("span", { class: "cupom-sem-codigo" }, "Sem código: o desconto aparece na loja"),
+      c.codigoMascara ? el("span", { class: "cupom-codigo" }, codigo, copiar) : el("span", { class: "cupom-sem-codigo" }, "Sem código: o desconto aparece na loja"),
       pegar),
     aviso);
 }
