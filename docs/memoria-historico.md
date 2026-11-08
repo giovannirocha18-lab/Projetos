@@ -1789,3 +1789,5 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
   sheinNaBusca em app.js; usa categoriasDaBusca). Aprovada e publicada (merge teste → produção; teste realinhada).
 - 08/11: navegador guarda /api/lojas e /api/shein só 60 s (paraNavegador em lojas.js; cache do Cloudflare continua 6 h/1 h): mudanças apareciam só com Ctrl+F5. Shein sem "Internacional" (v41) e ML em 1º nos Marketplaces (v42), direto na produção a pedido.
 - 08/11: cartão "Casa e decoração" da Shein saiu (abria lojas para seguir); teste responde /api/shein da própria branch. 10 cartões.
+- 08/11: print "panela ceramica" sem ML: comPrecos (site) com 429 devolvia 0 produtos com ok:true → busca guardada 6 h sem ML. Agora 429
+  com menos que o alvo = erro com erro.parciais (mercadolivre.buscar junta os mais vendidos) → ML ok:false, resposta provisória e refeita por trás.
