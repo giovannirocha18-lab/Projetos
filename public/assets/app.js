@@ -1959,13 +1959,28 @@ const FRETE_MINIMO = 8;
 // Frete grátis nas Ofertas do dia (08/11/2026, print do Giovanni: abria com "Frete grátis (41)" e só aparecia mais rolando a
 // lista com ele marcado): /api/frete-gratis manda, de 48 em 48, as ofertas do dia com frete grátis e quantas são ao todo. O
 // total aparece no botão logo ao abrir; marcando, elas entram na lista e o "Ver mais" traz as próximas com frete grátis
-const freteInicio = { total: 0, pagina: 0, temMais: true, lista: [], pedido: null };
+// O total fica guardado no aparelho: ao atualizar a página o botão já abre com ele (08/11/2026: mostrava 49 e depois 3318).
+// Sem total guardado (1ª visita), o botão aparece sem número até o total chegar
+const GUARDA_FRETE = "vpc_frete_total";
+function freteGuardado() {
+  try {
+    const g = JSON.parse(localStorage.getItem(GUARDA_FRETE) || "null");
+    return g && Date.now() - g.quando < 30 * 3600e3 ? Number(g.total) || 0 : 0;
+  } catch {
+    return 0;
+  }
+}
+const freteInicio = { total: freteGuardado(), conhecido: false, pagina: 0, temMais: true, lista: [], pedido: null };
+freteInicio.conhecido = freteInicio.total > 0;
 function pedirFreteGratis() {
   freteInicio.pedido ||= fetch(`/api/frete-gratis?pagina=${freteInicio.pagina + 1}`).then((r) => (r.ok ? r.json() : null)).catch(() => null)
     .then((d) => {
-      if (!d?.ofertas) { freteInicio.temMais = false; return false; }
+      if (!d?.ofertas) { freteInicio.temMais = false; freteInicio.conhecido = true; return false; }
       freteInicio.pagina += 1;
-      freteInicio.total = Math.max(freteInicio.total, d.total || 0);
+      // A 1ª página traz o total de hoje (vale mais que o guardado, que pode ser de ontem)
+      if (freteInicio.pagina === 1) freteInicio.total = d.total || 0;
+      freteInicio.conhecido = true;
+      try { localStorage.setItem(GUARDA_FRETE, JSON.stringify({ quando: Date.now(), total: freteInicio.total })); } catch { /* sem armazenamento */ }
       freteInicio.temMais = Boolean(d.temMais);
       freteInicio.lista.push(...d.ofertas);
       return d.ofertas.length > 0;
@@ -1998,7 +2013,9 @@ function desenharBotaoFrete() {
   const temNota = (o) => o.avaliacao >= NOTA_BOA;
   const carregados = estado.ofertas.filter((o) => o.freteGratis && (!bem || temNota(o))).length;
   // Na página inicial, o total de ofertas do dia com frete grátis (não só as já carregadas; ver pedirFreteGratis)
-  const qtd = !estado.q && !estado.loja && !bem ? Math.max(carregados, freteInicio.total) : carregados;
+  const doInicio = !estado.q && !estado.loja && !bem;
+  const qtd = doInicio ? Math.max(carregados, freteInicio.total) : carregados;
+  const comNumero = !doInicio || freteInicio.conhecido;
   // Nenhuma loja parceira informa frete hoje (Shopee, AliExpress e Lomadee não mandam; os feeds da Awin vêm sem; conferido
   // em 23/10/2026): a opção da barra lateral só aparece quando há produto com frete grátis informado pela loja
   // ("Com desconto" saiu em 24/10/2026: "Maior desconto" em "Ordenar por" já faz isso; sem frete, "Mais opções" some)
@@ -2011,7 +2028,7 @@ function desenharBotaoFrete() {
   document.querySelectorAll("[data-frete]").forEach((b) => {
     b.hidden = qtd < FRETE_MINIMO && !ligado;
     b.setAttribute("aria-pressed", String(ligado));
-    b.textContent = ligado ? "🚚 Frete grátis ✕" : `🚚 Frete grátis (${qtd})`;
+    b.textContent = ligado ? "🚚 Frete grátis ✕" : comNumero ? `🚚 Frete grátis (${qtd})` : "🚚 Frete grátis";
   });
 }
 
@@ -3098,6 +3115,7 @@ async function pedirInicio() {
 
 async function carregarDestaques() {
   const pedido = ++estado.pedido;
+  if (!freteInicio.pagina && !freteInicio.pedido) pedirFreteGratis().then(() => { if (naPaginaInicial()) desenharBotaoFrete(); });
   estado.ofertas = [];
   $("#filtro-lojas").replaceChildren();
   const guardado = inicioGuardado();
@@ -3123,7 +3141,6 @@ async function carregarDestaques() {
     $("#aviso-teste").hidden = !dados.exemplo;
     mostrarInicio();
     if (!seguintes) completarInicio(estado.pedido); // mostrarInicio() trocou o número do pedido
-    if (!freteInicio.pagina) pedirFreteGratis().then(() => { if (naPaginaInicial()) desenharBotaoFrete(); });
   } catch {
     tituloOfertas(false);
     if (pedido !== estado.pedido || guardado) return; // com as guardadas na tela, fica com elas
