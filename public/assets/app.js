@@ -3040,12 +3040,12 @@ async function mostrarNumeros() {
 mostrarNumeros();
 
 // Enquanto as ofertas carregam (a 1ª abertura leva alguns segundos), o título diz que está buscando
-function tituloOfertas(carregando) {
+// Título fixo (08/11/2026, pedido do Giovanni: ao abrir aparecia rápido "🔍 Buscando ofertas do dia…"); enquanto carrega,
+// os cartões cinza (esqueletos) já mostram que as ofertas estão chegando
+function tituloOfertas() {
   const h2 = $("#titulo-ofertas");
-  h2.classList.toggle("carregando", carregando);
-  h2.replaceChildren(...(carregando
-    ? [el("span", { class: "lupa", "aria-hidden": "true" }, "🔍"), " Buscando ofertas do dia…"]
-    : ["⚡ Ofertas do dia"]));
+  h2.classList.remove("carregando");
+  if (h2.textContent !== "⚡ Ofertas do dia") h2.replaceChildren("⚡ Ofertas do dia");
 }
 
 // Últimas "Ofertas do dia" vistas neste aparelho: aparecem na hora na próxima abertura e são trocadas pelas novas assim
