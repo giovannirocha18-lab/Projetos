@@ -2133,6 +2133,7 @@ function desenharResultados() {
     return c;
   }, { minimo: jaNaTela.size });
   desenharEscolhaRapida(lista);
+  sheinNaBusca();
   $("#vazio").hidden = lista.length > 0;
   // Botões de baixo seguem as lojas marcadas no card: com todas desligadas não há o que "ver mais"
   const lojaLigada = (o) => !estado.lojasDesmarcadas.has(o.loja);
@@ -2705,6 +2706,7 @@ async function carregarCampanhasShein() {
 async function desenharCampanhasShein(id, mostrar) {
   const caixa = $(`#${id}`);
   if (!mostrar) { caixa.hidden = true; return; }
+  if (!caixa.hidden && caixa.childElementCount) return; // já na tela (a lista da busca é redesenhada várias vezes)
   const lista = await carregarCampanhasShein();
   if (!lista.length) { caixa.hidden = true; return; }
   const prazo = (c) => (c.diasRestantes == null ? "Campanha da Shein" : c.diasRestantes <= 0 ? "Termina hoje"
@@ -2718,6 +2720,18 @@ async function desenharCampanhasShein(id, mostrar) {
     el("span", { class: "ct" }, el("strong", {}, c.titulo), c.detalhe ? el("small", {}, c.detalhe) : null,
       el("small", {}, prazo(c)), el("span", { class: "cir" }, "Ver na Shein →"))))));
   caixa.hidden = false;
+}
+
+// Ofertas da Shein também nas buscas e categorias de moda, beleza e acessórios (08/11/2026, a Shein é forte nisso; nas
+// de eletrônicos, casa etc. a faixa fica escondida). A categoria da busca vem dos produtos que chegaram (categoriasDaBusca)
+const CATEGORIAS_SHEIN = new Set(["Moda feminina", "Moda masculina", "Moda infantil", "Moda íntima", "Moda fitness", "Calçados",
+  "Bolsas e mochilas", "Joias e bijuterias", "Óculos", "Bonés e chapéus", "Relógios", "Maquiagem", "Skincare", "Cabelo", "Decoração"]);
+function sheinNaBusca() {
+  if (!estado.q || estado.loja || naBlackFriday()) return;
+  const cats = estado.cat ? new Set([estado.cat]) : categoriasDaBusca();
+  const deModa = Boolean(cats && [...cats].some((c) => CATEGORIAS_SHEIN.has(c)));
+  if (deModa || /\bshein\b/i.test(estado.q)) desenharCampanhasShein("campanhas-shein-busca", true);
+  else $("#campanhas-shein-busca").hidden = true;
 }
 
 function irParaLoja(id) {
