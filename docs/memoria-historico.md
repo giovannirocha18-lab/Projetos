@@ -1780,3 +1780,5 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
   /api/lojas (v40); app.js: sem "Ver produtos", busca "shein" mostra a faixa e segue a busca normal.
 - Ofertas da Shein (08/11): CAMPANHAS_SHEIN em lib/shein.js (titulo, detalhe, emoji, link onelink, ate AAAA-MM-DD), /api/shein,
   faixa #campanhas-shein (início) e #campanhas-shein-busca (Black Friday e busca "shein"); some no fim (ate). 1ª: 500 mais vendidos.
+- 08/11: 7 campanhas na faixa (links 67lh…; nomes pelo og:title/imagem): seleção (comissão extra, até 15/02/2027), 11.11 (até 14/12),
+  mais vendidos 90%, roupas femininas 80%, joias e acessórios 90% (sem data: Giovanni não informou), lojas favoritas (15/02/2027), 500 mais vendidos.
