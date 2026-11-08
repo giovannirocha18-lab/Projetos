@@ -1788,3 +1788,4 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
   para o site real. 1ª mudança pelo teste: faixa da Shein em buscas/categorias de moda, beleza e acessórios (CATEGORIAS_SHEIN,
   sheinNaBusca em app.js; usa categoriasDaBusca). Aprovada e publicada (merge teste → produção; teste realinhada).
 - 08/11: navegador guarda /api/lojas e /api/shein só 60 s (paraNavegador em lojas.js; cache do Cloudflare continua 6 h/1 h): mudanças apareciam só com Ctrl+F5. Shein sem "Internacional" (v41) e ML em 1º nos Marketplaces (v42), direto na produção a pedido.
+- 08/11: cartão "Casa e decoração" da Shein saiu (abria lojas para seguir); teste responde /api/shein da própria branch. 10 cartões.
