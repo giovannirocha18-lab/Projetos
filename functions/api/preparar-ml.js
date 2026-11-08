@@ -12,6 +12,7 @@ import { mercadolivre, montarArvoreML, prepararTendenciasML, testarNotasML, tend
 import { tendenciaAceitavel } from "../../lib/buscas.js";
 import { corrigirBusca } from "../../lib/vocabulario.js";
 import { recusarSeNaoForRobo } from "../../lib/robo.js";
+import { filaML } from "../../lib/mlFila.js";
 
 export async function onRequestGet({ request, env }) {
   const recusa = await recusarSeNaoForRobo(request, env);
@@ -50,9 +51,10 @@ export async function onRequestGet({ request, env }) {
   // Só as buscas com termo (as "Ofertas do dia" não têm Mercado Livre)
   // + as tendências do Mercado Livre (o que mais se busca lá; 05/11/2026), no fim da lista: as gerais e as de cada categoria
   // (até 1.500, o 1º de cada categoria primeiro; o que não der tempo fica para a madrugada seguinte)
-  const [prontas, tendencias, dasCategorias] = await Promise.all([listaDasProntas(env), tendenciasML(env).catch(() => []),
+  // Primeiro a fila: buscas de visitantes em que o ML não veio completo (lib/mlFila.js, 08/11/2026)
+  const [fila, prontas, tendencias, dasCategorias] = await Promise.all([filaML(env.DB), listaDasProntas(env), tendenciasML(env).catch(() => []),
     tendenciasDasCategorias(env, 1500)]);
-  const termos = [...new Set([...prontas.map((b) => corrigirBusca(b.q).q),
+  const termos = [...new Set([...fila.map((t) => corrigirBusca(t).q), ...prontas.map((b) => corrigirBusca(b.q).q),
     ...[...tendencias, ...dasCategorias].filter(tendenciaAceitavel).map((t) => corrigirBusca(t).q)].filter(Boolean))];
   if (parte >= termos.length) return Response.json({ parte, partes: termos.length, fim: true }, semCache);
   const inicio = Date.now();
@@ -67,6 +69,7 @@ export async function onRequestGet({ request, env }) {
     puladas++;
     i++;
   }
-  return Response.json({ parte: i, proxima: i + 1, puladas, partes: termos.length, fim: i + 1 >= termos.length, busca: termos[i], ...r,
+  return Response.json({ parte: i, proxima: i + 1, puladas, partes: termos.length, ...(parte === 0 && { fila: fila.length }),
+    fim: i + 1 >= termos.length, busca: termos[i], ...r,
     segundos: (Date.now() - inicio) / 1000 }, semCache);
 }

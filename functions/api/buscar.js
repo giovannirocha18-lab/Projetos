@@ -22,6 +22,7 @@ import { naoContar } from "../../lib/naoContar.js";
 import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
 import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js";
 import { normalizar } from "../../lib/texto.js";
+import { anotarNaFilaML, POUCOS_ML } from "../../lib/mlFila.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
 import { corrigirBusca, acentuarBusca, buscaNasLojas } from "../../lib/vocabulario.js";
@@ -438,6 +439,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   ofertas = ofertas.map(({ catLojaNome, ...o }) => o);
 
+  // Mercado Livre incompleto nesta busca (recusou ou veio pouco): vai para a fila do robô da madrugada (lib/mlFila.js)
+  if (q && pagina === 1 && desde === 1 && !preparar && !atualizar && !soLoja && env.DB && lojas.mercadolivre && reais.length
+    && (!lojas.mercadolivre.ok || ofertas.filter((o) => o.loja === "mercadolivre").length < POUCOS_ML)) {
+    waitUntil(anotarNaFilaML(env.DB, q).catch(() => {}));
+  }
   const resposta = responder({
     q,
     sugestao,
