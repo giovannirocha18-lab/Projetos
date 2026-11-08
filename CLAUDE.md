@@ -173,6 +173,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **App Android do painel (05/11)**: `app-android/` (WebView de painel.vaiprocarrinho.com.br, "Painel VPC"; `construir.sh` =
   aapt2+javac+d8+apksigner, SDK baixado com sdkmanager). Chave de assinatura NÃO guardada (bloqueado guardar no repo; Giovanni: "deixe
   assim"): versão nova = desinstalar e instalar. Layout do painel muda sozinho no app (ele só abre o site).
+- **Shein (08/11, Giovanni vai ver depois)**: programa oficial (Centro de Afiliados, app Shein → Eu; feito para redes sociais,
+  2–20%) sem API/feed conhecido no BR → proposta: "Ir para a loja" com o link dele em Lojas parceiras; produtos só se o Centro
+  tiver feed (ou curadoria). Lomadee paga 0,4%. Perguntar à Shein por feed/rede parceira (Awin só UK/US/FR).
+- **08/11: 1ª compra do site** (Shopee, contou o Giovanni): conferir no painel Comissões (Shopee conversionReport).
 - **Giovanni**: pedir mais lojas na Awin (texto do convite já entregue); 2FA nas contas; trocar a senha do Registro.br;
   UptimeRobot; INPI (GRU 389, R$ 440, antes de ~21/01/2027).
 - **Claude**: conferir o robô de cada madrugada (atraso, IA, auditoria — seção "Lojas nas buscas": 🆕 loja nova / ⚠️ invisível); quando loja nova aprovar: `so_awin`, ler o log,
