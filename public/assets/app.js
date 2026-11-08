@@ -100,10 +100,23 @@ function abrirNoAppShopee(e) {
   const a = e.target.closest?.("a[href]");
   let url;
   try { url = new URL(a?.href); } catch { return; }
+  const abrirNoApp = (u) => {
+    const resto = `${u.host}${u.pathname}${u.search}`;
+    location.href = `intent://${resto}#Intent;scheme=https;package=com.shopee.br;S.browser_fallback_url=${encodeURIComponent(u.href)};end`;
+  };
+  // Produto da lista oficial da Shopee (08/11/2026): o link de afiliado é pedido no clique (/ir/shopee/…, _middleware.js)
+  if (url.origin === location.origin && /^\/ir\/shopee\//.test(url.pathname)) {
+    e.preventDefault();
+    fetch(`${url.pathname}?json=1`).then((r) => r.json()).then((d) => {
+      const destino = new URL(d.link);
+      if (/(^|\.)shopee\.com\.br$/.test(destino.hostname)) abrirNoApp(destino);
+      else location.href = destino.href;
+    }).catch(() => { location.href = url.href; });
+    return;
+  }
   if (url.protocol !== "https:" || !/(^|\.)shopee\.com\.br$/.test(url.hostname)) return;
   e.preventDefault();
-  const resto = `${url.host}${url.pathname}${url.search}`;
-  location.href = `intent://${resto}#Intent;scheme=https;package=com.shopee.br;S.browser_fallback_url=${encodeURIComponent(url.href)};end`;
+  abrirNoApp(url);
 }
 document.addEventListener("click", abrirNoAppShopee);
 

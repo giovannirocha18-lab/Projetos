@@ -8,7 +8,7 @@ import { createHash } from "node:crypto";
 import { createGunzip } from "node:zlib";
 import { Readable } from "node:stream";
 import { appendFileSync } from "node:fs";
-import { TABELAS_SHOPEE_LISTA, textoDeBusca } from "../lib/shopeeLista.js";
+import { TABELAS_SHOPEE_LISTA, MIGRACOES_SHOPEE_LISTA, textoDeBusca } from "../lib/shopeeLista.js";
 import { paraPainel } from "./painel.mjs";
 
 const LIMITE = Number(process.env.SHOPEE_LISTA_LIMITE) || Infinity;
@@ -107,8 +107,12 @@ function paraLinha(p) {
   if (!titulo) return "sem nome";
   const imagens = [...new Set([p.image_link, p.image_link_2, p.image_link_3].map(https).filter(Boolean))];
   if (!imagens.length) return "sem foto";
-  const link = https(p.product_short_link) || https(p.product_link);
-  if (!link) return "sem link";
+  const curto = https(p.product_short_link) || https(p.product_link);
+  if (!curto) return "sem link";
+  // O botão "Comprar" vai pelo endereço nosso, que pede à Shopee o link de afiliado no clique (destinoShopee em
+  // lib/fontes/shopee.js); o link curto da lista fica de reserva. Sem o código da loja, vai direto pelo link curto
+  const m = /\/product\/(\d+)\/(\d+)/.exec(p.product_link || "") || /-i\.(\d+)\.(\d+)/.exec(p.product_link || "");
+  const link = m && m[2] === p.itemid ? `https://vaiprocarrinho.com.br/ir/shopee/${m[1]}/${m[2]}` : curto;
   const antigo = numero(p.price);
   const precoAntigo = antigo && antigo > preco ? antigo : null;
   const desconto = precoAntigo ? Math.round((1 - preco / precoAntigo) * 100) : null;
@@ -121,6 +125,7 @@ function paraLinha(p) {
     imagem: imagens[0],
     imagens: imagens.length > 1 ? JSON.stringify(imagens) : null,
     link,
+    curto,
     vendedor: String(p.shop_name || "").slice(0, 80) || null,
     avaliacao: numero(p.item_rating),
     curtidas: Math.round(Number(p.like) || 0),
@@ -131,7 +136,7 @@ function paraLinha(p) {
   return { ...dados, assinatura: assinar(dados) };
 }
 
-const CAMPOS = ["id", "titulo", "preco", "preco_antigo", "desconto", "imagem", "imagens", "link", "vendedor", "avaliacao", "curtidas",
+const CAMPOS = ["id", "titulo", "preco", "preco_antigo", "desconto", "imagem", "imagens", "link", "curto", "vendedor", "avaliacao", "curtidas",
   "categorias", "internacional", "busca", "assinatura", "atualizado_em"];
 function gravar(o, agora) {
   const valores = CAMPOS.map((c) => sql(c === "atualizado_em" ? agora : o[c])).join(", ");
@@ -152,7 +157,7 @@ async function conferirLinkAfiliado(link) {
     const u = new URL(url);
     const nomes = [...u.searchParams.keys()];
     const temAfiliado = nomes.some((n) => /utm_source|af_|aff|smtt|mmp_pid|utm_campaign/i.test(n));
-    return `${temAfiliado ? "✅" : "⚠️"} Link curto leva a ${u.host}${u.pathname.slice(0, 30)}… com ${nomes.length ? nomes.join(", ") : "nenhum parâmetro"}`;
+    return `${temAfiliado ? "✅" : "ℹ️"} Link curto da lista leva a ${u.host}${u.pathname.slice(0, 30)}… com ${nomes.length ? nomes.join(", ") : "nenhum parâmetro"}`;
   } catch (e) {
     return `❔ Não deu para conferir o link curto (${e.message})`;
   }
@@ -164,6 +169,7 @@ async function main() {
   const linkFeed = String(process.env.SHOPEE_FEED_OFICIAL || "").split(/\s+/).find((l) => /^https?:\/\//.test(l));
   if (!linkFeed) throw new Error("Secret SHOPEE_FEED_OFICIAL vazio");
   for (const c of TABELAS_SHOPEE_LISTA) await executar(c);
+  for (const c of MIGRACOES_SHOPEE_LISTA) await executar(c).catch(() => {}); // coluna já existe
 
   // 1. Baixa e lê a lista
   const resp = await fetch(linkFeed);
@@ -192,7 +198,9 @@ async function main() {
   anotar(`📦 Lista da Shopee: ${novas.size.toLocaleString("pt-BR")} de ${total.toLocaleString("pt-BR")} produtos aceitos${motivos ? ` (fora: ${motivos})` : ""}`);
   if (!novas.size) throw new Error("a lista veio vazia; nada foi alterado");
   const exemplo = novas.values().next().value;
-  anotar(await conferirLinkAfiliado(exemplo.link));
+  anotar(await conferirLinkAfiliado(exemplo.curto));
+  const viaSite = [...novas.values()].filter((o) => o.link.startsWith("https://vaiprocarrinho.com.br/ir/shopee/")).length;
+  anotar(`🔗 ${viaSite.toLocaleString("pt-BR")} produtos com o "Comprar" pelo link de afiliado pedido no clique (os outros pelo link da lista)`);
 
   // 2. Compara com o banco
   const atuais = new Map();
