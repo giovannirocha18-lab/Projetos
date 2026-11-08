@@ -89,6 +89,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **07/11: bug Frete grátis + Bem avaliados** (print do Giovanni): juntas = 0 (frete só ML, nota só Shopee) e a opção dizia 224;
   ficava "Carregando…". Agora cada contagem considera a outra (`desenharBotaoFrete`), a opção some com 0, tela vazia com
   "✕ Limpar filtros" e a rolagem infinita para após 3 páginas sem nada (`estado.qtdFiltrada`).
+- **08/11: botão Frete grátis das Ofertas do dia** (print do Giovanni: abria com 41): mostra o total (3.318, ofertas do dia do ML
+  com frete) e, marcado, traz de 48 em 48 (`/api/frete-gratis`, `mercadolivre.ofertasFreteGratis`; coluna `frete` em ml_destaques,
+  gravada pelo robô, calculada por SQL nos antigos; app.js `freteInicio`/`pedirFreteGratis`). Testado no ar (celular) ✅.
 - **Madrugada 08/11 (#127)**: tudo verde; 624/627 prontas; ML 435+448 buscas renovadas, 5.864 preços, 4 esperas; mais vendidos
   3.809 + 15.212; Awin 73.279 (+248), banco 546 MB; IA lote de 11.433 títulos enviado (lido amanhã). Lomadee 18 marcas (parte 3
   sem resposta da Lomadee: ficam como estavam). Black Friday já com 48 "✅ Desconto real" na 1ª página. Nada corrigido.

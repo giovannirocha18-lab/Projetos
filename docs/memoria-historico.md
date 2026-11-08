@@ -1749,3 +1749,11 @@ lido na próxima noite); conferindo 303 buscas, 275 escondidos, 427 categorias c
 Lomadee 18 marcas (era 25): a parte 3 voltou com 0 conferidas (Lomadee falhou para as 20 marcas; o código mantém o estado anterior).
 Auditoria: 16 lojas da Awin nas buscas (era 17), sem aviso. Site no ar: air fryer 22 do ML; celular ML atuais; Ofertas do dia 24 do ML,
 rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 do ML.
+
+## Frete grátis nas Ofertas do dia (08/11/2026, print do Giovanni)
+- Botão "🚚 Frete grátis (41)" contava só as já carregadas (6 páginas; só o ML informa frete). Agora: /api/frete-gratis?pagina=N
+  (functions/api/frete-gratis.js, cache 15 min) = mais vendidos do ML com 5–60% de desconto e frete grátis, 48 por página, com total.
+  Índice (indiceDestaques) lê `frete` (coluna nova em ml_destaques, gravada em prepararDestaques; nos antigos, CASE com json_each
+  pela oferta nova mais barata; se essa consulta falhar, cai para a sem frete). app.js: total no botão ao abrir (só página inicial e
+  sem "Bem avaliados"), marcar junta as 48 na lista e o "Ver mais"/rolagem traz as próximas com frete.
+- Teste no ar (Pixel 7): "Frete grátis (3318)" ao abrir; marcado e rolando, 194 cartões, todos com frete; ML nas buscas ok (air fryer 24).
