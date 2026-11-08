@@ -89,6 +89,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **07/11: bug Frete grátis + Bem avaliados** (print do Giovanni): juntas = 0 (frete só ML, nota só Shopee) e a opção dizia 224;
   ficava "Carregando…". Agora cada contagem considera a outra (`desenharBotaoFrete`), a opção some com 0, tela vazia com
   "✕ Limpar filtros" e a rolagem infinita para após 3 páginas sem nada (`estado.qtdFiltrada`).
+- **Madrugada 08/11 (#127)**: tudo verde; 624/627 prontas; ML 435+448 buscas renovadas, 5.864 preços, 4 esperas; mais vendidos
+  3.809 + 15.212; Awin 73.279 (+248), banco 546 MB; IA lote de 11.433 títulos enviado (lido amanhã). Lomadee 18 marcas (parte 3
+  sem resposta da Lomadee: ficam como estavam). Black Friday já com 48 "✅ Desconto real" na 1ª página. Nada corrigido.
 - **Madrugada 07/11 (#125)**: tudo verde; 624/627 prontas; ML 293+203 buscas renovadas, 11.316 preços, 5 esperas de 429; mais vendidos
   3.808 + 15.276 (2.740 sub-subcategorias); Awin 73.349 produtos (+625), banco 529 MB; IA US$ 0,14. Ofertas do dia do ML pelo ranking ✅
   (5–49%, sem lixo de 75%). Nada corrigido.

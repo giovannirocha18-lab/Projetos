@@ -1740,3 +1740,12 @@ Ofertas do dia: 24 do ML, todos nº 1 do ranking, desconto 5–49% ✅ (mudança
 - Corrigido em app.js: contagem de frete considera "Bem avaliados" e vice-versa (com frete marcado, "Bem avaliados" some);
   filtrar() guarda `estado.qtdFiltrada`; rolagemInfinita com lista filtrada vazia pede no máximo 3 páginas; "Nenhuma oferta
   do dia com esses filtros." ganha botão "✕ Limpar filtros" (botao-secundario, limparFiltros). Testado no ar com Playwright.
+
+## Madrugada 08/11/2026 (run #127)
+Todos os jobs verdes. Awin 73.279 produtos, +248, 318 removidos, banco 546 MB; Elements pausada (links 0 de 8). Shopee 380 preços.
+ML: 3.809 mais vendidos, 15.212 nas sub-subcategorias, 435 buscas renovadas (parou aos 50 min, busca 761 de 1.902) + 448 no
+maisvendidos (até a 1.208), 5.864 preços, 0+4 esperas de 429. Prontas 624/627. IA: lote de 11.433 títulos enviado (115 pedidos,
+lido na próxima noite); conferindo 303 buscas, 275 escondidos, 427 categorias corrigidas (US$ 0,03).
+Lomadee 18 marcas (era 25): a parte 3 voltou com 0 conferidas (Lomadee falhou para as 20 marcas; o código mantém o estado anterior).
+Auditoria: 16 lojas da Awin nas buscas (era 17), sem aviso. Site no ar: air fryer 22 do ML; celular ML atuais; Ofertas do dia 24 do ML,
+rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 do ML.
