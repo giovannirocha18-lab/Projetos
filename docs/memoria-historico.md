@@ -1793,3 +1793,5 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
   com menos que o alvo = erro com erro.parciais (mercadolivre.buscar junta os mais vendidos) → ML ok:false, resposta provisória e refeita por trás.
 - 08/11: fila do ML (lib/mlFila.js): buscar.js anota (waitUntil) q com ML ok:false ou < POUCOS_ML=8 (pág. 1, sem loja, não robô);
   preparar-ml põe filaML(400, por vezes) antes das prontas e tendências; termos somem após 14 dias sem nova busca.
+- 08/11: cupons: cópia não funcionava (loja abria na frente e o navegador recusava writeText depois do fetch) → ClipboardItem com
+  promessa pedido no próprio clique + botão "📋 Copiar" ao lado do código; avisos "loja parceira". Giovanni testou ✅; publicado.
