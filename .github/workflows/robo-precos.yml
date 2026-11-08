@@ -39,6 +39,10 @@ on:
         description: "Só o robô da IA (categorias dos produtos pelo Claude Haiku)"
         type: boolean
         default: false
+      so_shopee_lista:
+        description: "Só a lista oficial de produtos da Shopee (feed da área de afiliados)"
+        type: boolean
+        default: false
       ia_limite:
         description: "IA: no máximo quantos títulos novos mandar (teste pequeno: 500)"
         type: string
@@ -80,7 +84,7 @@ jobs:
 
   awin:
     needs: guarda
-    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     # Uma gravação por vez: duas ao mesmo tempo (madrugada atrasada + Run workflow) gravam por cima uma da outra
     concurrency:
@@ -162,11 +166,40 @@ jobs:
           path: .cache/fotos.json
           key: fotos-${{ github.run_id }}
 
+  # Lista oficial de produtos da Shopee (08/11/2026): o feed "Shopee Oficial BR" da área de afiliados (~100 mil produtos, link
+  # no Secret SHOPEE_FEED_OFICIAL) vai para o banco (tabela shopee_lista); a busca soma esses produtos aos da Shopee ao vivo
+  shopeelista:
+    needs: guarda
+    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: robo-shopee-lista
+      cancel-in-progress: false
+    timeout-minutes: 45
+    outputs:
+      shopeelista: ${{ steps.lista.outputs.shopeelista }}
+      shopeelista_ok: ${{ steps.lista.outcome }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: claude/inspiring-hamilton-wafagr
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Lista oficial de produtos da Shopee
+        id: lista
+        run: node --max-old-space-size=4096 robo/shopee-lista.mjs
+        env:
+          SHOPEE_FEED_OFICIAL: ${{ secrets.SHOPEE_FEED_OFICIAL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+
   # Shopee: o site guarda o preço de hoje dos produtos das vitrines e dos mais buscados
   # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
   shopee:
     needs: guarda
-    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -203,7 +236,7 @@ jobs:
   # Recusou: espera 1 minuto e repete a mesma busca (5 recusas seguidas = para). Para aos 50 minutos (eram 30; 05/11/2026).
   mercadolivre:
     needs: guarda
-    if: ${{ !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     outputs:
@@ -303,7 +336,7 @@ jobs:
   # os 95 minutos, continua as buscas do Mercado Livre (as tendências de cada categoria que o job "mercadolivre" não alcançou).
   maisvendidos:
     needs: [guarda, mercadolivre]
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 105
     outputs:
@@ -358,8 +391,8 @@ jobs:
   prontas:
     # Depois do job "shopee" (que também consulta a Shopee): os dois juntos estouravam o limite dela. E depois do
     # "mercadolivre", que deixa os preços do Mercado Livre no banco
-    needs: [guarda, shopee, mercadolivre]
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    needs: [guarda, shopee, shopeelista, mercadolivre]
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
     outputs:
@@ -402,7 +435,7 @@ jobs:
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
   lomadee:
     needs: guarda
-    if: ${{ !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -438,7 +471,7 @@ jobs:
   # a lista serve para corrigir as regras da busca (lib/relevancia.js)
   auditoria:
     needs: [guarda, prontas]
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 50
     outputs:
@@ -506,7 +539,7 @@ jobs:
   # novos num lote (Batch API, metade do preço) e lê o resultado do lote anterior. Custo e exemplos no resumo da execução
   ia:
     needs: [guarda, awin]
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     concurrency:
@@ -567,7 +600,7 @@ jobs:
   # Resumo para o painel do Giovanni (03/11/2026): depois de todos os jobs (mesmo se algum falhar), junta o que cada
   # passo anotou e se deu certo e grava no banco (robo/relatorio.mjs, tabela robo_execucoes); aparece na aba "Robô"
   relatorio:
-    needs: [guarda, awin, shopee, mercadolivre, maisvendidos, prontas, lomadee, auditoria, ia]
+    needs: [guarda, awin, shopee, shopeelista, mercadolivre, maisvendidos, prontas, lomadee, auditoria, ia]
     if: ${{ always() && !inputs.so_numeros && needs.guarda.outputs.rodar == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5

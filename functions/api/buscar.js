@@ -299,7 +299,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
             medir();
             return ofertas;
           }
-          const listas = await comLimite(Promise.all(paginas.map((p) => fonte.buscar(termo, env, p, opcoes))), limiteDe(fonte));
+          const porPagina = await comLimite(Promise.allSettled(paginas.map((p) => fonte.buscar(termo, env, p, opcoes))), limiteDe(fonte));
+          // Uma página falhou: a loja conta como em erro, mas o que as outras páginas trouxeram não se perde
+          const falha = porPagina.find((r) => r.status === "rejected");
+          if (falha) {
+            const erro = falha.reason instanceof Error ? falha.reason : new Error(String(falha.reason));
+            erro.parciais = porPagina.flatMap((r) => (r.status === "fulfilled" ? r.value : r.reason?.parciais || []));
+            throw erro;
+          }
+          const listas = porPagina.map((r) => r.value);
           const vistos = new Set();
           const ofertas = listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id));
           // total = tamanho da última página (cheia = a loja tem mais). Na vitrine (várias buscas) vale a que trouxe mais
@@ -307,10 +315,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
           medir();
           return ofertas;
         } catch (erro) {
-          // Uma loja fora do ar não derruba a busca nas outras
+          // Uma loja fora do ar não derruba a busca nas outras. erro.parciais = o que a loja ainda conseguiu trazer
+          // (Shopee recusando: os produtos da lista oficial guardada no banco, lib/shopeeLista.js)
           lojas[fonte.nome] = { ok: false, erro: String(erro.message || erro) };
           medir();
-          return [];
+          return Array.isArray(erro?.parciais) ? erro.parciais : [];
         }
       }),
     );

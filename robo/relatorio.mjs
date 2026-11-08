@@ -11,6 +11,7 @@ export const PARTES = [
   ["awin", "awin", "Preços das lojas (Awin)"],
   ["awin", "alertas", "Alertas de preço"],
   ["shopee", "shopee", "Preços da Shopee"],
+  ["shopeelista", "shopeelista", "Lista oficial da Shopee"],
   ["mercadolivre", "ml", "Preços do Mercado Livre"],
   ["maisvendidos", "mv", "Mais vendidos do ML (sub-subcategorias)"],
   ["prontas", "prontas", "Buscas prontas"],
