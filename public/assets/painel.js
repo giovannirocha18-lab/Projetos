@@ -629,6 +629,7 @@
   const MODOS = {
     madrugada: "Madrugada", completo: "Manual (completo)", so_awin: "Manual: só Awin", so_prontas: "Manual: só buscas prontas",
     so_lomadee: "Manual: só Lomadee", so_auditoria: "Manual: só auditoria", so_ia: "Manual: só IA", so_numeros: "Manual: só números",
+    "robo-noite": "Robô da noite (Cloudflare)",
   };
   const tipoDaExecucao = (modo) => MODOS[modo] || `Manual: ${modo}`;
   const hora = (ms) => new Date(ms).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });

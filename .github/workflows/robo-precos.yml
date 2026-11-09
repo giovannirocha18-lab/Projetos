@@ -52,6 +52,10 @@ on:
         type: string
         default: "0"
 
+# 09/11/2026: os minutos grátis do GitHub acabaram (o robô gastava ~4 h por noite). Os laços longos (mercadolivre, maisvendidos,
+# prontas, shopee, lomadee) agora rodam toda madrugada no "robô da noite" do Cloudflare (lib/roboNoite.js, /api/robo-noite,
+# Worker relógio em robo/relogio-worker.js). Aqui eles só rodam à mão: so_ml (mercadolivre + maisvendidos), so_prontas
+# (shopee + prontas) e so_lomadee. A rodada completa (sem nada marcado) faz awin, shopeelista, ia, auditoria e relatorio.
 jobs:
   # Reserva (05/11/2026): no agendamento do GitHub, só roda se a tarefa do Claude não disparou o robô nesta madrugada
   # (alguma execução "workflow_dispatch" criada desde 03:30 UTC = 00:30 de Brasília). Disparado à mão: sempre roda
@@ -199,7 +203,7 @@ jobs:
   # (histórico de preço e selo "Desconto real"). Roda dentro do Cloudflare, parte por parte.
   shopee:
     needs: guarda
-    if: ${{ !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' && inputs.so_prontas }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -236,7 +240,7 @@ jobs:
   # Recusou: espera 1 minuto e repete a mesma busca (5 recusas seguidas = para). Para aos 50 minutos (eram 30; 05/11/2026).
   mercadolivre:
     needs: guarda
-    if: ${{ !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' && (inputs.so_ml) }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     outputs:
@@ -336,7 +340,7 @@ jobs:
   # os 95 minutos, continua as buscas do Mercado Livre (as tendências de cada categoria que o job "mercadolivre" não alcançou).
   maisvendidos:
     needs: [guarda, mercadolivre]
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' && (inputs.so_ml) }}
     runs-on: ubuntu-latest
     timeout-minutes: 105
     outputs:
@@ -392,7 +396,7 @@ jobs:
     # Depois do job "shopee" (que também consulta a Shopee): os dois juntos estouravam o limite dela. E depois do
     # "mercadolivre", que deixa os preços do Mercado Livre no banco
     needs: [guarda, shopee, shopeelista, mercadolivre]
-    if: ${{ always() && !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ always() && !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_lomadee && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' && (inputs.so_prontas) }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
     outputs:
@@ -435,7 +439,7 @@ jobs:
   # Lomadee: confere quais marcas mandam produtos (só essas aparecem em "Lojas parceiras" e na contagem de lojas do site)
   lomadee:
     needs: guarda
-    if: ${{ !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' }}
+    if: ${{ !inputs.so_numeros && !inputs.so_shopee_lista && !inputs.so_ml && !inputs.so_awin && !inputs.so_prontas && !inputs.so_auditoria && !inputs.so_ia && needs.guarda.outputs.rodar == 'true' && (inputs.so_lomadee) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
