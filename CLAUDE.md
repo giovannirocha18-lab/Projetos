@@ -119,6 +119,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   mão), somadas na aba Comissões (`lib/comissoesManuais.js`, `/api/painel/parametros`). Nada de senha guardada.
 - **09/11: teste de dia do robô da noite (rodada manual) ✅**: as 2 trilhas chegaram ao fim sem erro; ML 50 min de buscas;
   prontas pararam aos 70 min (~450 de 627) → limite subiu para 120 min. Buscas no ar ok (air fryer 793, celular ML 24).
+- **09/11: Giovanni sem orçamento para o GitHub** → esperar os minutos voltarem em **01/12** (ciclo 1–30). Até lá: awin, IA e
+  auditoria parados; o robô da noite do Cloudflare faz o resto.
 - **Madrugada 09/11 (#132): ACABARAM OS MINUTOS DO GITHUB ACTIONS** (repositório privado; ~4 h de jobs por noite). auditoria e
   relatorio não começaram ("spending limit needs to be increased"); o resto ✅ (prontas 627 partes, site ok). Enquanto o Giovanni não
   liberar (GitHub → Settings → Billing and licensing → Budgets, ou repositório público), o robô não roda. Ideia: levar os laços
