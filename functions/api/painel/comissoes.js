@@ -3,6 +3,7 @@
 // (as APIs das redes têm limite de consultas); ?novo=1 (botão Atualizar) pede de novo na hora.
 import { ehPainel, quemEntrou } from "../../../lib/painel.js";
 import { comissoesDoMes } from "../../../lib/comissoes.js";
+import { lerManuais, comoPedidos } from "../../../lib/comissoesManuais.js";
 
 const GUARDA_SEGUNDOS = 600;
 
@@ -20,15 +21,18 @@ export async function onRequestGet({ request, env }) {
   const chave = new Request(`https://${url.host}/__cache/painel-comissoes/${mes}`);
   if (cache && url.searchParams.get("novo") !== "1") {
     const guardada = await cache.match(chave);
-    if (guardada) {
-      const dados = await guardada.json();
-      return Response.json(dados, { headers: cabecalhos });
-    }
+    if (guardada) return Response.json(await comManuais(env, await guardada.json(), mes), { headers: cabecalhos });
   }
   const dados = { ...(await comissoesDoMes(env, mes)), lidoEm: Date.now() };
   // Guarda só se ao menos uma rede respondeu (erro geral não fica guardado)
   if (cache && dados.redes.some((r) => r.ok)) {
     await cache.put(chave, Response.json(dados, { headers: { "Cache-Control": `max-age=${GUARDA_SEGUNDOS}` } }));
   }
-  return Response.json(dados, { headers: cabecalhos });
+  return Response.json(await comManuais(env, dados, mes), { headers: cabecalhos });
+}
+
+// Shein e Mercado Livre digitados na aba Parâmetros (lib/comissoesManuais.js): lidos sempre na hora, fora do cache
+async function comManuais(env, dados, mes) {
+  const manuais = await lerManuais(env.DB, mes);
+  return { ...dados, manuais, pedidos: [...dados.pedidos, ...comoPedidos(manuais)] };
 }

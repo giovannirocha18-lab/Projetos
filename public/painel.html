@@ -27,6 +27,7 @@
         <a href="#metricas" data-vista="metricas">Métricas</a>
         <a href="#comissoes" data-vista="comissoes">Comissões</a>
         <a href="#robo" data-vista="robo">Robô</a>
+        <a href="#parametros" data-vista="parametros">Parâmetros</a>
       </nav>
       <span class="sub atualizado" id="atualizado">Carregando…</span>
       <button type="button" id="recarregar" class="botao">Atualizar</button>
@@ -229,6 +230,40 @@
       </div>
       <p class="sub rodape">O resumo é gravado no fim de cada execução do robô. O relatório completo (com as listas) continua no
         GitHub: Actions → Robô de preços.</p>
+    </div>
+
+    <!-- ===================== PARÂMETROS (09/11/2026) ===================== -->
+    <!-- Comissões da Shein e do Mercado Livre digitadas à mão (não têm API de ganhos). Os campos têm id e nome claros para o
+         Claude in Chrome preencher pelo navegador do Giovanni: abrir o painel de afiliados da loja, ler os números, digitar e Salvar. -->
+    <div class="vista" id="vista-parametros" hidden>
+      <div class="cabeca-vista">
+        <h2 class="titulo-vista">Parâmetros</h2>
+        <label class="sub">Mês <input type="month" id="param-mes" class="campo-mes"></label>
+      </div>
+      <p class="sub">Shein e Mercado Livre não enviam os ganhos por API. Abra o painel de afiliados de cada uma, copie os números do mês
+        e clique em Salvar. Os valores entram na aba Comissões junto com as outras redes.</p>
+      <div class="dupla">
+        <section class="painel param-rede" id="param-shein" data-rede="shein" aria-label="Comissões da Shein">
+          <h2>Shein</h2>
+          <a class="botao" id="abrir-shein" href="https://br.shein.com/" target="_blank" rel="noopener">Abrir a Shein ↗</a>
+          <p class="sub">Na Shein, busque “Afiliado” (ou no app: Eu → Afiliado) e veja as comissões do mês.</p>
+          <label>Comissão aprovada (R$) <input id="shein-aprovada" name="shein-aprovada" inputmode="decimal" placeholder="0,00"></label>
+          <label>Comissão pendente (R$) <input id="shein-pendente" name="shein-pendente" inputmode="decimal" placeholder="0,00"></label>
+          <label>Pedidos no mês <input id="shein-pedidos" name="shein-pedidos" inputmode="numeric" placeholder="0"></label>
+          <button type="button" class="botao" id="salvar-shein">Salvar Shein</button>
+          <p class="sub" id="shein-situacao">—</p>
+        </section>
+        <section class="painel param-rede" id="param-mercadolivre" data-rede="mercadolivre" aria-label="Comissões do Mercado Livre">
+          <h2>Mercado Livre</h2>
+          <a class="botao" id="abrir-mercadolivre" href="https://www.mercadolivre.com.br/afiliados" target="_blank" rel="noopener">Abrir Afiliados do ML ↗</a>
+          <p class="sub">No painel de Afiliados, vá em Métricas e escolha o mês.</p>
+          <label>Comissão aprovada (R$) <input id="mercadolivre-aprovada" name="mercadolivre-aprovada" inputmode="decimal" placeholder="0,00"></label>
+          <label>Comissão pendente (R$) <input id="mercadolivre-pendente" name="mercadolivre-pendente" inputmode="decimal" placeholder="0,00"></label>
+          <label>Pedidos no mês <input id="mercadolivre-pedidos" name="mercadolivre-pedidos" inputmode="numeric" placeholder="0"></label>
+          <button type="button" class="botao" id="salvar-mercadolivre">Salvar Mercado Livre</button>
+          <p class="sub" id="mercadolivre-situacao">—</p>
+        </section>
+      </div>
     </div>
   </main>
 
