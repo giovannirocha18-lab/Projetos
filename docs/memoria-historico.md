@@ -1795,3 +1795,6 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
   preparar-ml põe filaML(400, por vezes) antes das prontas e tendências; termos somem após 14 dias sem nova busca.
 - 08/11: cupons: cópia não funcionava (loja abria na frente e o navegador recusava writeText depois do fetch) → ClipboardItem com
   promessa pedido no próprio clique + botão "📋 Copiar" ao lado do código; avisos "loja parceira". Giovanni testou ✅; publicado.
+- 09/11: painel, aba Parâmetros (#parametros): Shein e ML digitados (lib/comissoesManuais.js, tabela comissoes_manuais, /api/painel/parametros
+  GET/POST com X-Painel; comissoes.js junta como pedidos manual:true, fora do gráfico por dia). Ideia: Claude in Chrome lê os painéis de afiliados
+  e preenche (ids shein-aprovada/-pendente/-pedidos, salvar-shein; idem mercadolivre-*). Sem senha guardada.

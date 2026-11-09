@@ -108,6 +108,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **08/11: ML não fica mais guardado vazio** (429 nos preços = erro com parciais, busca refeita por trás) e **fila do ML**
   (`lib/mlFila.js`, tabela `ml_fila`): busca de visitante com ML incompleto (<8 ou erro) entra; /api/preparar-ml prepara a fila
   primeiro (até 400, 14 dias; resposta da parte 0 traz `fila`). Conferir na madrugada de 09/11+ o tamanho da fila.
+- **09/11: painel aba Parâmetros**: comissões da Shein e do ML digitadas (pelo Claude in Chrome no navegador do Giovanni ou à
+  mão), somadas na aba Comissões (`lib/comissoesManuais.js`, `/api/painel/parametros`). Nada de senha guardada.
 - **Madrugada 08/11 (#127)**: tudo verde; 624/627 prontas; ML 435+448 buscas renovadas, 5.864 preços, 4 esperas; mais vendidos
   3.809 + 15.212; Awin 73.279 (+248), banco 546 MB; IA lote de 11.433 títulos enviado (lido amanhã). Lomadee 18 marcas (parte 3
   sem resposta da Lomadee: ficam como estavam). Black Friday já com 48 "✅ Desconto real" na 1ª página. Nada corrigido.
