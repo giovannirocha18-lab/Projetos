@@ -1800,3 +1800,14 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
   e preenche (ids shein-aprovada/-pendente/-pedidos, salvar-shein; idem mercadolivre-*). Sem senha guardada.
 - 09/11: pedido do Claude in Chrome salvo na aba Parâmetros (#pedido-claude + botão Copiar). 1º teste do Giovanni: Shein e ML salvos com 0 (sem vendas no mês);
   Shein: "Registro de ganhos" (Pendente, Renda; sem o presente de boas-vindas), "Centro de Dados" (pedidos); ML: Métricas "Ganho estimado" (vai em pendente) e ordens.
+
+## Madrugada 09/11/2026 (run #132) — minutos do GitHub Actions acabaram
+guarda, awin, shopee, shopeelista (novo), lomadee, ia, mercadolivre e prontas ✅ (prontas foi até a parte 627 de 628).
+auditoria (06:01) falhou sem começar; anotação do GitHub: "The job was not started because recent account payments have failed
+or your spending limit needs to be increased" (Billing & plans). relatorio também não roda → aba Robô do painel sem a noite de 09/11.
+Repositório privado: plano grátis tem cota mensal de minutos; o robô gasta ~4 h por noite (mercadolivre 50 min, maisvendidos
+até 75, prontas ~55: quase tudo é laço de curl esperando o site) → a cota acaba por volta do dia 9.
+Saídas para o Giovanni: (1) Budget/limite de gasto para Actions (~US$ 0,008/min no Linux); (2) deixar o repositório público
+(minutos grátis sem limite; não há senhas no código, mas o código fica visível); (3) Claude levar os laços longos para Cron
+Triggers do Cloudflare (mudança grande, precisa do aval dele).
+Site no ar ok: air fryer 24 do ML; celular ML atuais; Ofertas do dia 24 do ML rank 1, 5–49%.

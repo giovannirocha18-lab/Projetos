@@ -110,6 +110,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   primeiro (até 400, 14 dias; resposta da parte 0 traz `fila`). Conferir na madrugada de 09/11+ o tamanho da fila.
 - **09/11: painel aba Parâmetros**: comissões da Shein e do ML digitadas (pelo Claude in Chrome no navegador do Giovanni ou à
   mão), somadas na aba Comissões (`lib/comissoesManuais.js`, `/api/painel/parametros`). Nada de senha guardada.
+- **Madrugada 09/11 (#132): ACABARAM OS MINUTOS DO GITHUB ACTIONS** (repositório privado; ~4 h de jobs por noite). auditoria e
+  relatorio não começaram ("spending limit needs to be increased"); o resto ✅ (prontas 627 partes, site ok). Enquanto o Giovanni não
+  liberar (GitHub → Settings → Billing and licensing → Budgets, ou repositório público), o robô não roda. Ideia: levar os laços
+  de espera (mercadolivre/maisvendidos/prontas, ~3 h) para Cron Triggers do Cloudflare.
 - **Madrugada 08/11 (#127)**: tudo verde; 624/627 prontas; ML 435+448 buscas renovadas, 5.864 preços, 4 esperas; mais vendidos
   3.809 + 15.212; Awin 73.279 (+248), banco 546 MB; IA lote de 11.433 títulos enviado (lido amanhã). Lomadee 18 marcas (parte 3
   sem resposta da Lomadee: ficam como estavam). Black Friday já com 48 "✅ Desconto real" na 1ª página. Nada corrigido.
