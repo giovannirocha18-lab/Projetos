@@ -1811,3 +1811,14 @@ Saídas para o Giovanni: (1) Budget/limite de gasto para Actions (~US$ 0,008/min
 (minutos grátis sem limite; não há senhas no código, mas o código fica visível); (3) Claude levar os laços longos para Cron
 Triggers do Cloudflare (mudança grande, precisa do aval dele).
 Site no ar ok: air fryer 24 do ML; celular ML atuais; Ofertas do dia 24 do ML rank 1, 5–49%.
+
+## 09/11/2026 — Robô da noite no Cloudflare (opção 3 do Giovanni)
+Minutos grátis do GitHub Actions (repo privado) acabaram no dia 9: o robô gastava ~4 h/noite, quase tudo curl esperando o site.
+Feito: `lib/roboNoite.js` (máquina de estados com as mesmas regras dos laços do robo-precos.yml: árvore 40×/10 min, tendências
+30×/18 min, mais vendidos nível 2 até 25 min, buscas ML 44 h e 20 h até 50 min, sub-subcategorias até 75 min, buscas que
+faltaram até 95 min; Shopee 81 partes, Lomadee 21 partes com 60 s, prontas esperam o ML chegar nos mais vendidos e vão até
+70 min, 10030 → espera 60 s até 2×). `functions/api/robo-noite.js` chama as rotas antigas por dentro com CHAVE_ROBO; sem chave
+na URL (fora da janela não faz nada; trava por trilha). Worker relógio criado pelo Giovanni (Hello World + código colado + Cron
+`*/15 4-9 * * *`). robo-precos.yml: shopee/mercadolivre/maisvendidos/prontas/lomadee só com so_prontas/so_ml/so_lomadee (limite
+de 10 inputs do workflow_dispatch: não criei input novo). Painel: modo "robo-noite". Regra nova do Giovanni: mudanças direto na
+produção; `teste` só quando ele pedir.

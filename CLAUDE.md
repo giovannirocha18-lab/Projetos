@@ -10,9 +10,8 @@
   aparecem na tela. Ele manda prints. Pedir que nunca mande senhas/chaves no chat.
 - Conversa longa (~20% do contexto): atualizar esta memória, commit/push com `[skip ci]` e avisar "Abra uma conversa nova e
   cole o comando de recomeço". Não resumir/compactar.
-- **Regra do Giovanni (08/11): toda mudança vai PRIMEIRO para a branch `teste`** (prévia https://teste.vaiprocarrinho.pages.dev;
-  sem banco, /api e /ir vão para o site real pelo _middleware) → mandar o link → só depois de ele aprovar, levar para a branch de
-  produção (merge/cherry-pick). Prévia precisa de "Preview branches: teste" no Cloudflare (Giovanni ligando em 08/11).
+- **Regra do Giovanni (09/11): mudanças vão direto para a produção**; a branch `teste` (prévia https://teste.vaiprocarrinho.pages.dev,
+  /api e /ir vão para o site real) só quando ele pedir.
 - **Todo print de erro de busca vira caso novo em `testes/busca.mjs`** (de sugestão, em `testes/sugestoes.mjs`);
   `node testes/busca.mjs`, `sugestoes.mjs` e `modulos.mjs` têm que passar antes de publicar mudança na busca.
 - Regras fixas: nunca raspar páginas das lojas (só APIs/feeds oficiais); nada de urgência/escassez falsa; sem aviso de
@@ -38,6 +37,14 @@ Ainda escondido do Google (noindex) até o lançamento.
 - Testar local: `npx wrangler pages dev public`; Playwright: Chromium em `/opt/pw-browsers/chromium`,
   import de `/opt/node22/lib/node_modules/playwright/index.mjs`. **Teste no site no ar: cookie `vpc_nao_contar=1`**
   (`ctx.addCookies`) senão as visitas do teste entram no painel (04/11: ~dezenas de visitas de teste).
+
+## Robô da noite no Cloudflare (09/11, minutos do GitHub acabaram)
+Laços longos (ML, mais vendidos, prontas, Shopee, Lomadee) rodam em `lib/roboNoite.js` (trilhas `ml` e `lojas`, um passo por
+chamada de `/api/robo-noite?trilha=`; estado na tabela `robo_noite`; janela 04:45–10:00 UTC). Quem chama: Worker
+**relogio-vaiprocarrinho** (código em `robo/relogio-worker.js`, colado pelo Giovanni no dashboard; Cron `*/15 4-9 * * *`; não
+precisa mexer nele para mudar o robô). Estado/rodada manual: `painel…/api/painel/robo-noite` (`?comecar=1` abre 3 h, `?parar=1`).
+Resumo entra na execução do GitHub da noite (aba Robô) ou numa linha própria (`robo-noite`). Teste: `node testes/robo-noite.mjs`.
+No GitHub a rodada completa faz só awin, shopeelista, ia, auditoria e relatorio (~25 min); laços só à mão (so_ml, so_prontas, so_lomadee).
 
 ## Robô (GitHub Actions `robo-precos.yml`)
 **Desde 05/11: disparado ~01:14 de Brasília pela tarefa agendada do Claude "Robô da madrugada"** (trig_016Y47cQHQv6k3GSGjBSdQ82,
