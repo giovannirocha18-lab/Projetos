@@ -521,18 +521,22 @@
       }, (x) => dinheiro(x).replace(/,00$/, ""));
     }
 
-    // Mercado Livre (05/11/2026): o programa de afiliados dele não tem API de ganhos para apps; a linha leva ao painel
-    // de afiliados do ML (Métricas), onde aparecem cliques, vendas e ganhos
-    function linhaMercadoLivre() {
+    // Redes sem API de ganhos para apps: a linha leva ao painel de afiliados de cada uma
+    // Mercado Livre (05/11/2026): Afiliados → Métricas (cliques, vendas e ganhos)
+    // Shein (09/11/2026): Centro de Afiliados (na Shein, buscar "Afiliado"; comissão "Pendente" em até 24 h, saldo após 45 dias)
+    function linhaSemApi(nome, href, rotulo, detalhe) {
       const li = el("li");
-      const link = el("a", "selo", "Ver no ML ↗");
-      link.href = "https://www.mercadolivre.com.br/afiliados";
+      const link = el("a", "selo", rotulo);
+      link.href = href;
       link.target = "_blank";
       link.rel = "noopener";
-      li.append(el("span", "nome", "Mercado Livre"), el("span", "n", "—"), link,
-        el("span", "detalhe", "o ML não envia os ganhos por API: veja em Afiliados → Métricas"));
+      li.append(el("span", "nome", nome), el("span", "n", "—"), link, el("span", "detalhe", detalhe));
       return li;
     }
+    const linhaMercadoLivre = () => linhaSemApi("Mercado Livre", "https://www.mercadolivre.com.br/afiliados", "Ver no ML ↗",
+      "o ML não envia os ganhos por API: veja em Afiliados → Métricas");
+    const linhaShein = () => linhaSemApi("Shein", "https://br.shein.com/", "Ver na Shein ↗",
+      "a Shein não envia os ganhos por API: na Shein, busque “Afiliado” (ou app → Eu → Afiliado)");
 
     // Por rede (card do topo): comissão, pedidos e se a rede foi lida (o erro vem escrito)
     $("c-redes").replaceChildren(...d.redes.map((r) => {
@@ -546,7 +550,7 @@
         ? el("span", "detalhe", `${plural(daRede.length, "pedido", "pedidos")} · vendas ${textoMoedas(somaPorMoeda(daRede, "venda"))}`)
         : el("span", "detalhe erro", r.erro));
       return li;
-    }), linhaMercadoLivre());
+    }), linhaMercadoLivre(), linhaShein());
 
     // Lojas que mais pagaram (card do topo)
     const lojas = new Map();
