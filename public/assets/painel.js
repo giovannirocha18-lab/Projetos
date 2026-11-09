@@ -824,6 +824,10 @@
     }
   }
   for (const r of REDES_PARAM) $(`salvar-${r}`).addEventListener("click", () => salvarParametros(r));
+  $("copiar-pedido").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("pedido-claude").textContent.trim()); $("copiar-pedido-ok").textContent = "✓ Copiado"; }
+    catch { $("copiar-pedido-ok").textContent = "Selecione o texto e copie"; }
+  });
   $("param-mes").addEventListener("change", carregarParametros);
 
   // =================================== MENU E CARGA ===================================

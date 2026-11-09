@@ -242,3 +242,6 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
   padding: 8px 10px; font: inherit; color-scheme: dark; max-width: 300px; }
 .param-rede input:focus, .campo-mes:focus { outline: 2px solid var(--acento); outline-offset: 1px; }
 .param-rede .botao { align-self: flex-start; text-decoration: none; }
+
+.pedido-claude pre { white-space: pre-wrap; word-break: break-word; background: var(--quadro); border: 1px solid var(--borda-forte);
+  border-radius: 8px; padding: 12px; font-size: .85rem; line-height: 1.45; margin: 8px 0 10px; user-select: all; }
