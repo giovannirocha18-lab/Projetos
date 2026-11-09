@@ -489,6 +489,15 @@
     }
     const pedidos = d.pedidos;
     const v = validos(pedidos);
+    // Bolinha com a cor de cada rede antes do nome
+    const CORES_REDE = { shopee: "#ee4d2d", aliexpress: "#ff4747", awin: "#4f8cff", lomadee: "#a77bff", "mercado livre": "#ffe600", shein: "#f472b6" };
+    const comCor = (texto) => {
+      const s = el("span", "nome");
+      const b = el("i", "bolinha");
+      b.style.background = CORES_REDE[String(texto).toLowerCase()] || "#22c3d6";
+      s.append(b, texto);
+      return s;
+    };
     const por = (status) => pedidos.filter((p) => p.status === status);
     // Avisos das redes que falharam
     const falhas = d.redes.filter((r) => !r.ok);
@@ -496,13 +505,13 @@
     $("erro-redes").textContent = falhas.length ? `Não deu para ler: ${falhas.map((r) => `${r.rede} (${r.erro})`).join(" · ")}` : "";
 
     $("c-resumo").replaceChildren(
-      quadro("Comissão do mês", textoMoedas(somaPorMoeda(v)), null, "aprovada + pendente"),
-      quadro("Aprovada", textoMoedas(somaPorMoeda(por("aprovada"))), null, plural(por("aprovada").length, "pedido", "pedidos")),
-      quadro("Pendente", textoMoedas(somaPorMoeda(por("pendente"))), null, `${plural(por("pendente").length, "pedido", "pedidos")} · ainda pode cair`),
-      quadro("Cancelada", textoMoedas(somaPorMoeda(por("cancelada"))), null, plural(por("cancelada").length, "pedido", "pedidos")),
-      quadro("Vendas geradas", textoMoedas(somaPorMoeda(v, "venda")), null, "valor das compras (sem canceladas)"),
+      quadro("Comissão do mês", textoMoedas(somaPorMoeda(v)), null, "aprovada + pendente", "cor-azul"),
+      quadro("Aprovada", textoMoedas(somaPorMoeda(por("aprovada"))), null, plural(por("aprovada").length, "pedido", "pedidos"), "cor-verde"),
+      quadro("Pendente", textoMoedas(somaPorMoeda(por("pendente"))), null, `${plural(por("pendente").length, "pedido", "pedidos")} · ainda pode cair`, "cor-amarelo"),
+      quadro("Cancelada", textoMoedas(somaPorMoeda(por("cancelada"))), null, plural(por("cancelada").length, "pedido", "pedidos"), "cor-vermelho"),
+      quadro("Vendas geradas", textoMoedas(somaPorMoeda(v, "venda")), null, "valor das compras (sem canceladas)", "cor-roxo"),
       quadro("Pedidos", num(v.filter((p) => !p.manual).length + (d.manuais || []).reduce((s, m) => s + m.pedidos, 0)), null,
-        `${num(new Set(v.map((p) => p.loja)).size)} lojas`),
+        `${num(new Set(v.map((p) => p.loja)).size)} lojas`, "cor-ciano"),
     );
 
     // Comissão por dia (em reais; AliExpress em dólar fica de fora do gráfico e aparece no total)
@@ -531,7 +540,7 @@
       link.href = href;
       link.target = "_blank";
       link.rel = "noopener";
-      li.append(el("span", "nome", nome), el("span", "n", "—"), link, el("span", "detalhe", detalhe));
+      li.append(comCor(nome), el("span", "n", "—"), link, el("span", "detalhe", detalhe));
       return li;
     }
     // Com valor digitado na aba Parâmetros: mostra o total e quando foi digitado
@@ -539,9 +548,9 @@
     function linhaManual(m) {
       const li = el("li");
       const quando = new Date(m.atualizado).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-      const editar = el("a", "selo ok", "✎ digitado");
+      const editar = el("a", "selo digitado", "✎ digitado");
       editar.href = "#parametros";
-      li.append(el("span", "nome", m.nome), el("span", "n", dinheiro(m.aprovada + m.pendente)), editar,
+      li.append(comCor(m.nome), el("span", "n", dinheiro(m.aprovada + m.pendente)), editar,
         el("span", "detalhe", `${plural(m.pedidos, "pedido", "pedidos")} · aprovada ${dinheiro(m.aprovada)} · pendente ${dinheiro(m.pendente)} · em ${quando}`));
       return li;
     }
@@ -556,7 +565,7 @@
     $("c-redes").replaceChildren(...d.redes.map((r) => {
       const daRede = validos(pedidos.filter((p) => p.rede === r.rede));
       const li = el("li");
-      const nome = el("span", "nome", r.rede);
+      const nome = comCor(r.rede);
       const valor = el("span", "n", textoMoedas(somaPorMoeda(daRede)));
       const situacao = r.ok ? el("span", "selo ok", "✓ lida") : el("span", "selo erro", "✕ erro");
       li.append(nome, valor, situacao);

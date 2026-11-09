@@ -245,3 +245,15 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 
 .pedido-claude pre { white-space: pre-wrap; word-break: break-word; background: var(--quadro); border: 1px solid var(--borda-forte);
   border-radius: 8px; padding: 12px; font-size: .85rem; line-height: 1.45; margin: 8px 0 10px; user-select: all; }
+
+/* Cores dos status (Comissões, 09/11/2026): cada quadro com a sua cor */
+.quadro[class*="cor-"] { border-left: 4px solid var(--c); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 14%, var(--quadro)), var(--quadro) 70%); }
+.quadro[class*="cor-"] .valor strong { color: var(--c); }
+.quadro.cor-azul { --c: #4f8cff; }
+.quadro.cor-verde { --c: #16c784; }
+.quadro.cor-amarelo { --c: #f5b014; }
+.quadro.cor-vermelho { --c: #ea3943; }
+.quadro.cor-roxo { --c: #a77bff; }
+.quadro.cor-ciano { --c: #22c3d6; }
+.selo.digitado { color: #a77bff; background: rgba(167, 123, 255, .14); }
+.bolinha { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
