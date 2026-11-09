@@ -10,7 +10,8 @@ import { onRequestGet as conferirLojas } from "./conferir-lojas.js";
 import { TRILHAS, noiteAtual, estadoInicial, passo, gravarNoPainel, criarTabela, rodadaManual } from "../../lib/roboNoite.js";
 
 const ROTAS = { "preparar-ml": prepararML, "preparar-buscas": prepararBuscas, "coletar-precos": coletarPrecos, "conferir-lojas": conferirLojas };
-const TRAVA_MS = 6 * 60e3; // um passo da Lomadee pode levar até 5 min
+// Trava de cada passo: se o pedido cair no meio (limite do Cloudflare), a trilha fica parada até a trava vencer
+const TRAVA_MS = { ml: 150e3, lojas: 6 * 60e3 }; // um passo da Lomadee pode levar até 5 min; os do ML, até ~90 s
 const semCache = { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } };
 
 const lerEstado = (texto) => { try { return JSON.parse(texto); } catch { return null; } };
@@ -29,7 +30,7 @@ export async function onRequest({ request, env, waitUntil }) {
   // Trava: só um passo por trilha de cada vez
   await env.DB.prepare("INSERT OR IGNORE INTO robo_noite (trilha) VALUES (?)").bind(trilha).run();
   const trava = await env.DB.prepare("UPDATE robo_noite SET ocupado_ate = ? WHERE trilha = ? AND ocupado_ate < ?")
-    .bind(agora + TRAVA_MS, trilha, agora).run();
+    .bind(agora + TRAVA_MS[trilha], trilha, agora).run();
   if (!trava.meta?.changes) return Response.json({ trilha, ocupado: true, esperar: 5 }, semCache);
 
   const linha = await env.DB.prepare("SELECT noite, estado FROM robo_noite WHERE trilha = ?").bind(trilha).first();
@@ -72,7 +73,8 @@ export async function onRequest({ request, env, waitUntil }) {
     if (e.erros >= 20) { e.c.parou = `parou: erro 20 vezes seguidas (${e.ultimoErro})`; e.fase = "fim"; }
   }
   e.esperaAte = Date.now() + esperar * 1000;
-  await salvar();
+  // Banco ocupado: tenta de novo (sem gravar, a trava ficaria presa e o passo seria repetido)
+  await salvar().catch(() => new Promise((ok) => setTimeout(ok, 1000)).then(salvar));
   // Mudou de fase (ou terminou): atualiza o resumo do painel
   if (e.fase !== faseAntes) {
     const [ml, lojas] = trilha === "ml" ? [e, outra] : [outra, e];
