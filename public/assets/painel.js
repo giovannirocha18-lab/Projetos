@@ -501,14 +501,15 @@
       quadro("Pendente", textoMoedas(somaPorMoeda(por("pendente"))), null, `${plural(por("pendente").length, "pedido", "pedidos")} · ainda pode cair`),
       quadro("Cancelada", textoMoedas(somaPorMoeda(por("cancelada"))), null, plural(por("cancelada").length, "pedido", "pedidos")),
       quadro("Vendas geradas", textoMoedas(somaPorMoeda(v, "venda")), null, "valor das compras (sem canceladas)"),
-      quadro("Pedidos", num(v.length), null, `${num(new Set(v.map((p) => p.loja)).size)} lojas`),
+      quadro("Pedidos", num(v.filter((p) => !p.manual).length + (d.manuais || []).reduce((s, m) => s + m.pedidos, 0)), null,
+        `${num(new Set(v.map((p) => p.loja)).size)} lojas`),
     );
 
     // Comissão por dia (em reais; AliExpress em dólar fica de fora do gráfico e aparece no total)
     const [a, m] = mes.split("-").map(Number);
     const ultimoDia = mes === hojeBr().slice(0, 7) ? Number(hojeBr().slice(8)) : new Date(Date.UTC(a, m, 0)).getUTCDate();
     const dias = Array.from({ length: ultimoDia }, (_, i) => `${mes}-${String(i + 1).padStart(2, "0")}`);
-    const emReais = v.filter((p) => p.moeda === "BRL");
+    const emReais = v.filter((p) => p.moeda === "BRL" && !p.manual); // Shein/ML digitados (total do mês) ficam fora do gráfico por dia
     const valores = dias.map((dia) => emReais.filter((p) => p.dia === dia).reduce((s, p) => s + p.comissao, 0));
     const total = valores.reduce((s, x) => s + x, 0);
     const temDolar = v.some((p) => p.moeda !== "BRL");
@@ -521,18 +522,35 @@
       }, (x) => dinheiro(x).replace(/,00$/, ""));
     }
 
-    // Mercado Livre (05/11/2026): o programa de afiliados dele não tem API de ganhos para apps; a linha leva ao painel
-    // de afiliados do ML (Métricas), onde aparecem cliques, vendas e ganhos
-    function linhaMercadoLivre() {
+    // Redes sem API de ganhos para apps: a linha leva ao painel de afiliados de cada uma
+    // Mercado Livre (05/11/2026): Afiliados → Métricas (cliques, vendas e ganhos)
+    // Shein (09/11/2026): Centro de Afiliados (na Shein, buscar "Afiliado"; comissão "Pendente" em até 24 h, saldo após 45 dias)
+    function linhaSemApi(nome, href, rotulo, detalhe) {
       const li = el("li");
-      const link = el("a", "selo", "Ver no ML ↗");
-      link.href = "https://www.mercadolivre.com.br/afiliados";
+      const link = el("a", "selo", rotulo);
+      link.href = href;
       link.target = "_blank";
       link.rel = "noopener";
-      li.append(el("span", "nome", "Mercado Livre"), el("span", "n", "—"), link,
-        el("span", "detalhe", "o ML não envia os ganhos por API: veja em Afiliados → Métricas"));
+      li.append(el("span", "nome", nome), el("span", "n", "—"), link, el("span", "detalhe", detalhe));
       return li;
     }
+    // Com valor digitado na aba Parâmetros: mostra o total e quando foi digitado
+    const manual = (rede) => (d.manuais || []).find((m) => m.rede === rede);
+    function linhaManual(m) {
+      const li = el("li");
+      const quando = new Date(m.atualizado).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+      const editar = el("a", "selo ok", "✎ digitado");
+      editar.href = "#parametros";
+      li.append(el("span", "nome", m.nome), el("span", "n", dinheiro(m.aprovada + m.pendente)), editar,
+        el("span", "detalhe", `${plural(m.pedidos, "pedido", "pedidos")} · aprovada ${dinheiro(m.aprovada)} · pendente ${dinheiro(m.pendente)} · em ${quando}`));
+      return li;
+    }
+    const linhaMercadoLivre = () => (manual("mercadolivre") ? linhaManual(manual("mercadolivre"))
+      : linhaSemApi("Mercado Livre", "https://www.mercadolivre.com.br/afiliados", "Ver no ML ↗",
+        "o ML não envia os ganhos por API: veja em Afiliados → Métricas e digite em Parâmetros"));
+    const linhaShein = () => (manual("shein") ? linhaManual(manual("shein"))
+      : linhaSemApi("Shein", "https://br.shein.com/", "Ver na Shein ↗",
+        "a Shein não envia os ganhos por API: busque “Afiliado” na Shein e digite em Parâmetros"));
 
     // Por rede (card do topo): comissão, pedidos e se a rede foi lida (o erro vem escrito)
     $("c-redes").replaceChildren(...d.redes.map((r) => {
@@ -546,7 +564,7 @@
         ? el("span", "detalhe", `${plural(daRede.length, "pedido", "pedidos")} · vendas ${textoMoedas(somaPorMoeda(daRede, "venda"))}`)
         : el("span", "detalhe erro", r.erro));
       return li;
-    }), linhaMercadoLivre());
+    }), linhaMercadoLivre(), linhaShein());
 
     // Lojas que mais pagaram (card do topo)
     const lojas = new Map();
@@ -761,9 +779,56 @@
     }
   }
 
+  // =================================== PARÂMETROS ===================================
+  // Comissões da Shein e do Mercado Livre digitadas à mão (/api/painel/parametros, lib/comissoesManuais.js; 09/11/2026)
+  const REDES_PARAM = ["shein", "mercadolivre"];
+  const virgula = (n) => (Number(n) || 0).toFixed(2).replace(".", ",");
+  if (!$("param-mes").value) $("param-mes").value = hojeBr().slice(0, 7);
+  $("param-mes").max = hojeBr().slice(0, 7);
+  async function carregarParametros() {
+    const mes = $("param-mes").value || hojeBr().slice(0, 7);
+    for (const r of REDES_PARAM) $(`${r}-situacao`).textContent = "Carregando…";
+    try {
+      const resp = await fetch(`/api/painel/parametros?mes=${mes}`, { cache: "no-store", credentials: "same-origin" });
+      if (resp.status === 403 || resp.redirected) throw new Error("O login expirou. Recarregue a página e entre de novo.");
+      const dados = await resp.json();
+      for (const r of REDES_PARAM) {
+        const v = (dados.valores || []).find((x) => x.rede === r);
+        $(`${r}-aprovada`).value = v ? virgula(v.aprovada) : "";
+        $(`${r}-pendente`).value = v ? virgula(v.pendente) : "";
+        $(`${r}-pedidos`).value = v ? String(v.pedidos) : "";
+        $(`${r}-situacao`).textContent = v
+          ? `Salvo em ${new Date(v.atualizado).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}`
+          : `Nada salvo para ${nomeDoMes(mes)}.`;
+      }
+    } catch (e) {
+      for (const r of REDES_PARAM) $(`${r}-situacao`).textContent = e.message;
+    }
+  }
+  async function salvarParametros(rede) {
+    const mes = $("param-mes").value || hojeBr().slice(0, 7);
+    const situacao = $(`${rede}-situacao`);
+    situacao.textContent = "Salvando…";
+    try {
+      const resp = await fetch("/api/painel/parametros", {
+        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json", "X-Painel": "1" },
+        body: JSON.stringify({ rede, mes, aprovada: $(`${rede}-aprovada`).value || "0", pendente: $(`${rede}-pendente`).value || "0",
+          pedidos: $(`${rede}-pedidos`).value || "0" }),
+      });
+      const dados = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(dados.erro || `O servidor respondeu ${resp.status}.`);
+      situacao.textContent = `✓ Salvo em ${new Date(dados.salvo.atualizado).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}`;
+      delete comissoes.dados[mes]; // a aba Comissões busca de novo com o valor novo
+    } catch (e) {
+      situacao.textContent = `✕ ${e.message}`;
+    }
+  }
+  for (const r of REDES_PARAM) $(`salvar-${r}`).addEventListener("click", () => salvarParametros(r));
+  $("param-mes").addEventListener("change", carregarParametros);
+
   // =================================== MENU E CARGA ===================================
 
-  const VISTAS = ["metricas", "comissoes", "robo"];
+  const VISTAS = ["metricas", "comissoes", "robo", "parametros"];
   function vistaAtual() { const v = location.hash.slice(1); return VISTAS.includes(v) ? v : "metricas"; }
   function mostrarVista() {
     const vista = vistaAtual();
@@ -772,6 +837,7 @@
       if (a.dataset.vista === vista) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
     if (vista === "comissoes") carregarComissoes();
+    else if (vista === "parametros") carregarParametros();
     else if (vista === "metricas") graficoMetricas();
     esconderDica();
   }

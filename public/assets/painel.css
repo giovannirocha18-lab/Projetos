@@ -234,3 +234,11 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 
 .dica { position: fixed; z-index: 5; pointer-events: none; background: #fff; color: #0b0f17; font-size: .82rem; font-weight: 600;
   padding: 6px 10px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); }
+
+/* Parâmetros (09/11/2026): comissões da Shein e do Mercado Livre digitadas à mão */
+.param-rede { display: flex; flex-direction: column; gap: 10px; }
+.param-rede label { display: flex; flex-direction: column; gap: 4px; font-size: .9rem; color: var(--suave, #a1a1aa); }
+.param-rede input, .campo-mes { background: var(--quadro); color: var(--texto); border: 1px solid var(--borda-forte); border-radius: 8px;
+  padding: 8px 10px; font: inherit; color-scheme: dark; max-width: 300px; }
+.param-rede input:focus, .campo-mes:focus { outline: 2px solid var(--acento); outline-offset: 1px; }
+.param-rede .botao { align-self: flex-start; text-decoration: none; }
