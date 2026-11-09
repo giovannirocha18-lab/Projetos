@@ -1798,3 +1798,5 @@ rank 1, 5–49%. Black Friday p.1: 72 cartões, 48 nível 1 "Desconto real", 24 
 - 09/11: painel, aba Parâmetros (#parametros): Shein e ML digitados (lib/comissoesManuais.js, tabela comissoes_manuais, /api/painel/parametros
   GET/POST com X-Painel; comissoes.js junta como pedidos manual:true, fora do gráfico por dia). Ideia: Claude in Chrome lê os painéis de afiliados
   e preenche (ids shein-aprovada/-pendente/-pedidos, salvar-shein; idem mercadolivre-*). Sem senha guardada.
+- 09/11: pedido do Claude in Chrome salvo na aba Parâmetros (#pedido-claude + botão Copiar). 1º teste do Giovanni: Shein e ML salvos com 0 (sem vendas no mês);
+  Shein: "Registro de ganhos" (Pendente, Renda; sem o presente de boas-vindas), "Centro de Dados" (pedidos); ML: Métricas "Ganho estimado" (vai em pendente) e ordens.
