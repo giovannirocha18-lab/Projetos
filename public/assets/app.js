@@ -3249,11 +3249,10 @@ function desenharBuscadosML(cartoes) {
   const caixa = $("#buscados-ml");
   if (!caixa) return;
   const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
-  $("#chips-ml").replaceChildren(...cartoes.map((c, i) => el("button", { class: "cartao-ml", type: "button",
+  $("#chips-ml").replaceChildren(...cartoes.map((c) => el("button", { class: "cartao-ml", type: "button",
     onclick: () => irPara(c.termo, { atalho: true }) },
     el("span", { class: "cartao-ml-foto" },
-      el("img", { src: c.foto, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" }),
-      el("span", { class: "chip-ml-n", "aria-hidden": "true" }, String(i + 1))),
+      el("img", { src: c.foto, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" })),
     el("span", { class: "cartao-ml-nome" }, maiuscula(c.termo)),
     c.preco && el("span", { class: "cartao-ml-preco" }, `R$ ${brl(c.preco)}`))));
   caixa.hidden = cartoes.length < 4;
