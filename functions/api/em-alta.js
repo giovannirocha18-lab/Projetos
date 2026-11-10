@@ -2,7 +2,9 @@
 // Primeiro os termos mais buscados no site na semana; completa com as
 // categorias que mais aparecem entre os mais vendidos da Shopee agora.
 // "categorias" = menu da barra lateral, com as que mais vendem agora na frente
-import { maisBuscados } from "../../lib/buscas.js";
+// "ml" = o que mais se busca no Mercado Livre agora (/trends/MLB, guardado 24 h; faixa da página inicial, 10/11/2026)
+import { maisBuscados, tendenciaAceitavel } from "../../lib/buscas.js";
+import { tendenciasML } from "../../lib/fontes/mercadolivre.js";
 import { categoriasEmAlta, todasCategorias } from "../../lib/categorias.js";
 import { nomesMaisVendidosShopee } from "../../lib/fontes/shopee.js";
 import { normalizar } from "../../lib/texto.js";
@@ -28,14 +30,19 @@ const VIRA_CATEGORIA = {
 export async function onRequestGet({ request, env }) {
   // Guarda por 1 hora para não consultar a Shopee a cada visita
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/em-alta?v=9", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/em-alta?v=10", request.url)); // trocar o v= para descartar o guardado
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
 
-  const [doSite, maisVendidos] = await Promise.all([
+  const [doSite, maisVendidos, doML] = await Promise.all([
     maisBuscados(env).catch(() => []),
     nomesMaisVendidosShopee(env).then((nomes) => nomes.map((nome) => ({ nome }))).catch(() => []),
+    tendenciasML(env).catch(() => []),
   ]);
+  // Mais buscados no ML: sem impróprios (mesmo filtro das sugestões) e sem repetidos
+  const vistosML = new Set();
+  const ml = doML.filter((t) => t.length >= 3 && t.length <= 40 && tendenciaAceitavel(t))
+    .filter((t) => !vistosML.has(normalizar(t)) && vistosML.add(normalizar(t))).slice(0, 20);
   const categorias = categoriasEmAlta(maisVendidos, QUANTIDADE);
   const vistos = new Set();
   const itens = [...doSite.map((t) => VIRA_CATEGORIA[normalizar(t)] || { nome: t, busca: t }), ...categorias]
@@ -43,7 +50,7 @@ export async function onRequestGet({ request, env }) {
     .slice(0, QUANTIDADE);
 
   // Shopee fora do ar: responde (categorias na ordem padrão), mas guarda só 5 minutos para tentar de novo logo
-  const resposta = responder({ itens, categorias: todasCategorias(maisVendidos), doSite: doSite.length },
+  const resposta = responder({ itens, categorias: todasCategorias(maisVendidos), doSite: doSite.length, ml },
     maisVendidos.length ? CACHE_SEGUNDOS : 5 * 60);
   if (cache) await cache.put(chave, resposta.clone());
   return resposta;

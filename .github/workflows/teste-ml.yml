@@ -11,6 +11,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Amostra dos anúncios do ML
-        run: curl -sS --max-time 90 -H "Authorization: Bearer $CHAVE_ROBO" "https://vaiprocarrinho.com.br/api/preparar-ml?amostraItens=1" | jq .
+        run: |
+          curl -sS --max-time 90 -H "Authorization: Bearer $CHAVE_ROBO" "https://vaiprocarrinho.com.br/api/preparar-ml?amostraItens=1" | jq .
         env:
           CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }}

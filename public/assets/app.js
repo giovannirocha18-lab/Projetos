@@ -3241,12 +3241,23 @@ function desenharEmAlta(itens) {
   }));
 }
 
+// Mais buscados no Mercado Livre (10/11/2026): botões na página inicial; o toque abre a busca
+function desenharBuscadosML(termos) {
+  const caixa = $("#buscados-ml");
+  if (!caixa) return;
+  const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  $("#chips-ml").replaceChildren(...termos.map((t, i) => el("button", { class: "chip-ml", type: "button",
+    onclick: () => irPara(t, { atalho: true }) }, el("span", { class: "chip-ml-n", "aria-hidden": "true" }, String(i + 1)), maiuscula(t))));
+  caixa.hidden = !termos.length;
+}
+
 async function carregarEmAlta() {
   try {
-    const { itens = [], categorias = [] } = await (await fetch("/api/em-alta?v=9")).json();
+    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=10")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);
+    desenharBuscadosML(ml);
   } catch {
     // Ficam as listas padrão
   }
