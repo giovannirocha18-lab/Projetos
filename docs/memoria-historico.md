@@ -1822,3 +1822,34 @@ na URL (fora da janela não faz nada; trava por trilha). Worker relógio criado 
 `*/15 4-9 * * *`). robo-precos.yml: shopee/mercadolivre/maisvendidos/prontas/lomadee só com so_prontas/so_ml/so_lomadee (limite
 de 10 inputs do workflow_dispatch: não criei input novo). Painel: modo "robo-noite". Regra nova do Giovanni: mudanças direto na
 produção; `teste` só quando ele pedir.
+
+## Revisão geral de 10/11/2026 (pedido do Giovanni: "veja se há falhas ou melhorias")
+Três revisões de código (servidor/segurança, busca, tela) + varredura do site no ar. Nada grave. Corrigido e publicado:
+- **Busca** (`lib/relevancia.js`): `comSinonimos` junta milhar ("12.000" = 12000) e marca decimal com medida ("3,5 L" vira "3v5
+  litros": não bate com "5 litros"); `DE_OUTRO_ACESSORIO` ganhou estante/rack; `JOGO_PARA_BAIXAR` (download digital, game pass,
+  gift card) só quando a busca é só o console; `ANTES_DO_NOME` ganhou celular/tablet/notebook/tv ("Celular Samsung Galaxy S24"
+  é o produto). Casos novos em testes/busca.mjs (air fryer 5 litros, ar 12000 btus, tv 55, xbox, samsung galaxy s24).
+  A sugestão de tratar "tela/câmera/bateria/memória" depois do nome como peça foi DESCARTADA: nos títulos reais essas palavras
+  estão em quase todo celular e notebook (medido em ~12 mil títulos do site).
+- **Ver mais** (`functions/api/buscar.js`): a loja avisa com `lista.temMais` (AliExpress: página bruta cheia; ML: lista do
+  banco continua); antes media a página já filtrada e parava cedo. Prazo por página (a lenta não joga fora as que chegaram);
+  `prazoMs` na Shopee (desiste do ao vivo antes e devolve a lista guardada). Falha do banco não fica guardada como "vazio"
+  (índice do ML, `awin.ativa`, `temLista`).
+- **Tela** (`public/assets/app.js`): `desenharAosPoucos` com `chave` (id + selos); busca de outro termo zera preço/frete/nota/
+  envio; "Limpar filtros" numa busca com filtro mantém a busca; `passoDeCamada`/`fecharCamadas` (Voltar fecha gaveta/carrinho);
+  espera de /api/lojas limitada a 400 ms; caminhos absolutos (/assets/…) e /black-friday/ → 301; campo de busca 16 px no
+  celular (zoom do iPhone), foco visível, prefers-reduced-motion; Shopee: sem intent em navegador embutido; páginas 2–6 da
+  abertura em requestIdleCallback; clique "campanha-shein" passa a contar.
+- **Proteção**: `podeGerarLink` (40 links novos/hora por visitante em /ir/shopee e /ir/ali); fila do ML só com busca que trouxe
+  5+ ofertas e passa em `tendenciaAceitavel`, teto de 2.000 linhas; /api/clique 300/dia por visitante e id validado; resumo
+  público do GitHub só com termos de 3+ pessoas; login: 10 erros/hora por e-mail+aparelho e 100 por e-mail; Esqueci: 8/dia;
+  confirmação de e-mail só para quem está conectado na conta; `?comecar=1`/`?parar=1` do robô recusam clique vindo de outro site
+  (Sec-Fetch-Site; digitar o endereço continua valendo); `<código>.vaiprocarrinho.pages.dev` com banco vai para o domínio;
+  `permissions: contents: read` no workflow.
+- **Lançamento**: `comDadosDaPagina` (canônico, og:url, título/descrição por busca), /robots.txt, /sitemap.xml (44 endereços);
+  descrição sem "Amazon". O noindex continua até o lançamento.
+- **Não feito (ideias)**: categorias/lojas/em alta como `<a href>` (hoje são botões: o Google não segue); guardar lista e posição
+  ao voltar; Awin e lista Shopee lendo só id/título antes das colunas completas; `db.batch` em lerRegistros; cache de alguns
+  minutos em /api/produto e ?produto=; trava do robô da noite com dono; reserva de 7 dias avisada no JSON; marcas de duas
+  palavras (Under Armour, New Balance) no detector de outra marca; regra do Cloudflare "Limite API" cobrir também `/ir/`.
+- Buscas prontas guardadas antes da mudança (ex.: "xbox") só mostram a regra nova depois que o robô da noite as renovar.

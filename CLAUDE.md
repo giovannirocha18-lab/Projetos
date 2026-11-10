@@ -119,6 +119,13 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   mão), somadas na aba Comissões (`lib/comissoesManuais.js`, `/api/painel/parametros`). Nada de senha guardada.
 - **09/11: teste de dia do robô da noite (rodada manual) ✅**: as 2 trilhas chegaram ao fim sem erro; ML 50 min de buscas;
   prontas pararam aos 70 min (~450 de 627) → limite subiu para 120 min. Buscas no ar ok (air fryer 793, celular ML 24).
+- **10/11 (noite): revisão geral do projeto** (pedido do Giovanni; 4 commits, tudo no ar; detalhe no histórico "Revisão geral de
+  10/11"). Busca: números com vírgula/ponto ("5 litros" não aceita 3,5 L; 12.000 = 12000), estante/rack fora de "tv 55", jogo
+  para baixar fora de "xbox", "Ver mais" não acaba cedo (`lista.temMais` na AliExpress e no ML), prazo por página. Tela: selos,
+  filtros zerados em busca nova, Voltar do celular só fecha gaveta/carrinho (`passoDeCamada`). Proteção: limite por visitante em
+  /ir, cliques e fila do ML; login por e-mail+aparelho; confirmação de e-mail só conectado. Lançamento: canônico, título por
+  busca, robots.txt e sitemap.xml (`comDadosDaPagina` no _middleware.js). **Ficou para depois**: categorias/lojas como links
+  `<a>` (para o Google), guardar o lugar da lista ao voltar, consultas D1 em duas fases (Awin/lista Shopee), cache em /api/produto.
 - **10/11 (tarde)**: ML na busca passa de 24: páginas 2–10 vêm do banco (`paginaDoBanco`: mais vendidos que batem + catálogo
   guardado com preço; sem consulta ao ML). Link da AliExpress curto (`/ir/ali/<id>` → `destinoAli` gera o de afiliado no clique,
   cache 30 dias; era 40% da resposta, busca no celular mais lenta). Foto ruim no "Em alta no ML": pôr o id em `VITRINE_FORA`.
