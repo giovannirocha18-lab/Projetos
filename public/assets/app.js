@@ -2177,7 +2177,6 @@ function desenharBotaoFrete() {
   // Na página inicial, o total de ofertas do dia com frete grátis (não só as já carregadas; ver pedirFreteGratis)
   const doInicio = !estado.q && !estado.loja && !bem;
   const qtd = doInicio ? Math.max(carregados, freteInicio.total) : carregados;
-  const comNumero = !doInicio || freteInicio.conhecido;
   // Nenhuma loja parceira informa frete hoje (Shopee, AliExpress e Lomadee não mandam; os feeds da Awin vêm sem; conferido
   // em 23/10/2026): a opção da barra lateral só aparece quando há produto com frete grátis informado pela loja
   // ("Com desconto" saiu em 24/10/2026: "Maior desconto" em "Ordenar por" já faz isso; sem frete, "Mais opções" some)
@@ -2189,7 +2188,7 @@ function desenharBotaoFrete() {
   document.querySelectorAll("[data-frete]").forEach((b) => {
     b.hidden = qtd < FRETE_MINIMO && !ligado;
     b.setAttribute("aria-pressed", String(ligado));
-    b.textContent = ligado ? "🚚 Frete grátis ✕" : comNumero ? `🚚 Frete grátis (${qtd})` : "🚚 Frete grátis";
+    b.textContent = ligado ? "🚚 Frete grátis ✕" : "🚚 Frete grátis"; // sem o número (11/11/2026, pedido do Giovanni)
   });
 }
 
