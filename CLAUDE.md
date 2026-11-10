@@ -152,6 +152,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   também: "Todas" + um toque por loja (`escolherLoja`, `lojasNoResumo`; saíram "Limpar"/"Marcar todas" e `alternarLoja`).
 - **11/11, print "computador" com "Balança Computadora" no Mais barato**: `OUTRA_PALAVRA_DE.computador` em lib/relevancia.js
   (computadora/computadorizada não são computador); caso em testes/busca.mjs. No ar: balança fora ✅.
+- **11/11, prints na categoria Cozinha (inversora de solda Stanley e livro de autor Stanley)**: a vitrine buscava só a marca
+  "stanley" → agora "copo stanley"; inversora/esmerilhadeira/lixadeira… em Ferramentas (lib/categorias.js; casos em
+  testes/busca.mjs). A lista guardada da categoria só muda quando o robô da madrugada refizer: **conferir em 11/11 cedo**
+  (`/api/buscar?v=108&q=utensílios de cozinha&cat=Cozinha` sem "Inversora" nem "Livro Teologia").
 - **11/11: IA confere também os mais baratos de cada busca** (robo/conferir-buscas.mjs: 10 da busca + 3 por loja, repete até
   5 rodadas enquanto achar 3+ errados; candidatos ao "Mais barato" da Escolha rápida). #137/#138: 2.232 escondidos, US$ 0,13.
 - **11/11: IA conferindo as FOTOS** (pedido do Giovanni): `robo/conferir-fotos.mjs` (foto reduzida a 384 px, 10 por pergunta,
