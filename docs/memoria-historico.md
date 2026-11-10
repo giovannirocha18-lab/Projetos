@@ -1867,3 +1867,15 @@ Três revisões de código (servidor/segurança, busca, tela) + varredura do sit
 - **Banco**: `COLUNAS_LEVES` + `linhasCompletas` (lib/fontes/awin.js), `completas` (lib/shopeeLista.js), `db.batch` em
   `lerRegistros` (lib/ofertas.js) e em `comCategoriaDaIa` (lib/ia.js). `testes/banco.mjs` usa SQLite na memória no lugar do
   D1 (mesmo resultado com o código antigo e o novo).
+
+## Filtro de marca no servidor (10–11/11/2026)
+Pedido do Giovanni ("pode fazer", depois de perguntar se deixava o site mais prático e rápido). Antes: na Black Friday e nas
+páginas de loja, marcar uma marca fazia o site baixar a lista geral de 48 em 48 e separar a marca no aparelho (parava após 8
+páginas sem novidade). Agora `/api/black-friday?marca=<nome>` e `/api/lojas?id=<loja>&marca=<nome>` devolvem de uma vez (até
+240, `MAX_DA_MARCA`) o que cita a marca no nome: `lib/marcas.js` (`filtroDeMarca`: só marca da lista MARCAS/apelidos/lojas que
+são marca; a chave do cache usa o nome limpo), `listarBlackFridayDaMarca` (2 fases: nomes de bf_ofertas, depois os escolhidos),
+`mercadolivre.ofertasBlackFridayDaMarca`, `produtosDaLojaML(…, filtro)`, `produtosDaMarcaNaLoja` (Awin, um por modelo). A
+conferência fina continua no site (`marcaDe`); `completarMarca` chama `pedirMarcaDaLoja`; resposta `completo: true` guarda a
+marca em `marcasInteiras` e o botão "Ver mais" some enquanto só marcas inteiras estiverem marcadas. Shopee, AliExpress e
+Lomadee como loja: sem filtro (lista vem da loja, página a página). Conferido no ar (PC): Black Friday Brastemp 2 → 46 em 1,1 s;
+loja ML Samsung 7 → 79; Kabum Samsung 1 → 16; 1 pedido só, sem erro de JS. Teste novo `testes/marcas.mjs` (também no GitHub).

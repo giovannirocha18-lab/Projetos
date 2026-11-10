@@ -132,8 +132,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **10/11 (noite), print do Giovanni (marca "Brastemp" com 3 produtos e botão piscando "Carregando…")**: marcar uma marca na
   busca faz na hora a busca "produto + marca" e junta à lista (`completarMarca` em app.js); com filtro apertado o botão "Ver
   mais" fica com o aviso parado "Procurando mais ofertas com esse filtro…" e para após 8 páginas sem produto novo
-  (`rolagemInfinita`, `botaoCarregando`/`botaoParado`). Na Black Friday e nas lojas a marca ainda é procurada página a página
-  (ideia: filtro de marca no servidor em /api/black-friday). Enquanto busca a marca aparecem 4 cartões "carregando".
+  (`rolagemInfinita`, `botaoCarregando`/`botaoParado`). Enquanto busca a marca aparecem 4 cartões "carregando".
+  **11/11: filtro de marca no servidor** na Black Friday e nas lojas ML e Awin (`?marca=`, `lib/marcas.js` `filtroDeMarca`, até
+  240 de uma vez; `pedirMarcaDaLoja` em app.js; marca inteira → botão "Ver mais" some). No ar: Brastemp na Black Friday 2 → 46
+  em 1 s. Shopee/AliExpress/Lomadee (loja) seguem página a página. Teste `node testes/marcas.mjs` (confere também as cópias
+  de MARCA_APELIDOS/LOJAS_QUE_SAO_MARCA de app.js em lib/marcas.js).
   **Busca rápida `rapido=1`** (ideia do Giovanni: usar a lista baixada da Shopee): /api/buscar só com o nosso banco (lista da
   Shopee, Awin, ML `paginaDoBanco`; `FONTES_DO_BANCO`, opção `soBanco` nas fontes; chave de cache própria), 0,6–3 s, sem
   consultar loja. `completarMarca` pede a rápida (adiantada quando o mouse para na marca) e depois a completa: Philips em
