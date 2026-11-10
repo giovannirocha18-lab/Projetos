@@ -1659,6 +1659,7 @@ function desenharFiltroSecoes() {
       estado.secoesFora.clear();
       desenharFiltroSecoes();
       desenharResultados();
+      completarSecao(secao);
     }, secao ? categoriaPeloNome(secao)?.emoji || "•" : "•", secao || "Outros", contagem.get(secao))),
     ordem.length > visiveis.length || estado.todasSecoes
       ? el("button", { type: "button", class: "botao-link", onclick: () => { estado.todasSecoes = !estado.todasSecoes; desenharFiltroSecoes(); } },
@@ -1776,6 +1777,37 @@ function pedirMarcaDaLoja(n) {
 const marcasInteiras = { pedido: -1, nomes: new Set() };
 const marcasMarcadasInteiras = () => Boolean(estado.loja) && estado.marcasSo.size > 0 && marcasInteiras.pedido === estado.pedido
   && [...estado.marcasSo].every((n) => marcasInteiras.nomes.has(n));
+
+// Categoria escolhida na página da loja Mercado Livre (11/11/2026, pedido do Giovanni): a lista da lateral só filtrava os
+// ~480 produtos já carregados, de 14 mil. O servidor manda de uma vez os mais vendidos dessa categoria na loja inteira
+// (/api/lojas?id=mercadolivre&secao=, até 240) e eles se juntam à lista. Uma vez por categoria em cada visita à loja
+const secoesInteiras = { pedido: -1, pedidas: new Set(), nomes: new Set() };
+const secaoMarcadaInteira = () => estado.loja?.id === "mercadolivre" && estado.secoesSo?.size === 1 && secoesInteiras.pedido === estado.pedido
+  && secoesInteiras.nomes.has([...estado.secoesSo][0]);
+async function completarSecao(secao) {
+  if (estado.loja?.id !== "mercadolivre" || !secao || estado.buscando) return;
+  const pedido = estado.pedido;
+  if (secoesInteiras.pedido !== pedido) { secoesInteiras.pedido = pedido; secoesInteiras.pedidas.clear(); secoesInteiras.nomes.clear(); }
+  if (secoesInteiras.pedidas.has(secao)) return;
+  secoesInteiras.pedidas.add(secao);
+  const espera = esqueletos(4);
+  $("#grade").append(...espera);
+  try {
+    const r = await fetch(`/api/lojas?id=mercadolivre&secao=${encodeURIComponent(secao)}`);
+    const dados = r.ok ? await r.json() : null;
+    if (pedido !== estado.pedido) return;
+    if (dados?.completo) secoesInteiras.nomes.add(secao);
+    const ja = new Set(estado.ofertas.map((o) => o.id));
+    const novas = semRepetidos(dados?.ofertas || []).filter((o) => !ja.has(o.id));
+    if (novas.length) estado.ofertas = semRepetidos([...estado.ofertas, ...novas]);
+    desenharFiltroLojas();
+    desenharResultados();
+  } catch {
+    secoesInteiras.pedidas.delete(secao); // sem resposta: tenta de novo no próximo toque
+  } finally {
+    for (const e of espera) e.remove();
+  }
+}
 
 async function completarMarca(n, nome) {
   const naLoja = Boolean(estado.loja);
@@ -2288,7 +2320,7 @@ function desenharResultados() {
   const lojaLigada = (o) => !estado.lojasDesmarcadas.has(o.loja);
   const nenhumaLoja = !estado.ofertas.some(lojaLigada);
   // …e, na loja, com só marcas que o servidor já mandou inteiras (marcasMarcadasInteiras)
-  $("#mais-resultados").hidden = !estado.temMaisBusca || nenhumaLoja || marcasMarcadasInteiras();
+  $("#mais-resultados").hidden = !estado.temMaisBusca || nenhumaLoja || marcasMarcadasInteiras() || secaoMarcadaInteira();
   const acessorios = estado.ofertas.filter((o) => o.acessorio && lojaLigada(o)).length;
   const botao = $("#ver-acessorios");
   botao.hidden = !acessorios || $("#com-acessorios").checked || acessorios === estado.ofertas.length;

@@ -4,16 +4,18 @@
 //   id = "shopee" | "aliexpress" | "awin:<loja>" | "lomadee:<marca>"
 // GET /api/lojas?id=X&marca=samsung -> só os produtos dessa marca na loja, de uma vez (até 240; Mercado Livre e lojas da
 //   Awin; lib/marcas.js): { nome, ofertas, marca, completo, temMais: false }
+// GET /api/lojas?id=mercadolivre&secao=Saúde -> só os produtos dessa categoria do site na loja Mercado Livre, de uma vez
+//   (até 240): { nome, ofertas, secao, completo, temMais: false }
 // Pedido do Giovanni (22/10/2026). As mesmas lojas que /api/numeros conta.
 import { shopee } from "../../lib/fontes/shopee.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { LOJA_SHEIN } from "../../lib/shein.js";
-import { mercadolivre, produtosDaLojaML, totalDaLojaML } from "../../lib/fontes/mercadolivre.js";
+import { mercadolivre, produtosDaLojaML, totalDaLojaML, indiceDaLojaML, ofertasMLPorCodigos } from "../../lib/fontes/mercadolivre.js";
 import { lomadee, marcasComProdutos, produtosDaMarca } from "../../lib/fontes/lomadee.js";
 import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js";
 import { COLUNAS_OFERTA, linhaParaOferta, comHistorico, historicoAoVivo, ehAoVivo, nomeDaLojaAwin, lojasDaAwin, lojaPequena } from "../../lib/ofertas.js";
 import { carregarMapa, aplicarMapa } from "../../lib/mapaCategorias.js";
-import { marcarSecoes } from "../../lib/categorias.js";
+import { marcarSecoes, categoriaPorNome } from "../../lib/categorias.js";
 import { comCategoriaDaIa } from "../../lib/ia.js";
 import { MARCAS } from "../../lib/vocabulario.js";
 import { normalizar } from "../../lib/texto.js";
@@ -130,6 +132,25 @@ async function produtosDaMarcaNaLoja(env, loja, filtro) {
   return { nome: ofertas[0]?.lojaNome || loja, ofertas, temMais: false, completo: todos.length <= MAX_DA_MARCA };
 }
 
+// Só uma categoria do site na loja Mercado Livre (11/11/2026, pedido do Giovanni: a lista "Categorias" da lateral filtrava
+// só os ~480 produtos já carregados, de 14 mil). A categoria de cada um dos mais vendidos sai do nome (e da IA), do mesmo
+// jeito que nas listas do site; guardada na memória enquanto o índice for o mesmo. Vêm os primeiros do ranking dessa
+// categoria (com folga: o que mudar de categoria com os dados completos sai depois, em onRequestGet)
+const FOLGA_DA_SECAO = 60;
+const secoesDoIndice = new WeakMap(); // índice -> Map(código -> categoria)
+async function produtosDaSecaoNaLojaML(env, secao) {
+  const indice = await indiceDaLojaML(env);
+  let mapa = secoesDoIndice.get(indice);
+  if (!mapa) {
+    const leves = await comCategoriaDaIa(env.DB, indice.map((o) => ({ id: o.id, titulo: o.titulo, loja: "mercadolivre", lojaNome: "Mercado Livre" })));
+    mapa = new Map(marcarSecoes(leves).map((o) => [o.id, o.secao || ""]));
+    secoesDoIndice.set(indice, mapa);
+  }
+  const ids = indice.filter((o) => mapa.get(o.id) === secao).map((o) => o.id);
+  const ofertas = await ofertasMLPorCodigos(env, ids.slice(0, MAX_DA_MARCA + FOLGA_DA_SECAO));
+  return { nome: "Mercado Livre", ofertas, temMais: false, completo: ids.length <= MAX_DA_MARCA + FOLGA_DA_SECAO };
+}
+
 async function produtosDaLoja(env, id, pagina, waitUntil, cat = null, filtro = null) {
   if (filtro) {
     if (id === "mercadolivre" && mercadolivre.ativa(env)) {
@@ -181,11 +202,14 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   // Atalho de categoria da loja Mercado Livre (?mlcat=MLB1051; 05/11/2026)
   const cat = /^MLB\d{1,12}$/.test(params.get("mlcat") || "") ? params.get("mlcat") : null;
+  // Só uma categoria do site na loja Mercado Livre (?secao=Saúde)
+  const secao = id === "mercadolivre" && params.has("secao") ? categoriaPorNome(params.get("secao").slice(0, 60))?.nome : null;
+  if (id && params.has("secao") && !secao) return Response.json({ erro: "Categoria não encontrada" }, { status: 404 });
   // Só uma marca (?marca=samsung): marca fora da nossa lista não é atendida
   const filtro = id && params.has("marca") ? filtroDeMarca(params.get("marca")) : null;
   if (id && params.has("marca") && !filtro) return Response.json({ erro: "Marca não encontrada" }, { status: 404 });
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/lojas?v=${VERSAO}${id ? `&id=${encodeURIComponent(id)}${filtro ? `&marca=${encodeURIComponent(filtro.n)}` : `&pagina=${pagina}`}` : ""}${cat ? `&mlcat=${cat}` : ""}`, request.url));
+  const chave = new Request(new URL(`/api/lojas?v=${VERSAO}${id ? `&id=${encodeURIComponent(id)}${secao ? `&secao=${encodeURIComponent(secao)}` : filtro ? `&marca=${encodeURIComponent(filtro.n)}` : `&pagina=${pagina}`}` : ""}${cat ? `&mlcat=${cat}` : ""}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return paraNavegador(await respostaSemFotosQuebradas(env.DB, guardada, waitUntil));
 
@@ -197,7 +221,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   } else {
     let dados;
     try {
-      dados = await produtosDaLoja(env, id, pagina, waitUntil, cat, filtro);
+      dados = secao ? (mercadolivre.ativa(env) ? await produtosDaSecaoNaLojaML(env, secao) : null) : await produtosDaLoja(env, id, pagina, waitUntil, cat, filtro);
     } catch (erro) {
       // 500 (o Cloudflare troca a resposta 502 pela página dele)
       return Response.json({ erro: "Não foi possível carregar os produtos desta loja agora", detalhe: String(erro?.message || erro).slice(0, 200) }, { status: 500 });
@@ -215,7 +239,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
         // D1 indisponível: segue sem histórico
       }
     }
-    resposta = responder({ nome: dados.nome, ofertas, temMais: dados.temMais, ...(filtro && { marca: filtro.n, completo: Boolean(dados.completo) }), ...(dados.atalhos && { atalhos: dados.atalhos, total: dados.total }) }, PRODUTOS_SEGUNDOS);
+    // Só a categoria pedida, pela categoria final de cada produto (a mesma que o site mostra)
+    if (secao) ofertas = ofertas.filter((o) => o.secao === secao).slice(0, MAX_DA_MARCA);
+    resposta = responder({ nome: dados.nome, ofertas, ...(secao && { secao, completo: Boolean(dados.completo) }), temMais: dados.temMais, ...(filtro && { marca: filtro.n, completo: Boolean(dados.completo) }), ...(dados.atalhos && { atalhos: dados.atalhos, total: dados.total }) }, PRODUTOS_SEGUNDOS);
   }
   if (cache) waitUntil(cache.put(chave, resposta.clone()));
   return paraNavegador(resposta);
