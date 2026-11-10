@@ -289,9 +289,22 @@ function devolverFoco(painel) {
   if (voltar?.isConnected && focoAqui) voltar.focus({ preventScroll: true });
 }
 
+// Voltar do celular com a gaveta de filtros ou o carrinho abertos (10/11/2026, revisão): fechava o painel E saía da página.
+// Ao abrir, entra um passo no histórico (mesmo endereço); o Voltar gasta esse passo e só fecha (ver "popstate" no fim)
+function passoDeCamada() {
+  if (!history.state?.camada) history.pushState({ camada: true }, "");
+}
+// Fechar pelo botão, pelo fundo ou pelo Esc: devolve o passo do histórico (o "popstate" fecha os painéis)
+function fecharCamadas() {
+  const aberta = !$("#painel-favoritos").hidden || $("#filtros").classList.contains("aberto");
+  if (aberta && history.state?.camada) return history.back();
+  abrirPainel(false);
+  abrirFiltros(false);
+}
 function abrirPainel(abrir) {
   const painel = $("#painel-favoritos");
   const estavaAberto = !painel.hidden;
+  if (abrir && !estavaAberto) passoDeCamada();
   painel.hidden = !abrir;
   $("#painel-fundo").hidden = !abrir && !$("#filtros").classList.contains("aberto");
   if (abrir) desenharFavoritos();
@@ -818,7 +831,7 @@ function desenharConta() {
         : conta.carrinhoOferta ? "🛒 Entre na sua conta para guardar produtos no seu carrinho. Ele fica salvo em qualquer aparelho."
         : "Assim o seu carrinho fica salvo em qualquer aparelho."),
       conta.google && el("button", { class: "botao-google", type: "button", onclick: entrarComGoogle },
-        el("img", { src: "assets/google.svg", alt: "", width: "18", height: "18" }), "Entrar com Google"),
+        el("img", { src: "/assets/google.svg", alt: "", width: "18", height: "18" }), "Entrar com Google"),
       conta.google && el("p", { class: "separador" }, cadastro ? "ou crie com e-mail e senha" : "ou entre com e-mail e senha"),
       el("form", { onsubmit: cadastro ? cadastrar : entrar },
         cadastro && el("label", {}, "Seu nome", el("input", { name: "nome", required: true, maxlength: "60", autocomplete: "given-name", value: conta.nome })),
@@ -1096,7 +1109,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         ? el("button", { class: "titulo-botao", type: "button", onclick: () => abrirDetalhes(o) }, o.titulo)
         : o.titulo),
       (o.avaliacao || o.vendidos || rankTexto(o)) && el("div", { class: "nota" },
-        o.avaliacao && el("span", { class: "estrelas", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
+        o.avaliacao && el("span", { class: "estrelas", role: "img", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
         o.avaliacao && el("span", {}, String(o.avaliacao).replace(".", ",")),
         o.vendidos && el("span", { class: o.vendidos >= 1000 ? "vendidos-muitos" : null },
           `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`),
@@ -1306,7 +1319,7 @@ function abrirDetalhes(o, { doLink = false } = {}) {
       o.vendedor && el("span", { class: "detalhes-vendedor" }, `Vendido por ${o.vendedor}`)),
     el("h2", { id: "detalhes-titulo" }, o.titulo),
     (o.avaliacao || o.vendidos || rankTexto(o)) && el("div", { class: "nota" },
-      o.avaliacao && el("span", { class: "estrelas", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
+      o.avaliacao && el("span", { class: "estrelas", role: "img", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
       o.avaliacao && el("span", {}, String(o.avaliacao).replace(".", ",")),
       o.vendidos && el("span", { class: o.vendidos >= 1000 ? "vendidos-muitos" : null },
         `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`),
@@ -2058,12 +2071,14 @@ const observadores = new WeakMap();
 // cartões apagados e montados de novo: a tela piscava e pulava). Agora os cartões do começo que continuam iguais ficam
 // onde estão e só o que mudou (normalmente só os novos, no fim) é montado
 const desenhados = new WeakMap();
-function desenharAosPoucos(grade, lista, fazer, { minimo = 0 } = {}) {
+// chave: o que identifica o cartão como "igual" (10/11/2026, revisão: só pelo id, o selo "Menor preço" ficava no cartão
+// antigo quando chegava um mais barato, e o selo "Cupom" não entrava nos cartões já desenhados)
+function desenharAosPoucos(grade, lista, fazer, { minimo = 0, chave = (o) => o?.id } = {}) {
   observadores.get(grade)?.disconnect();
   const antes = desenhados.get(grade);
   let iguais = 0;
   if (antes && antes.nos.every((n) => n.parentNode === grade)) {
-    while (iguais < antes.ids.length && iguais < lista.length && antes.ids[iguais] === lista[iguais]?.id) iguais++;
+    while (iguais < antes.ids.length && iguais < lista.length && antes.ids[iguais] === chave(lista[iguais])) iguais++;
   }
   const ids = antes ? antes.ids.slice(0, iguais) : [];
   const nos = antes ? antes.nos.slice(0, iguais) : [];
@@ -2074,7 +2089,7 @@ function desenharAosPoucos(grade, lista, fazer, { minimo = 0 } = {}) {
   let tamanho = Math.max(CARTOES_POR_LOTE, minimo - iguais);
   const mais = () => {
     const lote = lista.slice(feitos, feitos + tamanho).map((o, j) => fazer(o, feitos + j));
-    ids.push(...lista.slice(feitos, feitos + lote.length).map((o) => o?.id));
+    ids.push(...lista.slice(feitos, feitos + lote.length).map(chave));
     nos.push(...lote);
     tamanho = CARTOES_POR_LOTE;
     feitos += lote.length;
@@ -2134,7 +2149,7 @@ function desenharResultados() {
     if (jaNaTela.has(o.id)) c.style.animation = "none";
     else c.style.animationDelay = `${jaNaTela.size ? 0 : Math.min(i, 12) * 30}ms`;
     return c;
-  }, { minimo: jaNaTela.size });
+  }, { minimo: jaNaTela.size, chave: (o) => `${o.id}|${o.id === idMelhor ? 1 : 0}${o.id === idVendido ? 1 : 0}${cuponsDaLoja(o.loja).length ? 1 : 0}` });
   desenharEscolhaRapida(lista);
   sheinNaBusca();
   $("#vazio").hidden = lista.length > 0;
@@ -2396,12 +2411,22 @@ async function buscar(q) {
   // Buscou o nome de uma loja que não é marca ("kabum", "efacil", "cobasi"): abre direto a página dela (pedido do
   // Giovanni, 04/11/2026; "kabum" trazia peças de robô aspirador da marca). Loja que é marca ("motorola") busca normal
   if (!lojaAtual() && !categoriaAtual()) {
-    const lojaBuscada = lojaDoNome(q, await carregarLojasParceiras());
+    // Espera a lista de lojas só 400 ms (10/11/2026, revisão: a tela ficava parada, sem "Buscando…", até ela chegar)
+    const lojaBuscada = lojaDoNome(q, await Promise.race([carregarLojasParceiras(), new Promise((r) => setTimeout(() => r([]), 400))]));
     if (pedido !== estado.pedido) return;
     if (lojaBuscada && !lojaBuscada.marca && !lojaBuscada.soLink) {
       history.replaceState(null, "", `/?loja=${encodeURIComponent(lojaBuscada.id)}`);
       return mostrar();
     }
+  }
+  // Busca de outro produto começa sem os filtros da anterior (10/11/2026, revisão: "Bem avaliados" ou preço máximo ligados
+  // na gaveta do celular continuavam valendo, escondidos, e a busca nova vinha quase vazia)
+  if (q !== estado.q) {
+    $("#preco-min").value = "";
+    $("#preco-max").value = "";
+    $("#so-frete").checked = false;
+    $("#bem-avaliados").checked = false;
+    $("input[name=envio][value=todos]").checked = true;
   }
   estado.q = q;
   mostrarLojaNaBusca(q, pedido);
@@ -3641,6 +3666,7 @@ function prepararBusca(form) {
 function abrirFiltros(abrir) {
   const gaveta = $("#filtros");
   const estavaAberta = gaveta.classList.contains("aberto");
+  if (abrir && !estavaAberta) passoDeCamada();
   gaveta.classList.toggle("aberto", abrir);
   $("#painel-fundo").hidden = !abrir && $("#painel-favoritos").hidden;
   if (abrir && !estavaAberta) focarAoAbrir(gaveta, $(".filtros-cabecalho .fechar", gaveta));
@@ -3717,8 +3743,13 @@ function limparFiltros() {
 $("#limpar-filtros").addEventListener("click", limparFiltros);
 // "Limpar filtros" do card roxo: volta à página inicial como o logo, também depois de uma busca (print do Giovanni,
 // 28/10/2026: buscou "cueca boxer", clicou e nada aconteceu). O da barra lateral continua só limpando os filtros.
+// Algum filtro da lista ligado (preço, frete, nota, envio, loja desmarcada)
+const temFiltroLigado = () => Boolean($("#preco-min").value || $("#preco-max").value || $("#so-frete").checked || $("#bem-avaliados").checked
+  || !$("input[name=envio][value=todos]").checked || estado.lojasDesmarcadas.size);
 function limparTudo() {
   if (estado.loja?.id === BLACK_FRIDAY) return limparFiltros();
+  // Numa busca com filtro ligado, tira só os filtros e a busca continua (10/11/2026, revisão: a pessoa perdia a busca)
+  if (estado.q && !estado.loja && !categoriaAtual() && temFiltroLigado()) return limparFiltros();
   zerarFiltros();
   $("input[name=ordem][value=relevancia]").checked = true;
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
@@ -3782,9 +3813,9 @@ $("#mais-resultados").addEventListener("click", () => (estado.loja ? carregarMai
   for (const id of ["#mais-ofertas", "#mais-resultados", "#ver-acessorios"]) obs.observe($(id));
 })();
 document.querySelectorAll("[data-abrir-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(true)));
-document.querySelectorAll("[data-fechar-filtros]").forEach((b) => b.addEventListener("click", () => abrirFiltros(false)));
+document.querySelectorAll("[data-fechar-filtros]").forEach((b) => b.addEventListener("click", fecharCamadas));
 $("#abrir-favoritos").addEventListener("click", () => abrirPainel(true));
-$("#fechar-favoritos").addEventListener("click", () => abrirPainel(false));
+$("#fechar-favoritos").addEventListener("click", fecharCamadas);
 $("#abrir-conta").dataset.icone = $("#abrir-conta").innerHTML;
 $("#abrir-conta").addEventListener("click", abrirConta);
 $("#fechar-conta").addEventListener("click", () => $("#janela-conta").close());
@@ -3845,15 +3876,23 @@ $("#janela-conta").addEventListener("click", (e) => {
   const r = e.currentTarget.getBoundingClientRect();
   if (e.target === e.currentTarget && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) e.currentTarget.close();
 });
-$("#painel-fundo").addEventListener("click", () => { abrirPainel(false); abrirFiltros(false); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") { abrirPainel(false); abrirFiltros(false); } });
+$("#painel-fundo").addEventListener("click", fecharCamadas);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharCamadas(); });
 
 // Voltar do celular: fecha a gaveta, o carrinho e as janelas abertas antes de trocar a página
+// enderecoAtual = o endereço antes do Voltar: se não mudou, o passo era só de um painel aberto e a página fica como está
+let enderecoAtual = location.href;
+for (const m of ["pushState", "replaceState"]) {
+  const original = history[m].bind(history);
+  history[m] = (...a) => { original(...a); enderecoAtual = location.href; };
+}
 window.addEventListener("popstate", () => {
+  const mesmo = location.href === enderecoAtual;
+  enderecoAtual = location.href;
   abrirFiltros(false);
   abrirPainel(false);
   document.querySelectorAll("dialog[open]").forEach((j) => j.close());
-  mostrar();
+  if (!mesmo) mostrar();
 });
 
 $("#ano").textContent = new Date().getFullYear();

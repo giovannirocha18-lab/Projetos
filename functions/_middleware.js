@@ -211,6 +211,8 @@ async function responder(contexto) {
     return Response.redirect(`${url.origin}/${url.search}`, 301);
   }
   // Página da Black Friday: é a página principal (o site vê o endereço e abre as ofertas da Black Friday)
+  // Com barra no fim os arquivos da página eram pedidos em /black-friday/assets/… e ela abria sem estilo (10/11/2026)
+  if (/^\/black-friday\/$/i.test(url.pathname)) return Response.redirect(`${url.origin}/black-friday${url.search}`, 301);
   if (/^\/black-friday\/?$/i.test(url.pathname) && env.ASSETS) {
     const pagina = await env.ASSETS.fetch(new Request(new URL("/", url.origin)));
     return comPreviaDaBlackFriday(pagina);
