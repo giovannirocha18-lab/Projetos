@@ -312,7 +312,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
           const vistos = new Set();
           const ofertas = listas.flat().filter((o) => !vistos.has(o.id) && vistos.add(o.id));
           // total = tamanho da última página (cheia = a loja tem mais). Na vitrine (várias buscas) vale a que trouxe mais
-          lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(listas.at(-1).length, lojas[fonte.nome]?.total || 0) };
+          // 10/11/2026 (revisão): a página chega já filtrada (títulos fora da busca, produto sem preço), então o tamanho dela
+          // não diz se a loja acabou; a loja que sabe avisa com lista.temMais (AliExpress e Mercado Livre) e o "Ver mais" continua
+          const ultima = listas.at(-1);
+          const tamanho = ultima.temMais === true ? Math.max(ultima.length, fonte.porPagina)
+            : ultima.temMais === false ? Math.min(ultima.length, fonte.porPagina - 1) : ultima.length;
+          lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(tamanho, lojas[fonte.nome]?.total || 0) };
           medir();
           return ofertas;
         } catch (erro) {

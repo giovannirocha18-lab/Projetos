@@ -22,7 +22,30 @@ const CASOS = {
   // 05/11/2026 (print do Giovanni, "air fryer 5 litros"): o Mercado Livre escreve "de 5L"; 4L e 25L não são 5 litros
   "air fryer 5 litros": {
     E: ["Air fryer Mondial Air Fryer AFN-50-BI de 5L preto 127V", "Fritadeira Elétrica Air Fryer 5 Litros Sem Óleo", "Air Fryer Britânia 5 L Preta"],
-    N: ["Air fryer Bak Air Fryer BK-ARFYM110 de 4L preto", "Air fryer Mondial Air Fryer AFO-25L-BI de 25L preto 127V"],
+    // 10/11/2026 (revisão, visto no site): 6,5L, 9,5 Litros, 3.5L e 5,5 Litros passavam como 5 litros
+    N: ["Air fryer Bak Air Fryer BK-ARFYM110 de 4L preto", "Air fryer Mondial Air Fryer AFO-25L-BI de 25L preto 127V",
+      "Air Fryer Philco 6,5L Visor Glass e Redstone 1700W PAF65A", "Air Fryer Britânia 9,5 Litros Painel Digital 1800W BAF95A 127v",
+      "Air fryer Xiaomi Mi Smart Air Fryer de 3.5L branco", "Fritadeira Air Fryer Mallory Digital Premium 5,5 Litros 1500W Preto"],
+  },
+  // 10/11/2026 (revisão): "12.000 BTUs" não batia com "12000 btus"
+  "ar condicionado 12000 btus": {
+    E: ["Ar Condicionado Split 12.000 BTUs Inverter LG Dual Voice", "Ar Condicionado 12000 Btus Split Hi Wall Inverter TCL Frio Elite GV 220V"],
+    N: ["Ar Condicionado Split 9.000 BTUs Inverter Midea Frio"],
+  },
+  // 10/11/2026 (visto no site): estantes da TV vinham no meio das TVs
+  "tv 55": {
+    E: ["Smart TV 55\" LCD LED LG 55UT8050PSA - 4K UHD, ThinQ AI", "Smart TV 55 Polegadas 4K QLED Samsung"],
+    A: ["Estante TV 55\" com Espelho Denver Multimoveis V3148", "Rack TV 55 Polegadas Madeira Maciça 4 Gavetas"],
+  },
+  // 10/11/2026 (visto no site): jogos para baixar e cartão presente marcados como o console
+  "xbox": {
+    E: ["Xbox Series S 512GB Branco Console Microsoft", "Console Xbox Series X 1TB Preto"],
+    A: ["Série Xbox Xbox Xbox Série X|S Exclusivo Jogo de Próxima Geração Minecraft Versão de Download Digital",
+      "Xbox Game Pass Ultimate assinatura 1 mês (Digital)", "Xbox Cartão Presente R$ 100 Gift card (Digital)"],
+  },
+  "samsung galaxy s24": {
+    E: ["Samsung Galaxy S24 Galaxy Ai 256GB Preto 8GB RAM", "Celular Samsung Galaxy S24 Fe 128gb preto", "Smartphone Samsung Galaxy S24 256GB 5G"],
+    A: ["Pelicula para Samsung Galaxy S24 Ultra - Privacidade Hydrogel - Gshield"],
   },
   // 04/11/2026 (print do Giovanni, "pc gamer" na AliExpress): ventoinha, mouse, teclas e mouse pad apareciam como o produto
   "pc gamer": {
