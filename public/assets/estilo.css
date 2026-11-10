@@ -511,7 +511,8 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 
 /* Página: barra lateral (ordem, categorias, lojas, filtros) + conteúdo */
 /* Cabeçalho, página e rodapé usam a tela toda: a barra lateral encosta na esquerda */
-.topo .container, .pagina, .rodape .container { max-width: none; padding-left: 20px; padding-right: 20px; }
+/* Conteúdo com 1.200 px no meio da tela, como o Mercado Livre (pedido do Giovanni, 10/11/2026); o fundo do topo vai de ponta a ponta */
+.topo .container, .pagina, .rodape .container { max-width: 1240px; margin-left: auto; margin-right: auto; padding-left: 20px; padding-right: 20px; }
 @media (max-width: 640px) { .topo .container, .pagina, .rodape .container { padding-left: 16px; padding-right: 16px; } }
 .pagina { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; align-items: start; }
 .pagina-conteudo { min-width: 0; }
@@ -1104,19 +1105,27 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .campanha small { color: var(--suave); font-size: .72rem; line-height: 1.25; }
 .campanha .cir { margin-top: 2px; font-weight: 700; font-size: .74rem; color: var(--roxo); }
 
-/* Mais buscados no Mercado Livre (página inicial, 10/11/2026) */
-.buscados-ml { margin: 4px 0 14px; }
+/* Mais buscados no Mercado Livre (página inicial, 10/11/2026): cartões com foto, numa fila que corre para o lado */
+.buscados-ml { margin: 4px 0 14px; min-width: 0; }
 .buscados-ml h2 { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; margin: 0 0 8px; }
 .selo-ml-mini { background: #ffe600; color: #2d3277; font-size: .7rem; font-weight: 900; padding: 2px 6px; border-radius: 6px; }
-.chips-ml { display: flex; flex-wrap: wrap; gap: 8px; max-height: 80px; overflow: hidden; }
-.chip-ml { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e6e1b0; background: #fffbe0; color: #2d3277;
-  border-radius: 999px; padding: 6px 12px 6px 6px; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.chip-ml:hover { background: #fff4a8; border-color: #e0cf4a; }
-.chip-ml-n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; border-radius: 50%; background: #2d3277; color: #fff;
-  font-size: .72rem; font-weight: 800; }
+.chips-ml { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.cartao-ml { flex: 0 0 136px; scroll-snap-align: start; display: flex; flex-direction: column; gap: 4px; text-align: left;
+  background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 8px; font: inherit; color: var(--texto); cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05); transition: transform .12s, box-shadow .12s; }
+.cartao-ml:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.1); border-color: #e0cf4a; }
+.cartao-ml-foto { position: relative; display: grid; place-items: center; aspect-ratio: 1 / 1; border-radius: 8px; background: #fff; overflow: hidden; }
+.cartao-ml-foto img { width: 100%; height: 100%; object-fit: contain; }
+.cartao-ml-foto .chip-ml-n { position: absolute; top: 4px; left: 4px; }
+.chip-ml-n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 50%; background: #ffe600; color: #2d3277;
+  font-size: .74rem; font-weight: 900; box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+.cartao-ml-nome { font-size: .86rem; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4em; }
+.cartao-ml-preco { font-size: .9rem; font-weight: 800; color: var(--texto); }
+.cartao-ml-preco small { display: block; font-size: .7rem; font-weight: 600; color: var(--suave); }
 @media (max-width: 720px) {
-  .chips-ml { flex-wrap: nowrap; max-height: none; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin: 0 -12px; padding-left: 12px; padding-right: 12px; }
+  .chips-ml { margin: 0 -16px; padding-left: 16px; padding-right: 16px; scrollbar-width: none; }
   .chips-ml::-webkit-scrollbar { display: none; }
+  .cartao-ml { flex-basis: 118px; }
 }
 
 /* Entrega Full do Mercado Livre (10/11/2026) */
