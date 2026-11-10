@@ -1649,8 +1649,8 @@ function desenharFiltroSecoes() {
   const total = [...contagem.values()].reduce((n, q) => n + q, 0);
   const linha = (ativa, aoClicar, icone, nome, qtd) => el("button", { type: "button", class: `secao-item${ativa ? " ativa" : ""}`,
     "aria-pressed": String(ativa), onclick: aoClicar },
-  el("span", { class: "secao-icone", "aria-hidden": "true" }, icone), el("span", { class: "secao-nome" }, nome),
-  el("span", { class: "qtd", title: `${qtd} ofertas na lista` }, qtd));
+  // Sem o número de ofertas ao lado, aqui e nas marcas (11/11/2026, pedido do Giovanni: dava a impressão de pouco produto)
+  el("span", { class: "secao-icone", "aria-hidden": "true" }, icone), el("span", { class: "secao-nome" }, nome));
   const visiveis = estado.todasSecoes ? ordem : ordem.filter((secao, i) => i < SECOES_VISIVEIS || (!todas && secaoVisivel({ secao })));
   $("#filtro-secoes").replaceChildren(
     linha(todas, () => { estado.secoesSo = null; estado.secoesFora.clear(); desenharFiltroSecoes(); desenharResultados(); }, "🗂️", "Todas", total),
@@ -1860,8 +1860,7 @@ function desenharFiltroMarcas() {
       desenharResultados();
       if (e.target.checked) completarMarca(n, m.nome);
     } }),
-    m.nome,
-    el("span", { class: "qtd", title: `${m.qtd} ofertas desta marca na lista` }, m.qtd))),
+    m.nome)),
   ordem.length > mostrar.length || estado.todasMarcas
     ? el("button", { type: "button", class: "botao-link", onclick: () => { estado.todasMarcas = !estado.todasMarcas; desenharFiltroMarcas(); } },
       estado.todasMarcas ? "Ver menos" : `Ver todas (${ordem.length})`)
