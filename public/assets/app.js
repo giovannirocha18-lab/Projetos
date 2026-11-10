@@ -3431,26 +3431,42 @@ function desenharEmAlta(itens) {
 }
 
 // Em alta no Mercado Livre (10/11/2026): cartões com a foto e o preço de um produto do ML do termo; o toque abre a busca só na loja do ML
+const fotoPequenaML = (foto) => (/^https:\/\/http2\.mlstatic\.com\/.+-F\.jpg$/.test(foto || "") ? foto.replace(/-F\.jpg$/, "-V.jpg") : foto);
+// A última faixa vista fica guardada no aparelho: na visita seguinte ela aparece na hora e só depois é conferida
+const CHAVE_FAIXA_ML = "vpc_em_alta_ml";
+function faixaMLGuardada() {
+  try {
+    const g = JSON.parse(localStorage.getItem(CHAVE_FAIXA_ML) || "null");
+    return g && Date.now() - g.quando < 3 * 864e5 && Array.isArray(g.ml) ? g.ml : null;
+  } catch { return null; }
+}
 function desenharBuscadosML(cartoes) {
   const caixa = $("#buscados-ml");
   if (!caixa) return;
   const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
-  $("#chips-ml").replaceChildren(...cartoes.map((c) => el("button", { class: "cartao-ml", type: "button",
+  $("#chips-ml").replaceChildren(...cartoes.map((c, i) => el("button", { class: "cartao-ml", type: "button",
     onclick: () => irPara(c.termo, { atalho: true, loja: "mercadolivre" }) },
     el("span", { class: "cartao-ml-foto" },
-      el("img", { src: c.foto, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" })),
+      // Foto pequena do Mercado Livre ("-V", ~20 KB; a "-F" tem 150–300 KB e o cartão tem 120 px) e as primeiras sem "lazy"
+      // (11/11/2026, print do Giovanni: a faixa demorava a aparecer); se a pequena não abrir, volta a original
+      el("img", { src: fotoPequenaML(c.foto), alt: "", loading: i < 10 ? "eager" : "lazy", decoding: "async", referrerpolicy: "no-referrer",
+        onerror: (e) => { if (e.target.src !== c.foto) e.target.src = c.foto; } })),
     el("span", { class: "cartao-ml-nome" }, maiuscula(c.termo)),
     c.preco && el("span", { class: "cartao-ml-preco" }, `R$ ${brl(c.preco)}`))));
   caixa.hidden = cartoes.length < 4;
 }
 
 async function carregarEmAlta() {
+  const guardada = faixaMLGuardada();
+  if (guardada) desenharBuscadosML(guardada);
   try {
     const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=17")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);
-    desenharBuscadosML(ml);
+    // Mesma lista que já está na tela: não desenha de novo (as fotos piscariam)
+    if (JSON.stringify(ml) !== JSON.stringify(guardada)) desenharBuscadosML(ml);
+    try { localStorage.setItem(CHAVE_FAIXA_ML, JSON.stringify({ quando: Date.now(), ml })); } catch { /* sem espaço: segue sem guardar */ }
   } catch {
     // Ficam as listas padrão
   }
