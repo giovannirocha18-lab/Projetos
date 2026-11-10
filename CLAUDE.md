@@ -134,6 +134,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   mais" fica com o aviso parado "Procurando mais ofertas com esse filtro…" e para após 8 páginas sem produto novo
   (`rolagemInfinita`, `botaoCarregando`/`botaoParado`). Na Black Friday e nas lojas a marca ainda é procurada página a página
   (ideia: filtro de marca no servidor em /api/black-friday).
+- **10/11 (noite): "Categorias" dos resultados em lista de um toque**, como no ML (pedido do Giovanni; eram caixinhas todas
+  marcadas): tocar mostra só aquela, "Todas" volta, 8 + "Ver todas" (`desenharFiltroSecoes` em app.js, `.secao-item` no CSS;
+  `estado.secoesSo` com 1 categoria; `secoesFora` não é mais usado pela tela).
 - **10/11 (tarde)**: ML na busca passa de 24: páginas 2–10 vêm do banco (`paginaDoBanco`: mais vendidos que batem + catálogo
   guardado com preço; sem consulta ao ML). Link da AliExpress curto (`/ir/ali/<id>` → `destinoAli` gera o de afiliado no clique,
   cache 30 dias; era 40% da resposta, busca no celular mais lenta). Foto ruim no "Em alta no ML": pôr o id em `VITRINE_FORA`.
