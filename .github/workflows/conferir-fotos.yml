@@ -15,6 +15,10 @@ on:
         description: "Tempo máximo em minutos (máximo 150)"
         type: string
         default: "30"
+      reconferir:
+        description: "Só olhar de novo, uma a uma, as fotos já reprovadas (aprova as que não se confirmam)"
+        type: boolean
+        default: false
 concurrency:
   group: conferir-fotos
   cancel-in-progress: false
@@ -34,7 +38,7 @@ jobs:
       - name: Instalar o SDK da Anthropic e o redutor de fotos
         run: npm install --no-save --no-package-lock @anthropic-ai/sdk@1.3.0 sharp@0.35.5
       - name: IA conferindo as fotos
-        run: node robo/conferir-fotos.mjs "$TETO" "$MINUTOS"
+        run: node robo/conferir-fotos.mjs "$TETO" "$MINUTOS" ${{ inputs.reconferir && 'reconferir' || '' }}
         env:
           TETO: ${{ inputs.teto || '0.50' }}
           MINUTOS: ${{ inputs.minutos || '30' }}

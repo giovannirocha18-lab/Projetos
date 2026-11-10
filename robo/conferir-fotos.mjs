@@ -156,8 +156,43 @@ async function perguntar(lote) {
   }
 }
 
+// Reprovação só vale depois de confirmada com a foto SOZINHA (11/11/2026: na 1ª rodada grande, de 24 reprovadas olhadas
+// umas 14 eram fotos certas; em perguntas de 10 fotos a IA às vezes troca de qual produto é a foto ruim, e o vizinho de
+// uma "Imagem não disponível" saía junto). Sem confirmação (erro, teto), o produto fica aprovado
+async function confirmaReprovacao(o) {
+  const [resposta] = await perguntar([o]);
+  return Boolean(resposta && resposta[1] === false);
+}
+
 // ---------------------------------------------------------------------
 await d1(TABELA_IA_FOTOS);
+
+// "reconferir": olha de novo, uma a uma, as fotos já reprovadas e aprova as que não se confirmam
+if (process.argv[4] === "reconferir") {
+  const linhas = await d1("SELECT chave, foto FROM ia_fotos WHERE ok = 0");
+  const aprovar = [];
+  const mantidas = [];
+  let i = 0;
+  await Promise.all(Array.from({ length: PEDIDOS_AO_MESMO_TEMPO }, async () => {
+    while (i < linhas.length && podeGastar()) {
+      const l = linhas[i++];
+      const [resposta] = await perguntar([{ titulo: l.chave, imagem: l.foto }]);
+      if (!resposta) continue; // foto não abriu ou erro: fica como está
+      if (resposta[1]) aprovar.push(l.chave); else mantidas.push(l);
+    }
+  }));
+  for (let j = 0; j < aprovar.length; j += 200) {
+    await d1(`UPDATE ia_fotos SET ok = 1, quando = ${Date.now()} WHERE chave IN (${aprovar.slice(j, j + 200).map(texto).join(",")})`);
+  }
+  anotar(`- Reconferência das ${linhas.length} fotos reprovadas, uma a uma: ${aprovar.length} voltaram a aprovadas, ${mantidas.length} continuam reprovadas`);
+  anotar(`- Custo: US$ ${custo().toFixed(4)} (${entrada.toLocaleString("pt-BR")} tokens de entrada, ${saida.toLocaleString("pt-BR")} de saída)`);
+  if (mantidas.length) {
+    anotar("#### Continuam reprovadas");
+    for (const l of mantidas) anotar(`- ${l.chave.slice(0, 110)} — ${l.foto}`);
+  }
+  fim();
+  process.exit(0);
+}
 const conferidas = new Map(); // nome do produto -> foto já conferida
 for (let desde = 0; ;) {
   const linhas = await d1("SELECT rowid AS r, chave, foto FROM ia_fotos WHERE rowid > ? ORDER BY rowid LIMIT 50000", [desde]);
@@ -220,7 +255,8 @@ await Promise.all(Array.from({ length: PEDIDOS_AO_MESMO_TEMPO }, async () => {
     const lote = fila.slice(proximo, proximo + POR_PEDIDO);
     proximo += lote.length;
     const nivelDe = new Map(lote.map((x) => [x.o, x.nivel]));
-    for (const [o, ok] of await perguntar(lote.map((x) => x.o))) {
+    for (const [o, okDoLote] of await perguntar(lote.map((x) => x.o))) {
+      const ok = okDoLote || !(await confirmaReprovacao(o));
       novas.push([chaveIa(o.titulo), ok, o.imagem]);
       feitasPorNivel[nivelDe.get(o)]++;
       if (!ok) reprovadas.push({ titulo: o.titulo, loja: o.lojaNome || o.loja, foto: o.imagem, nivel: nivelDe.get(o) });
