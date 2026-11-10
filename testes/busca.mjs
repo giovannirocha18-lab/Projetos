@@ -13,6 +13,13 @@ import { categoriaDoProduto, categoriaPorNome, marcarSecoes } from "../lib/categ
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 
 const CASOS = {
+  // 11/11/2026 (print do Giovanni, "computador" na loja Mercado Livre): balança computadora no "Mais barato"
+  "computador": {
+    E: ["Computador Completo Intel Core i5 4570 (4ª Geração), 16GB, SSD 256GB, Monitor 20", "Computador Desktop Dell Optiplex i7 16GB SSD 480GB",
+      "Computadores Gamer Completo Ryzen 5 16GB SSD 512GB"],
+    N: ["Balança Computadora Urano Us Pop-s Serial DB9 Peso Máximo 30kg", "Balança Eletrônica Computadora 40kg Bivolt",
+      "Máquina de Bordar Computadorizada Brother PE910L"],
+  },
   // 10/11/2026 (print do Giovanni, "moto eletrica" pelo Em alta no ML): motosserra e motor não são moto
   "moto eletrica": {
     E: ["Moto Elétrica Infantil Mini 3 Rodas Frente/Ré Maxi Toys", "Mini Moto Elétrica Infantil 6V Preto Triciclo 3 Rodas", "Moto Cross Elétrica 6V Rosa"],
