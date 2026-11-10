@@ -1904,7 +1904,7 @@ function lojasNoResumo() {
         type: "button", class: "chip-loja", "aria-pressed": String(ligada), style: `--cor-loja:${loja.cor}`,
         title: ligada ? `Esconder as ofertas da ${loja.nome}` : `Mostrar as ofertas da ${loja.nome}`,
         onclick: () => { alternarLoja(id, !ligada); atualizar(); },
-      }, el("span", { class: "loja-ponto" }), loja.nome, el("span", { class: "qtd" }, contagem[id]));
+      }, el("span", { class: "loja-ponto" }), loja.nome); // sem o número de ofertas (11/11/2026, pedido do Giovanni)
     }),
     el("button", {
       type: "button", class: "chip-acao",
@@ -1932,8 +1932,7 @@ function desenharLojasDaLista() {
         type: "checkbox", checked: !estado.lojasDesmarcadas.has(id),
         onchange: (e) => { alternarLoja(id, e.target.checked); desenharResultados(); },
       }),
-      el("span", { class: "loja-ponto" }), loja.nome,
-      el("span", { class: "qtd", title: `${contagem[id]} ofertas desta loja na lista` }, contagem[id]));
+      el("span", { class: "loja-ponto" }), loja.nome);
   }));
 }
 
@@ -2176,7 +2175,6 @@ function desenharBotaoFrete() {
   // "⭐ Bem avaliados" (26/10/2026): só a Shopee manda nota; a opção aparece quando há produtos com nota na lista
   const avaliados = estado.ofertas.filter((o) => temNota(o) && (!ligado || o.freteGratis) && !(escondeAcessorios() && o.acessorio)).length;
   $("#opcao-avaliados").hidden = !avaliados && !bem;
-  $("#qtd-avaliados").textContent = avaliados || "";
   $("#mais-opcoes").hidden = $("#opcao-frete").hidden && $("#opcao-avaliados").hidden;
   document.querySelectorAll("[data-frete]").forEach((b) => {
     b.hidden = qtd < FRETE_MINIMO && !ligado;
