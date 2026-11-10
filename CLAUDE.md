@@ -141,6 +141,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Shopee, Awin, ML `paginaDoBanco`; `FONTES_DO_BANCO`, opção `soBanco` nas fontes; chave de cache própria), 0,6–3 s, sem
   consultar loja. `completarMarca` pede a rápida (adiantada quando o mouse para na marca) e depois a completa: Philips em
   Eletroportáteis 9 → 116 em 2 s → 177. NÃO pré-carregar a busca completa de todas as marcas (a Shopee limita).
+- **11/11: filtros sem o número de ofertas ao lado** (Marcas, Categorias, Lojas — barra lateral e botões do card — e "Bem
+  avaliados"; pedido do Giovanni: dava a impressão de pouco produto). Ficaram com número: botão "🚚 Frete grátis (N)" e
+  atalhos de categoria da loja ML. A ordem (mais ofertas primeiro) não mudou.
 - **10/11 (noite): "Categorias" dos resultados em lista de um toque**, como no ML (pedido do Giovanni; eram caixinhas todas
   marcadas): tocar mostra só aquela, "Todas" volta, 8 + "Ver todas" (`desenharFiltroSecoes` em app.js, `.secao-item` no CSS;
   `estado.secoesSo` com 1 categoria; `secoesFora` não é mais usado pela tela).
