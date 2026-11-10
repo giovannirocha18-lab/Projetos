@@ -1108,7 +1108,7 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .buscados-ml { margin: 4px 0 14px; }
 .buscados-ml h2 { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; margin: 0 0 8px; }
 .selo-ml-mini { background: #ffe600; color: #2d3277; font-size: .7rem; font-weight: 900; padding: 2px 6px; border-radius: 6px; }
-.chips-ml { display: flex; flex-wrap: wrap; gap: 8px; max-height: 88px; overflow: hidden; }
+.chips-ml { display: flex; flex-wrap: wrap; gap: 8px; max-height: 80px; overflow: hidden; }
 .chip-ml { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e6e1b0; background: #fffbe0; color: #2d3277;
   border-radius: 999px; padding: 6px 12px 6px 6px; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .chip-ml:hover { background: #fff4a8; border-color: #e0cf4a; }
