@@ -3244,13 +3244,13 @@ function desenharEmAlta(itens) {
   }));
 }
 
-// Mais buscados no Mercado Livre (10/11/2026): cartões com a foto e o preço de um produto do ML do termo; o toque abre a busca
+// Em alta no Mercado Livre (10/11/2026): cartões com a foto e o preço de um produto do ML do termo; o toque abre a busca só na loja do ML
 function desenharBuscadosML(cartoes) {
   const caixa = $("#buscados-ml");
   if (!caixa) return;
   const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   $("#chips-ml").replaceChildren(...cartoes.map((c) => el("button", { class: "cartao-ml", type: "button",
-    onclick: () => irPara(c.termo, { atalho: true }) },
+    onclick: () => irPara(c.termo, { atalho: true, loja: "mercadolivre" }) },
     el("span", { class: "cartao-ml-foto" },
       el("img", { src: c.foto, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" })),
     el("span", { class: "cartao-ml-nome" }, maiuscula(c.termo)),

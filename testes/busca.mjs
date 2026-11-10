@@ -13,6 +13,12 @@ import { categoriaDoProduto, categoriaPorNome, marcarSecoes } from "../lib/categ
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 
 const CASOS = {
+  // 10/11/2026 (print do Giovanni, "moto eletrica" pelo Em alta no ML): motosserra e motor não são moto
+  "moto eletrica": {
+    E: ["Moto Elétrica Infantil Mini 3 Rodas Frente/Ré Maxi Toys", "Mini Moto Elétrica Infantil 6V Preto Triciclo 3 Rodas", "Moto Cross Elétrica 6V Rosa"],
+    N: ["Motosserra Elétrica Brushless 16 Polegadas 2 Bateria 3600w", "Mini Motosserra Elétrica Portátil 6 Pol. Duas Baterias 1800w",
+      "Motor Elétrico Trifásico 1cv 4 Polos", "Moto Serra Elétrica 12 Polegadas 2 Baterias 48v Portátil"],
+  },
   // 05/11/2026 (print do Giovanni, "air fryer 5 litros"): o Mercado Livre escreve "de 5L"; 4L e 25L não são 5 litros
   "air fryer 5 litros": {
     E: ["Air fryer Mondial Air Fryer AFN-50-BI de 5L preto 127V", "Fritadeira Elétrica Air Fryer 5 Litros Sem Óleo", "Air Fryer Britânia 5 L Preta"],
