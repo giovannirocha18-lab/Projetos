@@ -940,12 +940,15 @@ const longoCurto = (longo, curto) => [el("span", { class: "so-longo" }, longo), 
 
 // Foto do cartão em tamanho de cartão (celular demorava: AliExpress e lojas VTEX mandam 800–1500 px, até 180 KB cada;
 // 30/10/2026). A janela "Ver detalhes" continua com a original. AliExpress: sufixo _350x350; VTEX (Animale, Karsten,
-// Monte Carlo, Rovitex…): /arquivos/ids/<id>-350-auto (mantém a proporção); gbmedia: w_400
+// Monte Carlo, Rovitex…): /arquivos/ids/<id>-350-auto (mantém a proporção); gbmedia: w_400; Mercado Livre: "-O" no lugar de "-F"
 const fotoPequena = (url) => {
   if (!url) return url;
   if (/aliexpress-media\.com|alicdn\.com/.test(url) && /\.(jpe?g|png|webp)$/i.test(url)) return `${url}_350x350${url.match(/\.\w+$/)[0]}`;
   if (/\.vteximg\.com\.br\/arquivos\/ids\/\d+/.test(url)) return url.replace(/(\/arquivos\/ids\/\d+)(?:_\d+)?(?:-\d+-(?:\d+|auto))?(?=\/|\?|$)/, "$1-350-auto");
   if (/gbmedia\.com\.br\/images\/w_\d+\//.test(url)) return url.replace(/\/w_\d+\//, "/w_400/");
+  // Mercado Livre (11/11/2026, aprovado pelo Giovanni com o print da comparação): a "-F" tem 150–300 KB e a "-O" (500 px),
+  // 45–70 KB; o cartão mostra a foto com no máximo 266 px. A página inicial baixava ~8 MB de fotos do ML
+  if (/^https:\/\/http2\.mlstatic\.com\/.+-F\.(jpg|webp)$/.test(url)) return url.replace(/-F\.(jpg|webp)$/, "-O.$1");
   return url;
 };
 
