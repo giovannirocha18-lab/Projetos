@@ -1877,6 +1877,7 @@ function contarLojas() {
 
 function alternarLoja(id, ligar) {
   if (ligar) estado.lojasDesmarcadas.delete(id); else estado.lojasDesmarcadas.add(id);
+  estado.lojaSo = null; // escolha à mão, uma a uma (ver desenharLojasDaLista)
 }
 
 // A API das lojas manda o preço sem cupom; com cupom ou Pix (depende da conta e da campanha) pode sair menos na loja.
@@ -1922,18 +1923,31 @@ function desenharFiltroLojas() {
   desenharLojasDaLista();
 }
 
-// Lojas da barra lateral com a quantidade de cada uma (refeita a cada filtro mexido, para o número bater com a tela)
+// Lojas da barra lateral em lista de um toque, como as categorias (11/11/2026, pedido do Giovanni; eram caixinhas todas
+// marcadas, para desmarcar uma por uma): tocar numa loja mostra só ela; "Todas" volta a mostrar tudo. estado.lojaSo guarda
+// a loja escolhida para as lojas que chegarem depois (mais páginas) já entrarem escondidas. Os botões de loja do card de
+// resultados continuam ligando/desligando uma a uma (alternarLoja)
 function desenharLojasDaLista() {
+  if (!estado.lojasDesmarcadas.size || estado.lojasDesmarcadas.has(estado.lojaSo)) estado.lojaSo = null;
+  if (estado.lojaSo) for (const o of estado.ofertas) if (o.loja !== estado.lojaSo) estado.lojasDesmarcadas.add(o.loja);
   const contagem = contarLojas();
-  $("#filtro-lojas").replaceChildren(...Object.keys(contagem).map((id) => {
-    const loja = infoLoja(estado.ofertas.find((o) => o.loja === id));
-    return el("label", { class: "opcao", style: `--cor-loja:${loja.cor}` },
-      el("input", {
-        type: "checkbox", checked: !estado.lojasDesmarcadas.has(id),
-        onchange: (e) => { alternarLoja(id, e.target.checked); desenharResultados(); },
-      }),
-      el("span", { class: "loja-ponto" }), loja.nome);
-  }));
+  const todas = !Object.keys(contagem).some((id) => estado.lojasDesmarcadas.has(id));
+  const linha = (ativa, aoClicar, icone, nome, cor) => el("button", { type: "button", class: `secao-item${ativa ? " ativa" : ""}`,
+    "aria-pressed": String(ativa), onclick: aoClicar, ...(cor && { style: `--cor-loja:${cor}` }) },
+  el("span", { class: "secao-icone", "aria-hidden": "true" }, icone), el("span", { class: "secao-nome" }, nome));
+  const escolher = (id) => {
+    estado.lojaSo = id;
+    estado.lojasDesmarcadas.clear();
+    if (id) for (const o of estado.ofertas) if (o.loja !== id) estado.lojasDesmarcadas.add(o.loja);
+    desenharFiltroLojas();
+    desenharResultados();
+  };
+  $("#filtro-lojas").replaceChildren(
+    linha(todas, () => escolher(null), "🏬", "Todas"),
+    ...Object.keys(contagem).map((id) => {
+      const loja = infoLoja(estado.ofertas.find((o) => o.loja === id));
+      return linha(!todas && !estado.lojasDesmarcadas.has(id), () => escolher(id), el("span", { class: "loja-ponto" }), loja.nome, loja.cor);
+    }));
 }
 
 // "oculos" buscado com a página da Calvin Klein aberta: mostra a loja e um jeito de buscar em todas

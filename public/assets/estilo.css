@@ -570,7 +570,8 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .opcao .qtd { margin-left: auto; font-size: .78rem; color: var(--suave); background: var(--bg); padding: 1px 8px; border-radius: 999px; }
 
 /* Categorias dos resultados em lista (como no Mercado Livre): um toque mostra só aquela */
-#filtro-secoes { display: grid; gap: 2px; }
+#filtro-secoes, #filtro-lojas { display: grid; gap: 2px; }
+.secao-icone .loja-ponto { display: inline-block; }
 .secao-item {
   display: flex; align-items: center; gap: 8px; width: calc(100% + 16px); padding: 6px 8px; margin: 0 -8px;
   border: 0; border-radius: 10px; background: transparent; color: inherit; font: inherit; font-size: .92rem; font-weight: 500;
