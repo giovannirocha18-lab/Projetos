@@ -3260,7 +3260,7 @@ function desenharBuscadosML(cartoes) {
 
 async function carregarEmAlta() {
   try {
-    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=16")).json();
+    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=17")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);
