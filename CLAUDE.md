@@ -119,6 +119,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   mão), somadas na aba Comissões (`lib/comissoesManuais.js`, `/api/painel/parametros`). Nada de senha guardada.
 - **09/11: teste de dia do robô da noite (rodada manual) ✅**: as 2 trilhas chegaram ao fim sem erro; ML 50 min de buscas;
   prontas pararam aos 70 min (~450 de 627) → limite subiu para 120 min. Buscas no ar ok (air fryer 793, celular ML 24).
+- **10/11: ML no site**: selo **"⚡ Full"** (`full` = shipping.logistic_type "fulfillment" da oferta mais barata; aparece conforme o
+  robô renova os preços) e faixa **"Mais buscados no Mercado Livre"** na página inicial (/trends/MLB via /api/em-alta?v=11, campo
+  `ml`, `desenharBuscadosML`). API do ML NÃO manda parcelas (installments null) → sem "12x sem juros"; manda garantia (dá para
+  mostrar). Fila do ML: só 2 termos. Teste da API: workflow teste-ml.yml (`/api/preparar-ml?amostraItens=1`).
 - **09/11: repositório PÚBLICO** (decisão do Giovanni, até resolver o limite do GitHub; minutos ilimitados; conferido antes:
   sem senha/chave/CPF no código nem no histórico). Voltar a privado: Settings → Danger Zone → Change visibility. Run #133 ✅
   (Awin +58/693 preços, lista Shopee 99.931). **Nunca pôr segredo no código/logs: tudo fica visível.**
