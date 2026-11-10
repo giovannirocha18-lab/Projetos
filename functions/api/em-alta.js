@@ -30,7 +30,7 @@ const VIRA_CATEGORIA = {
 export async function onRequestGet({ request, env }) {
   // Guarda por 1 hora para não consultar a Shopee a cada visita
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/em-alta?v=10", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/em-alta?v=11", request.url)); // trocar o v= para descartar o guardado
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
 
@@ -42,7 +42,10 @@ export async function onRequestGet({ request, env }) {
   // Mais buscados no ML: sem impróprios (mesmo filtro das sugestões) e sem repetidos
   const vistosML = new Set();
   const ml = doML.filter((t) => t.length >= 3 && t.length <= 40 && tendenciaAceitavel(t))
-    .filter((t) => !vistosML.has(normalizar(t)) && vistosML.add(normalizar(t))).slice(0, 20);
+    .filter((t) => !vistosML.has(normalizar(t)) && vistosML.add(normalizar(t)))
+    // "creatina" e "creatina growth", "moto eletrica" e "moto eletrica adulta": fica só o primeiro
+    .filter((t, i, lista) => !lista.slice(0, i).some((o) => `${normalizar(t)} `.startsWith(`${normalizar(o)} `)
+      || `${normalizar(o)} `.startsWith(`${normalizar(t)} `))).slice(0, 20);
   const categorias = categoriasEmAlta(maisVendidos, QUANTIDADE);
   const vistos = new Set();
   const itens = [...doSite.map((t) => VIRA_CATEGORIA[normalizar(t)] || { nome: t, busca: t }), ...categorias]

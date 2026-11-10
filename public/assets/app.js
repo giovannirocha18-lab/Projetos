@@ -740,7 +740,7 @@ function abrirComparacao() {
       linha("Avaliação", (o) => (o.avaliacao ? el("span", { class: o.avaliacao === melhorNota && lista.length > 1 ? "comparar-melhor" : null },
         `★ ${String(o.avaliacao).replace(".", ",")}`) : "—")),
       linha("Vendidos", (o) => (o.vendidos ? el("span", { class: o.vendidos === maisVendido ? "comparar-melhor" : null }, vendidosTexto(o.vendidos)) : "—")),
-      linha("Envio", (o) => (o.envioNacional ? "🇧🇷 Do Brasil" : o.internacional ? "🌎 Internacional" : o.freteGratis ? "🚚 Frete grátis" : "Nacional")),
+      linha("Envio", (o) => (o.envioNacional ? "🇧🇷 Do Brasil" : o.internacional ? "🌎 Internacional" : o.freteGratis ? `🚚 Frete grátis${o.full ? " · ⚡ Full" : ""}` : o.full ? "⚡ Full" : "Nacional")),
       el("tr", {}, el("th", {}, ""), ...lista.map((o) => el("td", {},
         el("a", { class: classeBotao(infoLoja(o)), href: o.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("comparar", o) }, ...textoComprar(infoLoja(o))),
         el("button", { class: "botao-link", type: "button", onclick: () => { alternarComparar(o); comparando.size >= 2 ? abrirComparacao() : $("#janela-comparar").close(); } }, "Tirar"))))));
@@ -1108,7 +1108,9 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
           el("span", { class: "preco-antigo" }, `R$ ${brl(o.precoAntigo)}`)),
         el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", { class: "centavos" }, `,${decimal}`)),
         o.precoAntigo > o.preco + 1 && el("span", { class: "economia-tag" }, ...longoCurto(`Você economiza R$ ${brl(o.precoAntigo - o.preco)}`, `Economize R$ ${brl(o.precoAntigo - o.preco)}`))),
-      o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
+      (o.freteGratis || o.full) && el("div", { class: "selos-entrega" },
+        o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
+        o.full && el("span", { class: "full", title: "Entrega Full: o produto sai do depósito do Mercado Livre e costuma chegar mais rápido" }, "⚡ Full")),
       o.internacional && el("span", {
         class: "internacional",
         title: `Loja de fora do Brasil.${o.moeda ? ` Preço convertido de ${o.moeda} pela cotação do dia;` : ""} pode haver impostos de importação.`,
@@ -1315,6 +1317,7 @@ function abrirDetalhes(o, { doLink = false } = {}) {
       o.precoAntigo > o.preco + 1 && el("span", { class: "economia-tag" }, `Você economiza R$ ${brl(o.precoAntigo - o.preco)}`)),
     el("div", { class: "detalhes-selos" },
       o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
+      o.full && el("span", { class: "full" }, "⚡ Full · sai do depósito do Mercado Livre"),
       o.internacional && el("span", { class: "internacional" },
         o.moeda ? `🌎 Internacional · valor convertido de ${o.moeda}` : "🌎 Internacional"),
       o.envioNacional && el("span", { class: "internacional nacional" }, el("span", { class: "bandeira-br", "aria-hidden": "true" }), " Envio do Brasil")),
@@ -3253,7 +3256,7 @@ function desenharBuscadosML(termos) {
 
 async function carregarEmAlta() {
   try {
-    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=10")).json();
+    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=11")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);
