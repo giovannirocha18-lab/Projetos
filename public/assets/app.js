@@ -1722,21 +1722,45 @@ function marcaDe(o) {
 // Agora o site faz na hora a busca "produto + marca" (que o servidor já sabe fazer e costuma estar guardada) e junta os
 // produtos dessa marca à lista. Uma vez por marca em cada busca
 const marcasCompletadas = { pedido: -1, feitas: new Set() };
+// O pedido "produto + marca" (guardado por busca): começa já quando o mouse ou o dedo encosta na marca, antes do clique
+const marcasPedidas = { pedido: -1, mapa: new Map() };
+function pedirMarca(n, nome) {
+  if (marcasPedidas.pedido !== estado.pedido) { marcasPedidas.pedido = estado.pedido; marcasPedidas.mapa.clear(); }
+  if (!marcasPedidas.mapa.has(n)) {
+    // Vendo uma categoria, a busca é só a marca dentro dela; numa busca, "geladeira brastemp"
+    const termo = navegandoCategoria() ? nome : `${estado.q} ${nome}`;
+    marcasPedidas.mapa.set(n, fetch(enderecoBusca(termo, estado.cat, "&atalho=1")).then((r) => (r.ok ? r.json() : null)).catch(() => null));
+  }
+  return marcasPedidas.mapa.get(n);
+}
+// Só se o mouse PARAR na marca (passar por cima da lista não pede nada) e no máximo 3 adiantadas por busca: cada pedido
+// é uma busca nas lojas, e a Shopee limita as consultas
+let timerMarca = null;
+function adiantarMarca(n, nome) {
+  clearTimeout(timerMarca);
+  if (!n) return;
+  timerMarca = setTimeout(() => {
+    if (!estado.q || estado.loja || estado.buscando || estado.marcasSo.has(n)) return;
+    if (marcasPedidas.pedido === estado.pedido && marcasPedidas.mapa.size >= 3 && !marcasPedidas.mapa.has(n)) return;
+    pedirMarca(n, nome);
+  }, 350);
+}
 async function completarMarca(n, nome) {
   if (!estado.q || estado.loja || estado.buscando) return;
   const pedido = estado.pedido;
   if (marcasCompletadas.pedido !== pedido) { marcasCompletadas.pedido = pedido; marcasCompletadas.feitas.clear(); }
   if (marcasCompletadas.feitas.has(n)) return;
   marcasCompletadas.feitas.add(n);
-  // Vendo uma categoria, a busca é só a marca dentro dela; numa busca, "geladeira brastemp"
-  const termo = navegandoCategoria() ? nome : `${estado.q} ${nome}`;
   const botao = $("#mais-resultados");
   const textoAntes = botao.textContent;
   botao.disabled = true;
   botao.textContent = `Buscando mais produtos ${nome}…`;
+  // Cartões "carregando" logo depois dos que já apareceram (10/11/2026, print do Giovanni: o aviso ficava só no botão, lá
+  // embaixo, e parecia que era preciso rolar até o fim para o site buscar mais)
+  const espera = esqueletos(4);
+  $("#grade").append(...espera);
   try {
-    const resp = await fetch(enderecoBusca(termo, estado.cat, "&atalho=1"));
-    const dados = resp.ok ? await resp.json() : null;
+    const dados = await pedirMarca(n, nome);
     if (!dados || pedido !== estado.pedido) return;
     const ja = new Set(estado.ofertas.map((o) => o.id));
     const novas = semRepetidos(dados.ofertas || []).filter((o) => !ja.has(o.id) && marcaDe(o)?.n === n);
@@ -1749,6 +1773,7 @@ async function completarMarca(n, nome) {
   } catch {
     // sem os extras: fica a lista que já estava
   } finally {
+    for (const e of espera) e.remove();
     if (botao.textContent.startsWith("Buscando mais produtos")) { botao.disabled = false; botao.textContent = textoAntes; }
   }
 }
@@ -1782,7 +1807,8 @@ function desenharFiltroMarcas() {
   }
   ordemMarcas = ordem.map(([n]) => n);
   const mostrar = estado.todasMarcas ? ordem : ordem.slice(0, Math.max(MARCAS_VISIVEIS, estado.marcasSo.size));
-  $("#filtro-marcas").replaceChildren(...mostrar.map(([n, m]) => el("label", { class: "opcao" },
+  $("#filtro-marcas").replaceChildren(...mostrar.map(([n, m]) => el("label", { class: "opcao",
+    onpointerenter: (e) => { if (e.pointerType === "mouse") adiantarMarca(n, m.nome); }, onpointerleave: () => adiantarMarca(null) },
     el("input", { type: "checkbox", checked: estado.marcasSo.has(n), onchange: (e) => {
       if (e.target.checked) estado.marcasSo.add(n); else estado.marcasSo.delete(n);
       desenharFiltroLojas();
