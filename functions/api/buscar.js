@@ -141,6 +141,9 @@ function responder(dados, status = 200) {
   });
 }
 
+// Lojas que a busca rápida (rapido=1) lê só do nosso banco, sem consultar a loja
+const FONTES_DO_BANCO = new Set(["awin", "shopee", "mercadolivre"]);
+
 const comLimite = (promessa, ms) => Promise.race([promessa,
   new Promise((_, falha) => setTimeout(() => falha(new Error(`demorou mais de ${ms / 1000} s`)), ms))]);
 
@@ -219,7 +222,17 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Guarda as respostas (ver FRESCO_MS) para responder na hora e não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${soLoja ? `&loja=${encodeURIComponent(soLoja.id)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
+  const chaveCheia = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${soLoja ? `&loja=${encodeURIComponent(soLoja.id)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
+  // rapido=1 (10/11/2026, ideia do Giovanni: "a Shopee já tem uma lista baixada, ela não serve?"): responde só com o que
+  // está no nosso banco (lista oficial da Shopee, lojas da Awin e mais vendidos/catálogo do Mercado Livre), sem consultar
+  // nenhuma loja: sai em menos de 1 s e não gasta o limite da Shopee. O site usa ao marcar uma marca (completarMarca em
+  // app.js) e depois pede a busca completa. Se a completa já estiver guardada, vai ela mesma. Guardada em chave própria
+  const rapido = Boolean(q) && params.has("rapido") && pagina === 1 && desde === 1 && !soLoja && !preparar && !atualizar;
+  if (rapido && cache) {
+    const cheia = await cache.match(chaveCheia);
+    if (cheia) return paraNavegador(await respostaSemNaoBuscados(env.DB, q, await respostaSemFotosQuebradas(env.DB, cheia, waitUntil)));
+  }
+  const chave = rapido ? new Request(`${chaveCheia.url}&rapido=1`) : chaveCheia;
   // Refaz a busca nas lojas em segundo plano (sem contar como busca)
   const refazerPorTras = (criado) => {
     if (preparar || atualizar || Date.now() - criado < FRESCO_MS) return;
@@ -265,13 +278,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const reais = FONTES_REAIS.filter((_, i) => ligadas[i]);
   // Enquanto nenhuma API estiver ligada, usa os produtos de exemplo
   // Da 2ª página em diante, só as lojas que têm mais páginas de destaques
-  const fontes = (reais.length ? reais : [exemplo]).filter((f) => (pagina === 1 || f.porPagina) && (!soLoja || f.nome === soLoja.rede));
+  const fontes = (reais.length ? reais : [exemplo]).filter((f) => (pagina === 1 || f.porPagina) && (!soLoja || f.nome === soLoja.rede)
+    && (!rapido || FONTES_DO_BANCO.has(f.nome)));
 
   // Categorias das lojas que já sabemos traduzir para as nossas (ver lib/mapaCategorias.js)
   const mapa = await carregarMapa(env);
   const lojas = {};
   const consultar = async (termo, opcoesDaBusca) => {
     if (soLoja) opcoesDaBusca = { ...opcoesDaBusca, soLoja: soLoja.chave };
+    if (rapido) opcoesDaBusca = { ...opcoesDaBusca, soBanco: true };
     // A loja pode buscar também dentro das categorias dela que já sabemos serem da categoria do que foi buscado
     const catBusca = termo ? categoriaDoProduto(termo) : null;
     // resto = a busca sem o nome da categoria ("celular samsung" -> "samsung"; "celular" -> ""): dentro da categoria
@@ -451,7 +466,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Mercado Livre incompleto nesta busca (recusou ou veio pouco): vai para a fila do robô da madrugada (lib/mlFila.js)
   // Só busca que trouxe produtos e passa no filtro das tendências (10/11/2026, revisão: termos inventados enchiam a fila e o
   // robô gastava a madrugada do ML neles)
-  if (q && pagina === 1 && desde === 1 && !preparar && !atualizar && !soLoja && env.DB && lojas.mercadolivre && reais.length
+  if (q && pagina === 1 && desde === 1 && !preparar && !atualizar && !soLoja && !rapido && env.DB && lojas.mercadolivre && reais.length
     && ofertas.length >= 5 && tendenciaAceitavel(q)
     && (!lojas.mercadolivre.ok || ofertas.filter((o) => o.loja === "mercadolivre").length < POUCOS_ML)) {
     waitUntil(anotarNaFilaML(env.DB, q).catch(() => {}));

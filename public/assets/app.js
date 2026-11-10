@@ -1722,28 +1722,40 @@ function marcaDe(o) {
 // Agora o site faz na hora a busca "produto + marca" (que o servidor já sabe fazer e costuma estar guardada) e junta os
 // produtos dessa marca à lista. Uma vez por marca em cada busca
 const marcasCompletadas = { pedido: -1, feitas: new Set() };
-// O pedido "produto + marca" (guardado por busca): começa já quando o mouse ou o dedo encosta na marca, antes do clique
+// Dois pedidos por marca (guardados por busca). "rapido": só o que está no nosso banco (lista da Shopee, lojas da Awin, mais
+// vendidos do ML), responde em menos de 1 s e não consulta loja nenhuma; começa já quando o mouse para na marca. "completo":
+// a busca nas lojas (AliExpress, Shopee ao vivo…), só depois do clique
 const marcasPedidas = { pedido: -1, mapa: new Map() };
-function pedirMarca(n, nome) {
+function pedirMarca(n, nome, tipo) {
   if (marcasPedidas.pedido !== estado.pedido) { marcasPedidas.pedido = estado.pedido; marcasPedidas.mapa.clear(); }
-  if (!marcasPedidas.mapa.has(n)) {
+  const chave = `${tipo}|${n}`;
+  if (!marcasPedidas.mapa.has(chave)) {
     // Vendo uma categoria, a busca é só a marca dentro dela; numa busca, "geladeira brastemp"
     const termo = navegandoCategoria() ? nome : `${estado.q} ${nome}`;
-    marcasPedidas.mapa.set(n, fetch(enderecoBusca(termo, estado.cat, "&atalho=1")).then((r) => (r.ok ? r.json() : null)).catch(() => null));
+    marcasPedidas.mapa.set(chave, fetch(enderecoBusca(termo, estado.cat, `&atalho=1${tipo === "rapido" ? "&rapido=1" : ""}`))
+      .then((r) => (r.ok ? r.json() : null)).catch(() => null));
   }
-  return marcasPedidas.mapa.get(n);
+  return marcasPedidas.mapa.get(chave);
 }
-// Só se o mouse PARAR na marca (passar por cima da lista não pede nada) e no máximo 3 adiantadas por busca: cada pedido
-// é uma busca nas lojas, e a Shopee limita as consultas
 let timerMarca = null;
 function adiantarMarca(n, nome) {
   clearTimeout(timerMarca);
   if (!n) return;
   timerMarca = setTimeout(() => {
-    if (!estado.q || estado.loja || estado.buscando || estado.marcasSo.has(n)) return;
-    if (marcasPedidas.pedido === estado.pedido && marcasPedidas.mapa.size >= 3 && !marcasPedidas.mapa.has(n)) return;
-    pedirMarca(n, nome);
-  }, 350);
+    if (estado.q && !estado.loja && !estado.buscando && !estado.marcasSo.has(n)) pedirMarca(n, nome, "rapido");
+  }, 200);
+}
+// Junta à lista os produtos da marca que ainda não estavam nela (devolve quantos entraram)
+function juntarDaMarca(dados, n) {
+  const ja = new Set(estado.ofertas.map((o) => o.id));
+  const novas = semRepetidos(dados?.ofertas || []).filter((o) => !ja.has(o.id) && marcaDe(o)?.n === n);
+  if (!novas.length) return 0;
+  const antes = estado.ofertas.length;
+  estado.ofertas = semRepetidos([...estado.ofertas.filter((o) => !o.acessorio), ...novas.filter((o) => !o.acessorio),
+    ...estado.ofertas.filter((o) => o.acessorio), ...novas.filter((o) => o.acessorio)]);
+  desenharFiltroLojas();
+  desenharResultados();
+  return estado.ofertas.length - antes;
 }
 async function completarMarca(n, nome) {
   if (!estado.q || estado.loja || estado.buscando) return;
@@ -1757,19 +1769,20 @@ async function completarMarca(n, nome) {
   botao.textContent = `Buscando mais produtos ${nome}…`;
   // Cartões "carregando" logo depois dos que já apareceram (10/11/2026, print do Giovanni: o aviso ficava só no botão, lá
   // embaixo, e parecia que era preciso rolar até o fim para o site buscar mais)
-  const espera = esqueletos(4);
-  $("#grade").append(...espera);
+  const esperar = () => { const e = esqueletos(4); $("#grade").append(...e); return e; };
+  let espera = esperar();
   try {
-    const dados = await pedirMarca(n, nome);
-    if (!dados || pedido !== estado.pedido) return;
-    const ja = new Set(estado.ofertas.map((o) => o.id));
-    const novas = semRepetidos(dados.ofertas || []).filter((o) => !ja.has(o.id) && marcaDe(o)?.n === n);
-    if (!novas.length) return;
-    const todas = semRepetidos([...estado.ofertas.filter((o) => !o.acessorio), ...novas.filter((o) => !o.acessorio),
-      ...estado.ofertas.filter((o) => o.acessorio), ...novas.filter((o) => o.acessorio)]);
-    estado.ofertas = todas;
-    desenharFiltroLojas();
-    desenharResultados();
+    const completo = pedirMarca(n, nome, "completo");
+    // 1º o que já está guardado no nosso banco (menos de 1 s)…
+    const rapido = await pedirMarca(n, nome, "rapido");
+    if (pedido !== estado.pedido) return;
+    juntarDaMarca(rapido, n);
+    for (const e of espera) e.remove();
+    espera = esperar();
+    // …depois o que as lojas responderem (alguns segundos)
+    const dados = await completo;
+    if (pedido !== estado.pedido) return;
+    juntarDaMarca(dados, n);
   } catch {
     // sem os extras: fica a lista que já estava
   } finally {
