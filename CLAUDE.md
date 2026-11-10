@@ -165,9 +165,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **11/11: IA conferindo as FOTOS** (pedido do Giovanni): `robo/conferir-fotos.mjs` (foto reduzida a 384 px, 10 por pergunta,
   Haiku 5.5; teto de gasto por rodada, máx. US$ 4; ordem: Escolha rápida/Ofertas do dia → 24 primeiros → resto), tabela
   `ia_fotos`, `lib/iaFotos.js` (reprovada sai das buscas e Ofertas do dia enquanto tiver a mesma foto; lojas/Black Friday
-  ainda não). Workflow próprio `conferir-fotos.yml` (toda manhã 07h40, teto US$ 0,50; à mão: teto e minutos). Teste: 2.033
-  fotos, US$ 0,07 (US$ 0,035 por mil), 6 reprovadas (5 certas, 1 carregador reprovado à toa). Rodada de US$ 4 disparada em
-  10/11 à noite (fila ~63 mil): conferir resultado e a lista de reprovadas. Saldo da Anthropic: US$ 14,10 (10/11).
+  ainda não). Workflow próprio `conferir-fotos.yml` (toda manhã 07h40, teto US$ 0,50; à mão: teto e minutos). 1ª rodada grande (10/11): 63.433 fotos (toda a fila
+  das 304 buscas), US$ 2,30 (US$ 0,036 por mil), 207 reprovadas — **mais da metade errada** (em perguntas de 10 fotos a IA
+  trocava de produto). Corrigido: reprovação só vale se confirmada com a foto sozinha (`confirmaReprovacao`); modo
+  `reconferir` (input do workflow) reolhou as 211: 149 voltaram, **62 ficaram** (34 "Imagem não disponível" da AliExpress,
+  o resto "Out of stock"/foto de outra coisa; amostra conferida: ~26 de 28 certas). Gasto total com fotos: ~US$ 2,40.
 - **10/11 (noite): "Categorias" dos resultados em lista de um toque**, como no ML (pedido do Giovanni; eram caixinhas todas
   marcadas): tocar mostra só aquela, "Todas" volta, 8 + "Ver todas" (`desenharFiltroSecoes` em app.js, `.secao-item` no CSS;
   `estado.secoesSo` com 1 categoria; `secoesFora` não é mais usado pela tela).
