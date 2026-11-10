@@ -170,6 +170,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   trocava de produto). Corrigido: reprovação só vale se confirmada com a foto sozinha (`confirmaReprovacao`); modo
   `reconferir` (input do workflow) reolhou as 211: 149 voltaram, **62 ficaram** (34 "Imagem não disponível" da AliExpress,
   o resto "Out of stock"/foto de outra coisa; amostra conferida: ~26 de 28 certas). Gasto total com fotos: ~US$ 2,40.
+  Aprovar foto à mão (Giovanni olhou e está certa): workflow com input `aprovar` = nome do produto (vários com "|"), sem IA.
+  10/11: projetor portátil do ML aprovado à mão; bebedouro de beija-flor da Cobasi (foto só do bico) fica reprovado.
 - **10/11 (noite): "Categorias" dos resultados em lista de um toque**, como no ML (pedido do Giovanni; eram caixinhas todas
   marcadas): tocar mostra só aquela, "Todas" volta, 8 + "Ver todas" (`desenharFiltroSecoes` em app.js, `.secao-item` no CSS;
   `estado.secoesSo` com 1 categoria; `secoesFora` não é mais usado pela tela).
