@@ -1703,6 +1703,42 @@ function marcaDe(o) {
   return o._marca;
 }
 
+// Marcou uma marca (print do Giovanni, 10/11/2026: "Brastemp" mostrava 3 produtos e o botão ficava piscando "Carregando…"):
+// a lista só tinha os produtos da marca que vieram na busca geral, e a rolagem ia pedindo página por página atrás de mais.
+// Agora o site faz na hora a busca "produto + marca" (que o servidor já sabe fazer e costuma estar guardada) e junta os
+// produtos dessa marca à lista. Uma vez por marca em cada busca
+const marcasCompletadas = { pedido: -1, feitas: new Set() };
+async function completarMarca(n, nome) {
+  if (!estado.q || estado.loja || estado.buscando) return;
+  const pedido = estado.pedido;
+  if (marcasCompletadas.pedido !== pedido) { marcasCompletadas.pedido = pedido; marcasCompletadas.feitas.clear(); }
+  if (marcasCompletadas.feitas.has(n)) return;
+  marcasCompletadas.feitas.add(n);
+  // Vendo uma categoria, a busca é só a marca dentro dela; numa busca, "geladeira brastemp"
+  const termo = navegandoCategoria() ? nome : `${estado.q} ${nome}`;
+  const botao = $("#mais-resultados");
+  const textoAntes = botao.textContent;
+  botao.disabled = true;
+  botao.textContent = `Buscando mais produtos ${nome}…`;
+  try {
+    const resp = await fetch(enderecoBusca(termo, estado.cat, "&atalho=1"));
+    const dados = resp.ok ? await resp.json() : null;
+    if (!dados || pedido !== estado.pedido) return;
+    const ja = new Set(estado.ofertas.map((o) => o.id));
+    const novas = semRepetidos(dados.ofertas || []).filter((o) => !ja.has(o.id) && marcaDe(o)?.n === n);
+    if (!novas.length) return;
+    const todas = semRepetidos([...estado.ofertas.filter((o) => !o.acessorio), ...novas.filter((o) => !o.acessorio),
+      ...estado.ofertas.filter((o) => o.acessorio), ...novas.filter((o) => o.acessorio)]);
+    estado.ofertas = todas;
+    desenharFiltroLojas();
+    desenharResultados();
+  } catch {
+    // sem os extras: fica a lista que já estava
+  } finally {
+    if (botao.textContent.startsWith("Buscando mais produtos")) { botao.disabled = false; botao.textContent = textoAntes; }
+  }
+}
+
 const MARCAS_VISIVEIS = 10;
 let ordemMarcas = [];
 let marcasParadas = false;
@@ -1737,6 +1773,7 @@ function desenharFiltroMarcas() {
       if (e.target.checked) estado.marcasSo.add(n); else estado.marcasSo.delete(n);
       desenharFiltroLojas();
       desenharResultados();
+      if (e.target.checked) completarMarca(n, m.nome);
     } }),
     m.nome,
     el("span", { class: "qtd", title: `${m.qtd} ofertas desta marca na lista` }, m.qtd))),
@@ -2956,8 +2993,7 @@ async function carregarMaisDaLoja({ sozinho = false } = {}) {
   const botao = $("#mais-resultados");
   const pedido = estado.pedido;
   const id = estado.loja.id;
-  botao.disabled = true;
-  botao.textContent = "Carregando…";
+  botaoCarregando(botao);
   try {
     const dados = await pedirLoja(id, estado.paginaLoja + 1);
     if (pedido !== estado.pedido || estado.loja?.id !== id) return;
@@ -2970,8 +3006,7 @@ async function carregarMaisDaLoja({ sozinho = false } = {}) {
   } catch {
     if (pedido === estado.pedido && !sozinho) toast("Não foi possível carregar mais produtos agora");
   } finally {
-    botao.disabled = false;
-    botao.textContent = "Ver mais resultados";
+    botaoParado(botao, "Ver mais resultados");
   }
 }
 
@@ -3011,6 +3046,29 @@ async function completarBemAvaliados() {
   }
 }
 
+// Botões "Ver mais" procurando sozinhos com filtro apertado (10/11/2026, print do Giovanni: com uma marca marcada na Black
+// Friday o botão trocava "Carregando…"/"Ver mais resultados" 34 vezes em 20 s, parecia defeito). Enquanto a rolagem
+// infinita procura produtos que passem no filtro, o botão fica parado com um aviso só (ver rolagemInfinita)
+const AVISO_PROCURANDO = "Procurando mais ofertas com esse filtro…";
+const procurando = (botao) => botao.dataset.procurando === String(estado.pedido);
+function botaoCarregando(botao) {
+  botao.disabled = true;
+  botao.textContent = procurando(botao) ? AVISO_PROCURANDO : "Carregando…";
+}
+function botaoParado(botao, texto) {
+  if (procurando(botao)) return; // continua com o aviso até a rolagem infinita decidir
+  delete botao.dataset.procurando;
+  botao.disabled = false;
+  botao.textContent = texto;
+}
+const TEXTO_DO_BOTAO = { "mais-ofertas": "Ver mais ofertas", "mais-resultados": "Ver mais resultados" };
+function pararDeProcurar(botao) {
+  if (!("procurando" in botao.dataset)) return;
+  delete botao.dataset.procurando;
+  botao.disabled = false;
+  botao.textContent = TEXTO_DO_BOTAO[botao.id];
+}
+
 // "Ver mais ofertas": traz a próxima página de mais vendidos e junta à lista (devolve true se carregou)
 let carregandoOfertas = null;
 function carregarMaisOfertas() {
@@ -3021,19 +3079,16 @@ async function trazerMaisOfertas() {
   const botao = $("#mais-ofertas");
   // Com "Frete grátis" marcado, o "Ver mais" traz as próximas ofertas do dia com frete grátis (ver pedirFreteGratis)
   if ($("#so-frete").checked && !estado.q && (freteInicio.lista.length || freteInicio.temMais)) {
-    botao.disabled = true;
-    botao.textContent = "Carregando…";
+    botaoCarregando(botao);
     try {
       if (!freteInicio.lista.length) await pedirFreteGratis();
       juntarFreteNoInicio();
       return true;
     } finally {
-      botao.disabled = false;
-      botao.textContent = "Ver mais ofertas";
+      botaoParado(botao, "Ver mais ofertas");
     }
   }
-  botao.disabled = true;
-  botao.textContent = "Carregando…";
+  botaoCarregando(botao);
   try {
     const dados = await consultarApi("", `pagina=${estado.paginaInicio + 1}`);
     const antes = estado.inicio.length;
@@ -3051,8 +3106,7 @@ async function trazerMaisOfertas() {
     if (!estado.q) toast("Não foi possível carregar mais ofertas agora");
     return false;
   } finally {
-    botao.disabled = false;
-    botao.textContent = "Ver mais ofertas";
+    botaoParado(botao, "Ver mais ofertas");
   }
 }
 
@@ -3084,8 +3138,7 @@ async function carregarMaisResultados({ sozinho = false } = {}) {
   const botao = $("#mais-resultados");
   const pedido = estado.pedido;
   const q = estado.q;
-  botao.disabled = true;
-  botao.textContent = "Carregando…";
+  botaoCarregando(botao);
   try {
     const dados = await consultarApi(q, estado.maisBusca);
     // O visitante já fez outra busca ou voltou para o início: a resposta não vale mais
@@ -3106,8 +3159,7 @@ async function carregarMaisResultados({ sozinho = false } = {}) {
   } catch {
     if (pedido === estado.pedido && !sozinho) toast("Não foi possível carregar mais resultados agora");
   } finally {
-    botao.disabled = false;
-    botao.textContent = "Ver mais resultados";
+    botaoParado(botao, "Ver mais resultados");
   }
 }
 
@@ -3787,12 +3839,17 @@ $("#mais-resultados").addEventListener("click", () => (estado.loja ? carregarMai
   if (!("IntersectionObserver" in window)) return;
   let pedidoVisto = -1;
   let seguidas = 0;
+  const SEM_NOVIDADE_MAX = 8;
+  let semNovidade = 0; // páginas seguidas que não puseram nenhum produto novo na tela (filtro apertado)
+  let qtdNaParada = -1;
   let acessoriosAbertos = -1;
   const obs = new IntersectionObserver((entradas) => {
     for (const e of entradas) {
       const botao = e.target;
-      if (!e.isIntersecting || botao.hidden || botao.disabled) continue;
-      if (estado.pedido !== pedidoVisto) { pedidoVisto = estado.pedido; seguidas = 0; }
+      // Saiu da tela, sumiu ou é de outra busca: o aviso "Procurando…" acaba e o botão volta ao normal
+      if ("procurando" in botao.dataset && (!e.isIntersecting || botao.hidden || !procurando(botao))) pararDeProcurar(botao);
+      if (!e.isIntersecting || botao.hidden || (botao.disabled && !procurando(botao))) continue;
+      if (estado.pedido !== pedidoVisto) { pedidoVisto = estado.pedido; seguidas = 0; semNovidade = 0; }
       // No fim da lista, quando só sobra "Ver também N acessórios e produtos parecidos" (sem mais resultados para
       // carregar), eles entram sozinhos (pedido do Giovanni, 05/11/2026). Uma vez por busca: se a pessoa desmarcar
       // "acessórios" depois, não volta a abrir
@@ -3808,14 +3865,27 @@ $("#mais-resultados").addEventListener("click", () => (estado.loja ? carregarMai
         botao.click();
         continue;
       }
-      if (seguidas >= 40) continue;
-      // Filtros que não deixam nenhum produto: tenta só mais 3 páginas (07/11/2026: ficava "Carregando…" sem fim)
-      if (estado.qtdFiltrada === 0 && seguidas >= 3) continue;
+      // Filtro apertado (uma marca, preço, frete…): enquanto as páginas não trazem produto novo para a tela, o botão fica
+      // parado com o aviso "Procurando…" (sem piscar); depois de 8 páginas seguidas sem nada, para de pedir sozinho e o
+      // botão volta ao normal para quem quiser insistir (07/11/2026: "Carregando…" sem fim com 0 produtos;
+      // 10/11/2026, print do Giovanni: com 3 produtos de uma marca o botão ficava piscando por até 40 páginas)
+      if (semNovidade >= SEM_NOVIDADE_MAX && estado.qtdFiltrada !== qtdNaParada) semNovidade = 0; // mexeu nos filtros: tenta de novo
+      if (semNovidade >= SEM_NOVIDADE_MAX || seguidas >= 40) { pararDeProcurar(botao); continue; }
       seguidas++;
+      const qtdAntes = estado.qtdFiltrada;
       const carga = botao.id === "mais-ofertas" ? carregarMaisOfertas()
         : estado.loja ? carregarMaisDaLoja({ sozinho: true }) : carregarMaisResultados({ sozinho: true });
       // Depois de carregar, observa de novo: se o botão ainda está à vista (veio pouca coisa), pede a próxima
-      Promise.resolve(carga).finally(() => { obs.unobserve(botao); requestAnimationFrame(() => obs.observe(botao)); });
+      Promise.resolve(carga).finally(() => {
+        semNovidade = estado.qtdFiltrada > qtdAntes ? 0 : semNovidade + 1;
+        qtdNaParada = estado.qtdFiltrada;
+        if (semNovidade > 0 && semNovidade < SEM_NOVIDADE_MAX && !botao.hidden && estado.pedido === pedidoVisto) {
+          botao.dataset.procurando = String(estado.pedido);
+          botaoCarregando(botao);
+        } else pararDeProcurar(botao);
+        obs.unobserve(botao);
+        requestAnimationFrame(() => obs.observe(botao));
+      });
     }
   }, { rootMargin: "0px 0px 900px 0px" });
   for (const id of ["#mais-ofertas", "#mais-resultados", "#ver-acessorios"]) obs.observe($(id));
