@@ -29,8 +29,12 @@ const BUSCADAS = 150;
 // lista): os 10 de menor preço da busca e os 3 de menor preço de cada loja (quem escolhe uma loja vê o mais barato dela)
 const BARATOS = 10;
 const BARATOS_POR_LOJA = 3;
-function maisBaratos(ofertas) {
-  const porPreco = ofertas.filter((o) => !o.acessorio && o.preco > 0).sort((a, b) => a.preco - b.preco);
+// Os que a IA já disse que não são o produto não contam: no lugar deles entram os próximos mais baratos. Na mesma noite a
+// pergunta se repete (até RODADAS_BARATOS vezes) enquanto a rodada ainda achar 3 ou mais errados ("mochila": depois dos 10
+// chaveiros mais baratos vinham 10 broches)
+const RODADAS_BARATOS = 5;
+function maisBaratos(ofertas, jaNao = () => false) {
+  const porPreco = ofertas.filter((o) => !o.acessorio && o.preco > 0 && !jaNao(o)).sort((a, b) => a.preco - b.preco);
   const daLoja = new Map();
   return porPreco.filter((o, i) => {
     const n = daLoja.get(o.loja) || 0;
@@ -219,28 +223,43 @@ for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
     const cats = catsDaBusca.map((c) => c || "Outros").join(" + ");
     const doProduto = categoriaDoProduto(q)?.nome;
     const corrigeCom = catsDaBusca.length === 1 && doProduto && catsDaBusca[0] === doProduto ? doProduto : null;
-    for (const o of [...fora, ...topo, ...maisBaratos(ofertas)]) {
+    const jaNao = (o) => vistos.get(`${termo}|${chaveIa(o.titulo || "")}`) === 0;
+    for (const o of [...fora, ...topo, ...maisBaratos(ofertas, jaNao)]) {
       const chave = chaveIa(o.titulo || "");
       if (!chave) continue;
       // Já respondido "é o produto" numa noite anterior e ainda fora da categoria: corrige sem perguntar de novo
       if (vistos.get(`${termo}|${chave}`) === 1 && corrigeCom && fora.has(o)) correcoes.set(chave, corrigeCom);
       if (!vistos.has(`${termo}|${chave}`) && !porChave.has(chave)) porChave.set(chave, o);
     }
-    if (!porChave.size) return;
-    const lista = [...porChave.values()];
-    perguntados += lista.length;
-    const respostas = await perguntar(q, lista.map((o) => o.titulo));
-    for (const o of lista) {
-      if (!respostas.has(o.titulo)) continue;
-      const ok = respostas.get(o.titulo);
-      novas.push([termo, chaveIa(o.titulo), ok]);
-      vistos.set(`${termo}|${chaveIa(o.titulo)}`, ok ? 1 : 0);
-      const item = { q, titulo: o.titulo, secao: o.secao || "Outros", loja: o.lojaNome || o.loja, cats };
-      if (!ok) naoSao.push(item);
-      else if (fora.has(o)) {
-        categoriaDuvidosa.push(item);
-        if (corrigeCom) correcoes.set(chaveIa(o.titulo), corrigeCom);
+    // Pergunta a lista e anota as respostas; devolve quantos "não é o produto"
+    const conferir = async (lista) => {
+      if (!lista.length) return 0;
+      perguntados += lista.length;
+      const respostas = await perguntar(q, lista.map((o) => o.titulo));
+      let nao = 0;
+      for (const o of lista) {
+        if (!respostas.has(o.titulo)) continue;
+        const ok = respostas.get(o.titulo);
+        novas.push([termo, chaveIa(o.titulo), ok]);
+        vistos.set(`${termo}|${chaveIa(o.titulo)}`, ok ? 1 : 0);
+        const item = { q, titulo: o.titulo, secao: o.secao || "Outros", loja: o.lojaNome || o.loja, cats };
+        if (!ok) { naoSao.push(item); nao++; }
+        else if (fora.has(o)) {
+          categoriaDuvidosa.push(item);
+          if (corrigeCom) correcoes.set(chaveIa(o.titulo), corrigeCom);
+        }
       }
+      return nao;
+    };
+    await conferir([...porChave.values()]);
+    // Os mais baratos de novo, sem os que a IA acabou de tirar, enquanto ainda aparecerem errados
+    for (let rodada = 1; rodada < RODADAS_BARATOS; rodada++) {
+      const proximos = new Map();
+      for (const o of maisBaratos(ofertas, jaNao)) {
+        const chave = chaveIa(o.titulo || "");
+        if (chave && !vistos.has(`${termo}|${chave}`) && !proximos.has(chave)) proximos.set(chave, o);
+      }
+      if (!proximos.size || (await conferir([...proximos.values()])) < 3) break;
     }
   }));
   await espera(PAUSA_MS);
