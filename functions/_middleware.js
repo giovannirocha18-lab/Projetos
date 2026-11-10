@@ -11,6 +11,7 @@ import { destinoShopee, CAMINHO_IR_SHOPEE } from "../lib/fontes/shopee.js";
 import { destinoAli, CAMINHO_IR_ALI } from "../lib/fontes/aliexpress.js";
 import { concluirAutorizacao } from "../lib/mlConta.js";
 import { dentroDoLimite, ipDe } from "../lib/conta.js";
+import { categoriasDoSite } from "../lib/categorias.js";
 
 // Links de afiliado NOVOS (ainda não guardados) que um visitante pode gerar por hora em /ir/shopee e /ir/ali (10/11/2026).
 // Quem clica de verdade fica muito abaixo; acima disso o clique vai para a página do produto sem consultar a loja
@@ -132,9 +133,55 @@ async function comPreviaDoProduto(resposta, env, url) {
   return rewriter.transform(resposta);
 }
 
+// Para os buscadores (10/11/2026, revisão; preparo do lançamento, o site segue com noindex até lá): endereço canônico e
+// og:url em toda página, e título/descrição próprios nas buscas (/?q=…), que antes só mudavam no navegador
+const SITE = "https://vaiprocarrinho.com.br";
+function comDadosDaPagina(resposta, url) {
+  if (!(resposta.headers.get("Content-Type") || "").includes("text/html") || resposta.status !== 200) return resposta;
+  const p = url.searchParams;
+  const q = (p.get("q") || "").trim().replace(/\s+/g, " ").slice(0, 60);
+  const caminho = /^\/(index(\.html)?)?$/i.test(url.pathname) ? "/" : url.pathname.replace(/(\.html)?\/?$/i, "").toLowerCase();
+  const filtros = new URLSearchParams();
+  if (caminho === "/") {
+    if (p.get("produto")) filtros.set("produto", p.get("produto").slice(0, 80));
+    else if (p.get("loja") && !q) filtros.set("loja", p.get("loja").slice(0, 80));
+    else if (q) { filtros.set("q", q.toLowerCase()); if (p.get("cat")) filtros.set("cat", p.get("cat").slice(0, 40)); }
+  }
+  const canonico = `${SITE}${caminho}${filtros.size ? `?${filtros}` : ""}`;
+  let rewriter = new HTMLRewriter().on("head", { element(el) {
+    el.append(`<link rel="canonical" href="${canonico.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}">`, { html: true });
+    el.append(`<meta property="og:url" content="${canonico.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}">`, { html: true });
+  } });
+  if (caminho === "/" && q && !p.get("produto")) {
+    const titulo = `${q.charAt(0).toUpperCase()}${q.slice(1)}: compare preços`;
+    const descricao = `Compare os preços de ${q} na Shopee, Mercado Livre, AliExpress e outras lojas num só lugar.`;
+    const meta = (valor) => ({ element(el) { el.setAttribute("content", valor); } });
+    rewriter = rewriter.on("title", { element(el) { el.setInnerContent(`${titulo} · Vai pro Carrinho`); } })
+      .on('meta[property="og:title"]', meta(titulo))
+      .on('meta[property="og:description"]', meta(descricao))
+      .on('meta[name="description"]', meta(descricao));
+  }
+  return rewriter.transform(resposta);
+}
+
+// robots.txt e sitemap.xml (preparo do lançamento): a API e os links de saída não são para os buscadores
+const ROBOTS = `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /ir/\n\nSitemap: ${SITE}/sitemap.xml\n`;
+function sitemap() {
+  const xml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const enderecos = [`${SITE}/`, `${SITE}/black-friday`, `${SITE}/como-funciona`, `${SITE}/privacidade`,
+    ...categoriasDoSite().map((c) => `${SITE}/?${new URLSearchParams({ q: c.busca, cat: c.nome })}`)];
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${
+    enderecos.map((e) => `  <url><loc>${xml(e)}</loc></url>`).join("\n")}\n</urlset>\n`;
+}
+
 export async function onRequest(contexto) {
   const url = new URL(contexto.request.url);
-  const resposta = await comPreviaDoProduto(await responder(contexto), contexto.env, url);
+  if (!ehPainel(contexto.request.url) && contexto.request.method === "GET") {
+    if (url.pathname === "/robots.txt") return new Response(ROBOTS, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
+    if (url.pathname === "/sitemap.xml") return new Response(sitemap(), { headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
+  }
+  const daLoja = await comPreviaDoProduto(await responder(contexto), contexto.env, url);
+  const resposta = ehPainel(contexto.request.url) ? daLoja : comDadosDaPagina(daLoja, url);
   const pronta = comSeguranca(await comVersaoNosArquivos(resposta, contexto.env, url.origin));
   if (naoContar(contexto.request)) pronta.headers.set("Content-Security-Policy", CSP_SEM_CONTAGEM);
   return pronta;

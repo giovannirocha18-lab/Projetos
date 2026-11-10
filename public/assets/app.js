@@ -94,7 +94,9 @@ document.addEventListener("auxclick", avisarClique);
 // Shopee no Android abre no aplicativo dela (print do Giovanni, 06/11/2026): no navegador do celular, mesmo logado, a Shopee
 // abre o produto mas dá "Página indisponível" ao tocar na descrição. O link continua o de afiliado (s.shopee.com.br), só que
 // entregue ao app da Shopee (com.shopee.br); sem o app instalado, o Chrome abre o mesmo link no navegador, como antes
-const ANDROID = /Android/i.test(navigator.userAgent);
+// Navegador embutido de outro app (TikTok, Kwai, Instagram…) pode não aceitar o endereço "intent://" e o botão não abriria
+// nada (10/11/2026, revisão): neles o link abre do jeito normal
+const ANDROID = /Android/i.test(navigator.userAgent) && !/; wv\)|FBAN|FBAV|Instagram|musical_ly|Bytedance|TikTok|Kwai|Line\//i.test(navigator.userAgent);
 function abrirNoAppShopee(e) {
   if (!ANDROID || e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
   const a = e.target.closest?.("a[href]");
@@ -107,7 +109,8 @@ function abrirNoAppShopee(e) {
   // Produto da lista oficial da Shopee (08/11/2026): o link de afiliado é pedido no clique (/ir/shopee/…, _middleware.js)
   if (url.origin === location.origin && /^\/ir\/shopee\//.test(url.pathname)) {
     e.preventDefault();
-    fetch(`${url.pathname}?json=1`).then((r) => r.json()).then((d) => {
+    // No máximo 2,5 s esperando o link (depois disso vai pelo caminho normal, sem ficar parado)
+    fetch(`${url.pathname}?json=1`, { signal: AbortSignal.timeout?.(2500) }).then((r) => r.json()).then((d) => {
       const destino = new URL(d.link);
       if (/(^|\.)shopee\.com\.br$/.test(destino.hostname)) abrirNoApp(destino);
       else location.href = destino.href;
@@ -3199,6 +3202,10 @@ async function paginasSeguintes() {
   return ofertas.length ? { ofertas, ultima, temMais } : null;
 }
 async function completarInicio(pedido) {
+  // As páginas 2 a 6 das ofertas esperam o navegador ficar livre (10/11/2026, revisão: saíam junto com as outras ~8 chamadas
+  // da abertura e disputavam a rede com as fotos e a 1ª página)
+  await new Promise((r) => (window.requestIdleCallback ? requestIdleCallback(r, { timeout: 3000 }) : setTimeout(r, 1500)));
+  if (pedido !== estado.pedido) return;
   const seguintes = await paginasSeguintes();
   // Se a pessoa saiu do início ou já clicou em "Ver mais ofertas", deixa como está
   if (!seguintes || pedido !== estado.pedido || estado.paginaInicio !== 1) return;
