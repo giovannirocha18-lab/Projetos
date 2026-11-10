@@ -152,6 +152,14 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   também: "Todas" + um toque por loja (`escolherLoja`, `lojasNoResumo`; saíram "Limpar"/"Marcar todas" e `alternarLoja`).
 - **11/11, print "computador" com "Balança Computadora" no Mais barato**: `OUTRA_PALAVRA_DE.computador` em lib/relevancia.js
   (computadora/computadorizada não são computador); caso em testes/busca.mjs. No ar: balança fora ✅.
+- **11/11: IA confere também os mais baratos de cada busca** (robo/conferir-buscas.mjs: 10 da busca + 3 por loja, repete até
+  5 rodadas enquanto achar 3+ errados; candidatos ao "Mais barato" da Escolha rápida). #137/#138: 2.232 escondidos, US$ 0,13.
+- **11/11: IA conferindo as FOTOS** (pedido do Giovanni): `robo/conferir-fotos.mjs` (foto reduzida a 384 px, 10 por pergunta,
+  Haiku 5.5; teto de gasto por rodada, máx. US$ 4; ordem: Escolha rápida/Ofertas do dia → 24 primeiros → resto), tabela
+  `ia_fotos`, `lib/iaFotos.js` (reprovada sai das buscas e Ofertas do dia enquanto tiver a mesma foto; lojas/Black Friday
+  ainda não). Workflow próprio `conferir-fotos.yml` (toda manhã 07h40, teto US$ 0,50; à mão: teto e minutos). Teste: 2.033
+  fotos, US$ 0,07 (US$ 0,035 por mil), 6 reprovadas (5 certas, 1 carregador reprovado à toa). Rodada de US$ 4 disparada em
+  10/11 à noite (fila ~63 mil): conferir resultado e a lista de reprovadas. Saldo da Anthropic: US$ 14,10 (10/11).
 - **10/11 (noite): "Categorias" dos resultados em lista de um toque**, como no ML (pedido do Giovanni; eram caixinhas todas
   marcadas): tocar mostra só aquela, "Todas" volta, 8 + "Ver todas" (`desenharFiltroSecoes` em app.js, `.secao-item` no CSS;
   `estado.secoesSo` com 1 categoria; `secoesFora` não é mais usado pela tela).
