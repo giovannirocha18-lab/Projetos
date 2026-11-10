@@ -26,7 +26,8 @@ export async function onRequestPost({ request, env }) {
     ).bind(pedido.id, await embaralharSenha(senha)),
     db.prepare("DELETE FROM redefinicoes WHERE usuario_id = ?").bind(pedido.id),
     db.prepare("DELETE FROM sessoes WHERE usuario_id = ?").bind(pedido.id),
-    db.prepare("DELETE FROM limites WHERE chave = ?").bind(`entrar:${pedido.email}`),
+    db.prepare("DELETE FROM limites WHERE chave = ? OR substr(chave, 1, ?) = ?")
+      .bind(`entrar-todos:${pedido.email}`, `entrar:${pedido.email}:`.length, `entrar:${pedido.email}:`),
   ]);
   return respostaConectado(db, pedido);
 }

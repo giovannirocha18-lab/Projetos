@@ -4,6 +4,7 @@
 // Cloudflare (não passam pelo banco).
 // Uso: node robo/numeros-site.mjs   (precisa de CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e D1_DATABASE_ID)
 import { appendFileSync } from "node:fs";
+import { tendenciaAceitavel } from "../lib/buscas.js";
 
 const { CLOUDFLARE_API_TOKEN: token, CLOUDFLARE_ACCOUNT_ID: conta, D1_DATABASE_ID: banco } = process.env;
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -51,7 +52,10 @@ const semana = porDia.filter((d) => d.dia >= diasAtras(6));
 const total = (lista) => lista.reduce((n, d) => n + d.buscas, 0);
 linhas.push(`- Buscas nos últimos 7 dias: **${total(semana)}** (7 dias antes: ${total(porDia.filter((d) => d.dia < diasAtras(6)))})`);
 linhas.push(`- Por dia: ${porDia.filter((d) => d.dia >= diasAtras(6)).map((d) => `${dataBr(d.dia)}: ${d.buscas}`).join(" · ") || "nenhuma"}`);
-if (top.length) linhas.push(`- Mais buscados na semana: ${top.map((t) => `${t.texto} (${t.vezes})`).join(", ")}`);
+// O resumo do GitHub é público (repositório público): só termos buscados por 3+ pessoas e que passam no filtro das
+// tendências; o que uma pessoa só digitou (um nome, um telefone) não aparece (10/11/2026, revisão). O painel mostra tudo
+const publicos = top.filter((t) => t.vezes >= 3 && tendenciaAceitavel(t.texto) && !/\d{5,}|@/.test(t.texto));
+if (publicos.length) linhas.push(`- Mais buscados na semana: ${publicos.map((t) => `${t.texto} (${t.vezes})`).join(", ")}`);
 const totalCliques = cliquesLoja.reduce((n, c) => n + c.n, 0);
 linhas.push(`- Cliques para as lojas nos últimos 7 dias: **${totalCliques}**` +
   (cliquesDia.length ? ` (${cliquesDia.map((d) => `${dataBr(d.dia)}: ${d.n}`).join(" · ")})` : ""));

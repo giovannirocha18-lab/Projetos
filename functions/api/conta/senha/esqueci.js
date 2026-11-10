@@ -18,7 +18,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (!(await dentroDoLimite(db, `esqueci-1min:${email}`, 1, 60 * 1000))) {
     return erro("Aguarde um minuto para pedir outro link.", 429);
   }
-  if (!(await dentroDoLimite(db, `esqueci:${email}`, 5)) || !(await dentroDoLimite(db, `esqueci-ip:${ipDe(request)}`, 20))) {
+  // + no máximo 8 por dia por e-mail (10/11/2026, revisão: 5 por hora davam até 120 e-mails por dia na caixa de alguém)
+  if (!(await dentroDoLimite(db, `esqueci:${email}`, 5)) || !(await dentroDoLimite(db, `esqueci-ip:${ipDe(request)}`, 20))
+    || !(await dentroDoLimite(db, `esqueci-dia:${email}`, 8, 24 * 60 * 60 * 1000))) {
     return erro("Muitos pedidos. Tente de novo daqui a uma hora.", 429);
   }
 

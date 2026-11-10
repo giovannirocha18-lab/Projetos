@@ -11,6 +11,12 @@ export async function onRequestGet({ request, env }) {
   await criarTabela(env.DB);
   const params = new URL(request.url).searchParams;
   const agora = Date.now();
+  // Começar/parar só com o endereço digitado (ou favorito) ou vindo do próprio painel (10/11/2026, revisão): um link em
+  // outro site ou e-mail, aberto pelo Giovanni conectado, abria uma rodada de 3 h de dia. O navegador avisa a origem do clique
+  const origemDoClique = request.headers.get("Sec-Fetch-Site");
+  if ((params.has("comecar") || params.has("parar")) && origemDoClique && origemDoClique !== "none" && origemDoClique !== "same-origin") {
+    return Response.json({ erro: "abra este endereço digitando-o no navegador (não por um link de outro site)" }, { status: 403, headers: cabecalhos });
+  }
   if (params.has("comecar")) {
     await env.DB.prepare("INSERT OR REPLACE INTO robo_noite (trilha, noite, estado, ocupado_ate, atualizado) VALUES ('_manual', ?, '{}', ?, ?)")
       .bind(`manual-${new Date(agora).toISOString().slice(0, 16)}`, agora + 3 * 3600e3, agora).run();

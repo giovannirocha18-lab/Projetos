@@ -17,7 +17,7 @@ import { awin } from "../../lib/fontes/awin.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
 import { mercadolivre } from "../../lib/fontes/mercadolivre.js";
-import { registrarBusca } from "../../lib/buscas.js";
+import { registrarBusca, tendenciaAceitavel } from "../../lib/buscas.js";
 import { naoContar } from "../../lib/naoContar.js";
 import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
 import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js";
@@ -449,7 +449,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
   ofertas = ofertas.map(({ catLojaNome, ...o }) => o);
 
   // Mercado Livre incompleto nesta busca (recusou ou veio pouco): vai para a fila do robô da madrugada (lib/mlFila.js)
+  // Só busca que trouxe produtos e passa no filtro das tendências (10/11/2026, revisão: termos inventados enchiam a fila e o
+  // robô gastava a madrugada do ML neles)
   if (q && pagina === 1 && desde === 1 && !preparar && !atualizar && !soLoja && env.DB && lojas.mercadolivre && reais.length
+    && ofertas.length >= 5 && tendenciaAceitavel(q)
     && (!lojas.mercadolivre.ok || ofertas.filter((o) => o.loja === "mercadolivre").length < POUCOS_ML)) {
     waitUntil(anotarNaFilaML(env.DB, q).catch(() => {}));
   }

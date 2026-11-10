@@ -10,6 +10,18 @@ import { destinoML, CAMINHO_IR_ML } from "../lib/fontes/mercadolivre.js";
 import { destinoShopee, CAMINHO_IR_SHOPEE } from "../lib/fontes/shopee.js";
 import { destinoAli, CAMINHO_IR_ALI } from "../lib/fontes/aliexpress.js";
 import { concluirAutorizacao } from "../lib/mlConta.js";
+import { dentroDoLimite, ipDe } from "../lib/conta.js";
+
+// Links de afiliado NOVOS (ainda não guardados) que um visitante pode gerar por hora em /ir/shopee e /ir/ali (10/11/2026).
+// Quem clica de verdade fica muito abaixo; acima disso o clique vai para a página do produto sem consultar a loja
+const LINKS_NOVOS_POR_HORA = 40;
+async function podeGerarLink(env, request) {
+  try {
+    return !env.DB || (await dentroDoLimite(env.DB, `ir:${ipDe(request)}`, LINKS_NOVOS_POR_HORA));
+  } catch {
+    return true;
+  }
+}
 
 const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|como-funciona(\.html)?\/?|manifest\.webmanifest|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
 
@@ -156,7 +168,10 @@ async function responder(contexto) {
   if (/^\/api\/painel(\/|$)/i.test(caminhoNormal(url.pathname))) return naoEncontrada();
   // O endereço vaiprocarrinho.pages.dev (do Cloudflare) não pode ser desligado: leva para o domínio
   // oficial. As prévias de outras branches (algo.vaiprocarrinho.pages.dev) continuam abrindo.
-  if (url.hostname === "vaiprocarrinho.pages.dev") {
+  // Também os endereços de cada publicação de produção (<código>.vaiprocarrinho.pages.dev, que têm o banco): por eles dava
+  // para tocar o robô da noite e gravar as buscas prontas com o endereço errado, fora das regras de limite do domínio
+  // (10/11/2026, revisão). As prévias de outras branches não têm o banco e continuam abrindo
+  if (url.hostname === "vaiprocarrinho.pages.dev" || (/\.vaiprocarrinho\.pages\.dev$/.test(url.hostname) && env.DB)) {
     return Response.redirect(`https://vaiprocarrinho.com.br${url.pathname}${url.search}`, 301);
   }
   // Site de teste (teste.vaiprocarrinho.pages.dev, 08/11/2026, pedido do Giovanni: mudanças primeiro no teste): a prévia não
@@ -197,13 +212,13 @@ async function responder(contexto) {
   // Botão "Comprar" dos produtos da lista oficial da Shopee: link de afiliado pedido na hora (lib/fontes/shopee.js).
   // ?json=1 devolve só o link (o site usa para abrir no app da Shopee no Android)
   if (CAMINHO_IR_SHOPEE.test(url.pathname)) {
-    const destino = await destinoShopee(env, url.pathname, url.origin);
+    const destino = await destinoShopee(env, url.pathname, url.origin, () => podeGerarLink(env, request));
     if (url.searchParams.has("json")) return Response.json({ link: destino }, { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
     return new Response(null, { status: 302, headers: { Location: destino, "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
   }
   // Botão "Comprar" da AliExpress (10/11/2026): link de afiliado pedido na hora (lib/fontes/aliexpress.js, destinoAli)
   if (CAMINHO_IR_ALI.test(url.pathname)) {
-    const destino = await destinoAli(env, url.pathname, url.origin);
+    const destino = await destinoAli(env, url.pathname, url.origin, () => podeGerarLink(env, request));
     return new Response(null, { status: 302, headers: { Location: destino, "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
   }
   // O comparador ficava em /previa antes do lançamento: leva para a página principal

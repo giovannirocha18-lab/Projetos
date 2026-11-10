@@ -3,6 +3,11 @@
 // à loja. Guarda só contagens por dia: loja + lugar do site, e produto. Nada da pessoa (nem IP) é guardado.
 // O robô lê as contagens toda madrugada (robo/numeros-site.mjs, "Números do site").
 import { naoContar } from "../../lib/naoContar.js";
+import { dentroDoLimite, ipDe } from "../../lib/conta.js";
+
+// Cliques contados por visitante por dia (10/11/2026, revisão: com o Origin copiado dava para inventar cliques sem fim e
+// encher as tabelas). O IP só entra na contagem do limite (tabela limites, apagada em 24 h)
+const CLIQUES_POR_DIA = 300;
 
 const TABELAS = [
   `CREATE TABLE IF NOT EXISTS cliques (dia TEXT NOT NULL, loja TEXT NOT NULL, onde TEXT NOT NULL, total INTEGER NOT NULL,
@@ -11,7 +16,7 @@ const TABELAS = [
      total INTEGER NOT NULL, PRIMARY KEY (dia, oferta_id)) WITHOUT ROWID`,
 ];
 // Lugares do site de onde sai o clique (o que vier diferente disso é ignorado)
-const LUGARES = new Set(["oferta", "foto", "detalhes", "historico", "comparar", "carrinho", "alerta", "cupom", "loja-parceira"]);
+const LUGARES = new Set(["oferta", "foto", "detalhes", "historico", "comparar", "carrinho", "alerta", "cupom", "loja-parceira", "campanha-shein"]);
 
 let tabelasProntas = false;
 const hoje = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
@@ -37,10 +42,12 @@ export async function onRequestPost({ request, env }) {
   const onde = texto(dados?.onde, 20);
   const loja = texto(dados?.loja, 60);
   if (!LUGARES.has(onde) || !loja) return vazio(400);
-  const id = texto(dados?.id, 80);
+  const idDado = texto(dados?.id, 80);
+  const id = /^[\w.:-]{3,80}$/.test(idDado) ? idDado : "";
   const titulo = texto(dados?.titulo, 120);
   const dia = hoje();
   try {
+    if (!(await dentroDoLimite(env.DB, `clique:${ipDe(request)}`, CLIQUES_POR_DIA, 24 * 3600 * 1000).catch(() => true))) return vazio();
     if (!tabelasProntas) {
       await env.DB.batch(TABELAS.map((t) => env.DB.prepare(t)));
       tabelasProntas = true;

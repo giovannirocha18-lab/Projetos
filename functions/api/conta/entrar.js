@@ -17,8 +17,11 @@ export async function onRequestPost({ request, env }) {
   // Contra quem tenta adivinhar senhas: no máximo 30 tentativas por hora por aparelho e 10 erros por hora
   // por e-mail. A tentativa é contada antes de conferir (vale mesmo com muitos pedidos ao mesmo tempo) e
   // descontada se a senha estiver certa: só os erros ficam contando
-  const chaveEmail = `entrar:${email}`;
-  if (!(await dentroDoLimite(db, `entrar-ip:${ipDe(request)}`, 30)) || !(await dentroDoLimite(db, chaveEmail, 10))) {
+  // 10/11/2026 (revisão): os 10 erros por hora valem por e-mail + aparelho (qualquer pessoa trancava a conta de outra
+  // errando a senha dela 10 vezes); somando todos os aparelhos, o e-mail aguenta 100 por hora
+  const chaveEmail = `entrar:${email}:${ipDe(request)}`;
+  if (!(await dentroDoLimite(db, `entrar-ip:${ipDe(request)}`, 30)) || !(await dentroDoLimite(db, chaveEmail, 10))
+    || !(await dentroDoLimite(db, `entrar-todos:${email}`, 100))) {
     return erro("Muitas tentativas. Tente de novo daqui a uma hora ou clique em \"Esqueci minha senha\".", 429);
   }
 

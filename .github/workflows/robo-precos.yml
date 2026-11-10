@@ -56,6 +56,10 @@ on:
 # prontas, shopee, lomadee) agora rodam toda madrugada no "robô da noite" do Cloudflare (lib/roboNoite.js, /api/robo-noite,
 # Worker relógio em robo/relogio-worker.js). Aqui eles só rodam à mão: so_ml (mercadolivre + maisvendidos), so_prontas
 # (shopee + prontas) e so_lomadee. A rodada completa (sem nada marcado) faz awin, shopeelista, ia, auditoria e relatorio.
+# Permissão mínima para todos os jobs (10/11/2026, revisão): só ler o repositório; quem precisa de mais declara no próprio job
+permissions:
+  contents: read
+
 jobs:
   # Reserva (05/11/2026): no agendamento do GitHub, só roda se a tarefa do Claude não disparou o robô nesta madrugada
   # (alguma execução "workflow_dispatch" criada desde 03:30 UTC = 00:30 de Brasília). Disparado à mão: sempre roda
@@ -127,7 +131,7 @@ jobs:
             echo "Ponto de restauração: $b"
             echo "- Ponto de restauração (Time Travel): \`$b\` ($(date -u '+%d/%m/%Y %H:%M') UTC)" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "Não deu para pegar o ponto de restauração: $r"
+            echo "Não deu para pegar o ponto de restauração (a resposta do Cloudflare não é impressa: o log é público)"
             echo "- ⚠️ Não deu para pegar o ponto de restauração" >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi

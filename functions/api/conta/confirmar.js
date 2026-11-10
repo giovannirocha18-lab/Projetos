@@ -23,6 +23,13 @@ export async function onRequestPost({ request, env }) {
   const pedido = await db.prepare("SELECT usuario_id FROM redefinicoes WHERE token_hash = ? AND expira_em > ?")
     .bind(await sha256(dados.token), Date.now()).first();
   if (!pedido) return erro("Este link não vale mais. Peça outro em \"Meus alertas de preço\".", 401);
+  // Só confirma para quem está conectado nessa mesma conta (10/11/2026, revisão): alguém cadastrava o e-mail de outra pessoa
+  // com a própria senha; a dona clicava em "Confirmar" e a conta ficava confirmada com a senha de quem a criou. Sem estar
+  // conectada, a pessoa entra (ou usa "Esqueci minha senha", que troca a senha, confirma o e-mail e desconecta os outros)
+  const conectado = await usuarioDaSessao(db, request);
+  if (conectado?.id !== pedido.usuario_id) {
+    return erro("Para confirmar, entre na sua conta neste aparelho e abra o link de novo. Não lembra a senha? Use \"Esqueci minha senha\".", 401);
+  }
   await db.batch([
     db.prepare("UPDATE senhas SET email_confirmado = 1 WHERE usuario_id = ?").bind(pedido.usuario_id),
     db.prepare("DELETE FROM redefinicoes WHERE token_hash = ?").bind(await sha256(dados.token)),
