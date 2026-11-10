@@ -21,5 +21,7 @@ jobs:
         run: node testes/modulos.mjs
       - name: Teste da busca (casos reais e prints do Giovanni)
         run: node testes/busca.mjs
+      - name: Filtro de marca no servidor (Black Friday e lojas)
+        run: node testes/marcas.mjs
       - name: Robô de preços com o feed de exemplo
         run: node robo/awin.mjs --feed robo/exemplo-awin.csv --sqlite "$RUNNER_TEMP/teste.sqlite"

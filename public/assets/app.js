@@ -1757,14 +1757,35 @@ function juntarDaMarca(dados, n) {
   desenharResultados();
   return estado.ofertas.length - antes;
 }
+// Na Black Friday e na página de uma loja (Mercado Livre e lojas da Awin) o servidor manda de uma vez tudo o que tem da
+// marca (?marca=, lib/marcas.js; 10/11/2026: o site ia pedindo a lista geral de 48 em 48 atrás da marca)
+const lojaFiltraMarca = (id) => id === BLACK_FRIDAY || id === "mercadolivre" || String(id).startsWith("awin:");
+function pedirMarcaDaLoja(n) {
+  if (marcasPedidas.pedido !== estado.pedido) { marcasPedidas.pedido = estado.pedido; marcasPedidas.mapa.clear(); }
+  const chave = `loja|${n}`;
+  if (!marcasPedidas.mapa.has(chave)) {
+    const id = estado.loja.id;
+    const cat = estado.loja.cat ? `&mlcat=${encodeURIComponent(estado.loja.cat)}` : "";
+    const marca = `marca=${encodeURIComponent(n)}`;
+    marcasPedidas.mapa.set(chave, fetch(id === BLACK_FRIDAY ? `/api/black-friday?${marca}` : `/api/lojas?id=${encodeURIComponent(id)}&${marca}${cat}`)
+      .then((r) => (r.ok ? r.json() : null)).catch(() => null));
+  }
+  return marcasPedidas.mapa.get(chave);
+}
+// Marcas de que o servidor já mandou tudo nesta loja: com só elas marcadas não há mais o que procurar página a página
+const marcasInteiras = { pedido: -1, nomes: new Set() };
+const marcasMarcadasInteiras = () => Boolean(estado.loja) && estado.marcasSo.size > 0 && marcasInteiras.pedido === estado.pedido
+  && [...estado.marcasSo].every((n) => marcasInteiras.nomes.has(n));
+
 async function completarMarca(n, nome) {
-  if (!estado.q || estado.loja || estado.buscando) return;
+  const naLoja = Boolean(estado.loja);
+  if (estado.buscando || (naLoja ? !lojaFiltraMarca(estado.loja.id) : !estado.q)) return;
   const pedido = estado.pedido;
   if (marcasCompletadas.pedido !== pedido) { marcasCompletadas.pedido = pedido; marcasCompletadas.feitas.clear(); }
   if (marcasCompletadas.feitas.has(n)) return;
   marcasCompletadas.feitas.add(n);
   const botao = $("#mais-resultados");
-  const textoAntes = botao.textContent;
+  const textoAntes = TEXTO_DO_BOTAO[botao.id];
   botao.disabled = true;
   botao.textContent = `Buscando mais produtos ${nome}…`;
   // Cartões "carregando" logo depois dos que já apareceram (10/11/2026, print do Giovanni: o aviso ficava só no botão, lá
@@ -1772,6 +1793,17 @@ async function completarMarca(n, nome) {
   const esperar = () => { const e = esqueletos(4); $("#grade").append(...e); return e; };
   let espera = esperar();
   try {
+    if (naLoja) {
+      const dados = await pedirMarcaDaLoja(n);
+      if (pedido !== estado.pedido) return;
+      if (dados?.completo) {
+        if (marcasInteiras.pedido !== pedido) { marcasInteiras.pedido = pedido; marcasInteiras.nomes.clear(); }
+        marcasInteiras.nomes.add(n);
+      }
+      // Desenha de novo mesmo sem produto novo: o botão "Ver mais" some quando a marca já veio inteira
+      if (!juntarDaMarca(dados, n)) desenharResultados();
+      return;
+    }
     const completo = pedirMarca(n, nome, "completo");
     // 1º o que já está guardado no nosso banco (menos de 1 s)…
     const rapido = await pedirMarca(n, nome, "rapido");
@@ -2249,7 +2281,8 @@ function desenharResultados() {
   // Botões de baixo seguem as lojas marcadas no card: com todas desligadas não há o que "ver mais"
   const lojaLigada = (o) => !estado.lojasDesmarcadas.has(o.loja);
   const nenhumaLoja = !estado.ofertas.some(lojaLigada);
-  $("#mais-resultados").hidden = !estado.temMaisBusca || nenhumaLoja;
+  // …e, na loja, com só marcas que o servidor já mandou inteiras (marcasMarcadasInteiras)
+  $("#mais-resultados").hidden = !estado.temMaisBusca || nenhumaLoja || marcasMarcadasInteiras();
   const acessorios = estado.ofertas.filter((o) => o.acessorio && lojaLigada(o)).length;
   const botao = $("#ver-acessorios");
   botao.hidden = !acessorios || $("#com-acessorios").checked || acessorios === estado.ofertas.length;

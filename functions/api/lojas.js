@@ -2,6 +2,8 @@
 //                                { lojas: [{ id, nome, rede, produtos?, internacional? }] }
 // GET /api/lojas?id=X&pagina=N -> produtos de uma loja ("Ver produtos"): { nome, ofertas, temMais }
 //   id = "shopee" | "aliexpress" | "awin:<loja>" | "lomadee:<marca>"
+// GET /api/lojas?id=X&marca=samsung -> só os produtos dessa marca na loja, de uma vez (até 240; Mercado Livre e lojas da
+//   Awin; lib/marcas.js): { nome, ofertas, marca, completo, temMais: false }
 // Pedido do Giovanni (22/10/2026). As mesmas lojas que /api/numeros conta.
 import { shopee } from "../../lib/fontes/shopee.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
@@ -16,6 +18,7 @@ import { comCategoriaDaIa } from "../../lib/ia.js";
 import { MARCAS } from "../../lib/vocabulario.js";
 import { normalizar } from "../../lib/texto.js";
 import { modeloBase, grupoDaCategoria, semTamanho } from "../../lib/variacoes.js";
+import { filtroDeMarca, MAX_DA_MARCA } from "../../lib/marcas.js";
 
 const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
@@ -99,7 +102,43 @@ async function ordemDaLoja(db, loja) {
   return ids;
 }
 
-async function produtosDaLoja(env, id, pagina, waitUntil, cat = null) {
+// Só uma marca numa loja da Awin (10/11/2026): os nomes de toda a loja (consulta leve), ficam os que citam a marca, um por
+// modelo, do maior desconto para o menor; depois os dados completos só desses
+async function produtosDaMarcaNaLoja(env, loja, filtro) {
+  const { results } = await env.DB.prepare(
+    "SELECT id, titulo FROM ofertas WHERE loja = ? AND +fonte = 'awin' ORDER BY desconto DESC",
+  ).bind(loja).all();
+  const vistos = new Map(); // modelo -> 1º id
+  const variados = new Set();
+  for (const l of results || []) {
+    if (!filtro.cita(l.titulo)) continue;
+    const modelo = modeloBase(l.titulo);
+    if (vistos.has(modelo)) variados.add(vistos.get(modelo)); else vistos.set(modelo, l.id);
+  }
+  const todos = [...vistos.values()];
+  const ids = todos.slice(0, MAX_DA_MARCA);
+  const porId = new Map();
+  const POR_VEZ = 90; // o banco aceita até 100 valores por consulta
+  const partes = [];
+  for (let i = 0; i < ids.length; i += POR_VEZ) partes.push(ids.slice(i, i + POR_VEZ));
+  if (partes.length) {
+    const respostas = await env.DB.batch(partes.map((p) => env.DB.prepare(`SELECT ${COLUNAS_OFERTA} FROM ofertas WHERE id IN (${p.map(() => "?").join(",")})`).bind(...p)));
+    for (const r of respostas) for (const l of r.results || []) porId.set(l.id, l);
+  }
+  const ofertas = await comHistorico(env.DB, ids.map((id) => porId.get(id)).filter(Boolean).map(linhaParaOferta)
+    .map((o) => (variados.has(o.id) ? { ...o, titulo: semTamanho(o.titulo) } : o)));
+  return { nome: ofertas[0]?.lojaNome || loja, ofertas, temMais: false, completo: todos.length <= MAX_DA_MARCA };
+}
+
+async function produtosDaLoja(env, id, pagina, waitUntil, cat = null, filtro = null) {
+  if (filtro) {
+    if (id === "mercadolivre" && mercadolivre.ativa(env)) {
+      const r = await produtosDaLojaML(env, 1, MAX_DA_MARCA, cat, filtro);
+      return { nome: r.nome, ofertas: r.ofertas, temMais: false, completo: r.total <= MAX_DA_MARCA };
+    }
+    if (id.startsWith("awin:") && id.length > 5 && env.DB) return produtosDaMarcaNaLoja(env, id.slice(5), filtro);
+    return null; // Shopee, AliExpress e Lomadee: a lista vem das lojas, página a página (sem filtro de marca)
+  }
   if (id === "shopee" || id === "aliexpress") {
     const fonte = id === "shopee" ? shopee : aliexpress;
     if (!fonte.ativa(env)) return null;
@@ -142,8 +181,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   // Atalho de categoria da loja Mercado Livre (?mlcat=MLB1051; 05/11/2026)
   const cat = /^MLB\d{1,12}$/.test(params.get("mlcat") || "") ? params.get("mlcat") : null;
+  // Só uma marca (?marca=samsung): marca fora da nossa lista não é atendida
+  const filtro = id && params.has("marca") ? filtroDeMarca(params.get("marca")) : null;
+  if (id && params.has("marca") && !filtro) return Response.json({ erro: "Marca não encontrada" }, { status: 404 });
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/lojas?v=${VERSAO}${id ? `&id=${encodeURIComponent(id)}&pagina=${pagina}` : ""}${cat ? `&mlcat=${cat}` : ""}`, request.url));
+  const chave = new Request(new URL(`/api/lojas?v=${VERSAO}${id ? `&id=${encodeURIComponent(id)}${filtro ? `&marca=${encodeURIComponent(filtro.n)}` : `&pagina=${pagina}`}` : ""}${cat ? `&mlcat=${cat}` : ""}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return paraNavegador(await respostaSemFotosQuebradas(env.DB, guardada, waitUntil));
 
@@ -155,7 +197,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   } else {
     let dados;
     try {
-      dados = await produtosDaLoja(env, id, pagina, waitUntil, cat);
+      dados = await produtosDaLoja(env, id, pagina, waitUntil, cat, filtro);
     } catch (erro) {
       // 500 (o Cloudflare troca a resposta 502 pela página dele)
       return Response.json({ erro: "Não foi possível carregar os produtos desta loja agora", detalhe: String(erro?.message || erro).slice(0, 200) }, { status: 500 });
@@ -173,7 +215,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         // D1 indisponível: segue sem histórico
       }
     }
-    resposta = responder({ nome: dados.nome, ofertas, temMais: dados.temMais, ...(dados.atalhos && { atalhos: dados.atalhos, total: dados.total }) }, PRODUTOS_SEGUNDOS);
+    resposta = responder({ nome: dados.nome, ofertas, temMais: dados.temMais, ...(filtro && { marca: filtro.n, completo: Boolean(dados.completo) }), ...(dados.atalhos && { atalhos: dados.atalhos, total: dados.total }) }, PRODUTOS_SEGUNDOS);
   }
   if (cache) waitUntil(cache.put(chave, resposta.clone()));
   return paraNavegador(resposta);
