@@ -240,7 +240,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
       }
     }
     // Só a categoria pedida, pela categoria final de cada produto (a mesma que o site mostra)
-    if (secao) ofertas = ofertas.filter((o) => o.secao === secao).slice(0, MAX_DA_MARCA);
+    if (secao) {
+      ofertas = ofertas.filter((o) => o.secao === secao);
+      dados.completo = dados.completo && ofertas.length <= MAX_DA_MARCA; // sobrou produto fora da resposta: o "Ver mais" continua
+      ofertas = ofertas.slice(0, MAX_DA_MARCA);
+    }
     resposta = responder({ nome: dados.nome, ofertas, ...(secao && { secao, completo: Boolean(dados.completo) }), temMais: dados.temMais, ...(filtro && { marca: filtro.n, completo: Boolean(dados.completo) }), ...(dados.atalhos && { atalhos: dados.atalhos, total: dados.total }) }, PRODUTOS_SEGUNDOS);
   }
   if (cache) waitUntil(cache.put(chave, resposta.clone()));
