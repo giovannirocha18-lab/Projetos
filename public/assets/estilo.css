@@ -706,6 +706,11 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .historico-numeros div { background: var(--bg); border-radius: 10px; padding: 8px; min-width: 0; }
 .historico-numeros small { display: block; color: var(--suave); font-size: .75rem; }
 .historico-numeros strong { font-size: .9rem; white-space: nowrap; }
+/* Com o "De costume": 4 quadros (2 x 2 no celular), o de costume em destaque */
+.historico-numeros.com-costume { grid-template-columns: repeat(4, 1fr); }
+.historico-numeros .numero-costume { background: var(--roxo-claro); }
+.historico-numeros .numero-costume strong { color: var(--roxo-forte); }
+@media (max-width: 480px) { .historico-numeros.com-costume { grid-template-columns: repeat(2, 1fr); } }
 .historico-nota { font-size: .8rem !important; margin: 10px 0 0 !important; }
 .grafico-caixa { position: relative; }
 .grafico { width: 100%; height: auto; display: block; touch-action: pan-y; }

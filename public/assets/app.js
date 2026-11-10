@@ -1323,15 +1323,29 @@ async function abrirHistorico(o) {
   const pontos = dados.pontos || [];
   const precos = [...pontos.map((p) => p.preco), o.preco];
   const diasAcompanhando = pontos.length ? Math.round((Date.now() - Date.parse(`${pontos[0].dia}T00:00:00`)) / 864e5) : 0;
+  const costume = o.historico?.dias >= DIAS_PARA_OPINAR ? o.historico.habitual : null;
+  const maior = Math.max(...precos);
+  // Pico: o maior preço está bem acima do de costume (15%+), não é o de hoje e valeu poucos dias (até 3)
+  let pico = "";
+  if (costume && maior >= costume * 1.15 && o.preco < maior) {
+    const data = (dia) => Date.parse(`${dia}T00:00:00`);
+    const dias = pontos.reduce((n, p, i) => (p.preco === maior ? n + Math.max(Math.round(((pontos[i + 1] ? data(pontos[i + 1].dia) : Date.now()) - data(p.dia)) / 864e5), 0) : n), 0);
+    if (dias <= 3) pico = dias <= 1 ? "só 1 dia" : `só ${dias} dias`;
+  }
   conteudo.replaceChildren(
     el("h2", { id: "historico-titulo" }, "Histórico de preço"),
     el("p", {}, `${o.titulo} · ${loja.nome}`),
     caixaMomento(o),
-    el("div", { class: "historico-numeros" },
+    // "De costume" num quadro próprio, ao lado de Hoje/Menor/Maior (11/11/2026, print do Giovanni: "6% abaixo do preço de
+    // costume" ao lado de "Maior R$ 49,90" parecia conta errada; o maior tinha sido um pico de 1 dia)
+    el("div", { class: `historico-numeros${costume ? " com-costume" : ""}` },
       el("div", {}, el("small", {}, "Hoje"), el("strong", {}, `R$ ${brl(o.preco)}`)),
+      costume && el("div", { class: "numero-costume" }, el("small", {}, "De costume"), el("strong", {}, `R$ ${brl(costume)}`)),
       el("div", {}, el("small", {}, "Menor"), el("strong", {}, `R$ ${brl(Math.min(...precos))}`)),
-      el("div", {}, el("small", {}, "Maior"), el("strong", {}, `R$ ${brl(Math.max(...precos))}`))),
-    graficoHistorico(pontos, o.preco, o.historico?.dias >= DIAS_PARA_OPINAR ? o.historico.habitual : null),
+      el("div", {}, el("small", {}, "Maior"), el("strong", {}, `R$ ${brl(maior)}`))),
+    graficoHistorico(pontos, o.preco, costume),
+    costume ? el("p", { class: "historico-nota" }, "“De costume” é o preço que valeu por mais dias nos últimos 30 dias. ",
+      pico ? `O maior preço (R$ ${brl(maior)}) durou ${pico}; por isso a comparação não é com ele.` : "") : "",
     el("p", { class: "historico-nota" }, diasAcompanhando < 7
       ? "Começamos a acompanhar este preço há pouco tempo. O gráfico fica mais completo a cada dia."
       : `Preço acompanhado há ${diasAcompanhando} dias.${o.moeda ? ` Valores convertidos de ${o.moeda} para reais.` : ""}`),
