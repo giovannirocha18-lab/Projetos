@@ -133,10 +133,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   busca faz na hora a busca "produto + marca" e junta à lista (`completarMarca` em app.js); com filtro apertado o botão "Ver
   mais" fica com o aviso parado "Procurando mais ofertas com esse filtro…" e para após 8 páginas sem produto novo
   (`rolagemInfinita`, `botaoCarregando`/`botaoParado`). Na Black Friday e nas lojas a marca ainda é procurada página a página
-  (ideia: filtro de marca no servidor em /api/black-friday). Enquanto busca a marca aparecem 4 cartões "carregando" e o
-  pedido é adiantado quando o mouse para na marca (`pedirMarca`/`adiantarMarca`, máx. 3). A busca da marca leva 6–10 s se
-  não estiver guardada; NÃO pré-carregar todas as marcas (multiplica as consultas e a Shopee limita). Ideia oferecida ao
-  Giovanni: o robô da noite preparar "categoria + marca" das principais.
+  (ideia: filtro de marca no servidor em /api/black-friday). Enquanto busca a marca aparecem 4 cartões "carregando".
+  **Busca rápida `rapido=1`** (ideia do Giovanni: usar a lista baixada da Shopee): /api/buscar só com o nosso banco (lista da
+  Shopee, Awin, ML `paginaDoBanco`; `FONTES_DO_BANCO`, opção `soBanco` nas fontes; chave de cache própria), 0,6–3 s, sem
+  consultar loja. `completarMarca` pede a rápida (adiantada quando o mouse para na marca) e depois a completa: Philips em
+  Eletroportáteis 9 → 116 em 2 s → 177. NÃO pré-carregar a busca completa de todas as marcas (a Shopee limita).
 - **10/11 (noite): "Categorias" dos resultados em lista de um toque**, como no ML (pedido do Giovanni; eram caixinhas todas
   marcadas): tocar mostra só aquela, "Todas" volta, 8 + "Ver todas" (`desenharFiltroSecoes` em app.js, `.secao-item` no CSS;
   `estado.secoesSo` com 1 categoria; `secoesFora` não é mais usado pela tela).
