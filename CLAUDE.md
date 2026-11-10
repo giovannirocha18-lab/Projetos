@@ -119,6 +119,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   mão), somadas na aba Comissões (`lib/comissoesManuais.js`, `/api/painel/parametros`). Nada de senha guardada.
 - **09/11: teste de dia do robô da noite (rodada manual) ✅**: as 2 trilhas chegaram ao fim sem erro; ML 50 min de buscas;
   prontas pararam aos 70 min (~450 de 627) → limite subiu para 120 min. Buscas no ar ok (air fryer 793, celular ML 24).
+- **10/11 (tarde)**: ML na busca passa de 24: páginas 2–10 vêm do banco (`paginaDoBanco`: mais vendidos que batem + catálogo
+  guardado com preço; sem consulta ao ML). Link da AliExpress curto (`/ir/ali/<id>` → `destinoAli` gera o de afiliado no clique,
+  cache 30 dias; era 40% da resposta, busca no celular mais lenta). Foto ruim no "Em alta no ML": pôr o id em `VITRINE_FORA`.
 - **Madrugada 10/11 (#135 + robô da noite)**: 1ª noite completa com GitHub público + Cloudflare ✅. GitHub 14 min (Awin +389/705
   preços, 673 MB; lista Shopee 99.921 (trocou 84 mil); IA 494 categorias corrigidas, US$ 0,01). Cloudflare: Worker chamou sozinho,
   ML fim 04h01, lojas (prontas) fim 04h31 de Brasília, antes do limite de 120 min. Site ok; ⚡ Full já em 4 do ML em "air fryer".
