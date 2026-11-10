@@ -143,7 +143,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Eletroportáteis 9 → 116 em 2 s → 177. NÃO pré-carregar a busca completa de todas as marcas (a Shopee limita).
 - **11/11: filtros sem o número de ofertas ao lado** (Marcas, Categorias, Lojas — barra lateral e botões do card — e "Bem
   avaliados"; pedido do Giovanni: dava a impressão de pouco produto). O botão "🚚 Frete grátis" também ficou sem número.
-  Ficaram com número só os atalhos de categoria da loja ML. A ordem (mais ofertas primeiro) não mudou.
+  A ordem (mais ofertas primeiro) não mudou. **Atalhos de categoria da loja ML (faixa no quadro roxo) removidos** (pedido do
+  Giovanni: ficava feio; categoria pela barra lateral, que filtra só os ~480–600 carregados; `?mlcat=` segue no servidor, sem uso).
   **"Lojas nesta lista" (barra lateral, página inicial/categoria) em lista de um toque** como as categorias: tocar mostra só
   a loja, "Todas" volta (`desenharLojasDaLista`, `estado.lojaSo`). Os botões de loja do card da busca ("Lojas com ofertas:")
   também: "Todas" + um toque por loja (`escolherLoja`, `lojasNoResumo`; saíram "Limpar"/"Marcar todas" e `alternarLoja`).
