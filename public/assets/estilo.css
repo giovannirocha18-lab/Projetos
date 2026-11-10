@@ -1109,7 +1109,7 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .buscados-ml { margin: 4px 0 14px; min-width: 0; }
 .buscados-ml h2 { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; margin: 0 0 8px; }
 .selo-ml-mini { background: #ffe600; color: #2d3277; font-size: .7rem; font-weight: 900; padding: 2px 6px; border-radius: 6px; }
-.chips-ml { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.chips-ml { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; scroll-padding-left: 2px; scroll-snap-type: x proximity; scrollbar-width: thin; }
 .cartao-ml { flex: 0 0 136px; scroll-snap-align: start; display: flex; flex-direction: column; gap: 4px; text-align: left;
   background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 8px; font: inherit; color: var(--texto); cursor: pointer;
   box-shadow: 0 1px 3px rgba(0,0,0,.05); transition: transform .12s, box-shadow .12s; }
@@ -1123,7 +1123,7 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .cartao-ml-preco { font-size: .9rem; font-weight: 800; color: var(--texto); }
 .cartao-ml-preco small { display: block; font-size: .7rem; font-weight: 600; color: var(--suave); }
 @media (max-width: 720px) {
-  .chips-ml { margin: 0 -16px; padding-left: 16px; padding-right: 16px; scrollbar-width: none; }
+  .chips-ml { margin: 0 -16px; padding-left: 16px; padding-right: 16px; scroll-padding-left: 16px; scrollbar-width: none; }
   .chips-ml::-webkit-scrollbar { display: none; }
   .cartao-ml { flex-basis: 118px; }
 }
