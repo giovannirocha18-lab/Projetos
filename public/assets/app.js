@@ -3244,7 +3244,7 @@ function desenharEmAlta(itens) {
   }));
 }
 
-// Mais buscados no Mercado Livre (10/11/2026): cartões com a foto de um produto do ML e o preço "a partir de"; o toque abre a busca
+// Mais buscados no Mercado Livre (10/11/2026): cartões com a foto e o preço de um produto do ML do termo; o toque abre a busca
 function desenharBuscadosML(cartoes) {
   const caixa = $("#buscados-ml");
   if (!caixa) return;
@@ -3255,13 +3255,13 @@ function desenharBuscadosML(cartoes) {
       el("img", { src: c.foto, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" }),
       el("span", { class: "chip-ml-n", "aria-hidden": "true" }, String(i + 1))),
     el("span", { class: "cartao-ml-nome" }, maiuscula(c.termo)),
-    c.preco && el("span", { class: "cartao-ml-preco" }, el("small", {}, "a partir de "), `R$ ${brl(c.preco)}`))));
+    c.preco && el("span", { class: "cartao-ml-preco" }, `R$ ${brl(c.preco)}`))));
   caixa.hidden = cartoes.length < 4;
 }
 
 async function carregarEmAlta() {
   try {
-    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=15")).json();
+    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=16")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);

@@ -30,7 +30,7 @@ const VIRA_CATEGORIA = {
 export async function onRequestGet({ request, env }) {
   // Guarda por 1 hora para não consultar a Shopee a cada visita
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/em-alta?v=15", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/em-alta?v=16", request.url)); // trocar o v= para descartar o guardado
   // ?depurar=termo: como a vitrine do ML escolhe foto e preço desse termo (sem guardar)
   const depurar = new URL(request.url).searchParams.get("depurar");
   if (depurar) return Response.json(await vitrineTendencias(env, [depurar], true), { headers: { "Cache-Control": "no-store" } });
