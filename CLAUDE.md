@@ -158,8 +158,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (`/api/buscar?v=108&q=utensílios de cozinha&cat=Cozinha` sem "Inversora" nem "Livro Teologia").
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
-  lib/conta.js e o trecho da privacidade. A tabela `personagens` ficou no banco (apagar em massa foi bloqueado pela
-  ferramenta; some por conta quando a pessoa exclui a conta) — **perguntar ao Giovanni se quer apagar o que está guardado**.
+  lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
+  autorizado pelo Giovanni).
 - **11/11, faixa "Em alta no ML" demorava a aparecer** (print): /api/em-alta levava ~4 s quando vencia (de hora em hora) →
   agora guardada 24 h, servida na hora e refeita por trás (`X-Vence`, `montar`); fotos `-V` (~20 KB; eram `-F`, 150–300 KB;
   `fotoPequenaML`); última faixa no aparelho (`vpc_em_alta_ml`); preload no index.html. No ar: 1ª visita 1,2–1,8 s, 2ª ~0,5 s.
