@@ -27,7 +27,6 @@ export async function onRequestDelete({ request, env }) {
   if (!usuario) return erro("Você não está conectado.", 401);
   await db.batch([
     db.prepare("DELETE FROM carrinhos WHERE usuario_id = ?").bind(usuario.id),
-    db.prepare("DELETE FROM personagens WHERE usuario_id = ?").bind(usuario.id),
     db.prepare("DELETE FROM alertas WHERE usuario_id = ?").bind(usuario.id),
     db.prepare("DELETE FROM sessoes WHERE usuario_id = ?").bind(usuario.id),
     db.prepare("DELETE FROM senhas WHERE usuario_id = ?").bind(usuario.id),
