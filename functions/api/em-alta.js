@@ -31,6 +31,9 @@ export async function onRequestGet({ request, env }) {
   // Guarda por 1 hora para não consultar a Shopee a cada visita
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const chave = new Request(new URL("/api/em-alta?v=14", request.url)); // trocar o v= para descartar o guardado
+  // ?depurar=termo: como a vitrine do ML escolhe foto e preço desse termo (sem guardar)
+  const depurar = new URL(request.url).searchParams.get("depurar");
+  if (depurar) return Response.json(await vitrineTendencias(env, [depurar], true), { headers: { "Cache-Control": "no-store" } });
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
 
