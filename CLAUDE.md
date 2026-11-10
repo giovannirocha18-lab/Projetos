@@ -145,7 +145,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   avaliados"; pedido do Giovanni: dava a impressão de pouco produto). Ficaram com número: botão "🚚 Frete grátis (N)" e
   atalhos de categoria da loja ML. A ordem (mais ofertas primeiro) não mudou.
   **"Lojas nesta lista" (barra lateral, página inicial/categoria) em lista de um toque** como as categorias: tocar mostra só
-  a loja, "Todas" volta (`desenharLojasDaLista`, `estado.lojaSo`). Na busca as lojas seguem nos botões do card (liga/desliga).
+  a loja, "Todas" volta (`desenharLojasDaLista`, `estado.lojaSo`). Os botões de loja do card da busca ("Lojas com ofertas:")
+  também: "Todas" + um toque por loja (`escolherLoja`, `lojasNoResumo`; saíram "Limpar"/"Marcar todas" e `alternarLoja`).
 - **10/11 (noite): "Categorias" dos resultados em lista de um toque**, como no ML (pedido do Giovanni; eram caixinhas todas
   marcadas): tocar mostra só aquela, "Todas" volta, 8 + "Ver todas" (`desenharFiltroSecoes` em app.js, `.secao-item` no CSS;
   `estado.secoesSo` com 1 categoria; `secoesFora` não é mais usado pela tela).
