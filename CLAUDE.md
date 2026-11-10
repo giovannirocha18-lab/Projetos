@@ -123,6 +123,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   robô renova os preços) e faixa **"Mais buscados no Mercado Livre"** na página inicial (/trends/MLB via /api/em-alta?v=11, campo
   `ml`, `desenharBuscadosML`). API do ML NÃO manda parcelas (installments null) → sem "12x sem juros"; manda garantia (dá para
   mostrar). Fila do ML: só 2 termos. Teste da API: workflow teste-ml.yml (`/api/preparar-ml?amostraItens=1`).
+- **10/11: site com 1.200 px no meio** (como o ML; `.topo .container, .pagina` max-width 1240) e **Mais buscados no ML em cartões
+  com foto e preço** (`vitrineTendencias` em lib/fontes/mercadolivre.js: mais vendidos que batem + catálogo guardado; só produto
+  `principal` (começa pelo termo); foto e preço do MESMO produto; só lê o banco). Conferir: `/api/em-alta?depurar=<termo>`.
 - **09/11: repositório PÚBLICO** (decisão do Giovanni, até resolver o limite do GitHub; minutos ilimitados; conferido antes:
   sem senha/chave/CPF no código nem no histórico). Voltar a privado: Settings → Danger Zone → Change visibility. Run #133 ✅
   (Awin +58/693 preços, lista Shopee 99.931). **Nunca pôr segredo no código/logs: tudo fica visível.**
