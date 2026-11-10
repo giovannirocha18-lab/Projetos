@@ -144,7 +144,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **11/11: filtros sem o número de ofertas ao lado** (Marcas, Categorias, Lojas — barra lateral e botões do card — e "Bem
   avaliados"; pedido do Giovanni: dava a impressão de pouco produto). O botão "🚚 Frete grátis" também ficou sem número.
   A ordem (mais ofertas primeiro) não mudou. **Atalhos de categoria da loja ML (faixa no quadro roxo) removidos** (pedido do
-  Giovanni: ficava feio; categoria pela barra lateral, que filtra só os ~480–600 carregados; `?mlcat=` segue no servidor, sem uso).
+  Giovanni: ficava feio; `?mlcat=` segue no servidor, sem uso). No lugar, **a categoria da lateral busca na loja ML inteira**
+  (`/api/lojas?id=mercadolivre&secao=<categoria do site>`, até 240 mais vendidos; `produtosDaSecaoNaLojaML` em lojas.js,
+  `completarSecao` em app.js): Pets 9 → 239 em ~2 s. Só na loja ML; lojas da Awin seguem filtrando o que já carregou.
   **"Lojas nesta lista" (barra lateral, página inicial/categoria) em lista de um toque** como as categorias: tocar mostra só
   a loja, "Todas" volta (`desenharLojasDaLista`, `estado.lojaSo`). Os botões de loja do card da busca ("Lojas com ofertas:")
   também: "Todas" + um toque por loja (`escolherLoja`, `lojasNoResumo`; saíram "Limpar"/"Marcar todas" e `alternarLoja`).
