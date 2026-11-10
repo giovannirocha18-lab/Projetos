@@ -156,6 +156,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   "stanley" → agora "copo stanley"; inversora/esmerilhadeira/lixadeira… em Ferramentas (lib/categorias.js; casos em
   testes/busca.mjs). A lista guardada da categoria só muda quando o robô da madrugada refizer: **conferir em 11/11 cedo**
   (`/api/buscar?v=108&q=utensílios de cozinha&cat=Cozinha` sem "Inversora" nem "Livro Teologia").
+- **11/11, faixa "Em alta no ML" demorava a aparecer** (print): /api/em-alta levava ~4 s quando vencia (de hora em hora) →
+  agora guardada 24 h, servida na hora e refeita por trás (`X-Vence`, `montar`); fotos `-V` (~20 KB; eram `-F`, 150–300 KB;
+  `fotoPequenaML`); última faixa no aparelho (`vpc_em_alta_ml`); preload no index.html. No ar: 1ª visita 1,2–1,8 s, 2ª ~0,5 s.
+  **Ideia**: os cartões de produto do ML também usam foto `-F` (página inicial baixa ~8 MB de fotos do ML); trocar por `-O`.
 - **11/11: IA confere também os mais baratos de cada busca** (robo/conferir-buscas.mjs: 10 da busca + 3 por loja, repete até
   5 rodadas enquanto achar 3+ errados; candidatos ao "Mais barato" da Escolha rápida). #137/#138: 2.232 escondidos, US$ 0,13.
 - **11/11: IA conferindo as FOTOS** (pedido do Giovanni): `robo/conferir-fotos.mjs` (foto reduzida a 384 px, 10 por pergunta,
