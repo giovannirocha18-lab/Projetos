@@ -1853,3 +1853,17 @@ Três revisões de código (servidor/segurança, busca, tela) + varredura do sit
   minutos em /api/produto e ?produto=; trava do robô da noite com dono; reserva de 7 dias avisada no JSON; marcas de duas
   palavras (Under Armour, New Balance) no detector de outra marca; regra do Cloudflare "Limite API" cobrir também `/ir/`.
 - Buscas prontas guardadas antes da mudança (ex.: "xbox") só mostram a regra nova depois que o robô da noite as renovar.
+
+### 10/11 (noite), depois da revisão: os 3 itens que tinham ficado para depois (Giovanni: "pode fazer as 3")
+- **Voltar guarda o lugar** (`public/assets/app.js`, fim do arquivo): `guardarLugar(endereço)` é chamado no `pushState` que muda
+  de endereço e no `popstate` (com o endereço anterior); guarda cópia do `estado` (menos `FORA_DO_LUGAR`: pedido, inicio, cupons…),
+  os nós da `#grade` + a entrada de `desenhados`, os filtros e a âncora (1º cartão na tela e a altura dele). `restaurarLugar`
+  põe os mesmos nós de volta, chama desenharFiltroLojas/desenharResultados (que reaproveitam os cartões) e `rolarPara` até a
+  âncora (3 acertos: os cartões de cima mudam de tamanho com content-visibility). Página inicial: só filtros + âncora
+  (`#destaques` ganhou `data-id`). Não chama `completarSozinho` de novo: a lista segue pelo "Ver mais"/rolagem infinita.
+  Testado com Playwright (celular e PC): mesmo produto na tela ao voltar e ao avançar, 0 pedidos à API.
+- **Fonte**: Plus Jakarta Sans variável (latin + latin-ext, 49 KB) em `public/assets/`, `@font-face` no começo do estilo.css,
+  `<link rel="preload">` nas 3 páginas, cache de 1 ano no `_headers`. O painel segue com a Inter do Google.
+- **Banco**: `COLUNAS_LEVES` + `linhasCompletas` (lib/fontes/awin.js), `completas` (lib/shopeeLista.js), `db.batch` em
+  `lerRegistros` (lib/ofertas.js) e em `comCategoriaDaIa` (lib/ia.js). `testes/banco.mjs` usa SQLite na memória no lugar do
+  D1 (mesmo resultado com o código antigo e o novo).

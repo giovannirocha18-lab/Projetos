@@ -124,8 +124,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   para baixar fora de "xbox", "Ver mais" não acaba cedo (`lista.temMais` na AliExpress e no ML), prazo por página. Tela: selos,
   filtros zerados em busca nova, Voltar do celular só fecha gaveta/carrinho (`passoDeCamada`). Proteção: limite por visitante em
   /ir, cliques e fila do ML; login por e-mail+aparelho; confirmação de e-mail só conectado. Lançamento: canônico, título por
-  busca, robots.txt e sitemap.xml (`comDadosDaPagina` no _middleware.js). **Ficou para depois**: categorias/lojas como links
-  `<a>` (para o Google), guardar o lugar da lista ao voltar, consultas D1 em duas fases (Awin/lista Shopee), cache em /api/produto.
+  busca, robots.txt e sitemap.xml (`comDadosDaPagina` no _middleware.js). Depois, a pedido: **Voltar guarda o lugar**
+  (`guardarLugar`/`restaurarLugar` em app.js: cartões, filtros e o produto que estava na tela; 10 min, 4 páginas), **fonte no
+  próprio site** (`/assets/jakarta-*.woff2`, sem Google Fonts) e **banco em duas fases** (Awin e lista Shopee leem só o nome e
+  depois os escolhidos; teste `node testes/banco.mjs`). **Ficou para depois**: categorias/lojas como links `<a>` (para o
+  Google), cache em /api/produto; Giovanni: pôr `/ir/` na regra "Limite API" do Cloudflare.
 - **10/11 (tarde)**: ML na busca passa de 24: páginas 2–10 vêm do banco (`paginaDoBanco`: mais vendidos que batem + catálogo
   guardado com preço; sem consulta ao ML). Link da AliExpress curto (`/ir/ali/<id>` → `destinoAli` gera o de afiliado no clique,
   cache 30 dias; era 40% da resposta, busca no celular mais lenta). Foto ruim no "Em alta no ML": pôr o id em `VITRINE_FORA`.
