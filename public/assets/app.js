@@ -1617,12 +1617,7 @@ function zerarSecoes() {
   estado.secoesFora.clear();
   estado.marcasSo.clear();
   estado.todasMarcas = false;
-}
-
-function marcarSecao(secao, marcada) {
-  const conjunto = estado.secoesSo || estado.secoesFora;
-  (marcada === Boolean(estado.secoesSo)) ? conjunto.add(secao) : conjunto.delete(secao);
-  desenharResultados();
+  estado.todasSecoes = false;
 }
 
 const PARTE_FORA_AMBIGUA = 0.2;
@@ -1647,11 +1642,30 @@ function desenharFiltroSecoes() {
   if (estado.q && !estado.cat && ambigua) { if (caixa.nextElementSibling !== marcas) marcas.before(caixa); }
   else if (marcas.nextElementSibling !== caixa) marcas.after(caixa);
   const ordem = [...contagem.keys()].sort((a, b) => (!a) - (!b) || (b === estado.cat) - (a === estado.cat) || contagem.get(b) - contagem.get(a));
-  $("#filtro-secoes").replaceChildren(...ordem.map((secao) => el("label", { class: "opcao" },
-    el("input", { type: "checkbox", checked: secaoVisivel({ secao }), onchange: (e) => marcarSecao(secao, e.target.checked) }),
-    secao ? `${categoriaPeloNome(secao)?.emoji || ""} ${secao}` : "Outros",
-    el("span", { class: "qtd", title: `${contagem.get(secao)} ofertas desta categoria na lista` }, contagem.get(secao)))));
+  // Lista de categorias como no Mercado Livre (10/11/2026, pedido do Giovanni: com caixinhas todas marcadas era preciso
+  // desmarcar uma por uma para ver só uma categoria): um toque na categoria mostra só ela; "Todas" volta a mostrar tudo.
+  // Em destaque ficam as que estão valendo (a busca já começa nas categorias do produto buscado)
+  const todas = !estado.secoesSo && !estado.secoesFora.size;
+  const total = [...contagem.values()].reduce((n, q) => n + q, 0);
+  const linha = (ativa, aoClicar, icone, nome, qtd) => el("button", { type: "button", class: `secao-item${ativa ? " ativa" : ""}`,
+    "aria-pressed": String(ativa), onclick: aoClicar },
+  el("span", { class: "secao-icone", "aria-hidden": "true" }, icone), el("span", { class: "secao-nome" }, nome),
+  el("span", { class: "qtd", title: `${qtd} ofertas na lista` }, qtd));
+  const visiveis = estado.todasSecoes ? ordem : ordem.filter((secao, i) => i < SECOES_VISIVEIS || (!todas && secaoVisivel({ secao })));
+  $("#filtro-secoes").replaceChildren(
+    linha(todas, () => { estado.secoesSo = null; estado.secoesFora.clear(); desenharFiltroSecoes(); desenharResultados(); }, "🗂️", "Todas", total),
+    ...visiveis.map((secao) => linha(!todas && secaoVisivel({ secao }), () => {
+      estado.secoesSo = new Set([secao]);
+      estado.secoesFora.clear();
+      desenharFiltroSecoes();
+      desenharResultados();
+    }, secao ? categoriaPeloNome(secao)?.emoji || "•" : "•", secao || "Outros", contagem.get(secao))),
+    ordem.length > visiveis.length || estado.todasSecoes
+      ? el("button", { type: "button", class: "botao-link", onclick: () => { estado.todasSecoes = !estado.todasSecoes; desenharFiltroSecoes(); } },
+        estado.todasSecoes ? "Ver menos" : `Ver todas (${ordem.length})`)
+      : "");
 }
+const SECOES_VISIVEIS = 8;
 
 // Filtro por marca (pedido do Giovanni, 24/10/2026): a marca sai do título, pela mesma lista de marcas da busca
 // (MARCAS em lib/vocabulario.js, que chega por /api/vocabulario). As lojas não mandam a marca separada (Shopee e

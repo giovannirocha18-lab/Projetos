@@ -569,6 +569,20 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .opcao input { width: 18px; height: 18px; accent-color: var(--roxo); }
 .opcao .qtd { margin-left: auto; font-size: .78rem; color: var(--suave); background: var(--bg); padding: 1px 8px; border-radius: 999px; }
 
+/* Categorias dos resultados em lista (como no Mercado Livre): um toque mostra só aquela */
+#filtro-secoes { display: grid; gap: 2px; }
+.secao-item {
+  display: flex; align-items: center; gap: 8px; width: calc(100% + 16px); padding: 6px 8px; margin: 0 -8px;
+  border: 0; border-radius: 10px; background: transparent; color: inherit; font: inherit; font-size: .92rem; font-weight: 500;
+  text-align: left; cursor: pointer;
+}
+.secao-item:hover { background: var(--roxo-claro); color: var(--roxo); }
+.secao-item.ativa { background: var(--roxo-claro); color: var(--roxo); font-weight: 700; }
+.secao-icone { flex: none; width: 1.4em; text-align: center; }
+.secao-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.secao-item .qtd { flex: none; font-size: .78rem; font-weight: 500; color: var(--suave); background: var(--bg); padding: 1px 8px; border-radius: 999px; }
+#filtro-secoes .botao-link { justify-self: start; margin-top: 4px; }
+
 .faixa-preco { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .faixa-preco label { font-size: .8rem; color: var(--suave); }
 .faixa-preco input {
