@@ -150,6 +150,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   **"Lojas nesta lista" (barra lateral, página inicial/categoria) em lista de um toque** como as categorias: tocar mostra só
   a loja, "Todas" volta (`desenharLojasDaLista`, `estado.lojaSo`). Os botões de loja do card da busca ("Lojas com ofertas:")
   também: "Todas" + um toque por loja (`escolherLoja`, `lojasNoResumo`; saíram "Limpar"/"Marcar todas" e `alternarLoja`).
+- **11/11, print "computador" com "Balança Computadora" no Mais barato**: `OUTRA_PALAVRA_DE.computador` em lib/relevancia.js
+  (computadora/computadorizada não são computador); caso em testes/busca.mjs. No ar: balança fora ✅.
 - **10/11 (noite): "Categorias" dos resultados em lista de um toque**, como no ML (pedido do Giovanni; eram caixinhas todas
   marcadas): tocar mostra só aquela, "Todas" volta, 8 + "Ver todas" (`desenharFiltroSecoes` em app.js, `.secao-item` no CSS;
   `estado.secoesSo` com 1 categoria; `secoesFora` não é mais usado pela tela).
