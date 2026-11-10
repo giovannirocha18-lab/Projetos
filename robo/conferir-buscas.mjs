@@ -24,6 +24,20 @@ const POR_PEDIDO = 80; // títulos por pergunta à IA
 const TOPO = 24;
 // Buscas reais dos visitantes nos últimos 30 dias (as mais buscadas), além das sugestões da caixa de busca (03/11/2026)
 const BUSCADAS = 150;
+// Também os mais baratos de cada busca (11/11/2026, print do Giovanni: "computador" com "Balança Computadora" no
+// "💰 Mais barato" da Escolha rápida; produto errado quase sempre custa menos que o certo e a IA só via os primeiros da
+// lista): os 10 de menor preço da busca e os 3 de menor preço de cada loja (quem escolhe uma loja vê o mais barato dela)
+const BARATOS = 10;
+const BARATOS_POR_LOJA = 3;
+function maisBaratos(ofertas) {
+  const porPreco = ofertas.filter((o) => !o.acessorio && o.preco > 0).sort((a, b) => a.preco - b.preco);
+  const daLoja = new Map();
+  return porPreco.filter((o, i) => {
+    const n = daLoja.get(o.loja) || 0;
+    daLoja.set(o.loja, n + 1);
+    return i < BARATOS || n < BARATOS_POR_LOJA;
+  });
+}
 const AO_MESMO_TEMPO = 2; // buscas abertas ao mesmo tempo (limite do Cloudflare: 60 pedidos em 10 s; ver robo/auditoria.mjs)
 const PAUSA_MS = 500;
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -205,7 +219,7 @@ for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
     const cats = catsDaBusca.map((c) => c || "Outros").join(" + ");
     const doProduto = categoriaDoProduto(q)?.nome;
     const corrigeCom = catsDaBusca.length === 1 && doProduto && catsDaBusca[0] === doProduto ? doProduto : null;
-    for (const o of [...fora, ...topo]) {
+    for (const o of [...fora, ...topo, ...maisBaratos(ofertas)]) {
       const chave = chaveIa(o.titulo || "");
       if (!chave) continue;
       // Já respondido "é o produto" numa noite anterior e ainda fora da categoria: corrige sem perguntar de novo
@@ -241,7 +255,7 @@ if (correcoes.size) {
 }
 
 const custo = (entrada * PRECO_ENTRADA + saida * PRECO_SAIDA) / 1e6;
-anotar(`- ${abertas} de ${termos.length} buscas abertas; ${perguntados} produtos perguntados à IA (fora da categoria da busca ou entre os ${TOPO} primeiros) (${falhas} perguntas com erro)`);
+anotar(`- ${abertas} de ${termos.length} buscas abertas; ${perguntados} produtos perguntados à IA (fora da categoria da busca, entre os ${TOPO} primeiros ou entre os mais baratos) (${falhas} perguntas com erro)`);
 anotar(`- Não são o produto buscado (saem do meio dos resultados daquela busca): ${naoSao.length}`);
 anotar(`- São o produto, mas em outra categoria (conferir as regras de categoria): ${categoriaDuvidosa.length}; ` +
   `categoria corrigida sozinha em ${correcoes.size} (busca de produto com uma categoria só)`);
