@@ -9,7 +9,7 @@
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
 import { separarAcessorios, produtoBuscado, temTodasAsPalavras, citaAlgumaPalavra } from "../lib/relevancia.js";
 import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
-import { categoriaDoProduto, categoriaPorNome, marcarSecoes } from "../lib/categorias.js";
+import { categoriaDoProduto, categoriaPorNome, marcarSecoes, montarVitrine } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 
 const CASOS = {
@@ -409,6 +409,9 @@ for (const [q, titulos, primeiro] of ORDEM) {
 
 // Categoria pelo título (print de 17/10/2026: vara de pesca caía em Óculos)
 const CATEGORIAS_ESPERADAS = [
+  // 11/11/2026 (print do Giovanni: inversora de solda da Stanley na categoria Cozinha)
+  ["Kit Inversora Solda 100A 220V KLISL-145 Stanley", "Ferramentas"], ["Esmerilhadeira Angular 4 1/2 850W Bosch", "Ferramentas"],
+  ["Copo Térmico Stanley 473ml", "Cozinha"],
   ["Vara de Pesca Telescópica Carbono 2,1m", "Esporte e fitness"],
   ["Molinete de Pesca 5000 Rolamentos", "Esporte e fitness"],
   ["Óculos de Sol Polarizado para Pesca", "Óculos"],
@@ -439,6 +442,15 @@ const CATEGORIAS_ESPERADAS = [
   ["Top sustentação feminino top academia", "Moda fitness"], ["Top com bojo removível esportivo", "Moda fitness"],
   ["Boné Trucker Aba Curva", "Bonés e chapéus"], ["Chapéu Bucket Preto", "Bonés e chapéus"], ["Boneco Funko Pop! Pokemon - Squirtle", "Brinquedos"],
 ];
+// 11/11/2026 (prints do Giovanni na categoria Cozinha): a vitrine buscava só a marca "stanley" e trazia inversora de solda
+// da Stanley e livro de autor chamado Stanley
+{
+  const cozinha = categoriaPorNome("Cozinha");
+  const lista = ["Livro Teologia Sistemática Pentecostal | Stanley M. Horton", "Kit Inversora Solda 100A 220V KLISL-145 Stanley",
+    "Copo Térmico Stanley Quencher 1,18L", "Copo Stanley Original 473ml Com Tampa"].map((titulo, id) => ({ id, titulo, preco: 100, bate: true }));
+  const ficaram = montarVitrine([lista], cozinha.vitrine, cozinha).map((o) => o.id).join();
+  if (ficaram !== "2,3") { falhas++; console.log(`✗ vitrine da Cozinha: deviam ficar só os copos Stanley (ficaram ${ficaram})`); }
+}
 for (const [titulo, esperada] of CATEGORIAS_ESPERADAS) {
   total++;
   const obtida = categoriaDoProduto(titulo)?.nome;
