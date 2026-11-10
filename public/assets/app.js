@@ -1875,11 +1875,6 @@ function contarLojas() {
   return contagem;
 }
 
-function alternarLoja(id, ligar) {
-  if (ligar) estado.lojasDesmarcadas.delete(id); else estado.lojasDesmarcadas.add(id);
-  estado.lojaSo = null; // escolha à mão, uma a uma (ver desenharLojasDaLista)
-}
-
 // A API das lojas manda o preço sem cupom; com cupom ou Pix (depende da conta e da campanha) pode sair menos na loja.
 // Aviso uma vez só, no card de resultados e na faixa das "Ofertas do dia", sem mexer nos cartões (pedido do Giovanni)
 // Pix e cupom não vêm nos arquivos das lojas (print Motorola, 28/10/2026: R$ 7.999 no site = preço a prazo; R$ 7.199 no Pix)
@@ -1890,27 +1885,35 @@ const AVISO_CUPOM = "💸 Pagando no Pix ou com cupom, muitos produtos saem aind
 // Mesmo botão "Limpar filtros" da barra lateral, no card roxo (pedido do Giovanni, 22/10/2026: no card ele fica à vista)
 const botaoLimparFiltros = () => el("button", { type: "button", class: "chip-acao chip-limpar", onclick: limparTudo }, "✕ Limpar filtros");
 
+// Mostra só uma loja (id) ou todas (null); as lojas que chegarem depois já entram escondidas (ver desenharLojasDaLista)
+function escolherLoja(id) {
+  estado.lojaSo = id;
+  estado.lojasDesmarcadas.clear();
+  if (id) for (const o of estado.ofertas) if (o.loja !== id) estado.lojasDesmarcadas.add(o.loja);
+  desenharFiltroLojas();
+  desenharResultados();
+}
+
+// De um toque, como as categorias (11/11/2026, pedido do Giovanni; antes cada botão ligava/desligava a loja e havia
+// "Limpar"/"Marcar todas"): tocar numa loja mostra só ela; "Todas" volta a mostrar tudo
 function lojasNoResumo() {
   const contagem = contarLojas();
   const ids = Object.keys(contagem);
   if (!ids.length) return null;
-  const atualizar = () => { desenharFiltroLojas(); desenharResultados(); };
-  const algumaDesligada = ids.some((id) => estado.lojasDesmarcadas.has(id));
+  const todas = !ids.some((id) => estado.lojasDesmarcadas.has(id));
   return el("div", { class: "resumo-lojas" },
     el("span", { class: "resumo-lojas-titulo" }, "Lojas com ofertas:"),
+    el("button", { type: "button", class: "chip-loja chip-todas", "aria-pressed": String(todas), title: "Mostrar as ofertas de todas as lojas",
+      onclick: () => escolherLoja(null) }, "Todas"),
     ...ids.map((id) => {
       const loja = infoLoja(estado.ofertas.find((o) => o.loja === id));
-      const ligada = !estado.lojasDesmarcadas.has(id);
+      const ligada = !todas && !estado.lojasDesmarcadas.has(id);
       return el("button", {
         type: "button", class: "chip-loja", "aria-pressed": String(ligada), style: `--cor-loja:${loja.cor}`,
-        title: ligada ? `Esconder as ofertas da ${loja.nome}` : `Mostrar as ofertas da ${loja.nome}`,
-        onclick: () => { alternarLoja(id, !ligada); atualizar(); },
+        title: `Mostrar só as ofertas da ${loja.nome}`,
+        onclick: () => escolherLoja(id),
       }, el("span", { class: "loja-ponto" }), loja.nome); // sem o número de ofertas (11/11/2026, pedido do Giovanni)
     }),
-    el("button", {
-      type: "button", class: "chip-acao",
-      onclick: () => { ids.forEach((id) => alternarLoja(id, algumaDesligada)); atualizar(); },
-    }, algumaDesligada ? "Marcar todas" : "Limpar"),
     el("small", { class: "resumo-lojas-nota" },
       estado.qtdParceiras ? `Temos ${estado.qtdParceiras} parceiras; aqui aparecem as que têm ofertas nesta busca. ` : "",
       el("button", { type: "button", class: "botao-link-claro", onclick: abrirLojas }, "Ver lojas parceiras"),
@@ -1926,7 +1929,7 @@ function desenharFiltroLojas() {
 // Lojas da barra lateral em lista de um toque, como as categorias (11/11/2026, pedido do Giovanni; eram caixinhas todas
 // marcadas, para desmarcar uma por uma): tocar numa loja mostra só ela; "Todas" volta a mostrar tudo. estado.lojaSo guarda
 // a loja escolhida para as lojas que chegarem depois (mais páginas) já entrarem escondidas. Os botões de loja do card de
-// resultados continuam ligando/desligando uma a uma (alternarLoja)
+// resultados fazem o mesmo (lojasNoResumo)
 function desenharLojasDaLista() {
   if (!estado.lojasDesmarcadas.size || estado.lojasDesmarcadas.has(estado.lojaSo)) estado.lojaSo = null;
   if (estado.lojaSo) for (const o of estado.ofertas) if (o.loja !== estado.lojaSo) estado.lojasDesmarcadas.add(o.loja);
@@ -1935,18 +1938,11 @@ function desenharLojasDaLista() {
   const linha = (ativa, aoClicar, icone, nome, cor) => el("button", { type: "button", class: `secao-item${ativa ? " ativa" : ""}`,
     "aria-pressed": String(ativa), onclick: aoClicar, ...(cor && { style: `--cor-loja:${cor}` }) },
   el("span", { class: "secao-icone", "aria-hidden": "true" }, icone), el("span", { class: "secao-nome" }, nome));
-  const escolher = (id) => {
-    estado.lojaSo = id;
-    estado.lojasDesmarcadas.clear();
-    if (id) for (const o of estado.ofertas) if (o.loja !== id) estado.lojasDesmarcadas.add(o.loja);
-    desenharFiltroLojas();
-    desenharResultados();
-  };
   $("#filtro-lojas").replaceChildren(
-    linha(todas, () => escolher(null), "🏬", "Todas"),
+    linha(todas, () => escolherLoja(null), "🏬", "Todas"),
     ...Object.keys(contagem).map((id) => {
       const loja = infoLoja(estado.ofertas.find((o) => o.loja === id));
-      return linha(!todas && !estado.lojasDesmarcadas.has(id), () => escolher(id), el("span", { class: "loja-ponto" }), loja.nome, loja.cor);
+      return linha(!todas && !estado.lojasDesmarcadas.has(id), () => escolherLoja(id), el("span", { class: "loja-ponto" }), loja.nome, loja.cor);
     }));
 }
 
