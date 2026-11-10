@@ -156,6 +156,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   "stanley" → agora "copo stanley"; inversora/esmerilhadeira/lixadeira… em Ferramentas (lib/categorias.js; casos em
   testes/busca.mjs). A lista guardada da categoria só muda quando o robô da madrugada refizer: **conferir em 11/11 cedo**
   (`/api/buscar?v=108&q=utensílios de cozinha&cat=Cozinha` sem "Inversora" nem "Livro Teologia").
+- **11/11, print do histórico ("6% abaixo" ao lado de "Maior R$ 49,90")**: a conta estava certa (preço de costume = o que
+  valeu mais dias em 30). Janela do histórico ganhou o quadro "De costume" (14+ dias), a explicação e o aviso de pico
+  ("O maior preço durou só N dias", até 3 dias e 15%+ acima) (`abrirHistorico` em app.js, `.com-costume` no CSS). No ar ✅.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
   lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
