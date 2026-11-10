@@ -1,7 +1,7 @@
 // GET    /api/conta  -> quem está conectado e o carrinho salvo
 // DELETE /api/conta  -> exclui a conta e todos os dados dela (direito garantido pela LGPD)
 import {
-  banco, responder, SEM_BANCO, erro, lerJson, usuarioDaSessao, lerCarrinho, lerPersonagem, cookieApagar, chavesDoEmail,
+  banco, responder, SEM_BANCO, erro, lerJson, usuarioDaSessao, lerCarrinho, cookieApagar, chavesDoEmail,
 } from "../../../lib/conta.js";
 
 export async function onRequestGet({ request, env }) {
@@ -14,7 +14,7 @@ export async function onRequestGet({ request, env }) {
   return responder({
     ativo: true,
     google,
-    usuario: { nome: usuario.nome, email: usuario.email, personagem: await lerPersonagem(db, usuario.id) },
+    usuario: { nome: usuario.nome, email: usuario.email },
     carrinho: await lerCarrinho(db, usuario.id),
   });
 }

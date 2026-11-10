@@ -446,59 +446,6 @@ function desenharContaTopo() {
 }
 
 // ---------------------------------------------------------------------
-// Meu personagem: quem tem conta monta o personagem da animação de busca
-// ---------------------------------------------------------------------
-function abrirEditorPersonagem() {
-  conta.rascunho = { ...PERSONAGEM_PADRAO, ...(conta.usuario.personagem || PERSONAGENS_PRONTOS[0]) };
-  conta.etapa = "personagem";
-  conta.erro = "";
-  desenharConta();
-}
-
-function editorPersonagem(erro) {
-  const r = conta.rascunho;
-  const previa = el("div", { class: "anim-buscando previa-personagem" });
-  previa.innerHTML = desenharPersonagem(r);
-  const escolher = (campo, valor) => { r[campo] = valor; desenharConta(); };
-  const grupos = Object.entries(PERSONAGEM_OPCOES).map(([campo, { titulo, itens, cores }]) => el("div", { class: "grupo-personagem" },
-    el("span", { class: "titulo-grupo" }, titulo),
-    el("div", { class: "opcoes-personagem" }, cores
-      ? Object.entries(cores).map(([valor, cor]) => el("button", {
-        type: "button", class: `cor-personagem${r[campo] === valor ? " ativa" : ""}`, style: `background:${cor}`,
-        title: valor, "aria-label": `${titulo}: ${valor}`, "aria-pressed": String(r[campo] === valor), onclick: () => escolher(campo, valor),
-      }))
-      : Object.entries(itens).map(([valor, nome]) => el("button", {
-        type: "button", class: `chip-personagem${r[campo] === valor ? " ativa" : ""}`, "aria-pressed": String(r[campo] === valor),
-        onclick: () => escolher(campo, valor),
-      }, nome)))));
-  // No computador a janela fica larga, em colunas (prévia e botões à esquerda, opções à direita), para caber tudo sem
-  // rolar (pedido do Giovanni, 23/10/2026); no celular continua uma coluna só
-  return [
-    el("h2", { id: "conta-titulo" }, "🎨 Meu personagem"),
-    el("p", {}, "É ele que empurra o carrinho enquanto o site busca as ofertas para você."),
-    el("div", { class: "editor-personagem" },
-      el("div", { class: "editor-lado" },
-        previa,
-        el("button", { class: "botao-secundario botao-sortear", type: "button", onclick: () => { conta.rascunho = sortearPersonagem(); desenharConta(); } }, "🎲 Sortear um personagem"),
-        erro,
-        el("button", { class: "botao-primario", type: "button", onclick: () => salvarPersonagem() }, "Salvar meu personagem"),
-        el("div", { class: "links-conta" },
-          el("button", { class: "botao-link", type: "button", onclick: () => { conta.etapa = "entrar"; conta.erro = ""; desenharConta(); } }, "Voltar"),
-          conta.usuario.personagem && el("button", { class: "botao-link", type: "button", onclick: () => salvarPersonagem(null) }, "Usar os personagens do site"))),
-      el("div", { class: "editor-opcoes" }, ...grupos)),
-  ];
-}
-
-function salvarPersonagem(personagem = conta.rascunho) {
-  return comEspera(null, async () => {
-    const dados = await chamarConta("PUT", "/personagem", { personagem });
-    conta.usuario.personagem = dados.personagem;
-    conta.etapa = "entrar";
-    toast(dados.personagem ? "Personagem salvo! Ele aparece nas suas buscas 🛒" : "Pronto: o site volta a sortear os personagens");
-  });
-}
-
-// ---------------------------------------------------------------------
 // Alertas de preço: "🔔 Me avise quando baixar" (e-mail; o robô confere os preços uma vez por dia, lib/alertas.js)
 // ---------------------------------------------------------------------
 const alertas = new Map(); // código do produto -> alerta da conta
@@ -780,9 +727,7 @@ function desenharConta() {
   const erro = conta.erro && el("p", { class: "erro-conta", role: "alert" }, conta.erro);
   let conteudo;
 
-  if (conta.usuario && conta.etapa === "personagem") {
-    conteudo = editorPersonagem(erro);
-  } else if (conta.usuario && conta.etapa === "alerta" && conta.alertaOferta) {
+  if (conta.usuario && conta.etapa === "alerta" && conta.alertaOferta) {
     conteudo = janelaAlerta(erro);
   } else if (conta.usuario && conta.etapa === "meus-alertas") {
     conteudo = meusAlertas(erro);
@@ -793,10 +738,8 @@ function desenharConta() {
       el("p", {}, `Você tem ${favoritos.length} ${favoritos.length === 1 ? "item" : "itens"} no carrinho, salvos na sua conta.`),
       erro,
       el("button", { class: "botao-primario", type: "button", onclick: () => { $("#janela-conta").close(); abrirPainel(true); } }, "🛒 Ver meu carrinho"),
-      el("button", { class: "botao-secundario botao-personagem", type: "button", onclick: () => { conta.etapa = "meus-alertas"; conta.erro = ""; desenharConta(); } },
+      el("button", { class: "botao-secundario botao-da-conta", type: "button", onclick: () => { conta.etapa = "meus-alertas"; conta.erro = ""; desenharConta(); } },
         `🔔 Meus alertas de preço (${alertas.size})`),
-      el("button", { class: "botao-secundario botao-personagem", type: "button", onclick: abrirEditorPersonagem },
-        conta.usuario.personagem ? "🎨 Mudar meu personagem" : "🎨 Montar meu personagem"),
       el("div", { class: "links-conta" },
         el("button", { class: "botao-link", type: "button", onclick: sair }, "Sair desta conta"),
         el("button", { class: "botao-link perigo", type: "button", onclick: excluirConta }, "Excluir minha conta")),
@@ -853,7 +796,6 @@ function desenharConta() {
   const legais = el("p", { class: "links-legais" }, el("a", { href: "/como-funciona" }, "Como funciona"), " · ",
     el("a", { href: "/privacidade" }, "Política de Privacidade"));
   $("#conta-conteudo").replaceChildren(...conteudo.filter(Boolean), legais);
-  $("#janela-conta").classList.toggle("janela-larga", Boolean(conta.usuario && conta.etapa === "personagem"));
 }
 
 async function comEspera(form, acao) {
@@ -2332,242 +2274,14 @@ function desenharResultados() {
   botao.textContent = `Ver também ${acessorios} ${nome} para “${estado.q}”`;
 }
 
-// Animação enquanto busca: um personagem empurra um carrinho de um lado ao outro, olhando para os lados, e o
-// carrinho vai enchendo de produtos pelo caminho. Quem tem conta pode montar o seu ("Meu personagem");
-// sem escolha, o site sorteia um dos dois modelos prontos a cada busca.
-// As opções valem também no servidor (OPCOES_PERSONAGEM em lib/conta.js): mudar nos dois lugares.
-const PERSONAGEM_OPCOES = {
-  cabelo: { titulo: "Cabelo", itens: { curto: "Curto", rabo: "Rabo de cavalo", cacheado: "Cacheado", coque: "Coque", black: "Black power", tranca: "Trança", moicano: "Moicano", bone: "Boné", careca: "Careca" } },
-  corCabelo: { titulo: "Cor do cabelo", cores: { preto: "#1f1209", castanho: "#5b3a1e", loiro: "#e9c46a", ruivo: "#c2410c", grisalho: "#a8a29e", rosa: "#f472b6", azul: "#38bdf8", roxo: "#8b5cf6" } },
-  pele: { titulo: "Pele", cores: { clara: "#f5c09a", media: "#e0a97a", morena: "#b97a4f", parda: "#8d5524", negra: "#5c3a21" } },
-  rosto: { titulo: "Rosto", itens: { sorriso: "😊 Sorriso", rindo: "😄 Rindo", piscadinha: "😉 Piscadinha", lingua: "😛 Língua de fora", estrela: "🤩 Olhos de estrela", oculos: "🤓 Óculos", escuros: "😎 Óculos escuros", barba: "🧔 Barba", bigode: "👨 Bigode", sardas: "🙂 Sardas" } },
-  roupa: { titulo: "Roupa", cores: { amarelo: "#fde047", verde: "#14b8a6", azul: "#3b82f6", vermelho: "#ef4444", rosa: "#f472b6", preto: "#27272a" } },
-  acessorio: { titulo: "Acessório", itens: { nenhum: "Nenhum", fone: "🎧 Fone", mochila: "🎒 Mochila", sacola: "🛍️ Sacola", gorro: "🎅 Gorro de Natal" } },
-  jeito: { titulo: "Jeito de andar", itens: { andando: "🚶 Andando", correndo: "🏃 Correndo", patins: "🛼 De patins" } },
-  carrinho: { titulo: "Carrinho", itens: { logo: "Do logo", grade: "De supermercado", cestinha: "🧺 Cestinha", corrida: "🏎️ De corrida", foguete: "🚀 Foguete", presentes: "🎁 Cheio de presentes", blackfriday: "🖤 Black Friday" } },
-};
-// Campos que vieram depois (23/10/2026): personagem salvo antes não tem, e fica com o padrão
-const PERSONAGEM_PADRAO = { acessorio: "nenhum", jeito: "andando" };
-// Os dois modelos prontos (v1 = boneco de camiseta amarela + carrinho do logo; v2 = moça + carrinho de grade)
-const PERSONAGENS_PRONTOS = [
-  { cabelo: "curto", corCabelo: "castanho", pele: "clara", rosto: "sorriso", roupa: "amarelo", acessorio: "nenhum", jeito: "andando", carrinho: "logo" },
-  { cabelo: "rabo", corCabelo: "preto", pele: "morena", rosto: "sorriso", roupa: "verde", acessorio: "nenhum", jeito: "andando", carrinho: "grade" },
-];
-// Botão "🎲 Sortear" do editor
-const sortearPersonagem = () => Object.fromEntries(Object.entries(PERSONAGEM_OPCOES).map(([campo, { itens, cores }]) => {
-  const valores = Object.keys(itens || cores);
-  return [campo, valores[Math.floor(Math.random() * valores.length)]];
-}));
-
-// Cor um pouco mais escura (braço e perna de trás)
-const escurecer = (hex, f = 0.82) => `#${[1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * f).toString(16).padStart(2, "0")).join("")}`;
-
-// Coisas que caem no carrinho (classe p1…p6 = ordem em que caem). O grupo de fora leva a posição de cada carrinho
-// (translate/scale): no mesmo grupo da animação, o transform do CSS apagava a posição
-function caindoNoCarrinho(itens, dx, dy, s = 1) {
-  return `<g transform="translate(${dx} ${dy}) scale(${s})">${itens.map((conteudo, i) => `<g class="anim-produto p${i + 1}">${conteudo}</g>`).join("")}</g>`;
-}
-const PRODUTOS = [
-  '<rect x="96" y="26" width="18" height="16" rx="2" fill="#ee4d2d"/><path d="M96 31 H114 M105 26 V31" stroke="#fff" stroke-width="1.5"/>',
-  '<rect x="117" y="22" width="10" height="20" rx="2.5" fill="#6d28d9" stroke="#fff" stroke-width="1.5"/>',
-  '<rect x="131" y="25" width="12" height="17" rx="3" fill="#ec4899"/><rect x="134" y="20" width="6" height="5" rx="1" fill="#fde047"/>',
-  '<rect x="140" y="27" width="13" height="15" rx="2" fill="#22c55e"/><path d="M146.5 27 V42 M140 33 H153" stroke="#fff" stroke-width="1.5"/>',
-  '<rect x="99" y="11" width="25" height="16" rx="2" fill="#1e1b4b" stroke="#fff" stroke-width="1.5"/><path d="M106 30 L111 27 L116 30" fill="none" stroke="#fff" stroke-width="1.5"/>',
-  '<path d="M127 6 h15 l5 6 -5 6 h-15 z" fill="#fde047" stroke="#fff" stroke-width="1.5"/><text x="135" y="15.5" font-size="8" font-weight="800" fill="#7c2d12" text-anchor="middle">R$</text>',
-];
-const presente = (x, y, w, h, cor, laco) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="1.5" fill="${cor}"/>`
-  + `<path d="M${x + w / 2} ${y} V${y + h} M${x} ${y + h / 2} H${x + w}" stroke="${laco}" stroke-width="2"/>`
-  + `<path d="M${x + w / 2} ${y} q-4 -5 -6 -1 q2 3 6 1 q4 -5 6 -1 q-2 3 -6 1" fill="none" stroke="${laco}" stroke-width="1.6"/>`;
-const PRESENTES = [
-  presente(96, 26, 18, 16, "#ef4444", "#fde047"), presente(117, 24, 12, 18, "#22c55e", "#fff"), presente(131, 26, 13, 16, "#3b82f6", "#fde047"),
-  presente(141, 28, 12, 14, "#fde047", "#ef4444"), presente(100, 13, 22, 13, "#a855f7", "#fff"), presente(126, 10, 15, 14, "#ef4444", "#fff"),
-];
-const etiqueta = (x, y, texto, fundo = "#fde047", cor = "#111") => `<path d="M${x} ${y} h${texto.length * 5 + 7} l5 6 -5 6 h-${texto.length * 5 + 7} z" fill="${fundo}" stroke="#fff" stroke-width="1"/>`
-  + `<text x="${x + (texto.length * 5 + 7) / 2}" y="${y + 9}" font-size="7.5" font-weight="900" fill="${cor}" text-anchor="middle">${texto}</text>`;
-const ETIQUETAS = [
-  etiqueta(96, 30, "%"), etiqueta(112, 28, "-50%", "#ef4444", "#fff"), etiqueta(134, 30, "%"),
-  etiqueta(100, 17, "-30%"), etiqueta(124, 16, "-70%", "#fff", "#111"), etiqueta(118, 5, "BF", "#111", "#fde047"),
-];
-
-const CARRINHOS = {
-  // Carrinho do logo: cesta amarela; os produtos ficam atrás dela e aparecem por cima
-  logo: {
-    mao: [75, 28],
-    desenho: () => `${caindoNoCarrinho(PRODUTOS, 0, 0)}
-      <g transform="translate(70 18) scale(.75)">
-        <path d="M6 12 H22 L36 72 H96" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M27 26 H110 L100 60 H35 Z" fill="#fbbf24" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
-      </g>`,
-    rodas: [[103, 87], [136, 87]],
-    corRoda: "#9333ea",
-  },
-  // Carrinho de supermercado de grade: os produtos aparecem por dentro
-  grade: {
-    mao: [70, 30],
-    desenho: () => `${caindoNoCarrinho(PRODUTOS, 2, 18, 0.9)}${grade("rgba(255,255,255,.12)", "#fff")}`,
-    rodas: [[98, 84], [138, 84]],
-    corRoda: "#ef4444",
-  },
-  // Cestinha de mão com rodinhas
-  cestinha: {
-    mao: [73, 40],
-    desenho: () => `${caindoNoCarrinho(PRODUTOS, 22, 36, 0.66)}
-      <path d="M90 50 q17 -26 34 0" fill="none" stroke="#fff" stroke-width="2.5"/>
-      <path d="M73 40 L84 50" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
-      <path d="M84 50 H130 L125 72 H89 Z" fill="#f472b6" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M86 58 H128 M88 65 H127" stroke="#fff" stroke-width="1.2" opacity=".7"/>`,
-    rodas: [[95, 82], [120, 82]],
-    corRoda: "#f472b6",
-  },
-  // Carrinho de corrida, com chamas saindo de trás
-  corrida: {
-    mao: [72, 34],
-    desenho: () => `${caindoNoCarrinho(PRODUTOS, -6, 16, 0.85)}
-      <g class="anim-chama"><path d="M82 66 q-10 -2 -16 2 q6 0 9 3 q-7 1 -11 5 q9 -2 18 -4z" fill="#f97316"/><path d="M82 67 q-6 0 -9 2 q4 0 6 2 q-4 1 -6 3 q6 -1 9 -3z" fill="#fde047"/></g>
-      <path d="M72 34 L84 50" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
-      <path d="M82 50 H146 Q158 52 160 66 H84 Z" fill="#ef4444" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M86 58 H152" stroke="#fff" stroke-width="2.5"/>
-      <circle cx="120" cy="58" r="6" fill="#fff"/><text x="120" y="61" font-size="8" font-weight="900" fill="#ef4444" text-anchor="middle">1</text>`,
-    rodas: [[96, 76], [146, 76]],
-    corRoda: "#111827",
-  },
-  // Carrinho foguete, soltando fumacinha
-  foguete: {
-    mao: [72, 34],
-    desenho: () => `${caindoNoCarrinho(PRODUTOS, 2, 12, 0.85)}
-      <g class="anim-fumaca" fill="rgba(255,255,255,.75)"><circle cx="74" cy="66" r="4"/><circle cx="66" cy="70" r="3"/><circle cx="59" cy="66" r="2.2"/></g>
-      <path d="M72 34 L84 48" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
-      <path d="M82 48 H138 Q160 52 164 60 Q160 68 138 72 H82 Z" fill="#e5e7eb" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M150 50 Q160 54 164 60 Q160 66 150 70 Z" fill="#ef4444"/>
-      <circle cx="132" cy="60" r="5" fill="#38bdf8" stroke="#6d28d9" stroke-width="2"/>
-      <path d="M90 48 L82 38 H96 L102 48 Z M90 72 L82 82 H96 L102 72 Z" fill="#6d28d9"/>
-      <path d="M82 52 q-6 8 0 16" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>`,
-    rodas: [[106, 80], [140, 80]],
-    corRoda: "#6d28d9",
-  },
-  // Carrinho de supermercado cheio de presentes (Natal)
-  presentes: {
-    mao: [70, 30],
-    desenho: () => `${caindoNoCarrinho(PRESENTES, 2, 18, 0.9)}${grade("rgba(255,255,255,.12)", "#fff")}`,
-    rodas: [[98, 84], [138, 84]],
-    corRoda: "#22c55e",
-  },
-  // Carrinho preto com etiquetas de desconto (Black Friday)
-  blackfriday: {
-    mao: [70, 30],
-    desenho: () => `${caindoNoCarrinho(ETIQUETAS, 2, 18, 0.9)}${grade("rgba(17,17,17,.75)", "#fde047")}`,
-    rodas: [[98, 84], [138, 84]],
-    corRoda: "#111",
-  },
-};
-
-// Carrinho de grade (supermercado, presentes, Black Friday): fundo e cor dos ferros
-function grade(fundo, ferro) {
-  return `<g fill="none" stroke="${ferro}" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M80 34 H154 L146 63 H88 Z" fill="${fundo}" stroke-width="3.5"/>
-        <path d="M95 34 L98 63 M110 34 L111 63 M125 34 L124 63 M140 34 L136 63 M82 44 H151 M85 54 H148" stroke-width="1.5" opacity=".8"/>
-        <path d="M72 30 L80 34 M88 63 L92 72 H144 L146 63 M98 72 V77 M138 72 V77" stroke-width="3.5"/>
-      </g>
-      <rect x="65" y="26" width="10" height="7" rx="3.5" fill="#ef4444" transform="rotate(25 70 29.5)"/>`;
-}
-
-const estrela = (cx, cy, r) => `<path d="${Array.from({ length: 10 }, (_, i) => {
-  const a = -Math.PI / 2 + (i * Math.PI) / 5;
-  const raio = i % 2 ? r * 0.45 : r;
-  return `${i ? "L" : "M"}${(cx + raio * Math.cos(a)).toFixed(2)} ${(cy + raio * Math.sin(a)).toFixed(2)}`;
-}).join(" ")}Z" fill="#fbbf24" stroke="#b45309" stroke-width=".5"/>`;
-
-function desenharCabeca(p) {
-  const pele = PERSONAGEM_OPCOES.pele.cores[p.pele];
-  const cabelo = PERSONAGEM_OPCOES.corCabelo.cores[p.corCabelo];
-  const atras = {
-    rabo: `<g class="anim-rabo"><path d="M36 14 c-9 1 -12 9 -9 17 c2 -5 5 -8 10 -9z" fill="${cabelo}"/><circle cx="36" cy="14" r="2.5" fill="#f472b6"/></g>`,
-    // Volume de cachos em volta da cabeça (mais atrás, porque ele olha para o carrinho)
-    cacheado: `<g fill="${cabelo}">${[[34, 26, 5], [33, 19, 5.5], [35, 12, 5.5], [40, 7, 5.5], [46, 5.5, 5.5], [52, 7, 5], [56.5, 11.5, 4.5]]
-      .map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}</g>`,
-    coque: `<circle cx="40" cy="6.5" r="5.5" fill="${cabelo}"/><path d="M37 10.5 q3 1.5 6 0" stroke="#f472b6" stroke-width="2" fill="none"/>`,
-    black: `<circle cx="44" cy="15" r="15.5" fill="${cabelo}"/>`,
-    tranca: `<g class="anim-rabo" fill="${cabelo}">${[[35, 17], [33.5, 22], [32.5, 27], [32, 32]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="3" ry="3.2"/>`).join("")}<circle cx="32" cy="35.5" r="1.8" fill="#f472b6"/></g>`,
-  }[p.cabelo] || "";
-  const frente = {
-    curto: `<path d="M35 18 a11 11 0 0 1 22 -2 c-6 -1 -12 -4 -14 -7 c-2 4 -5 7 -8 9z" fill="${cabelo}"/>`,
-    rabo: `<path d="M35 19 a11 11 0 0 1 22 -3 c-4 0 -9 -2 -12 -6 c-3 4 -6 7 -10 9z" fill="${cabelo}"/>`,
-    coque: `<path d="M35 19 a11 11 0 0 1 22 -3 c-4 0 -9 -2 -12 -6 c-3 4 -6 7 -10 9z" fill="${cabelo}"/>`,
-    tranca: `<path d="M35 19 a11 11 0 0 1 22 -3 c-4 0 -9 -2 -12 -6 c-3 4 -6 7 -10 9z" fill="${cabelo}"/>`,
-    cacheado: `<g fill="${cabelo}">${[[37, 15, 3.5], [41, 11.5, 3.5], [46, 10.5, 3.5], [51, 11.5, 3.2], [55, 14, 2.8]]
-      .map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}</g>`,
-    black: `<path d="M35.2 17 a11 11 0 0 1 21.6 -1.5 c-6 -3 -15 -3 -21.6 1.5z" fill="${cabelo}"/>`,
-    moicano: `<path d="M38 13 l1 -9 l3.5 6 l1.5 -9 l3 7.5 l2 -8 l2 8.5 l2.5 -6 l0.5 9 q-8 -3 -16 1z" fill="${cabelo}"/>`,
-    // Boné roxo do site, aba virada para o carrinho
-    bone: `<path d="M35 17.5 a11 11 0 0 1 22 -1 z" fill="#6d28d9"/><path d="M56 15.5 h9 q1.5 2.5 -2 3 h-8z" fill="#5b21b6"/><circle cx="46" cy="9.5" r="1.3" fill="#fde047"/><path d="M35.5 18 q-1 4 1 7" stroke="${cabelo}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-    careca: '<path d="M40 11 q4 -3 9 -1" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".5"/>',
-  }[p.cabelo] || "";
-  const olhos = {
-    piscadinha: '<g class="anim-olhos" fill="#1e1b4b"><path d="M41.5 20 q1.5 -1.5 3 0" fill="none" stroke="#1e1b4b" stroke-width="1.3" stroke-linecap="round"/><circle cx="50" cy="20" r="1.6"/></g>',
-    rindo: '<g class="anim-olhos" fill="none" stroke="#1e1b4b" stroke-width="1.3" stroke-linecap="round"><path d="M41.5 20.5 q1.5 -2 3 0"/><path d="M48.5 20.5 q1.5 -2 3 0"/></g>',
-    estrela: `<g class="anim-olhos">${estrela(43, 20, 2.9)}${estrela(50, 20, 2.9)}</g>`,
-  }[p.rosto] || '<g class="anim-olhos" fill="#1e1b4b"><circle cx="43" cy="20" r="1.6"/><circle cx="50" cy="20" r="1.6"/></g>';
-  const extra = {
-    oculos: '<g fill="rgba(255,255,255,.25)" stroke="#1e1b4b" stroke-width="1.3"><circle cx="42.5" cy="20" r="3.3"/><circle cx="50.5" cy="20" r="3.3"/><path d="M45.8 20 H47.2" fill="none"/></g>',
-    escuros: '<g fill="#111827" stroke="#111827" stroke-width="1.2"><rect x="38.8" y="17.6" width="7" height="4.6" rx="2"/><rect x="47.2" y="17.6" width="7" height="4.6" rx="2"/><path d="M45.8 19 H47.2" fill="none"/></g><path d="M40.5 18.7 l2 0" stroke="#fff" stroke-width=".9" stroke-linecap="round" opacity=".8"/>',
-    barba: `<path d="M35.5 20 c1 9 6 14 10.5 14 c4.5 0 9.5 -5 10.5 -14 c-2 4 -5 5 -7 4 c-2 -1 -5 -1 -7 0 c-2 1 -5 0 -7 -4z" fill="${cabelo}"/>`,
-    bigode: `<path d="M42 24.2 q2.2 -2.2 4.5 -0.6 q2.3 -1.6 4.5 0.6 q-2.3 0.4 -4.5 -0.3 q-2.2 0.7 -4.5 0.3z" fill="${cabelo}"/>`,
-    sardas: `<g fill="#9a3412" opacity=".55">${[[39.8, 23], [41.2, 24.2], [39.5, 24.8], [52.3, 23], [53.6, 24.2], [51.8, 24.8]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".55"/>`).join("")}</g>`,
-  }[p.rosto] || "";
-  const bochechas = ["rabo", "coque", "tranca"].includes(p.cabelo) ? '<circle cx="41" cy="23.5" r="1.8" fill="#f472b6" opacity=".5"/><circle cx="52" cy="23.5" r="1.8" fill="#f472b6" opacity=".5"/>' : "";
-  const boca = {
-    barba: "",
-    rindo: '<path d="M43.5 24.5 q3 4.5 6 0 z" fill="#7c2d12"/><path d="M44.6 26.2 q1.9 1.5 3.8 0" fill="#f472b6"/>',
-    lingua: '<path d="M44 25 q2.5 1.8 5 0" fill="none" stroke="#7c2d12" stroke-width="1.4" stroke-linecap="round"/><path d="M45.6 25.8 q1 3.2 2.2 0" fill="#f472b6" stroke="#be185d" stroke-width=".5"/>',
-  }[p.rosto] ?? '<path d="M44 25 q2.5 1.8 5 0" fill="none" stroke="#7c2d12" stroke-width="1.4" stroke-linecap="round"/>';
-  const acessorio = {
-    fone: '<path d="M36.5 17 a10 10 0 0 1 18.5 -6" fill="none" stroke="#1e1b4b" stroke-width="2.2" stroke-linecap="round"/><rect x="33.6" y="15.5" width="5" height="8.5" rx="2.2" fill="#6d28d9" stroke="#1e1b4b" stroke-width=".8"/>',
-    gorro: '<path d="M35 15 q10 -16 23 -2 q-2 -9 -10 -10 q-9 -1 -13 12z" fill="#ef4444"/><path d="M35 15 q11.5 -4 23 -2" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round"/><circle cx="34" cy="7" r="2.6" fill="#fff"/><path d="M49 3.5 q-9 -1 -15 3.5" stroke="#ef4444" stroke-width="3" fill="none" stroke-linecap="round"/>',
-  }[p.acessorio] || "";
-  return `<g class="anim-cabeca">${atras}<circle cx="46" cy="19" r="11" fill="${pele}"/>${frente}${olhos}${bochechas}${boca}${extra}${acessorio}</g>`;
-}
-
-function desenharPersonagem(p) {
-  p = { ...PERSONAGEM_PADRAO, ...p };
-  const pele = PERSONAGEM_OPCOES.pele.cores[p.pele];
-  const roupa = PERSONAGEM_OPCOES.roupa.cores[p.roupa];
-  const carrinho = CARRINHOS[p.carrinho] || CARRINHOS.logo;
-  const [mx, my] = carrinho.mao;
-  const patins = p.jeito === "patins"
-    ? '<path d="M41 95 H55" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/><circle cx="43.5" cy="97.8" r="1.8" fill="#fde047"/><circle cx="52.5" cy="97.8" r="1.8" fill="#fde047"/>' : "";
-  const perna = (cor, fase) => `<g class="anim-perna" style="--fase:${fase}"><path d="M45 62 V90" stroke="${cor}" stroke-width="7" stroke-linecap="round"/><path d="M44 92 H52" stroke="#fff" stroke-width="5" stroke-linecap="round"/>${patins}</g>`;
-  const roda = ([x, y]) => `<g class="anim-roda"><circle cx="${x}" cy="${y}" r="7" fill="#fff"/><path d="M${x} ${y - 5.5} V${y + 5.5} M${x - 5.5} ${y} H${x + 5.5}" stroke="${carrinho.corRoda}" stroke-width="2"/></g>`;
-  const mochila = p.acessorio === "mochila"
-    ? '<rect x="28.5" y="34" width="10" height="20" rx="4" fill="#8b5cf6" stroke="#fff" stroke-width="1.2"/><path d="M30 44 h7" stroke="#fff" stroke-width="1.2"/>' : "";
-  const sacola = p.acessorio === "sacola"
-    ? `<g transform="translate(${mx - 8} ${my + 2})"><path d="M2 4 q4 -6 8 0" fill="none" stroke="#fff" stroke-width="1.4"/><path d="M0 4 H12 L11 18 H1 Z" fill="#fde047" stroke="#fff" stroke-width="1.2"/><path d="M4 10 h4" stroke="#6d28d9" stroke-width="1.5" stroke-linecap="round"/></g>` : "";
-  return `<div class="anim-andando anim-${p.jeito}"><svg viewBox="0 0 165 100" aria-hidden="true">
-  <g class="anim-vento" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round">
-    <path d="M2 50 H22"/><path d="M8 66 H26"/><path d="M0 82 H18"/>
-  </g>
-  <g class="anim-corpo">
-    ${perna("#1e1b4b", "0s")}
-    <path d="M50 39 L${mx} ${my + 1}" stroke="${escurecer(pele)}" stroke-width="5" stroke-linecap="round"/>
-    ${mochila}
-    <rect x="36" y="31" width="19" height="33" rx="8" fill="${roupa}"/>
-    ${perna("#312e81", "-.25s")}
-    <path d="M47 38 L${mx} ${my}" stroke="${pele}" stroke-width="5" stroke-linecap="round"/>
-    ${desenharCabeca(p)}
-    ${carrinho.desenho()}
-    ${sacola}
-  </g>
-  ${carrinho.rodas.map(roda).join("")}
-</svg></div>`;
-}
-
-// O personagem escolhido na conta; sem escolha, um dos prontos, sorteado a cada busca
-const personagemDaVez = () => conta.usuario?.personagem || PERSONAGENS_PRONTOS[Math.floor(Math.random() * PERSONAGENS_PRONTOS.length)];
-
+// Enquanto busca: uma barra de progresso que vai e volta embaixo do aviso (11/11/2026, pedido do Giovanni: saiu o boneco
+// empurrando o carrinho e, com ele, o "Meu personagem" da conta)
 function desenharResumoBuscando() {
   const cat = navegandoCategoria();
-  const animacao = el("div", { class: "anim-buscando" });
-  animacao.innerHTML = desenharPersonagem(personagemDaVez());
-  $("#resumo").replaceChildren(el("div", {}, el("h1", {}, el("span", {}, "Buscando "), cat ? `${cat.nome}…` : `“${estado.q}”…`), el("p", {}, "Estamos buscando os melhores preços e ofertas para você 🛒")), animacao);
+  $("#resumo").replaceChildren(
+    el("div", {}, el("h1", {}, el("span", {}, "Buscando "), cat ? `${cat.nome}…` : `“${estado.q}”…`),
+      el("p", {}, "Estamos buscando os melhores preços e ofertas para você 🛒")),
+    el("div", { class: "barra-buscando", role: "progressbar", "aria-label": "Buscando ofertas" }, el("span", {})));
 }
 
 async function buscar(q) {
