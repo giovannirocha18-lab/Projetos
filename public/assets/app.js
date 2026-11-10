@@ -2992,6 +2992,7 @@ function desenharInicio(lista) {
       // Ao carregar mais, só os cartões novos "surgem"; os que já estavam ficam parados
       if (estado.vistosInicio.has(o.id)) c.style.animation = "none";
       estado.vistosInicio.add(o.id);
+      c.dataset.id = o.id; // âncora do "guardar o lugar ao voltar"
       return c;
     });
   }
@@ -3887,19 +3888,120 @@ $("#painel-fundo").addEventListener("click", fecharCamadas);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharCamadas(); });
 
 // Voltar do celular: fecha a gaveta, o carrinho e as janelas abertas antes de trocar a página
+// Guardar o lugar ao voltar (10/11/2026, pedido do Giovanni): a pessoa rolava 200 produtos, abria uma loja ou categoria e,
+// no Voltar, a busca era refeita do zero e ela caía no topo. Ao sair de uma página o site guarda a lista (os cartões já
+// montados), os filtros e a posição da tela; o Voltar (ou Avançar) devolve tudo como estava, sem buscar de novo.
+// Vale 10 minutos (o mesmo tempo em que o navegador guarda os preços) e para as 4 últimas páginas
+const LUGAR_VALE_MS = 10 * 60 * 1000;
+const LUGARES_GUARDADOS = 4;
+const lugares = new Map();
+// O que é do site todo, não da página (não volta no tempo junto com ela)
+const FORA_DO_LUGAR = new Set(["pedido", "inicio", "paginaInicio", "temMaisInicio", "vistosInicio", "cupons", "qtdParceiras"]);
+const FILTROS_DO_LUGAR = ["#preco-min", "#preco-max", "#so-frete", "#bem-avaliados", "#com-acessorios"];
+function guardarLugar(endereco) {
+  lugares.delete(endereco);
+  if (estado.buscando) return; // ainda carregando: não há o que guardar
+  const lugar = { y: window.scrollY, quando: Date.now(), tipo: estado.loja ? "loja" : estado.q ? "busca" : "inicio",
+    filtros: FILTROS_DO_LUGAR.map((f) => ($(f).type === "checkbox" ? $(f).checked : $(f).value)),
+    envio: $("input[name=envio]:checked")?.value, ordem: $("input[name=ordem]:checked")?.value };
+  // Âncora: o 1º cartão que aparece na tela e a que altura ele está (a altura da página muda um pouco ao redesenhar)
+  const lista = lugar.tipo === "inicio" ? "#destaques" : "#grade";
+  const naTela = [...document.querySelectorAll(`${lista} > .oferta[data-id]`)].find((c) => c.getBoundingClientRect().bottom > 0);
+  if (naTela) lugar.ancora = { lista, id: naTela.dataset.id, topo: naTela.getBoundingClientRect().top };
+  if (lugar.tipo !== "inicio") {
+    const copia = {};
+    for (const [k, v] of Object.entries(estado)) {
+      if (!FORA_DO_LUGAR.has(k)) copia[k] = v instanceof Set ? new Set(v) : k === "loja" && v ? { ...v } : v;
+    }
+    const grade = $("#grade");
+    Object.assign(lugar, { estado: copia, nos: [...grade.children], desenhados: desenhados.get(grade), titulo: document.title });
+  }
+  lugares.set(endereco, lugar);
+  while (lugares.size > LUGARES_GUARDADOS) lugares.delete(lugares.keys().next().value);
+}
+// Volta para o cartão que estava na tela, na mesma altura; confere de novo logo depois, porque os cartões de cima terminam
+// de tomar o tamanho certo quando entram na tela. Sem o cartão (lista mudou), vale a altura guardada
+function rolarPara(lugar) {
+  const acertar = () => {
+    const cartao = lugar.ancora && [...document.querySelectorAll(`${lugar.ancora.lista} > .oferta[data-id]`)].find((c) => c.dataset.id === lugar.ancora.id);
+    const y = cartao ? window.scrollY + cartao.getBoundingClientRect().top - lugar.ancora.topo : lugar.y;
+    if (Math.abs(y - window.scrollY) > 1) window.scrollTo({ top: y, behavior: "instant" });
+  };
+  requestAnimationFrame(() => { acertar(); requestAnimationFrame(acertar); setTimeout(acertar, 200); });
+}
+function filtrosDoLugar(lugar) {
+  FILTROS_DO_LUGAR.forEach((f, i) => { if ($(f).type === "checkbox") $(f).checked = lugar.filtros[i]; else $(f).value = lugar.filtros[i]; });
+  if (lugar.envio) $(`input[name=envio][value="${lugar.envio}"]`).checked = true;
+  if (lugar.ordem) $(`input[name=ordem][value="${lugar.ordem}"]`).checked = true;
+}
+// Devolve true se a página foi devolvida como estava
+function restaurarLugar(endereco) {
+  const lugar = lugares.get(endereco);
+  lugares.delete(endereco);
+  if (!lugar || Date.now() - lugar.quando > LUGAR_VALE_MS) return false;
+  if (lugar.tipo === "inicio") {
+    // A página inicial já fica guardada na memória (estado.inicio): voltam os filtros e a posição
+    filtrosDoLugar(lugar);
+    mostrar();
+    rolarPara(lugar);
+    return true;
+  }
+  try {
+    const pedido = ++estado.pedido; // o que ainda estiver carregando de outra página não desenha mais nada
+    for (const k of Object.keys(estado)) if (!FORA_DO_LUGAR.has(k) && !(k in lugar.estado)) delete estado[k];
+    Object.assign(estado, lugar.estado, { pedido, buscando: false, completando: false });
+    document.body.classList.remove("modo-inicio");
+    $("#inicio").hidden = true;
+    $("#resultados").hidden = false;
+    filtrosDoLugar(lugar);
+    marcarCategoria();
+    if (lugar.tipo === "busca") {
+      preencherBusca();
+      mostrarLojaNaBusca(estado.q, pedido);
+    } else {
+      $("#loja-na-busca").hidden = true;
+      desenharCampanhasShein("campanhas-shein-busca", estado.loja.id === BLACK_FRIDAY);
+      document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
+    }
+    document.title = lugar.titulo;
+    // Os mesmos cartões de antes voltam para a tela (nada é montado de novo)
+    const grade = $("#grade");
+    grade.replaceChildren(...lugar.nos);
+    if (lugar.desenhados) desenhados.set(grade, lugar.desenhados);
+    desenharFiltroLojas();
+    desenharResultados();
+    // Coração, sino e "comparar" dos cartões guardados: acerta com o que mudou enquanto a página estava fora da tela
+    grade.querySelectorAll(".favoritar").forEach((b) => b.setAttribute("aria-pressed", ehFavorito(b.dataset.id)));
+    grade.querySelectorAll(".alertar").forEach((b) => b.setAttribute("aria-pressed", temAlerta(b.dataset.id)));
+    grade.querySelectorAll(".comparar").forEach((b) => b.setAttribute("aria-pressed", comparando.has(b.dataset.id)));
+    rolarPara(lugar);
+    return true;
+  } catch {
+    return false; // qualquer surpresa: abre do jeito normal
+  }
+}
+
 // enderecoAtual = o endereço antes do Voltar: se não mudou, o passo era só de um painel aberto e a página fica como está
 let enderecoAtual = location.href;
 for (const m of ["pushState", "replaceState"]) {
   const original = history[m].bind(history);
-  history[m] = (...a) => { original(...a); enderecoAtual = location.href; };
+  history[m] = (...a) => {
+    // Indo para outra página do site: guarda o lugar desta antes de sair
+    if (m === "pushState" && a[2] != null && new URL(a[2], location.href).href !== location.href) guardarLugar(location.href);
+    original(...a);
+    enderecoAtual = location.href;
+  };
 }
 window.addEventListener("popstate", () => {
-  const mesmo = location.href === enderecoAtual;
+  const anterior = enderecoAtual;
+  const mesmo = location.href === anterior;
   enderecoAtual = location.href;
   abrirFiltros(false);
   abrirPainel(false);
   document.querySelectorAll("dialog[open]").forEach((j) => j.close());
-  if (!mesmo) mostrar();
+  if (mesmo) return;
+  guardarLugar(anterior);
+  if (!restaurarLugar(location.href)) mostrar();
 });
 
 $("#ano").textContent = new Date().getFullYear();
