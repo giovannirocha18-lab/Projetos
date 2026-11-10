@@ -167,6 +167,20 @@ async function confirmaReprovacao(o) {
 // ---------------------------------------------------------------------
 await d1(TABELA_IA_FOTOS);
 
+// "aprovar": o Giovanni olhou e a foto está certa (nome do produto na variável APROVAR; vários separados por "|").
+// Fica aprovada enquanto a foto for a mesma; não gasta nada com a IA
+if (process.argv[4] === "aprovar") {
+  const chaves = String(process.env.APROVAR || "").split("|").map((t) => chaveIa(t)).filter(Boolean);
+  for (const chave of chaves) {
+    const antes = await d1("SELECT ok FROM ia_fotos WHERE chave = ?", [chave]);
+    if (antes.length) await d1("UPDATE ia_fotos SET ok = 1, quando = ? WHERE chave = ?", [Date.now(), chave]);
+    anotar(`- ${chave}: ${!antes.length ? "não encontrado na lista de fotos conferidas" : antes[0].ok ? "já estava aprovada" : "aprovada à mão (volta para as buscas)"}`);
+  }
+  if (!chaves.length) anotar("- Nenhum nome de produto informado");
+  fim();
+  process.exit(0);
+}
+
 // "reconferir": olha de novo, uma a uma, as fotos já reprovadas e aprova as que não se confirmam
 if (process.argv[4] === "reconferir") {
   const linhas = await d1("SELECT chave, foto FROM ia_fotos WHERE ok = 0");
