@@ -8,6 +8,7 @@ import { ehPainel, quemEntrou } from "../lib/painel.js";
 import { naoContar } from "../lib/naoContar.js";
 import { destinoML, CAMINHO_IR_ML } from "../lib/fontes/mercadolivre.js";
 import { destinoShopee, CAMINHO_IR_SHOPEE } from "../lib/fontes/shopee.js";
+import { destinoAli, CAMINHO_IR_ALI } from "../lib/fontes/aliexpress.js";
 import { concluirAutorizacao } from "../lib/mlConta.js";
 
 const PUBLICOS = /^\/(index(\.html)?|privacidade(\.html)?\/?|como-funciona(\.html)?\/?|manifest\.webmanifest|api\/.*|assets\/[\w.-]+|marca\/[\w.-]+)?$/i;
@@ -198,6 +199,11 @@ async function responder(contexto) {
   if (CAMINHO_IR_SHOPEE.test(url.pathname)) {
     const destino = await destinoShopee(env, url.pathname, url.origin);
     if (url.searchParams.has("json")) return Response.json({ link: destino }, { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
+    return new Response(null, { status: 302, headers: { Location: destino, "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+  }
+  // Botão "Comprar" da AliExpress (10/11/2026): link de afiliado pedido na hora (lib/fontes/aliexpress.js, destinoAli)
+  if (CAMINHO_IR_ALI.test(url.pathname)) {
+    const destino = await destinoAli(env, url.pathname, url.origin);
     return new Response(null, { status: 302, headers: { Location: destino, "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
   }
   // O comparador ficava em /previa antes do lançamento: leva para a página principal
