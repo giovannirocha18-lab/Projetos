@@ -47,6 +47,11 @@ precisa mexer nele para mudar o robô). Estado/rodada manual: `painel…/api/pai
 Resumo entra na execução do GitHub da noite (aba Robô) ou numa linha própria (`robo-noite`). Teste: `node testes/robo-noite.mjs`.
 No GitHub a rodada completa faz só awin, shopeelista, ia, auditoria e relatorio (~25 min); laços só à mão (so_ml, so_prontas, so_lomadee).
 
+**11/11: categorias da manhã no Cloudflare** (Giovanni: o agendado do GitHub atrasava 1 h+): trilha `lojas` ganhou as fases
+`manha` (espera 09:30 UTC = 05:30 do Giovanni) → `categorias` → `categorias2` (abre as 40 pela rota interna `abrir-categoria` em
+robo-noite.js; resumo "Categorias abertas pela manhã" na aba Robô). No GitHub (`conferir-fotos.yml`, 09:50 UTC) ficou só a IA das
+fotos (atraso não importa); `robo/abrir-categorias.mjs` só à mão (input `categorias`). **Conferir em 12/11 após 10:00 UTC.**
+
 ## Robô (GitHub Actions `robo-precos.yml`)
 **Desde 05/11: disparado ~01:14 de Brasília pela tarefa agendada do Claude "Robô da madrugada"** (trig_016Y47cQHQv6k3GSGjBSdQ82,
 cai sempre na MESMA conversa "Robô da madrugada (vaiprocarrinho)", session_014TXWRCgvrUx31PBr3BG21C, que tem o repositório e o
