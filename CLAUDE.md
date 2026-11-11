@@ -51,6 +51,8 @@ No GitHub a rodada completa faz só awin, shopeelista, ia, auditoria e relatorio
 `manha` (espera 09:30 UTC = 05:30 do Giovanni) → `categorias` → `categorias2` (abre as 40 pela rota interna `abrir-categoria` em
 robo-noite.js; resumo "Categorias abertas pela manhã" na aba Robô). No GitHub (`conferir-fotos.yml`, 09:50 UTC) ficou só a IA das
 fotos (atraso não importa); `robo/abrir-categorias.mjs` só à mão (input `categorias`). **Conferir em 12/11 após 10:00 UTC.**
+Teste só desse passo: Giovanni cola no navegador `painel…/api/painel/robo-noite?comecar=categorias` (30 min) e alguém chama
+`/api/robo-noite?trilha=lojas` até `fim` (a resposta traz `categorias`: abertas e lentas). 11/11 ✅: 40 de 40 em 40 s, 0 lentas.
 
 ## Robô (GitHub Actions `robo-precos.yml`)
 **Desde 05/11: disparado ~01:14 de Brasília pela tarefa agendada do Claude "Robô da madrugada"** (trig_016Y47cQHQv6k3GSGjBSdQ82,
