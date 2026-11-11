@@ -219,7 +219,15 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Print dele (combo "TV 50 M75h + TV 43 Q5f" de R$ 4.704 no cartão da M75H de R$ 2.759): anúncio com " + ", kit, combo,
   conjunto ou "N unidades" vira chave `marca|combo|códigos` e só se junta com o mesmo combo; TV leva o tamanho da tela na chave.
   Limite conhecido: combo cujo 2º item não tem código (3 letras, "Q5f") pode se juntar a outro combo da mesma TV principal.
-  Ideia dele para depois: robô da noite + IA casando os produtos (falei que é possível; testar a IA numa amostra antes).
+  **Teste da IA casando produtos (11/11, GitHub, `robo/teste-casar.mjs`)**: 127 pares, 1 pergunta por par, Haiku 5.5, US$ 0,014
+  (US$ 0,11 por mil pares), 0 erros. Por código (76): 67 iguais (32 "outra voltagem", muitos só porque um anúncio não dizia a
+  voltagem), 4 diferentes, 5 não sei. Por nome (51): 20 iguais, 20 diferentes, 11 não sei. Conferi ~55 a olho: 2 erros (Philco
+  PRF535I dado como diferente; Vaio Linux x Windows dado como igual) → ~96%. Pegou GSB x GSR, kit de 2 baterias, 5,5 L x 16 L.
+  Anúncio da Shopee com "256/512GB" ou "Pro / Pro Max" no nome é ambíguo de verdade (IA diz "não sei", certo).
+  **Versão no Cloudflare (o GitHub deixou o teste ~7 min na fila)**: Giovanni cadastrou o Secret `ANTHROPIC_API_KEY` no Pages;
+  `lib/casar.js` (pares + pergunta por fetch), fase `casar` da trilha lojas, partida `painel…/api/painel/robo-noite?comecar=casar`
+  (30 min, teto US$ 0,20), resposta de `/api/robo-noite?trilha=lojas` traz `casar` (pares do passo, custo, erro). Ainda só teste:
+  não grava nada. Próximo: robô de verdade (tabela de grupos conferidos + Modo comparação lendo dela).
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
