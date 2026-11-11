@@ -1,7 +1,7 @@
 // Simula uma madrugada inteira do robô da noite (lib/roboNoite.js) com respostas falsas das rotas: as duas trilhas têm que
 // passar por todas as fases, respeitar as esperas e terminar; o resumo do painel tem que sair no formato da aba Robô.
 // Uso: node testes/robo-noite.mjs
-import { TRILHAS, estadoInicial, passo, partesDoPainel, juntarNaExecucao, noiteAtual } from "../lib/roboNoite.js";
+import { TRILHAS, estadoInicial, passo, partesDoPainel, juntarNaExecucao, noiteAtual, esperaDasCategorias } from "../lib/roboNoite.js";
 
 let falhas = 0;
 const ok = (cond, msg) => { if (!cond) { falhas++; console.log(`✗ ${msg}`); } };
@@ -26,6 +26,12 @@ async function chamar(rota, p) {
   if (rota === "coletar-precos") { cont.shopee++; return { gravados: 10, erros: [], fim: p.parte >= 4 }; }
   if (rota === "conferir-lojas") { cont.lomadee++; return { comProdutos: [`Marca${p.parte}`], linksQuebrados: [], fim: p.parte >= 2 }; }
   if (rota === "preparar-buscas") { cont.prontas++; return { parte: p.parte, partes: 20, guardada: p.parte !== 5 }; }
+  if (rota === "abrir-categoria") {
+    cont.cats = (cont.cats || 0) + 1;
+    if (p.cat === "Ferramentas") return (cont.ferr = (cont.ferr || 0) + 1) === 1 ? { ms: 9000, ofertas: 300, status: 200 } : { ms: 600, ofertas: 300, status: 200 };
+    if (p.cat === "Pets") return { ms: 500, ofertas: 0, status: 200 };
+    return { ms: 500, ofertas: 200, status: 200 };
+  }
   return { falhou: true };
 }
 
@@ -50,14 +56,24 @@ ok(estados.lojas.tempos.prontas.de >= estados.ml.tempos.maisvendidos.de, "as pro
 ok(estados.ml.c.fila === 4, "fila do ML anotada");
 
 const partes = partesDoPainel(estados.ml, estados.lojas);
-ok(partes.map((p) => p.chave).join() === "shopee,ml,mv,prontas,lomadee", `partes: ${partes.map((p) => p.chave)}`);
+ok(partes.map((p) => p.chave).join() === "shopee,ml,mv,prontas,lomadee,categorias", `partes: ${partes.map((p) => p.chave)}`);
 ok(partes.find((p) => p.chave === "prontas").linhas[0] === "19 de 20 buscas guardadas", "linha das prontas no formato do painel");
+ok(partes.filter((p) => p.chave !== "categorias").every((p) => p.situacao === "ok"), "partes sem aviso");
 ok(partes.every((p) => ["ok", "aviso"].includes(p.situacao) && Array.isArray(p.linhas) && Array.isArray(p.avisos)), "situação das partes");
 ok(partes.find((p) => p.chave === "lomadee").linhas[0] === "3 marcas com produtos", "marcas da Lomadee");
 
+// Categorias da manhã: só às 09:30 UTC, as 40 abertas, as 2 lentas abertas de novo
+const cat = partes.find((p) => p.chave === "categorias");
+ok(new Date(estados.lojas.tempos.categorias.de).toISOString().slice(11, 16) === "09:30", `categorias começaram às ${new Date(estados.lojas.tempos.categorias.de).toISOString().slice(11, 16)}`);
+ok(cont.cats === 42 && estados.lojas.c.catAbertas === 40, `categorias abertas: ${cont.cats}`);
+ok(cat.linhas[0] === "40 de 40 categorias abertas; 38 já estavam prontas (até 3,0 s); 2 precisaram ser montadas", cat.linhas[0]);
+ok(cat.linhas.includes("Ferramentas: 9,0 s → na 2ª vez 0,6 s") && cat.linhas.includes("Pets: 0,5 s, sem ofertas → na 2ª vez 0,5 s (sem ofertas)"), `linhas: ${cat.linhas.slice(1).join(" | ")}`);
+ok(cat.situacao === "aviso" && cat.avisos[0] === "Continuam lentas ou vazias depois de abrir de novo: Pets", `aviso: ${cat.avisos}`);
+ok(esperaDasCategorias(Date.parse("2026-11-10T15:00:00Z")) === 0 && esperaDasCategorias(Date.parse("2026-11-10T09:29:30Z")) === 30, "espera das categorias");
+
 // Junta com o que o GitHub gravou (awin, ia, auditoria): na ordem do painel, sem repetir
 const juntas = juntarNaExecucao([{ chave: "awin" }, { chave: "ia" }, { chave: "prontas", velha: true }], partes);
-ok(juntas.map((p) => p.chave).join() === "awin,shopee,ml,mv,prontas,lomadee,ia" && !juntas.some((p) => p.velha), `juntas: ${juntas.map((p) => p.chave)}`);
+ok(juntas.map((p) => p.chave).join() === "awin,shopee,ml,mv,prontas,lomadee,categorias,ia" && !juntas.some((p) => p.velha), `juntas: ${juntas.map((p) => p.chave)}`);
 
 // Janela da madrugada
 ok(noiteAtual(Date.parse("2026-11-10T04:44:00Z")) === null, "antes da janela");

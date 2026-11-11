@@ -48,7 +48,7 @@ jobs:
       # Abre as 40 categorias depois dos robôs da noite (ideia do Giovanni, 11/11/2026): a que ficou sem lista pronta é
       # montada aqui, antes dos visitantes da manhã. Não usa IA. Só na rodada de toda manhã (não nas rodadas à mão das fotos)
       - name: Abrir as categorias (deixa o site pronto para a manhã)
-        if: ${{ github.event_name == 'schedule' || inputs.categorias }}
+        if: ${{ inputs.categorias }} # toda manhã quem abre é o robô da noite no Cloudflare (lib/roboNoite.js, 09:30 UTC)
         continue-on-error: true
         run: node robo/abrir-categorias.mjs
       - name: Instalar o SDK da Anthropic e o redutor de fotos

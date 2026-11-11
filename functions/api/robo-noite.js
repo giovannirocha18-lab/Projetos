@@ -7,9 +7,21 @@ import { onRequestGet as prepararML } from "./preparar-ml.js";
 import { onRequestGet as prepararBuscas } from "./preparar-buscas.js";
 import { onRequestGet as coletarPrecos } from "./coletar-precos.js";
 import { onRequestGet as conferirLojas } from "./conferir-lojas.js";
+import { onRequestGet as buscar, VERSAO_CACHE } from "./buscar.js";
 import { TRILHAS, noiteAtual, estadoInicial, passo, gravarNoPainel, criarTabela, rodadaManual } from "../../lib/roboNoite.js";
 
-const ROTAS = { "preparar-ml": prepararML, "preparar-buscas": prepararBuscas, "coletar-precos": coletarPrecos, "conferir-lojas": conferirLojas };
+// Abre uma categoria como o site faz quando o visitante toca nela (atalho=1 = não conta como busca): se a lista pronta
+// não existir, a busca vai às lojas e guarda a pronta (buscar.js). Devolve o tempo e quantas ofertas vieram
+async function abrirCategoria({ request, env, waitUntil }) {
+  const de = new URL(request.url).searchParams;
+  const url = new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(de.get("q") || "")}&cat=${encodeURIComponent(de.get("cat") || "")}&atalho=1`, request.url);
+  const inicio = Date.now();
+  const resposta = await buscar({ request: new Request(url), env, waitUntil });
+  const dados = resposta.ok ? await resposta.json() : null;
+  return Response.json({ ms: Date.now() - inicio, ofertas: dados?.ofertas?.length || 0, status: resposta.status });
+}
+
+const ROTAS = { "abrir-categoria": abrirCategoria, "preparar-ml": prepararML, "preparar-buscas": prepararBuscas, "coletar-precos": coletarPrecos, "conferir-lojas": conferirLojas };
 // Trava de cada passo: se o pedido cair no meio (limite do Cloudflare), a trilha fica parada até a trava vencer
 const TRAVA_MS = { ml: 150e3, lojas: 6 * 60e3 }; // um passo da Lomadee pode levar até 5 min; os do ML, até ~90 s
 const semCache = { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } };
