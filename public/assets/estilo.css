@@ -1091,8 +1091,17 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .comparacao-cabeca small { font-size: .82rem; font-weight: 600; color: #92400e; margin-left: 6px; }
 .comparacao-vazio, .comparacao-nota { margin: 0; font-size: .88rem; color: #78350f; }
 .comparacao-nota { margin-top: 12px; opacity: .85; }
-.comparacao-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 14px; align-items: start; }
+.comparacao-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 18px; align-items: start; }
 .modelo { background: var(--card); border: 1px solid var(--borda); border-radius: var(--raio); padding: 14px; min-width: 0; }
+/* Cada cartão com uma cor de fundo (print do Giovanni, 11/11/2026: todos brancos, parecia que a comparação era de um cartão
+   com o do lado; a comparação é DENTRO do cartão, entre as lojas) */
+.modelo { border-width: 2px; }
+.modelo:nth-child(6n + 1) { background: #eff6ff; border-color: #bfdbfe; }
+.modelo:nth-child(6n + 2) { background: #fdf2f8; border-color: #fbcfe8; }
+.modelo:nth-child(6n + 3) { background: #ecfdf5; border-color: #a7f3d0; }
+.modelo:nth-child(6n + 4) { background: #fff7ed; border-color: #fed7aa; }
+.modelo:nth-child(6n + 5) { background: #f5f3ff; border-color: #ddd6fe; }
+.modelo:nth-child(6n + 6) { background: #ecfeff; border-color: #a5f3fc; }
 .modelo-topo { display: flex; gap: 12px; align-items: center; }
 .modelo-foto { flex: none; width: 84px; height: 84px; border-radius: 12px; background: #fff; display: grid; place-items: center; overflow: hidden; }
 .modelo-foto img { width: 100%; height: 100%; object-fit: contain; }
@@ -1100,8 +1109,10 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .modelo-texto h3 { margin: 0; font-size: .98rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .modelo-resumo { margin: 4px 0 0; font-size: .84rem; color: var(--texto-fraco, #6b7280); }
 .modelo-resumo strong { color: var(--roxo-forte); }
-.modelo-lojas { list-style: none; margin: 12px 0 0; padding: 0; border-top: 1px solid var(--borda); }
+.modelo-lojas { list-style: none; margin: 12px 0 0; padding: 2px 8px; background: #fff; border-radius: 12px; }
 .modelo-lojas li { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid var(--borda); }
+.modelo-lojas li:last-child { border-bottom: 0; }
+.modelo-lojas li.mais-barata { margin: 4px -4px; padding: 9px 8px; border-bottom: 0; }
 .modelo-lojas li.mais-barata { background: #f0fdf4; border-radius: 8px; }
 .modelo-loja { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .modelo-loja .loja-tag { align-self: center; }
