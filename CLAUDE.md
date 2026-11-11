@@ -164,6 +164,13 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   `enderecoBusca`/`pedirLoja` do app.js) + preload de /api/lojas no index.html; `VERSAO_CACHE` exportada de buscar.js. Celular
   simulado (4G, CPU 4x): 1º cartão no início 2,8 s → ~1,6 s; busca 2,9 s → ~1,8 s. Toque em categoria (sem recarregar):
   1,2–1,8 s. Gargalo é rede, não CPU (tarefas longas ~0,5 s). Sobra: /api/lojas é pedida 2 vezes na busca.
+- **11/11, "categorias demoram ~5 s a mais no celular" (Giovanni, no Wi-Fi)**: não era o aparelho (simulado: 1–1,8 s). As
+  categorias quase nunca tinham busca pronta: a vitrine faz várias buscas na Shopee de uma vez, basta uma ser recusada para
+  `lojas.shopee.ok` = false e a pronta só era guardada com a Shopee ok → sem cópia no ponto do Cloudflare do visitante, ia às
+  lojas ao vivo (medido: Ferramentas 9 s, Calçados 9,5 s, Limpeza 7,6 s, Móveis 6 s, Bonés 7 s). Agora (buscar.js): a visita a
+  uma categoria e a atualização por trás também guardam a pronta; sem a Shopee guarda se não houver pronta ou se tiver 20 h+
+  (categoria) / 3 dias+ (busca). **Conferir após a madrugada**: `python3` medindo as 40 categorias (todas < 3 s) e perguntar
+  ao Giovanni se melhorou. O cabeçalho X-Pronta fica na cópia do cache: não prova que a pronta existe no banco.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
   lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
