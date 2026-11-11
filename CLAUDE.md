@@ -232,14 +232,17 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   com voltagem só de um lado continua (a IA até escreve "só o anúncio 1 informa") → no robô decidir a voltagem por código
   (regex nos dois títulos), não pela IA. Próximo: robô de verdade (tabela de grupos conferidos + Modo comparação lendo dela);
   depois apagar `robo/teste-casar.mjs` e `teste-casar.yml` (versão do GitHub, repetida).
-  **PRÓXIMO PASSO COMBINADO (11/11 à noite): construir o robô de casar.** Giovanni tem US$ 10 de saldo na Anthropic (dito por
-  ele); estimei 1ª rodada US$ 1–3,50 e US$ 0,05–0,30 por noite; teto sugerido US$ 0,50/noite (espalha a 1ª rodada). Desenho:
-  fase nova na trilha `lojas` depois das prontas (antes de `manha`), usando `lib/casar.js`: para cada busca guardada monta os
-  pares, pula os já conferidos (tabela nova, chave = ids dos 2 anúncios), pergunta 1 por vez, guarda veredito; voltagem por
-  regex nos títulos (não pela IA); grupos = pares "igual" ligados; Modo comparação passa a ler os grupos da tabela (rota nova)
-  e cai na regra do navegador quando a busca não tiver grupos; resumo na aba Robô (pares, custo). Ampliar além de
-  eletrodomésticos (celular, notebook) só depois de ver a 1ª noite. Print dele: PRF535I (437 L) e PRF535ID (434 L, água na
-  porta) são modelos diferentes; o site já separa (códigos diferentes).
+  **ROBÔ DE CASAR NO AR (11/11 à noite, falta ver a 1ª noite)**: fase `casar` da trilha `lojas`, depois das prontas e antes de
+  `manha` (até 45 min, teto US$ 0,50/noite `TETO_DA_NOITE_US`, para às 09:30 UTC). `lib/casar.js` `passoDeCasar`: uma busca
+  pronta por passo (rota interna `casar` em robo-noite.js), grupos = marca + código (mais barata de cada loja, só
+  Eletrodomésticos/Eletroportáteis), pergunta só par sem veredito (`proximoPar`; vale 60 dias), grava em `casados` (par = ids)
+  e `casados_buscas` (q → pares). Site: `/api/casados?q=` (cache 1 h) → `pedirCasados`/`separarConferidos` em app.js: quem a
+  IA disse "diferente" sai do cartão, igual fica mesmo com preço longe, cartão todo conferido mostra "✓ conferido"; busca sem
+  pares segue pela regra. "outra voltagem" = igual (voltagem é lida do nome). Painel aba Robô: "Mesmo produto em várias lojas
+  (IA)". Rodada à mão: `painel…/api/painel/robo-noite?comecar=casar` (1 h). Testes: `node testes/casar.mjs` e robo-noite.mjs.
+  Teste do GitHub apagado. **Conferir em 12/11**: pares/custo na aba Robô e `/api/casados?q=geladeira`. Limite visto: o
+  navegador às vezes tem outro anúncio da mesma loja (não conferido → fica pela regra). Depois: ampliar para celular/notebook
+  (pares por nome). Giovanni tem US$ 10 de saldo na Anthropic. PRF535I e PRF535ID são modelos diferentes (o site já separa).
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em

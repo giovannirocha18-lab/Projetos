@@ -1879,3 +1879,12 @@ conferência fina continua no site (`marcaDe`); `completarMarca` chama `pedirMar
 marca em `marcasInteiras` e o botão "Ver mais" some enquanto só marcas inteiras estiverem marcadas. Shopee, AliExpress e
 Lomadee como loja: sem filtro (lista vem da loja, página a página). Conferido no ar (PC): Black Friday Brastemp 2 → 46 em 1,1 s;
 loja ML Samsung 7 → 79; Kabum Samsung 1 → 16; 1 pedido só, sem erro de JS. Teste novo `testes/marcas.mjs` (também no GitHub).
+
+## Robô de casar produtos (11/11/2026, noite)
+Pedido do Giovanni depois do teste da IA (122 pares, US$ 0,015, ~96% certo). Construído: `lib/casar.js` (chaveDoModelo igual
+à do navegador: combo e tamanho da TV; gruposDaBusca; proximoPar com conjuntos de "iguais"; passoDeCasar com 5 grupos por
+vez, 40 pares e ~20 s por passo), fase `casar` em lib/roboNoite.js (prontas → casar → manha; repete a mesma busca até 6 vezes
+se sobrar par; para com teto, 45 min, 09:30 UTC, ou IA sem responder), tabelas `casados` (par, a, b, veredito, motivo, quando)
+e `casados_buscas` (q, par), rota pública `/api/casados?q=` e o Modo comparação lendo (`separarConferidos`). Testado no
+navegador com pares simulados sobre a busca real "geladeira": 9 de 12 cartões viraram "✓ conferido", sem erro de JS.
+Apagados `robo/teste-casar.mjs` e `.github/workflows/teste-casar.yml`. testes.yml roda agora casar.mjs e robo-noite.mjs.
