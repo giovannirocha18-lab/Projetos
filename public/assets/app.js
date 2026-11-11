@@ -1085,8 +1085,21 @@ function gruposDeModelos(lista) {
     if (ofertas.length < 2) continue;
     saida.push({ modelo: g.modelo, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco });
   }
-  // Mais lojas primeiro; no empate, a maior diferença de preço
-  return saida.sort((a, b) => b.ofertas.length - a.ofertas.length || b.economia - a.economia);
+  // A ordem segue o "Ordenar por" da lateral (pedido do Giovanni, 11/11/2026). Em "Mais relevantes": mais lojas primeiro e,
+  // no empate, a maior diferença de preço. O preço do modelo é o da loja mais barata; desconto e economia são a
+  // diferença entre a loja mais cara e a mais barata do próprio cartão
+  const ordem = $("input[name=ordem]:checked")?.value;
+  const barato = (g) => g.ofertas[0].preco;
+  const vendas = (g) => Math.max(...g.ofertas.map((o) => o.vendidos || 0));
+  const padrao = (a, b) => b.ofertas.length - a.ofertas.length || b.economia - a.economia;
+  const ordens = {
+    menor: (a, b) => barato(a) - barato(b),
+    maior: (a, b) => barato(b) - barato(a),
+    desconto: (a, b) => b.economia / b.ofertas.at(-1).preco - a.economia / a.ofertas.at(-1).preco,
+    economia: (a, b) => b.economia - a.economia,
+    vendidos: (a, b) => vendas(b) - vendas(a),
+  };
+  return saida.sort((a, b) => (ordens[ordem]?.(a, b) || 0) || padrao(a, b));
 }
 function cartaoModelo(g) {
   const barata = g.ofertas[0];
