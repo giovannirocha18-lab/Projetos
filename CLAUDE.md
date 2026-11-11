@@ -214,6 +214,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   só seções Eletrodomésticos e Eletroportáteis (TVs caem em Eletrodomésticos), a mais barata de cada loja, preço fora de
   0,55–1,9x o do meio sai, voltagem mostrada na linha; 12 por vez. Feito no navegador com o que a busca trouxe (sem robô nem IA).
   No ar: geladeira 28 modelos, micro-ondas 14, celular 0 (mostra explicação). Página inicial com o modo ligado mostra aviso.
+  Os cartões seguem o "Ordenar por" (preço = o da loja mais barata; desconto/economia = diferença entre as lojas do cartão).
+  Giovanni: "ficou top".
   Ideia dele para depois: robô da noite + IA casando os produtos (falei que é possível; testar a IA numa amostra antes).
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
