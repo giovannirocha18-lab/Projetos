@@ -195,8 +195,14 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   exibir no Google agora"): categorias (lateral, abas do celular), "em alta", cartões "Em alta no ML" e "Ver produtos" das lojas
   são `<a href>` (`linkInterno`/`enderecoDaBusca` em app.js; `:where(a.lk)` no CSS); tela igual, toque sem recarregar ✅.
   **Para lançar (só quando ele mandar)**: tirar `noindex` de public/index.html (meta robots) e de public/_headers (X-Robots-Tag
-  da página); falta pôr as lojas no sitemap. Ideias que ele ouviu e ainda não pediu: página "Quedas de preço de hoje", canal
+  da página); falta pôr as lojas no sitemap. Ideias que ele ouviu e ainda não pediu: canal
   Telegram/WhatsApp, mesmo produto lado a lado, aviso de preço no celular, "com o cupom sai por".
+- **11/11: página "Quedas de preço"** (`/quedas-de-preco`, pedido do Giovanni): produtos conferidos (níveis 1 e 2 de
+  `bf_ofertas`) cuja última mudança em `precos` foi para baixo nos últimos 7 dias; os de hoje primeiro, lojas se revezando
+  (`listarQuedas` em lib/blackfriday.js, `/api/quedas?pagina=`, cache 15 min). No app é uma "loja especial" como a Black Friday
+  (`QUEDAS`, `ESPECIAIS`, `naEspecial`, `desenharResumoQuedas`, selo `🕒 Caiu hoje/ontem/há N dias`). Atalhos: faixa do topo,
+  chips "em alta", botão na página inicial e atalho do celular. No ar ✅: 2.512 caíram hoje, 4.051 na semana, 0,4 s.
+  Filtro de marca ali é página a página (não tem `?marca=`).
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
   lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
