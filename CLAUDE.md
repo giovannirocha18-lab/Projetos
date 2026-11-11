@@ -233,7 +233,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (regex nos dois títulos), não pela IA. Próximo: robô de verdade (tabela de grupos conferidos + Modo comparação lendo dela);
   depois apagar `robo/teste-casar.mjs` e `teste-casar.yml` (versão do GitHub, repetida).
   **ROBÔ DE CASAR NO AR (11/11 à noite, falta ver a 1ª noite)**: fase `casar` da trilha `lojas`, depois das prontas e antes de
-  `manha` (até 45 min, teto US$ 0,50/noite `TETO_DA_NOITE_US`, para às 09:30 UTC). `lib/casar.js` `passoDeCasar`: uma busca
+  `manha` (até 120 min, teto US$ 4/noite `TETO_DA_NOITE_US` — subiu de 0,50 a pedido do Giovanni para fazer a 1ª rodada inteira; depois de completa, pode voltar a 0,50 —, para às 09:30 UTC). `lib/casar.js` `passoDeCasar`: uma busca
   pronta por passo (rota interna `casar` em robo-noite.js), grupos = marca + código (mais barata de cada loja, só
   Eletrodomésticos/Eletroportáteis), pergunta só par sem veredito (`proximoPar`; vale 60 dias), grava em `casados` (par = ids)
   e `casados_buscas` (q → pares). Site: `/api/casados?q=` (cache 1 h) → `pedirCasados`/`separarConferidos` em app.js: quem a
