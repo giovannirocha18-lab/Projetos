@@ -171,6 +171,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   uma categoria e a atualização por trás também guardam a pronta; sem a Shopee guarda se não houver pronta ou se tiver 20 h+
   (categoria) / 3 dias+ (busca). **Conferir após a madrugada**: `python3` medindo as 40 categorias (todas < 3 s) e perguntar
   ao Giovanni se melhorou. O cabeçalho X-Pronta fica na cópia do cache: não prova que a pronta existe no banco.
+  Giovanni testou (10/11 à noite): 2ª abertura rápida ✅. Ideia dele: **robô que abre as 40 categorias toda manhã**
+  (`robo/abrir-categorias.mjs`, 1º passo do workflow conferir-fotos.yml às 07h40; sem IA; a lenta é montada e aberta de
+  novo; resumo com os tempos). Teste: 39 prontas, 1 montada (Bebês 3,2 s → 0,8 s).
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
   lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
