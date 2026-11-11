@@ -4,7 +4,9 @@
 name: IA conferindo as fotos
 on:
   schedule:
-    - cron: "40 10 * * *" # 07:40 de Brasília (os robôs da noite acabam até as 07:00)
+    # 09:50 UTC = 05:50 no horário do Giovanni (UTC-4) e 06:50 de Brasília: ele pediu "umas 6 da manhã do meu horário"
+    # (11/11/2026). As buscas prontas da noite costumam acabar às 07:30 UTC (a janela do robô vai até as 10:00 UTC)
+    - cron: "50 9 * * *"
   workflow_dispatch:
     inputs:
       teto:
