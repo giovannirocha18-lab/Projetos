@@ -1059,6 +1059,14 @@ function modeloDe(o) {
       && !/^\d+x\d+/.test(p) && !/^\d+(gb|tb|w|v|l|ml|mah|hz|pol|btus?|kg|g|cm|mm|k|p)(\/|$)/.test(p))
     .map((p) => p.replace(/[^a-z0-9]/g, "")).filter((p) => p.length >= 4);
   if (!codigos.length) return null;
+  // Combo ou kit (print do Giovanni, 11/11/2026: "Samsung Smart Tv 50 M75h + Samsung Smart Tv 43 Q5f", duas TVs por R$ 4.704,
+  // entrou no cartão da M75H sozinha de R$ 2.759): só se junta com outro anúncio do MESMO combo (os mesmos códigos)
+  const combo = /\s\+\s|\b(kit|combo|conjunto)\b|\b[2-9]\s*(unidades|unid|un|pecas|pcs)\b|\b(2|duas|dois)\s+(smart\s+)?tvs?\b/.test(t);
+  if (combo) {
+    const todos = [...new Set(codigos)].sort();
+    o._modelo = { chave: `${marca.n}|combo|${todos.join("+")}`, cod: `Combo ${todos.join(" + ").toUpperCase()}`, marca: marca.nome, tensao: "" };
+    return o._modelo;
+  }
   const cod = codigos.sort((a, b) => b.length - a.length)[0];
   const tensao = /\b220 ?v(olts?)?\b/.test(t) ? "220V" : /\b(110|127) ?v(olts?)?\b/.test(t) ? "127V" : /bivolt/.test(t) ? "Bivolt" : "";
   o._modelo = { chave: `${marca.n}|${cod}`, cod: cod.toUpperCase(), marca: marca.nome, tensao };
