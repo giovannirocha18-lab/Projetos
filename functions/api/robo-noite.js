@@ -26,6 +26,8 @@ const ROTAS = { "abrir-categoria": abrirCategoria, "preparar-ml": prepararML, "p
 const TRAVA_MS = { ml: 150e3, lojas: 6 * 60e3 }; // um passo da Lomadee pode levar até 5 min; os do ML, até ~90 s
 const semCache = { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } };
 
+// Como foram as categorias abertas (só nomes de categoria e tempos: nada reservado), para conferir uma rodada de fora do painel
+const categoriasDe = (e) => (e?.c?.catAbertas ? { categorias: { abertas: e.c.catAbertas, total: e.c.catTotal, lentas: e.c.catLentas || [] } } : {});
 const lerEstado = (texto) => { try { return JSON.parse(texto); } catch { return null; } };
 
 export async function onRequest({ request, env, waitUntil }) {
@@ -48,13 +50,13 @@ export async function onRequest({ request, env, waitUntil }) {
   const linha = await env.DB.prepare("SELECT noite, estado FROM robo_noite WHERE trilha = ?").bind(trilha).first();
   let e = linha?.noite === noite ? lerEstado(linha.estado) : null;
   const nova = !e;
-  if (!e) e = estadoInicial(trilha, agora);
+  if (!e) e = estadoInicial(trilha, agora, noite);
   const salvar = () => env.DB.prepare("UPDATE robo_noite SET noite = ?, estado = ?, ocupado_ate = 0, atualizado = ? WHERE trilha = ?")
     .bind(noite, JSON.stringify(e), Date.now(), trilha).run();
 
   if (e.fase === "fim" || e.esperaAte > agora) {
     if (nova) await salvar(); else await env.DB.prepare("UPDATE robo_noite SET ocupado_ate = 0 WHERE trilha = ?").bind(trilha).run();
-    return Response.json({ trilha, fase: e.fase, fim: e.fase === "fim", esperar: Math.ceil(Math.max(0, e.esperaAte - agora) / 1000) }, semCache);
+    return Response.json({ trilha, fase: e.fase, fim: e.fase === "fim", esperar: Math.ceil(Math.max(0, e.esperaAte - agora) / 1000), ...categoriasDe(e) }, semCache);
   }
 
   const outroNome = TRILHAS.find((t) => t !== trilha);
@@ -92,5 +94,5 @@ export async function onRequest({ request, env, waitUntil }) {
     const [ml, lojas] = trilha === "ml" ? [e, outra] : [outra, e];
     await gravarNoPainel(env.DB, noite, ml, lojas, Date.now()).catch(() => {});
   }
-  return Response.json({ trilha, fase: e.fase, fim: e.fase === "fim", esperar }, semCache);
+  return Response.json({ trilha, fase: e.fase, fim: e.fase === "fim", esperar, ...categoriasDe(e) }, semCache);
 }

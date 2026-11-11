@@ -1,8 +1,8 @@
 // GET /api/painel/robo-noite — como está o robô da noite no Cloudflare (lib/roboNoite.js): fase e números de cada trilha.
-// ?comecar=1 abre uma rodada manual agora (vale 3 h; o Worker "relógio" precisa estar ligado para andar), ?parar=1 fecha.
+// ?comecar=1 abre uma rodada manual agora (vale 3 h; ?comecar=categorias = só abrir as 40 categorias, 30 min; o Worker "relógio" precisa estar ligado para andar), ?parar=1 fecha.
 // Só no endereço do painel, com o login do Cloudflare Access (lib/painel.js).
 import { ehPainel, quemEntrou } from "../../../lib/painel.js";
-import { TRILHAS, criarTabela, rodadaManual, noiteAtual } from "../../../lib/roboNoite.js";
+import { TRILHAS, SO_CATEGORIAS, criarTabela, rodadaManual, noiteAtual } from "../../../lib/roboNoite.js";
 
 export async function onRequestGet({ request, env }) {
   const cabecalhos = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" };
@@ -17,9 +17,11 @@ export async function onRequestGet({ request, env }) {
   if ((params.has("comecar") || params.has("parar")) && origemDoClique && origemDoClique !== "none" && origemDoClique !== "same-origin") {
     return Response.json({ erro: "abra este endereço digitando-o no navegador (não por um link de outro site)" }, { status: 403, headers: cabecalhos });
   }
+  // ?comecar=categorias: rodada curta (30 min) só do passo que abre as 40 categorias
+  const soCategorias = params.get("comecar") === "categorias";
   if (params.has("comecar")) {
     await env.DB.prepare("INSERT OR REPLACE INTO robo_noite (trilha, noite, estado, ocupado_ate, atualizado) VALUES ('_manual', ?, '{}', ?, ?)")
-      .bind(`manual-${new Date(agora).toISOString().slice(0, 16)}`, agora + 3 * 3600e3, agora).run();
+      .bind(`${soCategorias ? SO_CATEGORIAS : "manual-"}${new Date(agora).toISOString().slice(0, 16)}`, agora + (soCategorias ? 0.5 : 3) * 3600e3, agora).run();
   }
   if (params.has("parar")) await env.DB.prepare("UPDATE robo_noite SET ocupado_ate = 0 WHERE trilha = '_manual'").run();
   const manual = await rodadaManual(env.DB);

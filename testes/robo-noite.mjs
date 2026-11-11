@@ -71,6 +71,13 @@ ok(cat.linhas.includes("Ferramentas: 9,0 s → na 2ª vez 0,6 s") && cat.linhas.
 ok(cat.situacao === "aviso" && cat.avisos[0] === "Continuam lentas ou vazias depois de abrir de novo: Pets", `aviso: ${cat.avisos}`);
 ok(esperaDasCategorias(Date.parse("2026-11-10T15:00:00Z")) === 0 && esperaDasCategorias(Date.parse("2026-11-10T09:29:30Z")) === 30, "espera das categorias");
 
+// Rodada manual só das categorias
+const soCat = { ml: estadoInicial("ml", agora, "manual-cat-x"), lojas: estadoInicial("lojas", agora, "manual-cat-x") };
+cont.cats = 0; cont.ferr = 0;
+for (let i = 0; i < 100 && soCat.lojas.fase !== "fim"; i++) await passo("lojas", soCat.lojas, chamar, agora + 15 * 3600e3 + i * 1000, soCat.ml);
+ok(soCat.ml.fase === "fim" && soCat.lojas.fase === "fim" && cont.cats === 42, `só categorias: ${soCat.lojas.fase}, ${cont.cats} aberturas`);
+ok(partesDoPainel(soCat.ml, soCat.lojas).map((p) => p.chave).join() === "categorias", "só categorias: painel");
+
 // Junta com o que o GitHub gravou (awin, ia, auditoria): na ordem do painel, sem repetir
 const juntas = juntarNaExecucao([{ chave: "awin" }, { chave: "ia" }, { chave: "prontas", velha: true }], partes);
 ok(juntas.map((p) => p.chave).join() === "awin,shopee,ml,mv,prontas,lomadee,categorias,ia" && !juntas.some((p) => p.velha), `juntas: ${juntas.map((p) => p.chave)}`);
