@@ -1034,6 +1034,132 @@ function selosHistorico(o) {
 }
 
 const CELULAR = matchMedia("(max-width: 640px)");
+// ---------------------------------------------------------------------
+// MODO COMPARAÇÃO (ideia do Giovanni, 11/11/2026): caixinha em "Mais opções". Ligado, a busca mostra primeiro o MESMO
+// MODELO lado a lado nas lojas (da mais barata para a mais cara) e, embaixo, a lista normal. 1ª versão, só para ver como
+// fica: eletrodomésticos, eletroportáteis e TVs, que têm código de modelo no nome (teste de 11/11: 293 modelos em 2+ lojas
+// em 45 buscas; celular e fone quase nada). Junta por marca + código do modelo (letras e números juntos, 4+ caracteres:
+// "CRD37MB", "NN-ST55LMRUK"); tudo feito aqui no navegador, com o que a busca já trouxe.
+// ---------------------------------------------------------------------
+const CHAVE_MODO_COMPARACAO = "vpc_modo_comparacao";
+const SECOES_COMPARAVEIS = new Set(["Eletrodomésticos", "Eletroportáteis"]);
+const MEDIDA_NAO_MODELO = /^\d+([.,]\d+)?(v|w|l|ml|kg|g|gb|tb|mb|mah|hz|khz|mhz|ghz|btus?|pol|k|p|cm|mm|m|un|pcs?|x|rpm|fps|mp|db|bar|psi|lm|kwh|cv|hp|dpi|ms|bits?|pecas?|em\d)$/;
+const TERMO_NAO_MODELO = new Set(["110v", "127v", "220v", "bivolt", "4k", "8k", "5g", "4g", "wifi6", "ipx4", "ipx5", "ipx7", "ip67", "ip68", "1080p", "720p",
+  "2em1", "3em1", "4em1", "5em1", "mp3", "mp4", "hdr10", "hdmi2", "usb3", "usb2", "ddr4", "ddr5", "h264", "h265"]);
+function modeloDe(o) {
+  if (o._modelo !== undefined) return o._modelo;
+  o._modelo = null;
+  const marca = marcaDe(o);
+  if (!marca) return null;
+  const t = normalizar(String(o.titulo || "")).replace(/[^a-z0-9+.\-/ ]/g, " ");
+  const codigos = t.split(/\s+/).map((p) => p.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ""))
+    .filter((p) => p.length >= 4 && /[a-z]/.test(p) && /\d/.test(p) && !MEDIDA_NAO_MODELO.test(p) && !TERMO_NAO_MODELO.has(p)
+      && !/^\d+x\d+/.test(p) && !/^\d+(gb|tb|w|v|l|ml|mah|hz|pol|btus?|kg|g|cm|mm|k|p)(\/|$)/.test(p))
+    .map((p) => p.replace(/[^a-z0-9]/g, "")).filter((p) => p.length >= 4);
+  if (!codigos.length) return null;
+  const cod = codigos.sort((a, b) => b.length - a.length)[0];
+  const tensao = /\b220 ?v(olts?)?\b/.test(t) ? "220V" : /\b(110|127) ?v(olts?)?\b/.test(t) ? "127V" : /bivolt/.test(t) ? "Bivolt" : "";
+  o._modelo = { chave: `${marca.n}|${cod}`, cod: cod.toUpperCase(), marca: marca.nome, tensao };
+  return o._modelo;
+}
+// Grupos de 2+ lojas com o mesmo modelo; de cada loja fica a oferta mais barata
+function gruposDeModelos(lista) {
+  const grupos = new Map();
+  for (const o of lista) {
+    if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || !SECOES_COMPARAVEIS.has(o.secao)) continue;
+    const m = modeloDe(o);
+    if (!m) continue;
+    if (!grupos.has(m.chave)) grupos.set(m.chave, { modelo: m, porLoja: new Map() });
+    const g = grupos.get(m.chave);
+    const atual = g.porLoja.get(o.loja);
+    if (!atual || o.preco < atual.preco) g.porLoja.set(o.loja, o);
+  }
+  const saida = [];
+  for (const g of grupos.values()) {
+    let ofertas = [...g.porLoja.values()].sort((a, b) => a.preco - b.preco);
+    // Preço muito fora do meio do grupo é outro produto com o mesmo código (peça, kit sem bateria, anúncio errado): sai
+    const meio = ofertas[Math.floor(ofertas.length / 2)].preco;
+    ofertas = ofertas.filter((o) => o.preco >= meio * 0.55 && o.preco <= meio * 1.9);
+    if (ofertas.length < 2) continue;
+    saida.push({ modelo: g.modelo, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco });
+  }
+  // Mais lojas primeiro; no empate, a maior diferença de preço
+  return saida.sort((a, b) => b.ofertas.length - a.ofertas.length || b.economia - a.economia);
+}
+function cartaoModelo(g) {
+  const barata = g.ofertas[0];
+  // Nome e foto: do anúncio de nome mais curto (costuma ser o mais limpo) e do primeiro que tem foto
+  const titulo = [...g.ofertas].sort((a, b) => a.titulo.length - b.titulo.length)[0].titulo;
+  const comFoto = g.ofertas.find((o) => o.imagem);
+  return el("article", { class: "modelo" },
+    el("div", { class: "modelo-topo" },
+      el("span", { class: "modelo-foto" }, comFoto
+        ? el("img", { src: fotoPequena(comFoto.imagem), alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(comFoto) })
+        : el("span", { class: "foto-emoji" }, "🛍️")),
+      el("div", { class: "modelo-texto" },
+        el("h3", { title: titulo }, titulo),
+        el("p", { class: "modelo-resumo" }, `Modelo ${g.modelo.cod} · em ${g.ofertas.length} lojas · a partir de `, el("strong", {}, `R$ ${brl(barata.preco)}`)))),
+    el("ul", { class: "modelo-lojas" }, ...g.ofertas.map((o, i) => {
+      const loja = infoLoja(o);
+      const m = modeloDe(o);
+      return el("li", { class: i === 0 ? "mais-barata" : null, style: `--cor-loja:${loja.cor}` },
+        el("span", { class: "modelo-loja" },
+          el("span", { class: `loja-tag ${loja.tag || ""}` }, el("span", { class: "loja-ponto" }), loja.nome),
+          m?.tensao && el("span", { class: "modelo-nota" }, m.tensao),
+          o.full && el("span", { class: "modelo-nota" }, "⚡ Full"),
+          o.freteGratis && el("span", { class: "modelo-nota" }, "🚚 Frete grátis"),
+          botaoCupom(o.loja)),
+        el("span", { class: "modelo-preco" }, `R$ ${brl(o.preco)}`),
+        el("a", { class: "modelo-comprar", href: o.link, target: "_blank", rel: "sponsored noopener", title: o.titulo,
+          onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`), ...marcaClique("comparacao", o) }, i === 0 ? "Comprar →" : "Ver →"));
+    })),
+    g.economia >= 1 && el("p", { class: "modelo-economia" }, `💰 Você economiza R$ ${brl(g.economia)} escolhendo a mais barata`));
+}
+const modoComparacao = () => $("#modo-comparacao").checked;
+const MODELOS_POR_VEZ = 12;
+let modelosMostrados = MODELOS_POR_VEZ;
+function desenharComparacao(lista) {
+  const caixa = $("#comparacao");
+  if (!modoComparacao() || !estado.q || estado.loja) { caixa.hidden = true; return; }
+  const grupos = gruposDeModelos(lista);
+  caixa.hidden = false;
+  if (!grupos.length) {
+    caixa.replaceChildren(el("h2", { class: "comparacao-cabeca" }, "⚖️ Modo comparação"),
+      el("p", { class: "comparacao-vazio" }, estado.completando ? "Procurando o mesmo modelo em mais de uma loja…"
+        : "Nesta busca não achamos o mesmo modelo em mais de uma loja. Por enquanto o modo comparação funciona com eletrodomésticos, "
+          + "eletroportáteis e TVs: experimente geladeira, micro-ondas, freezer, lava e seca, liquidificador ou smart tv 55."));
+    return;
+  }
+  const mostrar = grupos.slice(0, modelosMostrados);
+  caixa.replaceChildren(
+    el("h2", { class: "comparacao-cabeca" }, "⚖️ O mesmo produto em várias lojas ",
+      el("small", {}, `${grupos.length} ${grupos.length === 1 ? "modelo" : "modelos"} nesta busca`)),
+    el("div", { class: "comparacao-lista" }, ...mostrar.map(cartaoModelo)),
+    grupos.length > mostrar.length && el("div", { class: "mais-ofertas" }, el("button", { type: "button", class: "botao-secundario",
+      onclick: () => { modelosMostrados += MODELOS_POR_VEZ; desenharResultados(); } }, `Ver mais modelos (${grupos.length - mostrar.length})`)),
+    el("p", { class: "comparacao-nota" }, "Juntamos os anúncios pelo código do modelo. Confira a voltagem e os detalhes na loja antes de comprar. ",
+      "Abaixo, todas as ofertas desta busca."));
+}
+// Página inicial com o modo ligado: explica o que fazer
+function desenharAvisoComparacao() {
+  const aviso = $("#aviso-comparacao");
+  aviso.hidden = !modoComparacao();
+  if (aviso.hidden) return;
+  aviso.replaceChildren(el("strong", {}, "⚖️ Modo comparação ligado. "),
+    "Busque um produto (geladeira, micro-ondas, smart tv 55…) e mostramos o mesmo modelo lado a lado nas lojas, do mais barato para o mais caro. ",
+    el("button", { type: "button", class: "botao-link", onclick: () => { $("#modo-comparacao").checked = false; $("#modo-comparacao").dispatchEvent(new Event("change")); } }, "Desligar"));
+}
+try { $("#modo-comparacao").checked = localStorage.getItem(CHAVE_MODO_COMPARACAO) === "1"; } catch { /* sem armazenamento */ }
+$("#modo-comparacao").addEventListener("change", () => {
+  const ligado = modoComparacao();
+  try { if (ligado) localStorage.setItem(CHAVE_MODO_COMPARACAO, "1"); else localStorage.removeItem(CHAVE_MODO_COMPARACAO); } catch { /* sem armazenamento */ }
+  modelosMostrados = MODELOS_POR_VEZ;
+  desenharAvisoComparacao();
+  if (ligado && !estado.q) toast("Modo comparação ligado: busque um produto para comparar as lojas ⚖️", 4000);
+  desenharResultados();
+});
+desenharAvisoComparacao();
+
 function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
   const loja = infoLoja(o);
   const [inteiro, decimal] = brl(o.preco).split(",");
@@ -2323,6 +2449,7 @@ function desenharResultados() {
     else c.style.animationDelay = `${jaNaTela.size ? 0 : Math.min(i, 12) * 30}ms`;
     return c;
   }, { minimo: jaNaTela.size, chave: (o) => `${o.id}|${o.id === idMelhor ? 1 : 0}${o.id === idVendido ? 1 : 0}${cuponsDaLoja(o.loja).length ? 1 : 0}` });
+  desenharComparacao(lista);
   desenharEscolhaRapida(lista);
   sheinNaBusca();
   $("#vazio").hidden = lista.length > 0;
@@ -2375,6 +2502,7 @@ async function buscar(q) {
     $("input[name=envio][value=todos]").checked = true;
   }
   estado.q = q;
+  modelosMostrados = MODELOS_POR_VEZ;
   mostrarLojaNaBusca(q, pedido);
   estado.foraDaCategoria = null;
   estado.lojasDesmarcadas.clear();

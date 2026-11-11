@@ -99,6 +99,7 @@
         <legend>Mais opções</legend>
         <label class="opcao" id="opcao-frete"><input type="checkbox" id="so-frete"> Frete grátis</label>
         <label class="opcao" id="opcao-avaliados"><input type="checkbox" id="bem-avaliados"> ⭐ Bem avaliados (nota 4 ou mais)</label>
+        <label class="opcao" id="opcao-comparacao"><input type="checkbox" id="modo-comparacao"> ⚖️ Modo comparação (o mesmo produto em várias lojas)</label>
         <!-- Sem caixinha visível (confundia): os acessórios aparecem pelo botão "Ver também N acessórios e peças" abaixo da lista -->
         <input type="checkbox" id="com-acessorios" hidden aria-hidden="true" tabindex="-1">
       </fieldset>
@@ -161,6 +162,8 @@
             <button type="button" data-abrir-filtros><span aria-hidden="true">☰</span>Categorias</button>
           </nav>
           <p class="numeros-inicio" id="numeros-inicio" hidden></p>
+          <!-- Modo comparação ligado (app.js, desenharAvisoComparacao) -->
+          <div class="aviso-comparacao" id="aviso-comparacao" hidden></div>
           <!-- Campanhas da Shein (lib/shein.js; app.js, desenharCampanhasShein) -->
           <section class="campanhas-shein" id="campanhas-shein" hidden aria-label="Ofertas da Shein"></section>
           <!-- O que mais se busca no Mercado Livre agora (/api/em-alta, campo ml; app.js, desenharBuscadosML) -->
@@ -192,6 +195,8 @@
         <!-- Buscou o nome de uma loja parceira ("lauri esporte"): atalho para os produtos dela (app.js, mostrarLojaNaBusca) -->
         <div class="loja-na-busca" id="loja-na-busca" hidden></div>
         <section class="campanhas-shein" id="campanhas-shein-busca" hidden aria-label="Ofertas da Shein"></section>
+        <!-- Modo comparação: o mesmo modelo lado a lado nas lojas (app.js, desenharComparacao) -->
+        <section class="comparacao" id="comparacao" hidden aria-label="Mesmo produto em várias lojas"></section>
         <section class="escolha-rapida" id="escolha-rapida" hidden aria-label="Escolha rápida"></section>
         <div class="grade" id="grade"></div>
         <div class="mais-ofertas"><button type="button" class="botao-secundario" id="mais-resultados" hidden>Ver mais resultados</button></div>
