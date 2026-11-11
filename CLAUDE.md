@@ -183,6 +183,12 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (`robo/abrir-categorias.mjs`, 1º passo do workflow conferir-fotos.yml, 09:50 UTC = ~6h do horário do Giovanni, que está 1 h atrás de Brasília (UTC-4, confirmado por
   ele em 10/11; ao falar de horário, dizer no horário dele); sem IA; a lenta é montada e aberta de
   novo; resumo com os tempos). Teste: 39 prontas, 1 montada (Bebês 3,2 s → 0,8 s).
+- **11/11, print "Buscando Brinquedos…" lento na 1ª vez no celular**: toda resposta guardada passava a cada visita por consultas
+  ao banco (fotos quebradas da Lomadee + reprovados da IA): Brinquedos 1,2–2,8 s só nisso. Agora há a **cópia limpa** no cache do
+  Cloudflare (`chaveLimpa` = chave + `&limpa=1`, `limpar`/`guardarLimpa`/`refazerLimpa` em buscar.js; conferida por trás a cada
+  10 min) e a pronta da noite sai como veio do banco (limpeza por trás). Medido: Brinquedos 0,2 s. Medidor: cabeçalho
+  `Server-Timing` e `&medir=2` (só lê a pronta do banco; mostra a cidade do Cloudflare e os ms de cada etapa; nunca vai às lojas).
+  **Falta o Giovanni confirmar no celular** (se seguir lento: pedir print de `/api/buscar?v=108&q=brinquedo&cat=Brinquedos&medir=2`).
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
   lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
