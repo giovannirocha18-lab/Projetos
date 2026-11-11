@@ -203,6 +203,12 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (`QUEDAS`, `ESPECIAIS`, `naEspecial`, `desenharResumoQuedas`, selo `🕒 Caiu hoje/ontem/há N dias`). Atalhos: faixa do topo,
   chips "em alta", botão na página inicial e atalho do celular. No ar ✅: 2.512 caíram hoje, 4.051 na semana, 0,4 s.
   Filtro de marca ali é página a página (não tem `?marca=`).
+- **11/11: teste "mesmo produto lado a lado" (sem mexer no site)**: 45 buscas de eletro/eletrônicos, 13.985 produtos; juntando
+  por marca + código do modelo (letras+números, 4+ caracteres): 27% têm código, **293 modelos em 2+ lojas** (967 ofertas, 7%),
+  52 em 3+; amostra de 22 grupos: ~20 certos. Forte: geladeira 29, freezer 31, lava e seca 17, liquidificador 19, micro-ondas
+  14, impressora 10, TVs 7–8. Fraco: celular/iphone/tablet (modelo é nome, não código), fones, chapinha, câmera. Erros vistos:
+  110V com 220V juntos, Bosch GSB x GSR "120-LI", kit com/sem bateria. Lojas dos grupos: Shopee, ML, AliExpress, eFácil, KaBuM.
+  Giovanni ainda não decidiu se faz.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
   lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
