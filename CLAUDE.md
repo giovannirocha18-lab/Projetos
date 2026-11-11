@@ -135,8 +135,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   busca, robots.txt e sitemap.xml (`comDadosDaPagina` no _middleware.js). Depois, a pedido: **Voltar guarda o lugar**
   (`guardarLugar`/`restaurarLugar` em app.js: cartões, filtros e o produto que estava na tela; 10 min, 4 páginas), **fonte no
   próprio site** (`/assets/jakarta-*.woff2`, sem Google Fonts) e **banco em duas fases** (Awin e lista Shopee leem só o nome e
-  depois os escolhidos; teste `node testes/banco.mjs`). **Ficou para depois**: categorias/lojas como links `<a>` (para o
-  Google), cache em /api/produto; Giovanni: pôr `/ir/` na regra "Limite API" do Cloudflare.
+  depois os escolhidos; teste `node testes/banco.mjs`). **Ficou para depois**: cache em /api/produto; Giovanni: pôr `/ir/` na regra "Limite API" do Cloudflare.
 - **10/11 (noite), print do Giovanni (marca "Brastemp" com 3 produtos e botão piscando "Carregando…")**: marcar uma marca na
   busca faz na hora a busca "produto + marca" e junta à lista (`completarMarca` em app.js); com filtro apertado o botão "Ver
   mais" fica com o aviso parado "Procurando mais ofertas com esse filtro…" e para após 8 páginas sem produto novo
@@ -192,6 +191,12 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   desliga (`mostrarTempos` em app.js). Giovanni (GRU, 11/11): "agora abriu rápido" ✅; Cozinha 1,57 s (aparelho só 0,2 s; 0,9 s
   era a limpeza de uma cópia de antes da correção). Banco visto de GRU: ~200–470 ms por consulta. Atalho instalado pelo Chrome
   não muda nada (só manifest, sem service worker).
+- **11/11: preparo para o Google pronto, LANÇAMENTO SEGURADO** (Giovanni: "faça tudo, apenas segure o lançamento, não quero
+  exibir no Google agora"): categorias (lateral, abas do celular), "em alta", cartões "Em alta no ML" e "Ver produtos" das lojas
+  são `<a href>` (`linkInterno`/`enderecoDaBusca` em app.js; `:where(a.lk)` no CSS); tela igual, toque sem recarregar ✅.
+  **Para lançar (só quando ele mandar)**: tirar `noindex` de public/index.html (meta robots) e de public/_headers (X-Robots-Tag
+  da página); falta pôr as lojas no sitemap. Ideias que ele ouviu e ainda não pediu: página "Quedas de preço de hoje", canal
+  Telegram/WhatsApp, mesmo produto lado a lado, aviso de preço no celular, "com o cupom sai por".
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
   lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
