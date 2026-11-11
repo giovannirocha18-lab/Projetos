@@ -1074,6 +1074,40 @@ function modeloDe(o) {
   o._modelo = { chave: `${marca.n}|${cod}${tela ? `|${tela}` : ""}`, cod: cod.toUpperCase(), marca: marca.nome, tensao };
   return o._modelo;
 }
+// Pares que o robô de casar já conferiu com a IA (lib/casar.js, /api/casados?q=): par de ids → 1 (mesmo produto) ou 0.
+// Só é pedido com o modo ligado; busca que o robô ainda não viu segue só pela regra do código do modelo
+let casados = { q: null, mapa: null };
+const idDoPar = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+function pedirCasados() {
+  const q = estado.q;
+  if (!q || casados.q === q) return;
+  casados = { q, mapa: null };
+  fetch(`/api/casados?q=${encodeURIComponent(q.toLowerCase().trim().replace(/\s+/g, " "))}`).then((r) => (r.ok ? r.json() : null)).then((d) => {
+    if (casados.q !== q || !d?.pares?.length) return;
+    casados.mapa = new Map(d.pares.map(([a, b, v]) => [idDoPar(a, b), v]));
+    if (modoComparacao() && estado.q === q && !estado.buscando) desenharResultados();
+  }).catch(() => { /* sem os conferidos: vale a regra do código */ });
+}
+// Divide as ofertas de um modelo (uma por loja, da mais barata para a mais cara) conforme a IA: quem ela disse que NÃO é
+// o mesmo produto sai do cartão (e pode formar outro cartão com os seus iguais); anúncio ainda não conferido fica pela regra
+function separarConferidos(ofertas) {
+  const mapa = casados.q === estado.q ? casados.mapa : null;
+  if (!mapa) return [{ ofertas, conferidas: new Set() }];
+  const v = (a, b) => mapa.get(idDoPar(a.id, b.id));
+  const iguais = (o, lista) => lista.filter((x) => x !== o && v(o, x) === 1).length;
+  const partes = [];
+  let resto = ofertas;
+  while (resto.length >= 2) {
+    // Começa por quem tem mais "iguais" confirmados (no empate, o mais barato)
+    const inicio = resto.reduce((melhor, o) => (iguais(o, resto) > iguais(melhor, resto) ? o : melhor), resto[0]);
+    const grupo = [inicio];
+    for (const o of resto) if (o !== inicio && !grupo.some((x) => v(o, x) === 0)) grupo.push(o);
+    resto = resto.filter((o) => !grupo.includes(o));
+    grupo.sort((a, b) => a.preco - b.preco);
+    partes.push({ ofertas: grupo, conferidas: new Set(grupo.filter((o) => iguais(o, grupo) > 0)) });
+  }
+  return partes;
+}
 // Grupos de 2+ lojas com o mesmo modelo; de cada loja fica a oferta mais barata
 function gruposDeModelos(lista) {
   const grupos = new Map();
@@ -1088,12 +1122,14 @@ function gruposDeModelos(lista) {
   }
   const saida = [];
   for (const g of grupos.values()) {
-    let ofertas = [...g.porLoja.values()].sort((a, b) => a.preco - b.preco);
-    // Preço muito fora do meio do grupo é outro produto com o mesmo código (peça, kit sem bateria, anúncio errado): sai
-    const meio = ofertas[Math.floor(ofertas.length / 2)].preco;
-    ofertas = ofertas.filter((o) => o.preco >= meio * 0.55 && o.preco <= meio * 1.9);
-    if (ofertas.length < 2) continue;
-    saida.push({ modelo: g.modelo, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco });
+    for (const parte of separarConferidos([...g.porLoja.values()].sort((a, b) => a.preco - b.preco))) {
+      // Preço muito fora do meio do grupo é outro produto com o mesmo código (peça, kit sem bateria, anúncio errado): sai.
+      // O que a IA do robô conferiu como o mesmo produto fica, qualquer que seja o preço
+      const meio = parte.ofertas[Math.floor(parte.ofertas.length / 2)].preco;
+      const ofertas = parte.ofertas.filter((o) => parte.conferidas.has(o) || (o.preco >= meio * 0.55 && o.preco <= meio * 1.9));
+      if (ofertas.length < 2) continue;
+      saida.push({ modelo: g.modelo, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco, conferido: ofertas.every((o) => parte.conferidas.has(o)) });
+    }
   }
   // A ordem segue o "Ordenar por" da lateral (pedido do Giovanni, 11/11/2026). Em "Mais relevantes": mais lojas primeiro e,
   // no empate, a maior diferença de preço. O preço do modelo é o da loja mais barata; desconto e economia são a
@@ -1123,7 +1159,8 @@ function cartaoModelo(g) {
         : el("span", { class: "foto-emoji" }, "🛍️")),
       el("div", { class: "modelo-texto" },
         el("h3", { title: titulo }, titulo),
-        el("p", { class: "modelo-resumo" }, `${g.modelo.combo ? "" : "Modelo "}${g.modelo.cod} · em ${g.ofertas.length} lojas · a partir de `, el("strong", {}, `R$ ${brl(barata.preco)}`)))),
+        el("p", { class: "modelo-resumo" }, `${g.modelo.combo ? "" : "Modelo "}${g.modelo.cod} · em ${g.ofertas.length} lojas · a partir de `, el("strong", {}, `R$ ${brl(barata.preco)}`),
+          g.conferido && el("span", { class: "modelo-conferido", title: "Conferimos anúncio por anúncio que é o mesmo produto" }, " · ✓ conferido")))),
     el("ul", { class: "modelo-lojas" }, ...g.ofertas.map((o, i) => {
       const loja = infoLoja(o);
       const m = modeloDe(o);
@@ -1146,6 +1183,7 @@ let modelosMostrados = MODELOS_POR_VEZ;
 function desenharComparacao(lista) {
   const caixa = $("#comparacao");
   if (!modoComparacao() || !estado.q || estado.loja) { caixa.hidden = true; return; }
+  pedirCasados();
   const grupos = gruposDeModelos(lista);
   caixa.hidden = false;
   if (!grupos.length) {

@@ -4,11 +4,11 @@
 // trilha anda um passo por vez (trava no banco) e respeita as esperas; chamar mais vezes não faz o robô gastar mais.
 // Os passos chamam as mesmas rotas que o robô do GitHub chamava, aqui dentro, com a chave do robô (CHAVE_ROBO).
 import { onRequestGet as prepararML } from "./preparar-ml.js";
-import { onRequestGet as prepararBuscas } from "./preparar-buscas.js";
+import { onRequestGet as prepararBuscas, listaDasProntas } from "./preparar-buscas.js";
 import { onRequestGet as coletarPrecos } from "./coletar-precos.js";
 import { onRequestGet as conferirLojas } from "./conferir-lojas.js";
 import { onRequestGet as buscar, VERSAO_CACHE } from "./buscar.js";
-import { parteDoTeste } from "../../lib/casar.js";
+import { passoDeCasar } from "../../lib/casar.js";
 import { TRILHAS, noiteAtual, estadoInicial, passo, gravarNoPainel, criarTabela, rodadaManual } from "../../lib/roboNoite.js";
 
 // Abre uma categoria como o site faz quando o visitante toca nela (atalho=1 = não conta como busca): se a lista pronta
@@ -22,18 +22,23 @@ async function abrirCategoria({ request, env, waitUntil }) {
   return Response.json({ ms: Date.now() - inicio, ofertas: dados?.ofertas?.length || 0, status: resposta.status });
 }
 
-// Teste da IA casando produtos (lib/casar.js): as ofertas vêm da própria busca do site (guardada), sem ir às lojas à toa
-async function casarTeste({ request, env, waitUntil }) {
-  const parte = Number(new URL(request.url).searchParams.get("parte")) || 0;
+// Robô de casar produtos (lib/casar.js): uma busca pronta por chamada. As ofertas vêm da própria busca do site (guardada),
+// sem ir às lojas à toa
+async function casar({ request, env, waitUntil }) {
+  const de = new URL(request.url).searchParams;
+  const parte = Number(de.get("parte")) || 0;
+  const lista = (await listaDasProntas(env)).filter((b) => b.q && !b.cat && !b.pagina);
+  if (parte >= lista.length) return Response.json({ partes: lista.length, fim: true });
   const ofertasDaBusca = async (q) => {
     const url = new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q)}&atalho=1`, request.url);
     const resposta = await buscar({ request: new Request(url), env, waitUntil });
     return resposta.ok ? (await resposta.json()).ofertas || [] : [];
   };
-  return Response.json(await parteDoTeste(env, parte, ofertasDaBusca));
+  const r = await passoDeCasar(env, lista[parte], ofertasDaBusca, de.has("teto") ? { teto: Number(de.get("teto")) || 0 } : {});
+  return Response.json({ ...r, parte, partes: lista.length, fim: !r.resta && parte + 1 >= lista.length });
 }
 
-const ROTAS = { "abrir-categoria": abrirCategoria, "casar-teste": casarTeste, "preparar-ml": prepararML, "preparar-buscas": prepararBuscas, "coletar-precos": coletarPrecos, "conferir-lojas": conferirLojas };
+const ROTAS = { "abrir-categoria": abrirCategoria, casar, "preparar-ml": prepararML, "preparar-buscas": prepararBuscas, "coletar-precos": coletarPrecos, "conferir-lojas": conferirLojas };
 // Trava de cada passo: se o pedido cair no meio (limite do Cloudflare), a trilha fica parada até a trava vencer
 const TRAVA_MS = { ml: 150e3, lojas: 6 * 60e3 }; // um passo da Lomadee pode levar até 5 min; os do ML, até ~90 s
 const semCache = { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } };
@@ -41,9 +46,10 @@ const semCache = { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noin
 // Como foram as categorias abertas (só nomes de categoria e tempos: nada reservado), para conferir uma rodada de fora do painel
 const categoriasDe = (e) => ({
   ...(e?.c?.catAbertas ? { categorias: { abertas: e.c.catAbertas, total: e.c.catTotal, lentas: e.c.catLentas || [] } } : {}),
-  // Teste da IA casando produtos: os pares do último passo (nomes e preços de anúncios públicos) e os totais
-  ...(e?.c?.casarPares !== undefined || e?.c?.casarErro ? { casar: { pares: e.ultimosPares || [], respondidos: e.c.casarPares || 0, custoUS: e.c.casarCusto || 0,
-    erros: e.c.casarErros || 0, erro: e.c.casarErro || e.c.casarUltimoErro || null } } : {}),
+  // Robô de casar produtos: só os totais
+  ...(e?.c?.casarPartes !== undefined || e?.c?.casarErro ? { casar: { busca: e.parte || 0, buscas: e.c.casarPartes || 0, comGrupos: e.c.casarBuscas || 0,
+    pares: e.c.casarPares || 0, iguais: e.c.casarIguais || 0, diferentes: e.c.casarDiferentes || 0, custoUS: e.c.casarCusto || 0,
+    erros: e.c.casarErros || 0, erro: e.c.casarErro || e.c.casarUltimoErro || null, parou: e.c.casarParou || null } } : {}),
 });
 const lerEstado = (texto) => { try { return JSON.parse(texto); } catch { return null; } };
 

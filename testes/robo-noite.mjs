@@ -32,6 +32,13 @@ async function chamar(rota, p) {
     if (p.cat === "Pets") return { ms: 500, ofertas: 0, status: 200 };
     return { ms: 500, ofertas: 200, status: 200 };
   }
+  if (rota === "casar") {
+    cont.casar = (cont.casar || 0) + 1;
+    if (p.parte >= 3) return { partes: 3, fim: true };
+    // A busca 1 tem pares demais para um passo: é chamada 2 vezes
+    const resta = p.parte === 1 && !cont.casarResta && (cont.casarResta = 1) === 1;
+    return { parte: p.parte, partes: 3, grupos: 2, perguntados: 4, iguais: 2, diferentes: 1, erros: 1, entrada: 1000, saida: 100, resta, fim: !resta && p.parte >= 2 };
+  }
   return { falhou: true };
 }
 
@@ -56,9 +63,9 @@ ok(estados.lojas.tempos.prontas.de >= estados.ml.tempos.maisvendidos.de, "as pro
 ok(estados.ml.c.fila === 4, "fila do ML anotada");
 
 const partes = partesDoPainel(estados.ml, estados.lojas);
-ok(partes.map((p) => p.chave).join() === "shopee,ml,mv,prontas,lomadee,categorias", `partes: ${partes.map((p) => p.chave)}`);
+ok(partes.map((p) => p.chave).join() === "shopee,ml,mv,prontas,lomadee,casar,categorias", `partes: ${partes.map((p) => p.chave)}`);
 ok(partes.find((p) => p.chave === "prontas").linhas[0] === "19 de 20 buscas guardadas", "linha das prontas no formato do painel");
-ok(partes.filter((p) => p.chave !== "categorias").every((p) => p.situacao === "ok"), "partes sem aviso");
+ok(partes.filter((p) => !["categorias", "casar"].includes(p.chave)).every((p) => p.situacao === "ok"), "partes sem aviso");
 ok(partes.every((p) => ["ok", "aviso"].includes(p.situacao) && Array.isArray(p.linhas) && Array.isArray(p.avisos)), "situação das partes");
 ok(partes.find((p) => p.chave === "lomadee").linhas[0] === "3 marcas com produtos", "marcas da Lomadee");
 
@@ -78,19 +85,31 @@ for (let i = 0; i < 100 && soCat.lojas.fase !== "fim"; i++) await passo("lojas",
 ok(soCat.ml.fase === "fim" && soCat.lojas.fase === "fim" && cont.cats === 42, `só categorias: ${soCat.lojas.fase}, ${cont.cats} aberturas`);
 ok(partesDoPainel(soCat.ml, soCat.lojas).map((p) => p.chave).join() === "categorias", "só categorias: painel");
 
-// Rodada manual só do teste da IA casando produtos: uma busca por passo, soma o gasto e para no fim
+// Robô de casar na madrugada: depois das prontas, antes das categorias; a busca com "resta" é repetida
+const cc = estados.lojas.c;
+ok(estados.lojas.tempos.casar?.de >= estados.lojas.tempos.prontas.ate && estados.lojas.tempos.casar.ate <= estados.lojas.tempos.manha.de, "casar entre as prontas e a manhã");
+ok(cont.casar === 4 && cc.casarPares === 12 && cc.casarIguais === 8 && cc.casarDiferentes === 4 && cc.casarErros === 4 && cc.casarBuscas === 3 && cc.casarCusto > 0, `casar: ${cont.casar} passos, ${JSON.stringify(cc)}`);
+ok(partes.find((p) => p.chave === "casar").linhas[0] === "12 pares de anúncios conferidos pela IA em 3 buscas: 8 são o mesmo produto, 4 não", partes.find((p) => p.chave === "casar").linhas[0]);
+
+// Rodada manual só do robô de casar: termina em "fim" (não abre as categorias); sem chave para no 1º passo; teto de gasto
 const casar = estadoInicial("lojas", agora, "manual-casar-x");
-let passosCasar = 0;
-const chamarCasar = async (rota, p) => (rota === "casar-teste" ? { pares: [{ veredito: "igual" }, { veredito: "diferente" }, {}], entrada: 1000, saida: 100, erros: 1, fim: p.parte >= 2 } : { falhou: true });
-for (; passosCasar < 20 && casar.fase !== "fim"; passosCasar++) await passo("lojas", casar, chamarCasar, agora, null);
-ok(estadoInicial("ml", agora, "manual-casar-x").fase === "fim" && passosCasar === 3 && casar.c.casarPares === 6 && casar.c.casarErros === 3 && casar.c.casarCusto > 0, `casar: ${passosCasar} passos, ${JSON.stringify(casar.c)}`);
+cont.casar = 0; cont.casarResta = 0;
+for (let i = 0; i < 20 && casar.fase !== "fim"; i++) await passo("lojas", casar, chamar, agora, null);
+ok(estadoInicial("ml", agora, "manual-casar-x").fase === "fim" && casar.fase === "fim" && cont.casar === 4 && !casar.tempos.manha, `só casar: ${casar.fase}, ${cont.casar} passos`);
 const semChave = estadoInicial("lojas", agora, "manual-casar-x");
-await passo("lojas", semChave, async () => ({ erro: "sem chave", fim: true, pares: [] }), agora, null);
+await passo("lojas", semChave, async () => ({ erro: "sem chave" }), agora, null);
 ok(semChave.fase === "fim" && semChave.c.casarErro === "sem chave", "casar sem chave para no 1º passo");
+const caro = estadoInicial("lojas", agora, "manual-casar-x");
+let passosCaro = 0;
+for (; passosCaro < 20 && caro.fase !== "fim"; passosCaro++) await passo("lojas", caro, async () => ({ partes: 500, grupos: 1, perguntados: 40, iguais: 40, entrada: 3e6, saida: 1e5 }), agora, null);
+ok(passosCaro === 2 && /gasto máximo/.test(caro.c.casarParou), `teto de gasto: ${passosCaro} passos, ${caro.c.casarParou}`);
+const lento = estadoInicial("lojas", agora, "manual-casar-x");
+await passo("lojas", lento, chamar, agora + 46 * 60e3, null);
+ok(lento.fase === "fim" && /45 minutos/.test(lento.c.casarParou), "casar para aos 45 minutos");
 
 // Junta com o que o GitHub gravou (awin, ia, auditoria): na ordem do painel, sem repetir
 const juntas = juntarNaExecucao([{ chave: "awin" }, { chave: "ia" }, { chave: "prontas", velha: true }], partes);
-ok(juntas.map((p) => p.chave).join() === "awin,shopee,ml,mv,prontas,lomadee,categorias,ia" && !juntas.some((p) => p.velha), `juntas: ${juntas.map((p) => p.chave)}`);
+ok(juntas.map((p) => p.chave).join() === "awin,shopee,ml,mv,prontas,lomadee,casar,categorias,ia" && !juntas.some((p) => p.velha), `juntas: ${juntas.map((p) => p.chave)}`);
 
 // Janela da madrugada
 ok(noiteAtual(Date.parse("2026-11-10T04:44:00Z")) === null, "antes da janela");
