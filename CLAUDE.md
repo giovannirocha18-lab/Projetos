@@ -216,6 +216,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   No ar: geladeira 28 modelos, micro-ondas 14, celular 0 (mostra explicação). Página inicial com o modo ligado mostra aviso.
   Os cartões seguem o "Ordenar por" (preço = o da loja mais barata; desconto/economia = diferença entre as lojas do cartão).
   Giovanni: "ficou top".
+  Print dele (combo "TV 50 M75h + TV 43 Q5f" de R$ 4.704 no cartão da M75H de R$ 2.759): anúncio com " + ", kit, combo,
+  conjunto ou "N unidades" vira chave `marca|combo|códigos` e só se junta com o mesmo combo; TV leva o tamanho da tela na chave.
+  Limite conhecido: combo cujo 2º item não tem código (3 letras, "Q5f") pode se juntar a outro combo da mesma TV principal.
   Ideia dele para depois: robô da noite + IA casando os produtos (falei que é possível; testar a IA numa amostra antes).
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
