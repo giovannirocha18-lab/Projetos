@@ -1456,9 +1456,44 @@ async function consultarApi(q, mais = "") {
       return dados;
     }
   }
+  const t0 = performance.now();
   const resp = await fetch(enderecoBusca(q, estado.cat, `${mais ? `&${mais}` : ""}${atalho}${exato}`));
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  return resp.json();
+  const t1 = performance.now();
+  const dados = await resp.json();
+  if (!mais) estado.tempos = { espera: t1 - t0, baixar: performance.now() - t1, fim: performance.now(), servidor: resp.headers.get("Server-Timing") || "", url: resp.url };
+  return dados;
+}
+
+// Medidor de tempos na tela (11/11/2026: categoria lenta na 1ª abertura só no celular do Giovanni, e daqui não dá para
+// medir o aparelho dele). Liga abrindo /?tempos=1 e desliga com /?tempos=0 (fica guardado no aparelho). Mostra, depois de
+// cada busca ou categoria: espera pelo servidor, tempo para baixar, tempo para montar a tela e o que o servidor fez
+let medirTempos = false;
+try {
+  const pedido = new URLSearchParams(location.search).get("tempos");
+  if (pedido === "1") localStorage.setItem("vpc_tempos", "1");
+  if (pedido === "0") localStorage.removeItem("vpc_tempos");
+  medirTempos = localStorage.getItem("vpc_tempos") === "1";
+} catch { /* sem armazenamento */ }
+function mostrarTempos() {
+  const t = estado.tempos;
+  estado.tempos = null;
+  if (!medirTempos || !t) return;
+  const montar = performance.now() - t.fim;
+  requestAnimationFrame(() => setTimeout(() => {
+    const pintar = performance.now() - t.fim - montar;
+    const s = (ms) => `${(ms / 1000).toFixed(2)} s`;
+    const rede = performance.getEntriesByName(t.url).pop();
+    const kb = rede ? (rede.transferSize ? `${Math.round(rede.transferSize / 1024)} KB` : "do aparelho") : "?";
+    let caixa = $("#medidor-tempos");
+    if (!caixa) {
+      caixa = el("div", { id: "medidor-tempos", style: "position:fixed;left:8px;right:8px;bottom:84px;z-index:99999;background:#111;color:#fff;font:12px/1.4 monospace;padding:8px 10px;border-radius:8px;white-space:pre-wrap" });
+      document.body.append(caixa);
+    }
+    caixa.textContent = `${estado.cat || estado.q}: total ${s(t.espera + t.baixar + montar + pintar)}\n` +
+      `esperar ${s(t.espera)} | baixar ${s(t.baixar)} (${kb}) | montar ${s(montar)} | pintar ${s(pintar)}\n` +
+      `servidor: ${t.servidor.replace(/;dur=/g, " ").replace(/cidade;desc=/, "") || "-"}`;
+  }));
 }
 
 // Preço digitado do jeito brasileiro: "1.000" é mil e "99,90" tem centavos
@@ -2392,6 +2427,7 @@ async function buscar(q) {
     }
     desenharFiltroLojas();
     desenharResultados();
+    mostrarTempos();
     completarSozinho(pedido);
   } catch (erro) {
     if (pedido !== estado.pedido) return;

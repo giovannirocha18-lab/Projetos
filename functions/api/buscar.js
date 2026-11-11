@@ -256,7 +256,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const etapa = (nome) => { etapas.push(`${nome};dur=${Date.now() - marco}`); marco = Date.now(); };
   const comTempos = (resposta) => {
     const copia = new Response(resposta.body, resposta);
-    copia.headers.set("Server-Timing", etapas.join(", "));
+    copia.headers.set("Server-Timing", [...etapas, `cidade;desc=${request.cf?.colo || "?"}`].join(", "));
     if (medir) copia.headers.set("Cache-Control", "no-store");
     return copia;
   };
