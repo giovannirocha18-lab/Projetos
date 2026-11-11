@@ -208,13 +208,14 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   52 em 3+; amostra de 22 grupos: ~20 certos. Forte: geladeira 29, freezer 31, lava e seca 17, liquidificador 19, micro-ondas
   14, impressora 10, TVs 7–8. Fraco: celular/iphone/tablet (modelo é nome, não código), fones, chapinha, câmera. Erros vistos:
   110V com 220V juntos, Bosch GSB x GSR "120-LI", kit com/sem bateria. Lojas dos grupos: Shopee, ML, AliExpress, eFácil, KaBuM.
-  **1ª versão no ar para ele ver (11/11): "⚖️ Modo comparação"** em Mais opções (`#modo-comparacao`, guardado no aparelho
-  `vpc_modo_comparacao`): ligado, a busca mostra antes da lista o quadro "O mesmo produto em várias lojas" (`modeloDe`,
+  **1ª versão no ar para ele ver (11/11): "⚖️ Modo comparação"** em Mais opções (`#modo-comparacao`; NÃO fica guardado:
+  atualizar a página volta desligado, pedido dele; cada cartão com uma cor de fundo, lojas em quadro branco): ligado, a busca mostra antes da lista o quadro "O mesmo produto em várias lojas" (`modeloDe`,
   `gruposDeModelos`, `cartaoModelo`, `desenharComparacao` em app.js, antes de `cartaoOferta`; `.comparacao`/`.modelo` no CSS):
   só seções Eletrodomésticos e Eletroportáteis (TVs caem em Eletrodomésticos), a mais barata de cada loja, preço fora de
   0,55–1,9x o do meio sai, voltagem mostrada na linha; 12 por vez. Feito no navegador com o que a busca trouxe (sem robô nem IA).
   No ar: geladeira 28 modelos, micro-ondas 14, celular 0 (mostra explicação). Página inicial com o modo ligado mostra aviso.
   Ideia dele para depois: robô da noite + IA casando os produtos (falei que é possível; testar a IA numa amostra antes).
+- 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
   lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
