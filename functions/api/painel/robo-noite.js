@@ -19,7 +19,7 @@ export async function onRequestGet({ request, env }) {
   }
   // ?comecar=categorias: rodada curta (30 min) só do passo que abre as 40 categorias
   const soCategorias = params.get("comecar") === "categorias";
-  // ?comecar=casar: rodada só do robô de casar produtos (lib/casar.js; 1 h, gasto máximo US$ 0,50)
+  // ?comecar=casar: rodada só do robô de casar produtos (lib/casar.js; 1 h, gasto máximo US$ 4)
   const soCasar = params.get("comecar") === "casar";
   if (params.has("comecar")) {
     await env.DB.prepare("INSERT OR REPLACE INTO robo_noite (trilha, noite, estado, ocupado_ate, atualizado) VALUES ('_manual', ?, '{}', ?, ?)")

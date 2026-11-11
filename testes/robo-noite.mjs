@@ -101,11 +101,11 @@ await passo("lojas", semChave, async () => ({ erro: "sem chave" }), agora, null)
 ok(semChave.fase === "fim" && semChave.c.casarErro === "sem chave", "casar sem chave para no 1º passo");
 const caro = estadoInicial("lojas", agora, "manual-casar-x");
 let passosCaro = 0;
-for (; passosCaro < 20 && caro.fase !== "fim"; passosCaro++) await passo("lojas", caro, async () => ({ partes: 500, grupos: 1, perguntados: 40, iguais: 40, entrada: 3e6, saida: 1e5 }), agora, null);
+for (; passosCaro < 20 && caro.fase !== "fim"; passosCaro++) await passo("lojas", caro, async () => ({ partes: 500, grupos: 1, perguntados: 40, iguais: 40, entrada: 3e7, saida: 1e5 }), agora, null);
 ok(passosCaro === 2 && /gasto máximo/.test(caro.c.casarParou), `teto de gasto: ${passosCaro} passos, ${caro.c.casarParou}`);
 const lento = estadoInicial("lojas", agora, "manual-casar-x");
-await passo("lojas", lento, chamar, agora + 46 * 60e3, null);
-ok(lento.fase === "fim" && /45 minutos/.test(lento.c.casarParou), "casar para aos 45 minutos");
+await passo("lojas", lento, chamar, agora + 121 * 60e3, null);
+ok(lento.fase === "fim" && /120 minutos/.test(lento.c.casarParou), "casar para aos 120 minutos");
 
 // Junta com o que o GitHub gravou (awin, ia, auditoria): na ordem do painel, sem repetir
 const juntas = juntarNaExecucao([{ chave: "awin" }, { chave: "ia" }, { chave: "prontas", velha: true }], partes);
