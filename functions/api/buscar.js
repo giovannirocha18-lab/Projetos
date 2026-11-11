@@ -40,6 +40,7 @@ const FONTES_REAIS = [mercadolivre, curadoria, shopee, awin, aliexpress, lomadee
 // Era 1 hora; 6 horas desde 03/11/2026 (limite da Shopee: cada busca refeita gasta o limite)
 const FRESCO_MS = 6 * 60 * 60 * 1000;
 const GUARDAR_SEGUNDOS = 24 * 60 * 60;
+const LIMPA_FRESCA_MS = 10 * 60 * 1000; // de quanto em quanto tempo a cópia limpa é conferida de novo com o banco
 const NAVEGADOR_SEGUNDOS = 10 * 60;
 // Busca sem nenhuma oferta de verdade (03/11/2026, print "lisinha": 0 ofertas para o Giovanni, 143 para outra pessoa):
 // a Shopee às vezes responde vazio sem dar erro, e esse "nada" ficava 1 dia no cache do Cloudflare daquela cidade e
@@ -259,15 +260,47 @@ export async function onRequestGet({ request, env, waitUntil }) {
     if (medir) copia.headers.set("Cache-Control", "no-store");
     return copia;
   };
-  const guardada = !preparar && !atualizar && !medir && cache && (await cache.match(chave));
+  // Cópia "limpa" (11/11/2026, print do Giovanni: categoria "Buscando…" por segundos na 1ª vez no celular). Toda resposta
+  // guardada passava, a cada visita, por consultas ao banco para tirar fotos quebradas e produtos que a IA reprovou; medido:
+  // 1,2–2,8 s em Brinquedos (muita foto da Lomadee) mesmo ao lado do banco, e do Brasil cada consulta custa mais. Agora o
+  // resultado dessa limpeza também fica guardado no Cloudflare e sai na hora, sem banco; passados 10 minutos, a visita
+  // seguinte recebe a mesma cópia e a limpeza é refeita por trás
+  const chaveLimpa = new Request(`${chave.url}&limpa=1`);
+  const limpar = async (resposta) => {
+    const semFotos = await respostaSemFotosQuebradas(env.DB, resposta, waitUntil);
+    etapa("fotos");
+    const limpa = await respostaSemNaoBuscados(env.DB, q, semFotos);
+    etapa("ia");
+    return limpa;
+  };
+  const guardarLimpa = async (limpa, criado, segundos) => {
+    if (!cache) return;
+    const copia = paraGuardar(limpa, criado, segundos);
+    copia.headers.set("X-Limpa", String(Date.now()));
+    await cache.put(chaveLimpa, copia).catch(() => {});
+  };
+  const refazerLimpa = async () => {
+    const crua = await cache.match(chave);
+    if (!crua) return cache.delete(chaveLimpa); // a cópia de origem venceu: a próxima visita monta tudo de novo
+    await guardarLimpa(await limpar(crua.clone()), Number(crua.headers.get("X-Criado")) || 0);
+  };
+  const usarGuardadas = !preparar && !atualizar && !medir && cache;
+  const limpa = usarGuardadas && (await cache.match(chaveLimpa));
+  etapa("limpa");
+  if (limpa) {
+    if (soContar) { contar(limpa); return new Response(null, { status: 204 }); }
+    refazerPorTras(Number(limpa.headers.get("X-Criado")) || 0);
+    if (Date.now() - (Number(limpa.headers.get("X-Limpa")) || 0) > LIMPA_FRESCA_MS) waitUntil(refazerLimpa().catch(() => {}));
+    return contar(comTempos(paraNavegador(limpa)));
+  }
+  const guardada = usarGuardadas && (await cache.match(chave));
   etapa("copia");
   if (guardada) {
     if (soContar) { contar(guardada); return new Response(null, { status: 204 }); }
-    refazerPorTras(Number(guardada.headers.get("X-Criado")) || 0);
-    const semFotos = await respostaSemFotosQuebradas(env.DB, guardada, waitUntil);
-    etapa("fotos");
-    const pronta = await respostaSemNaoBuscados(env.DB, q, semFotos);
-    etapa("ia");
+    const criado = Number(guardada.headers.get("X-Criado")) || 0;
+    refazerPorTras(criado);
+    const pronta = await limpar(guardada);
+    waitUntil(guardarLimpa(pronta.clone(), criado));
     return contar(comTempos(paraNavegador(pronta)));
   }
   // Busca popular já preparada pelo robô: responde na hora (e guarda no cache por 1 hora)
@@ -289,10 +322,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
         const criado = Date.now() - pronta.criado < VALIDADE_PRONTA_MS ? pronta.criado : 0;
         if (cache && !medir) waitUntil(cache.put(chave, paraGuardar(resposta.clone(), criado)).catch(() => {}));
         if (!medir) refazerPorTras(criado);
-        const semFotos = await respostaSemFotosQuebradas(env.DB, resposta, waitUntil);
-        etapa("fotos");
-        const limpa = await respostaSemNaoBuscados(env.DB, q, semFotos);
-        etapa("ia");
+        // Pronta da última noite (o robô já a gravou sem fotos quebradas nem reprovados): sai na hora, como veio do banco,
+        // e a limpeza fica para trás (é o caminho do 1º visitante do dia em cada cidade)
+        if (criado && cache && !medir) {
+          waitUntil(limpar(resposta.clone()).then((l) => guardarLimpa(l, criado)).catch(() => {}));
+          return contar(comTempos(resposta));
+        }
+        const limpa = await limpar(resposta);
         // medir=2: só os tempos e o ponto do Cloudflare que atendeu (para o Giovanni abrir no celular e mandar o print)
         if (params.get("medir") === "2") {
           return Response.json({ cidade: request.cf?.colo || "", etapas_ms: Object.fromEntries(etapas.map((x) => x.split(";dur=")).map(([n, v]) => [n, Number(v)])), total_ms: Date.now() - inicio },
@@ -527,10 +563,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // robô prepara as buscas prontas), guarda só 1 minuto, para a próxima tentativa já trazer a loja de volta
   if (!ofertas.length) resposta.headers.set("Cache-Control", "public, max-age=0");
   else if (!todasOk) resposta.headers.set("Cache-Control", "public, max-age=60");
-  if (cache && todasOk) await cache.put(chave, paraGuardar(resposta.clone()));
+  if (cache && todasOk) await Promise.all([cache.put(chave, paraGuardar(resposta.clone())), guardarLimpa(resposta.clone())]);
   // Só uma loja menor falhou (a Lomadee trava bastante) e a Shopee respondeu: guarda 1 hora, marcada como velha (o
   // próximo visitante recebe na hora e ela é refeita por trás). Antes não guardava e cada visitante ia de novo às lojas
-  else if (cache && lojas.shopee?.ok && ofertas.length) await cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60));
+  else if (cache && lojas.shopee?.ok && ofertas.length) await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60)]);
+  // Não guardou a resposta nova: a limpa antiga sai junto, senão ficaria sem origem
+  else if (cache) waitUntil(cache.delete(chaveLimpa).catch(() => {}));
   const chaveReserva = new Request(`${chave.url}&reserva=1`);
   if (cache && todasOk && ofertas.length) {
     const reserva = new Response(resposta.clone().body, resposta);
