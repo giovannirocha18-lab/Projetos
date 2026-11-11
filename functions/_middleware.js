@@ -117,6 +117,19 @@ function comPreviaDaBlackFriday(resposta) {
     .transform(resposta);
 }
 
+// Prévia do link /quedas-de-preco
+function comPreviaDasQuedas(resposta) {
+  const titulo = "Quedas de preço: o que baixou nos últimos dias";
+  const descricao = "Produtos que baixaram de preço de verdade, conferidos no nosso histórico de preços. Atualizado todo dia.";
+  const meta = (valor) => ({ element(el) { el.setAttribute("content", valor); } });
+  return new HTMLRewriter()
+    .on("title", { element(el) { el.setInnerContent(`${titulo} · Vai pro Carrinho`); } })
+    .on('meta[property="og:title"]', meta(titulo))
+    .on('meta[property="og:description"]', meta(descricao))
+    .on('meta[name="description"]', meta(descricao))
+    .transform(resposta);
+}
+
 // Link de produto compartilhado (?produto=shopee-123): a prévia do WhatsApp mostra a foto, o nome e o preço dele
 async function comPreviaDoProduto(resposta, env, url) {
   const id = url.searchParams.get("produto");
@@ -161,6 +174,7 @@ function comDadosDaPagina(resposta, url) {
   else if (caminho === "/" && simples && !qCru && !lojaCrua && !p.has("q")) dados = `/api/buscar?v=${VERSAO_CACHE}&q=`;
   else if (caminho === "/" && simples && !qCru && lojaCrua && lojaCrua.length <= 80) dados = `/api/lojas?id=${encodeURIComponent(lojaCrua)}&pagina=1`;
   else if (caminho === "/black-friday" && !qCru && !lojaCrua) dados = "/api/black-friday?pagina=1";
+  else if (caminho === "/quedas-de-preco" && !qCru && !lojaCrua) dados = "/api/quedas?pagina=1";
   let rewriter = new HTMLRewriter().on("head", { element(el) {
     if (dados) el.append(`<link rel="preload" as="fetch" crossorigin href="${dados.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}">`, { html: true });
     el.append(`<link rel="canonical" href="${canonico.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}">`, { html: true });
@@ -182,7 +196,7 @@ function comDadosDaPagina(resposta, url) {
 const ROBOTS = `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /ir/\n\nSitemap: ${SITE}/sitemap.xml\n`;
 function sitemap() {
   const xml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-  const enderecos = [`${SITE}/`, `${SITE}/black-friday`, `${SITE}/como-funciona`, `${SITE}/privacidade`,
+  const enderecos = [`${SITE}/`, `${SITE}/black-friday`, `${SITE}/quedas-de-preco`, `${SITE}/como-funciona`, `${SITE}/privacidade`,
     ...categoriasDoSite().map((c) => `${SITE}/?${new URLSearchParams({ q: c.busca, cat: c.nome })}`)];
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${
     enderecos.map((e) => `  <url><loc>${xml(e)}</loc></url>`).join("\n")}\n</urlset>\n`;
@@ -292,6 +306,12 @@ async function responder(contexto) {
   if (/^\/black-friday\/?$/i.test(url.pathname) && env.ASSETS) {
     const pagina = await env.ASSETS.fetch(new Request(new URL("/", url.origin)));
     return comPreviaDaBlackFriday(pagina);
+  }
+  // Página "Quedas de preço": também é a página principal, que vê o endereço
+  if (/^\/quedas-de-preco\/$/i.test(url.pathname)) return Response.redirect(`${url.origin}/quedas-de-preco${url.search}`, 301);
+  if (/^\/quedas-de-preco$/i.test(url.pathname) && env.ASSETS) {
+    const pagina = await env.ASSETS.fetch(new Request(new URL("/", url.origin)));
+    return comPreviaDasQuedas(pagina);
   }
   // Só os endereços públicos (página principal, Política de Privacidade e API); o resto não existe para o visitante
   const caminho = caminhoNormal(url.pathname);

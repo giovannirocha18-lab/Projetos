@@ -1028,6 +1028,8 @@ function selosHistorico(o) {
     h.descontoReal && el("span", { class: "selo selo-real", title: "Preço abaixo do que a loja cobrou na maior parte dos últimos 30 dias (acompanhado pelo Vai pro Carrinho)" },
       `✅ Desconto real -${h.descontoReal}%`),
     !h.menorEm30Dias && !h.descontoReal && h.caiu >= 3 && el("span", { class: "selo selo-historico" }, `📉 Baixou ${h.caiu}%`),
+    // Página "Quedas de preço": quando foi a queda (o.queda vem de /api/quedas)
+    o.queda && el("span", { class: "selo selo-queda", title: `Antes custava R$ ${brl(o.queda.antes)}` }, `🕒 ${quandoCaiu(o.queda.dia)}`),
   ];
 }
 
@@ -2673,7 +2675,7 @@ async function mostrarLojaNaBusca(q, pedido) {
   const caixa = $("#loja-na-busca");
   caixa.hidden = true;
   desenharCampanhasShein("campanhas-shein-busca", naBlackFriday());
-  if (lojaAtual() || naBlackFriday()) return;
+  if (lojaAtual() || naEspecial()) return;
   const loja = lojaDoNome(q, await carregarLojasParceiras());
   if (pedido !== estado.pedido || lojaAtual()) return;
   if (loja?.id === "shein") desenharCampanhasShein("campanhas-shein-busca", true);
@@ -2723,7 +2725,7 @@ async function desenharCampanhasShein(id, mostrar) {
 const CATEGORIAS_SHEIN = new Set(["Moda feminina", "Moda masculina", "Moda infantil", "Moda íntima", "Moda fitness", "Calçados",
   "Bolsas e mochilas", "Joias e bijuterias", "Óculos", "Bonés e chapéus", "Relógios", "Maquiagem", "Skincare", "Cabelo", "Decoração"]);
 function sheinNaBusca() {
-  if (!estado.q || estado.loja || naBlackFriday()) return;
+  if (!estado.q || estado.loja || naEspecial()) return;
   const cats = estado.cat ? new Set([estado.cat]) : categoriasDaBusca();
   const deModa = Boolean(cats && [...cats].some((c) => CATEGORIAS_SHEIN.has(c)));
   if (deModa || /\bshein\b/i.test(estado.q)) desenharCampanhasShein("campanhas-shein-busca", true);
@@ -2740,6 +2742,7 @@ const nomeDaLojaVista = () => estado.loja?.nome || lojasParceiras?.find((l) => l
 
 function desenharResumoLoja(lista) {
   if (estado.loja.id === BLACK_FRIDAY) return desenharResumoBlackFriday(lista);
+  if (estado.loja.id === QUEDAS) return desenharResumoQuedas(lista);
   const total = estado.ofertas.length;
   // Lojas da Awin: o total do catálogo vem da lista de lojas (o site carrega 48 por vez)
   const doCatalogo = estado.loja.total || lojasParceiras?.find((l) => l.id === estado.loja.id)?.produtos || 0;
@@ -2803,9 +2806,55 @@ function desenharResumoBlackFriday(lista) {
     el("div", { class: "resumo-acoes" }, botaoLimparFiltros())));
 }
 
+// ---------------------------------------------------------------------
+// Quedas de preço (pedido do Giovanni, 11/11/2026): vaiprocarrinho.com.br/quedas-de-preco mostra o que baixou nos
+// últimos 7 dias, conferido no nosso histórico (lib/blackfriday.js, listarQuedas). Como a Black Friday, funciona como a
+// página de uma loja (mostrarLoja), com o id QUEDAS
+// ---------------------------------------------------------------------
+const QUEDAS = "quedas-de-preco";
+const naQuedas = () => /^\/quedas-de-preco\/?$/i.test(location.pathname);
+// Página especial (não é loja nem busca)
+const naEspecial = () => naBlackFriday() || naQuedas();
+const ESPECIAIS = {
+  [BLACK_FRIDAY]: { nome: "Black Friday", titulo: "🖤 Black Friday de verdade", buscando: "Buscando os descontos conferidos 🛒", api: "/api/black-friday" },
+  [QUEDAS]: { nome: "Quedas de preço", titulo: "📉 Quedas de preço", buscando: "Buscando o que baixou de preço 🛒", api: "/api/quedas" },
+};
+function irParaQuedas() {
+  history.pushState(null, "", "/quedas-de-preco");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  mostrar();
+}
+// "Caiu hoje", "Caiu ontem", "Caiu há 3 dias" (dias de São Paulo, como o servidor guarda)
+function quandoCaiu(dia) {
+  const hoje = estado.loja?.hoje || new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+  const dias = Math.round((Date.parse(hoje) - Date.parse(dia)) / 864e5);
+  return dias <= 0 ? "Caiu hoje" : dias === 1 ? "Caiu ontem" : `Caiu há ${dias} dias`;
+}
+function desenharResumoQuedas(lista) {
+  const t = estado.loja.totais || {};
+  const semFiltro = lista.length === estado.ofertas.length;
+  const qtd = semFiltro && t.semana > lista.length ? t.semana.toLocaleString("pt-BR") : lista.length;
+  const legenda = (texto, n) => el("span", { class: "bf-legenda" }, texto, n ? el("span", { class: "qtd" }, n.toLocaleString("pt-BR")) : "");
+  $("#resumo").replaceChildren(el("div", {},
+    el("h1", {}, ESPECIAIS[QUEDAS].titulo),
+    el("p", {}, lista.length
+      ? `${qtd} ${lista.length === 1 ? "produto baixou" : "produtos baixaram"} de preço nos últimos 7 dias.`
+      : estado.ofertas.length ? "Nenhum produto com esses filtros." : "As quedas aparecem aqui assim que o nosso robô conferir os preços. Volte amanhã!"),
+    el("p", { class: "bf-explica" }, "Acompanhamos o preço de cada produto todos os dias. Aqui só entra queda de verdade: ",
+      "se a loja subiu o preço antes para depois “baixar”, o produto não aparece."),
+    el("div", { class: "bf-legendas" },
+      t.hoje ? legenda("🕒 Caíram hoje", t.hoje) : "",
+      t.ontem ? legenda("Ontem", t.ontem) : "",
+      legenda("✅ Desconto real: abaixo do preço de costume"),
+      legenda("📉 Baixou: menor preço que já vimos")),
+    el("small", { class: "resumo-lojas-nota" }, "🔔 Toque no sininho de um produto e avisamos quando o preço baixar. ",
+      estado.cupons.length ? el("button", { type: "button", class: "botao-link-claro", onclick: () => abrirCupons() }, `🎟️ Ver ${estado.cupons.length} cupons de desconto`) : ""),
+    el("div", { class: "resumo-acoes" }, botaoLimparFiltros())));
+}
+
 async function pedirLoja(id, pagina) {
   const cat = estado.loja?.id === id && estado.loja?.cat ? `&mlcat=${encodeURIComponent(estado.loja.cat)}` : "";
-  const r = await fetch(id === BLACK_FRIDAY ? `/api/black-friday?pagina=${pagina}` : `/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}${cat}`);
+  const r = await fetch(ESPECIAIS[id] ? `${ESPECIAIS[id].api}?pagina=${pagina}` : `/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}${cat}`);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
@@ -2813,7 +2862,8 @@ async function pedirLoja(id, pagina) {
 async function mostrarLoja(id) {
   const pedido = ++estado.pedido;
   estado.q = "";
-  estado.loja = { id, nome: id === BLACK_FRIDAY ? "Black Friday" : lojasParceiras?.find((l) => l.id === id)?.nome || null };
+  const especial = ESPECIAIS[id];
+  estado.loja = { id, nome: especial ? especial.nome : lojasParceiras?.find((l) => l.id === id)?.nome || null };
   estado.paginaLoja = 1;
   estado.lojasDesmarcadas.clear();
   zerarSecoes();
@@ -2823,8 +2873,8 @@ async function mostrarLoja(id) {
   desenharCampanhasShein("campanhas-shein-busca", id === BLACK_FRIDAY); // Ofertas da Shein também na Black Friday
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
   document.title = `${estado.loja.nome || "Loja parceira"} — Vai pro Carrinho`;
-  $("#resumo").replaceChildren(id === BLACK_FRIDAY
-    ? el("div", {}, el("h1", {}, "🖤 Black Friday de verdade"), el("p", {}, "Buscando os descontos conferidos 🛒"))
+  $("#resumo").replaceChildren(especial
+    ? el("div", {}, el("h1", {}, especial.titulo), el("p", {}, especial.buscando))
     : el("div", {}, el("h1", {}, `🏬 ${estado.loja.nome || "Carregando loja"}…`), el("p", {}, "Buscando os produtos desta loja 🛒")));
   $("#total").textContent = "";
   $("#caixa-secoes").hidden = true;
@@ -2842,6 +2892,7 @@ async function mostrarLoja(id) {
     estado.loja.nome = dados.nome || estado.loja.nome;
     if (estado.loja.nome) { nomesDeLojas[id] = estado.loja.nome; marcarCategoria(); }
     estado.loja.totais = dados.totais;
+    estado.loja.hoje = dados.hoje;
     if (dados.atalhos) { estado.loja.atalhos = dados.atalhos; estado.loja.total = dados.total; }
     document.title = id === BLACK_FRIDAY ? "Black Friday de verdade — Vai pro Carrinho" : `${estado.loja.nome} — Vai pro Carrinho`;
     estado.ofertas = semRepetidos(dados.ofertas || []);
@@ -3076,6 +3127,7 @@ async function mostrarNumeros() {
       " e compara os preços num só lugar.", el("small", { class: "aviso-cupom" }, AVISO_CUPOM),
       el("span", { class: "botoes-inicio" },
         el("button", { type: "button", class: "botao-cupons-inicio botao-bf", onclick: irParaBlackFriday }, "🖤 Black Friday de verdade"),
+        linkInterno("/quedas-de-preco", { class: "botao-cupons-inicio" }, irParaQuedas, "📉 Quedas de preço"),
         estado.cupons.length ? el("button", { type: "button", class: "botao-cupons-inicio", onclick: () => abrirCupons() },
           `🎟️ Ver ${estado.cupons.length} cupons de desconto`) : ""));
     inicio.hidden = false;
@@ -3205,7 +3257,8 @@ async function carregarDestaques() {
 
 // itens: [{ nome: "Moda masculina", busca: "roupa masculina" }] ou textos simples
 function desenharEmAlta(itens) {
-  $("#em-alta").replaceChildren(linkInterno("/black-friday", { class: "chip-alta chip-bf" }, irParaBlackFriday, "🖤 Black Friday"), ...itens.map((i) => {
+  $("#em-alta").replaceChildren(linkInterno("/black-friday", { class: "chip-alta chip-bf" }, irParaBlackFriday, "🖤 Black Friday"),
+    linkInterno("/quedas-de-preco", { class: "chip-alta" }, irParaQuedas, "📉 Quedas de preço"), ...itens.map((i) => {
     const { nome, busca } = typeof i === "string" ? { nome: i, busca: i } : i;
     const cat = categoriaPeloNome(nome)?.nome;
     return linkInterno(enderecoDaBusca(busca, { cat }), { class: "chip-alta" }, () => irPara(busca, { atalho: true, cat }), nome);
@@ -3310,7 +3363,7 @@ function categoriaAtual() {
 // Loja aberta (?loja=, com ou sem busca): a busca é feita só nela (pedido do Giovanni, 28/10/2026).
 // Sem loja escolhida, a busca segue o site todo. A Black Friday não é loja
 function lojaAtual() {
-  if (naBlackFriday()) return null;
+  if (naEspecial()) return null;
   return (new URLSearchParams(location.search).get("loja") || "").trim().slice(0, 120) || null;
 }
 const nomesDeLojas = {};
@@ -3339,7 +3392,7 @@ function marcarCategoria() {
   const cat = categoriaAtual();
   const loja = lojaAtual();
   document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", b.dataset.nome === cat));
-  const noInicio = !new URLSearchParams(location.search).get("q") && !loja && !naBlackFriday();
+  const noInicio = !new URLSearchParams(location.search).get("q") && !loja && !naEspecial();
   $("[data-bb=inicio]")?.classList.toggle("ativa", noInicio);
   document.querySelectorAll(".aba-cel").forEach((b) => {
     const ativa = b.dataset.tudo ? noInicio : b.dataset.nome === cat;
@@ -3377,14 +3430,14 @@ function mostrar() {
   estado.exato = new URLSearchParams(location.search).has("exato");
   estado.loja = null;
   $("#loja-na-busca").hidden = true; // atalho da loja buscada: só na busca normal (buscar() mostra de novo)
-  const blackFriday = !q && !loja && naBlackFriday();
+  const blackFriday = !q && !loja && (naBlackFriday() ? BLACK_FRIDAY : naQuedas() ? QUEDAS : null);
   if (blackFriday || (loja && !q)) {
     document.body.classList.remove("modo-inicio");
     $("#inicio").hidden = true;
     $("#resultados").hidden = false;
     estado.cat = null;
     marcarCategoria();
-    return mostrarLoja(blackFriday ? BLACK_FRIDAY : loja);
+    return mostrarLoja(blackFriday || loja);
   }
   const emBusca = Boolean(q);
   document.body.classList.toggle("modo-inicio", !emBusca);
@@ -3651,6 +3704,7 @@ document.querySelectorAll("[data-inicio]").forEach((a) => a.addEventListener("cl
 document.querySelectorAll("[data-atalho]").forEach((b) => b.addEventListener("click", () => {
   const atalho = b.dataset.atalho;
   if (atalho === "black-friday") return irParaBlackFriday();
+  if (atalho === "quedas") return irParaQuedas();
   if (atalho === "avaliados") $("#bem-avaliados").checked = true;
   else $(`input[name=ordem][value=${atalho}]`).checked = true;
   $(atalho === "avaliados" ? "#bem-avaliados" : `input[name=ordem][value=${atalho}]`).dispatchEvent(new Event("change"));
@@ -3706,7 +3760,7 @@ $("#limpar-filtros").addEventListener("click", limparFiltros);
 const temFiltroLigado = () => Boolean($("#preco-min").value || $("#preco-max").value || $("#so-frete").checked || $("#bem-avaliados").checked
   || !$("input[name=envio][value=todos]").checked || estado.lojasDesmarcadas.size);
 function limparTudo() {
-  if (estado.loja?.id === BLACK_FRIDAY) return limparFiltros();
+  if (ESPECIAIS[estado.loja?.id]) return limparFiltros();
   // Numa busca com filtro ligado, tira só os filtros e a busca continua (10/11/2026, revisão: a pessoa perdia a busca)
   if (estado.q && !estado.loja && !categoriaAtual() && temFiltroLigado()) return limparFiltros();
   zerarFiltros();
@@ -3807,6 +3861,7 @@ $("#fechar-lojas").addEventListener("click", () => $("#janela-lojas").close());
 $("#fechar-cupons").addEventListener("click", () => $("#janela-cupons").close());
 $("#cupons-filtro").addEventListener("input", desenharCupons);
 document.querySelectorAll("[data-ver-cupons]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); abrirCupons(); }));
+document.querySelectorAll("[data-quedas]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); irParaQuedas(); }));
 document.querySelectorAll("[data-black-friday]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); irParaBlackFriday(); }));
 // "Não contar minhas visitas" (pedido do Giovanni, 04/11/2026; botão no painel): /?nao-contar=1 grava o cookie que faz o
 // servidor não contar este aparelho nas visitas, buscas e cliques (lib/naoContar.js); /?nao-contar=0 volta a contar

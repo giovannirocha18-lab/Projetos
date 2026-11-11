@@ -696,6 +696,7 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 
 /* ============ Histórico de preço ============ */
 .selo-historico { background: #1d4ed8; }
+.selo-queda { background: #0f766e; }
 .selo-real { background: var(--verde); }
 .ver-historico {
   align-self: flex-start; background: none; border: 0; padding: 2px 0; cursor: pointer;
