@@ -72,6 +72,20 @@ function el(tag, attrs = {}, ...filhos) {
   return node;
 }
 
+// Link de navegação dentro do site (11/11/2026, preparo para o Google; o site segue escondido até o Giovanni mandar lançar):
+// categorias, "em alta" e lojas eram <button>, que buscador não segue. Agora são <a href> de verdade: o toque normal
+// continua trocando a tela sem recarregar; Ctrl/botão do meio/"abrir em nova guia" usam o endereço
+function linkInterno(href, attrs, aoClicar, ...filhos) {
+  return el("a", { ...attrs, class: `lk ${attrs.class || ""}`.trim(), href, onclick: (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    aoClicar(e);
+  } }, ...filhos);
+}
+// O mesmo endereço que irPara() põe na barra
+const enderecoDaBusca = (q, { cat = null, loja = null } = {}) =>
+  `/?q=${encodeURIComponent(q)}${loja ? `&loja=${encodeURIComponent(loja)}` : cat ? `&cat=${encodeURIComponent(cat)}` : ""}`;
+
 // Contagem dos cliques que levam às lojas (pedido do Giovanni, 03/11/2026; functions/api/clique.js): os links marcados
 // com marcaClique() avisam o servidor com sendBeacon, sem atrasar a ida à loja. Vai só a loja, o lugar do site e o produto
 const marcaClique = (onde, o = {}) => ({
@@ -2596,7 +2610,7 @@ function desenharListaLojas() {
       botaoCupomLoja(l)),
     el("div", { class: "lp-botoes" },
       // Loja só com link (Shein, lib/shein.js): sem produtos no site, só o "Ir para a loja"
-      l.soLink ? null : el("button", { type: "button", class: "botao-secundario", onclick: () => { $("#janela-lojas").close(); irParaLoja(l.id); } }, "Ver produtos"),
+      l.soLink ? null : linkInterno(`/?loja=${encodeURIComponent(l.id)}`, { class: "botao-secundario" }, () => { $("#janela-lojas").close(); irParaLoja(l.id); }, "Ver produtos"),
       // Site da loja pelo link com comissão (/api/ir-loja): vale qualquer compra feita lá dentro do prazo do cookie
       el("a", { class: "botao-oferta lp-ir", href: `/api/ir-loja?id=${encodeURIComponent(l.id)}`, target: "_blank", rel: "sponsored noopener",
         ...marcaClique("loja-parceira", { lojaNome: l.nome }) },
@@ -2670,7 +2684,7 @@ async function mostrarLojaNaBusca(q, pedido) {
     el("div", { class: "lnb-texto" }, el("strong", {}, loja.nome),
       el("small", {}, loja.soLink ? "Loja parceira: compre direto no site dela" : "Loja parceira do Vai pro Carrinho")),
     el("div", { class: "lnb-botoes" },
-      loja.soLink ? null : el("button", { type: "button", class: "botao-secundario", onclick: () => irParaLoja(loja.id) }, "Ver produtos da loja"),
+      loja.soLink ? null : linkInterno(`/?loja=${encodeURIComponent(loja.id)}`, { class: "botao-secundario" }, () => irParaLoja(loja.id), "Ver produtos da loja"),
       el("a", { class: "lnb-ir", href: `/api/ir-loja?id=${encodeURIComponent(loja.id)}`, target: "_blank", rel: "sponsored noopener",
         ...marcaClique("loja-parceira", { lojaNome: loja.nome }) }, "Ir para a loja →")));
   caixa.hidden = false;
@@ -3191,9 +3205,10 @@ async function carregarDestaques() {
 
 // itens: [{ nome: "Moda masculina", busca: "roupa masculina" }] ou textos simples
 function desenharEmAlta(itens) {
-  $("#em-alta").replaceChildren(el("button", { class: "chip-alta chip-bf", type: "button", onclick: irParaBlackFriday }, "🖤 Black Friday"), ...itens.map((i) => {
+  $("#em-alta").replaceChildren(linkInterno("/black-friday", { class: "chip-alta chip-bf" }, irParaBlackFriday, "🖤 Black Friday"), ...itens.map((i) => {
     const { nome, busca } = typeof i === "string" ? { nome: i, busca: i } : i;
-    return el("button", { class: "chip-alta", type: "button", onclick: () => irPara(busca, { atalho: true, cat: categoriaPeloNome(nome)?.nome }) }, nome);
+    const cat = categoriaPeloNome(nome)?.nome;
+    return linkInterno(enderecoDaBusca(busca, { cat }), { class: "chip-alta" }, () => irPara(busca, { atalho: true, cat }), nome);
   }));
 }
 
@@ -3211,8 +3226,8 @@ function desenharBuscadosML(cartoes) {
   const caixa = $("#buscados-ml");
   if (!caixa) return;
   const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
-  $("#chips-ml").replaceChildren(...cartoes.map((c, i) => el("button", { class: "cartao-ml", type: "button",
-    onclick: () => irPara(c.termo, { atalho: true, loja: "mercadolivre" }) },
+  $("#chips-ml").replaceChildren(...cartoes.map((c, i) => linkInterno(enderecoDaBusca(c.termo, { loja: "mercadolivre" }), { class: "cartao-ml" },
+    () => irPara(c.termo, { atalho: true, loja: "mercadolivre" }),
     el("span", { class: "cartao-ml-foto" },
       // Foto pequena do Mercado Livre ("-V", ~20 KB; a "-F" tem 150–300 KB e o cartão tem 120 px) e as primeiras sem "lazy"
       // (11/11/2026, print do Giovanni: a faixa demorava a aparecer); se a pequena não abrir, volta a original
@@ -3256,9 +3271,9 @@ function desenharCategorias(lista = categoriasAtuais) {
   // Em A–Z vale a ordem alfabética para todas (a fixa só fica em 1º em "Mais vendidos")
   if (ordemCategorias === "az") lista = [...lista].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
   const botoes = lista.map((c, i) =>
-    el("button", { class: "cat-item", type: "button", "data-nome": c.nome,
-      style: `--fundo-cat:${FUNDOS_MENU[i % FUNDOS_MENU.length]}`,
-      onclick: () => { abrirFiltros(false); irPara(c.busca || c.nome, { atalho: true, cat: c.nome }); } },
+    linkInterno(enderecoDaBusca(c.busca || c.nome, { cat: c.nome }), { class: "cat-item", "data-nome": c.nome,
+      style: `--fundo-cat:${FUNDOS_MENU[i % FUNDOS_MENU.length]}` },
+      () => { abrirFiltros(false); irPara(c.busca || c.nome, { atalho: true, cat: c.nome }); },
       el("span", { class: "cat-icone", "aria-hidden": "true" }, c.emoji), c.nome));
   const caixa = $("#categorias");
   caixa.classList.remove("todas");
@@ -3270,9 +3285,9 @@ function desenharCategorias(lista = categoriasAtuais) {
   caixa.replaceChildren(...botoes, ...(verTodas ? [verTodas] : []));
   // Celular: abas que deslizam no topo ("Tudo" + as categorias que mais vendem), como no app do Mercado Livre
   $("#abas-cel").replaceChildren(
-    el("button", { class: "aba-cel", type: "button", "data-tudo": "1", onclick: voltarAoInicio }, "Tudo"),
-    ...categoriasAtuais.slice(0, ABAS_CELULAR).map((c) => el("button", { class: "aba-cel", type: "button", "data-nome": c.nome,
-      onclick: () => irPara(c.busca || c.nome, { atalho: true, cat: c.nome }) }, c.nome)));
+    linkInterno("/", { class: "aba-cel", "data-tudo": "1" }, voltarAoInicio, "Tudo"),
+    ...categoriasAtuais.slice(0, ABAS_CELULAR).map((c) => linkInterno(enderecoDaBusca(c.busca || c.nome, { cat: c.nome }),
+      { class: "aba-cel", "data-nome": c.nome }, () => irPara(c.busca || c.nome, { atalho: true, cat: c.nome }), c.nome)));
   marcarCategoria();
   if (estado.q && !$("#resultados").hidden) {
     // Link aberto direto (?q=perfume&cat=Perfumes): só agora dá para saber o título da categoria

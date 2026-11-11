@@ -53,6 +53,8 @@ body {
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 a { color: inherit; }
+/* Links de navegação que eram <button> (app.js, linkInterno): mesma aparência de botão. :where = não pesa nas regras de cada classe */
+:where(a.lk) { display: inline-block; box-sizing: border-box; text-decoration: none; text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 .container { max-width: 1600px; margin: 0 auto; padding: 0 16px; }
 
