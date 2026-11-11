@@ -2,7 +2,7 @@
 // ?comecar=1 abre uma rodada manual agora (vale 3 h; ?comecar=categorias = só abrir as 40 categorias, 30 min; o Worker "relógio" precisa estar ligado para andar), ?parar=1 fecha.
 // Só no endereço do painel, com o login do Cloudflare Access (lib/painel.js).
 import { ehPainel, quemEntrou } from "../../../lib/painel.js";
-import { TRILHAS, SO_CATEGORIAS, criarTabela, rodadaManual, noiteAtual } from "../../../lib/roboNoite.js";
+import { TRILHAS, SO_CATEGORIAS, SO_CASAR, criarTabela, rodadaManual, noiteAtual } from "../../../lib/roboNoite.js";
 
 export async function onRequestGet({ request, env }) {
   const cabecalhos = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" };
@@ -19,9 +19,11 @@ export async function onRequestGet({ request, env }) {
   }
   // ?comecar=categorias: rodada curta (30 min) só do passo que abre as 40 categorias
   const soCategorias = params.get("comecar") === "categorias";
+  // ?comecar=casar: rodada curta só do teste da IA casando produtos (lib/casar.js; gasto máximo US$ 0,20)
+  const soCasar = params.get("comecar") === "casar";
   if (params.has("comecar")) {
     await env.DB.prepare("INSERT OR REPLACE INTO robo_noite (trilha, noite, estado, ocupado_ate, atualizado) VALUES ('_manual', ?, '{}', ?, ?)")
-      .bind(`${soCategorias ? SO_CATEGORIAS : "manual-"}${new Date(agora).toISOString().slice(0, 16)}`, agora + (soCategorias ? 0.5 : 3) * 3600e3, agora).run();
+      .bind(`${soCategorias ? SO_CATEGORIAS : soCasar ? SO_CASAR : "manual-"}${new Date(agora).toISOString().slice(0, 16)}`, agora + (soCategorias || soCasar ? 0.5 : 3) * 3600e3, agora).run();
   }
   if (params.has("parar")) await env.DB.prepare("UPDATE robo_noite SET ocupado_ate = 0 WHERE trilha = '_manual'").run();
   const manual = await rodadaManual(env.DB);

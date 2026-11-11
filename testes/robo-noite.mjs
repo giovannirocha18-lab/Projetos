@@ -78,6 +78,16 @@ for (let i = 0; i < 100 && soCat.lojas.fase !== "fim"; i++) await passo("lojas",
 ok(soCat.ml.fase === "fim" && soCat.lojas.fase === "fim" && cont.cats === 42, `só categorias: ${soCat.lojas.fase}, ${cont.cats} aberturas`);
 ok(partesDoPainel(soCat.ml, soCat.lojas).map((p) => p.chave).join() === "categorias", "só categorias: painel");
 
+// Rodada manual só do teste da IA casando produtos: uma busca por passo, soma o gasto e para no fim
+const casar = estadoInicial("lojas", agora, "manual-casar-x");
+let passosCasar = 0;
+const chamarCasar = async (rota, p) => (rota === "casar-teste" ? { pares: [{ veredito: "igual" }, { veredito: "diferente" }, {}], entrada: 1000, saida: 100, erros: 1, fim: p.parte >= 2 } : { falhou: true });
+for (; passosCasar < 20 && casar.fase !== "fim"; passosCasar++) await passo("lojas", casar, chamarCasar, agora, null);
+ok(estadoInicial("ml", agora, "manual-casar-x").fase === "fim" && passosCasar === 3 && casar.c.casarPares === 6 && casar.c.casarErros === 3 && casar.c.casarCusto > 0, `casar: ${passosCasar} passos, ${JSON.stringify(casar.c)}`);
+const semChave = estadoInicial("lojas", agora, "manual-casar-x");
+await passo("lojas", semChave, async () => ({ erro: "sem chave", fim: true, pares: [] }), agora, null);
+ok(semChave.fase === "fim" && semChave.c.casarErro === "sem chave", "casar sem chave para no 1º passo");
+
 // Junta com o que o GitHub gravou (awin, ia, auditoria): na ordem do painel, sem repetir
 const juntas = juntarNaExecucao([{ chave: "awin" }, { chave: "ia" }, { chave: "prontas", velha: true }], partes);
 ok(juntas.map((p) => p.chave).join() === "awin,shopee,ml,mv,prontas,lomadee,categorias,ia" && !juntas.some((p) => p.velha), `juntas: ${juntas.map((p) => p.chave)}`);

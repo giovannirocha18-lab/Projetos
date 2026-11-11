@@ -8,6 +8,7 @@ import { onRequestGet as prepararBuscas } from "./preparar-buscas.js";
 import { onRequestGet as coletarPrecos } from "./coletar-precos.js";
 import { onRequestGet as conferirLojas } from "./conferir-lojas.js";
 import { onRequestGet as buscar, VERSAO_CACHE } from "./buscar.js";
+import { parteDoTeste } from "../../lib/casar.js";
 import { TRILHAS, noiteAtual, estadoInicial, passo, gravarNoPainel, criarTabela, rodadaManual } from "../../lib/roboNoite.js";
 
 // Abre uma categoria como o site faz quando o visitante toca nela (atalho=1 = não conta como busca): se a lista pronta
@@ -21,13 +22,29 @@ async function abrirCategoria({ request, env, waitUntil }) {
   return Response.json({ ms: Date.now() - inicio, ofertas: dados?.ofertas?.length || 0, status: resposta.status });
 }
 
-const ROTAS = { "abrir-categoria": abrirCategoria, "preparar-ml": prepararML, "preparar-buscas": prepararBuscas, "coletar-precos": coletarPrecos, "conferir-lojas": conferirLojas };
+// Teste da IA casando produtos (lib/casar.js): as ofertas vêm da própria busca do site (guardada), sem ir às lojas à toa
+async function casarTeste({ request, env, waitUntil }) {
+  const parte = Number(new URL(request.url).searchParams.get("parte")) || 0;
+  const ofertasDaBusca = async (q) => {
+    const url = new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q)}&atalho=1`, request.url);
+    const resposta = await buscar({ request: new Request(url), env, waitUntil });
+    return resposta.ok ? (await resposta.json()).ofertas || [] : [];
+  };
+  return Response.json(await parteDoTeste(env, parte, ofertasDaBusca));
+}
+
+const ROTAS = { "abrir-categoria": abrirCategoria, "casar-teste": casarTeste, "preparar-ml": prepararML, "preparar-buscas": prepararBuscas, "coletar-precos": coletarPrecos, "conferir-lojas": conferirLojas };
 // Trava de cada passo: se o pedido cair no meio (limite do Cloudflare), a trilha fica parada até a trava vencer
 const TRAVA_MS = { ml: 150e3, lojas: 6 * 60e3 }; // um passo da Lomadee pode levar até 5 min; os do ML, até ~90 s
 const semCache = { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } };
 
 // Como foram as categorias abertas (só nomes de categoria e tempos: nada reservado), para conferir uma rodada de fora do painel
-const categoriasDe = (e) => (e?.c?.catAbertas ? { categorias: { abertas: e.c.catAbertas, total: e.c.catTotal, lentas: e.c.catLentas || [] } } : {});
+const categoriasDe = (e) => ({
+  ...(e?.c?.catAbertas ? { categorias: { abertas: e.c.catAbertas, total: e.c.catTotal, lentas: e.c.catLentas || [] } } : {}),
+  // Teste da IA casando produtos: os pares do último passo (nomes e preços de anúncios públicos) e os totais
+  ...(e?.c?.casarPares !== undefined || e?.c?.casarErro ? { casar: { pares: e.ultimosPares || [], respondidos: e.c.casarPares || 0, custoUS: e.c.casarCusto || 0,
+    erros: e.c.casarErros || 0, erro: e.c.casarErro || e.c.casarUltimoErro || null } } : {}),
+});
 const lerEstado = (texto) => { try { return JSON.parse(texto); } catch { return null; } };
 
 export async function onRequest({ request, env, waitUntil }) {
