@@ -1064,12 +1064,14 @@ function modeloDe(o) {
   const combo = /\s\+\s|\b(kit|combo|conjunto)\b|\b[2-9]\s*(unidades|unid|un|pecas|pcs)\b|\b(2|duas|dois)\s+(smart\s+)?tvs?\b/.test(t);
   if (combo) {
     const todos = [...new Set(codigos)].sort();
-    o._modelo = { chave: `${marca.n}|combo|${todos.join("+")}`, cod: `Combo ${todos.join(" + ").toUpperCase()}`, marca: marca.nome, tensao: "" };
+    o._modelo = { chave: `${marca.n}|combo|${todos.join("+")}`, cod: `Combo ${todos.join(" + ").toUpperCase()}`, combo: true, marca: marca.nome, tensao: "" };
     return o._modelo;
   }
   const cod = codigos.sort((a, b) => b.length - a.length)[0];
   const tensao = /\b220 ?v(olts?)?\b/.test(t) ? "220V" : /\b(110|127) ?v(olts?)?\b/.test(t) ? "127V" : /bivolt/.test(t) ? "Bivolt" : "";
-  o._modelo = { chave: `${marca.n}|${cod}`, cod: cod.toUpperCase(), marca: marca.nome, tensao };
+  // TV: a mesma série existe em vários tamanhos ("M75H" de 50 e de 65 polegadas): o tamanho entra na chave
+  const tela = /\b(tv|televisor|televisao|monitor)\b/.test(t) ? (t.match(/\b(\d{2,3}) ?(pol\b|polegadas)/) || t.match(/\b(?:tv|televisor|led|qled|oled|miniled) (\d{2,3})\b/) || [])[1] || "" : "";
+  o._modelo = { chave: `${marca.n}|${cod}${tela ? `|${tela}` : ""}`, cod: cod.toUpperCase(), marca: marca.nome, tensao };
   return o._modelo;
 }
 // Grupos de 2+ lojas com o mesmo modelo; de cada loja fica a oferta mais barata
@@ -1121,7 +1123,7 @@ function cartaoModelo(g) {
         : el("span", { class: "foto-emoji" }, "🛍️")),
       el("div", { class: "modelo-texto" },
         el("h3", { title: titulo }, titulo),
-        el("p", { class: "modelo-resumo" }, `Modelo ${g.modelo.cod} · em ${g.ofertas.length} lojas · a partir de `, el("strong", {}, `R$ ${brl(barata.preco)}`)))),
+        el("p", { class: "modelo-resumo" }, `${g.modelo.combo ? "" : "Modelo "}${g.modelo.cod} · em ${g.ofertas.length} lojas · a partir de `, el("strong", {}, `R$ ${brl(barata.preco)}`)))),
     el("ul", { class: "modelo-lojas" }, ...g.ofertas.map((o, i) => {
       const loja = infoLoja(o);
       const m = modeloDe(o);
