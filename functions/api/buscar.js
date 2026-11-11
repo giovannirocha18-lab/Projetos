@@ -75,6 +75,7 @@ const LIMITE_LOJA_LENTA_MS = { lomadee: 5000 };
 const LIMITE_LOJA_ROBO_MS = 10000;
 // Buscas populares preparadas pelo robô da madrugada (/api/preparar-buscas) valem por até 30 horas
 const VALIDADE_PRONTA_MS = 30 * 60 * 60 * 1000;
+const PRONTA_DE_CATEGORIA_APOS_MS = 20 * 60 * 60 * 1000;
 const PRONTA_SEM_SHOPEE_APOS_MS = 3 * 24 * 60 * 60 * 1000; // pronta mais velha que isso é trocada mesmo sem a Shopee
 // Até onde o "Ver mais" vai (pagina= nas "Ofertas do dia", desde= na busca e na vitrine)
 const MAX_PAGINA = 20;
@@ -530,7 +531,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
       let guardar = prontaOk;
       if (!guardar && ofertas.length >= 24) {
         const atual = await env.DB.prepare(`SELECT criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
-        guardar = !atual || Date.now() - atual.criado > PRONTA_SEM_SHOPEE_APOS_MS;
+        // Categoria: são várias buscas na Shopee de uma vez e basta uma ser recusada para a Shopee contar como "falhou"
+        // (era por isso que as categorias quase nunca eram guardadas); as outras vieram, então renova a cada noite
+        guardar = !atual || Date.now() - atual.criado > (categoria ? PRONTA_DE_CATEGORIA_APOS_MS : PRONTA_SEM_SHOPEE_APOS_MS);
       }
       if (guardar) {
         const gravar = async () => env.DB.prepare(`INSERT OR REPLACE INTO ${TABELA_PRONTAS} (chave, resposta, total, criado, versao) VALUES (?, ?, ?, ?, ?)`)
