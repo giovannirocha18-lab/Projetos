@@ -188,7 +188,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Cloudflare (`chaveLimpa` = chave + `&limpa=1`, `limpar`/`guardarLimpa`/`refazerLimpa` em buscar.js; conferida por trás a cada
   10 min) e a pronta da noite sai como veio do banco (limpeza por trás). Medido: Brinquedos 0,2 s. Medidor: cabeçalho
   `Server-Timing` e `&medir=2` (só lê a pronta do banco; mostra a cidade do Cloudflare e os ms de cada etapa; nunca vai às lojas).
-  **Falta o Giovanni confirmar no celular** (se seguir lento: pedir print de `/api/buscar?v=108&q=brinquedo&cat=Brinquedos&medir=2`).
+  **Medidor na tela**: `/?tempos=1` liga (quadrinho preto: esperar/baixar/montar + etapas do servidor e cidade), `/?tempos=0`
+  desliga (`mostrarTempos` em app.js). Giovanni (GRU, 11/11): "agora abriu rápido" ✅; Cozinha 1,57 s (aparelho só 0,2 s; 0,9 s
+  era a limpeza de uma cópia de antes da correção). Banco visto de GRU: ~200–470 ms por consulta. Atalho instalado pelo Chrome
+  não muda nada (só manifest, sem service worker).
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
   lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
