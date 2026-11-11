@@ -19,6 +19,10 @@ on:
         description: "Aprovar à mão a foto destes produtos (nome do produto; vários separados por |). Não usa a IA"
         type: string
         default: ""
+      categorias:
+        description: "Abrir também as 40 categorias (o que a rodada de toda manhã faz)"
+        type: boolean
+        default: false
       reconferir:
         description: "Só olhar de novo, uma a uma, as fotos já reprovadas (aprova as que não se confirmam)"
         type: boolean
@@ -39,6 +43,12 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      # Abre as 40 categorias depois dos robôs da noite (ideia do Giovanni, 11/11/2026): a que ficou sem lista pronta é
+      # montada aqui, antes dos visitantes da manhã. Não usa IA. Só na rodada de toda manhã (não nas rodadas à mão das fotos)
+      - name: Abrir as categorias (deixa o site pronto para a manhã)
+        if: ${{ github.event_name == 'schedule' || inputs.categorias }}
+        continue-on-error: true
+        run: node robo/abrir-categorias.mjs
       - name: Instalar o SDK da Anthropic e o redutor de fotos
         run: npm install --no-save --no-package-lock @anthropic-ai/sdk@1.3.0 sharp@0.35.5
       - name: IA conferindo as fotos
