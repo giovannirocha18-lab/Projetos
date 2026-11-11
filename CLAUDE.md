@@ -232,6 +232,14 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   com voltagem só de um lado continua (a IA até escreve "só o anúncio 1 informa") → no robô decidir a voltagem por código
   (regex nos dois títulos), não pela IA. Próximo: robô de verdade (tabela de grupos conferidos + Modo comparação lendo dela);
   depois apagar `robo/teste-casar.mjs` e `teste-casar.yml` (versão do GitHub, repetida).
+  **PRÓXIMO PASSO COMBINADO (11/11 à noite): construir o robô de casar.** Giovanni tem US$ 10 de saldo na Anthropic (dito por
+  ele); estimei 1ª rodada US$ 1–3,50 e US$ 0,05–0,30 por noite; teto sugerido US$ 0,50/noite (espalha a 1ª rodada). Desenho:
+  fase nova na trilha `lojas` depois das prontas (antes de `manha`), usando `lib/casar.js`: para cada busca guardada monta os
+  pares, pula os já conferidos (tabela nova, chave = ids dos 2 anúncios), pergunta 1 por vez, guarda veredito; voltagem por
+  regex nos títulos (não pela IA); grupos = pares "igual" ligados; Modo comparação passa a ler os grupos da tabela (rota nova)
+  e cai na regra do navegador quando a busca não tiver grupos; resumo na aba Robô (pares, custo). Ampliar além de
+  eletrodomésticos (celular, notebook) só depois de ver a 1ª noite. Print dele: PRF535I (437 L) e PRF535ID (434 L, água na
+  porta) são modelos diferentes; o site já separa (códigos diferentes).
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
