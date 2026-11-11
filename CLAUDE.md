@@ -6,6 +6,7 @@
 > **Nunca** pôr aqui senhas, Secrets, App IDs, CPF/CNPJ ou dados bancários.
 
 ## Jeito de trabalhar
+- **Horário do Giovanni: 1 hora atrás de Brasília (UTC-4).** Dizer os horários no horário dele.
 - Giovanni não é programador. Responder **sempre em português**, **curto**, passo a passo, com os nomes dos botões como
   aparecem na tela. Ele manda prints. Pedir que nunca mande senhas/chaves no chat.
 - Conversa longa (~20% do contexto): atualizar esta memória, commit/push com `[skip ci]` e avisar "Abra uma conversa nova e
@@ -172,8 +173,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (categoria) / 3 dias+ (busca). **Conferir após a madrugada**: `python3` medindo as 40 categorias (todas < 3 s) e perguntar
   ao Giovanni se melhorou. O cabeçalho X-Pronta fica na cópia do cache: não prova que a pronta existe no banco.
   Giovanni testou (10/11 à noite): 2ª abertura rápida ✅. Ideia dele: **robô que abre as 40 categorias toda manhã**
-  (`robo/abrir-categorias.mjs`, 1º passo do workflow conferir-fotos.yml, 09:50 UTC = ~6h do horário do Giovanni, que parece ser UTC-4 (relógio do
-  celular num print; confirmar com ele); sem IA; a lenta é montada e aberta de
+  (`robo/abrir-categorias.mjs`, 1º passo do workflow conferir-fotos.yml, 09:50 UTC = ~6h do horário do Giovanni, que está 1 h atrás de Brasília (UTC-4, confirmado por
+  ele em 10/11; ao falar de horário, dizer no horário dele); sem IA; a lenta é montada e aberta de
   novo; resumo com os tempos). Teste: 39 prontas, 1 montada (Bebês 3,2 s → 0,8 s).
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
