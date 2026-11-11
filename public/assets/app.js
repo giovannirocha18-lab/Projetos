@@ -1048,8 +1048,10 @@ const TERMO_NAO_MODELO = new Set(["110v", "127v", "220v", "bivolt", "4k", "8k", 
   "2em1", "3em1", "4em1", "5em1", "mp3", "mp4", "hdr10", "hdmi2", "usb3", "usb2", "ddr4", "ddr5", "h264", "h265"]);
 function modeloDe(o) {
   if (o._modelo !== undefined) return o._modelo;
-  o._modelo = null;
   const marca = marcaDe(o);
+  // A lista de marcas ainda não chegou: não guarda "sem modelo" (ligar o modo logo ao abrir a página não achava nada)
+  if (!marcasDoTitulo) return null;
+  o._modelo = null;
   if (!marca) return null;
   const t = normalizar(String(o.titulo || "")).replace(/[^a-z0-9+.\-/ ]/g, " ");
   const codigos = t.split(/\s+/).map((p) => p.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ""))
@@ -4013,6 +4015,8 @@ carregarCupons();
 carregarLojasParceiras(); // a busca pelo nome de uma loja abre a página dela (buscar) e as sugestões mostram as lojas
 // A lista de marcas (filtro "Marcas") vem do vocabulário da busca: baixa logo e redesenha quando chegar
 vocab.aoChegar.push(() => { if (!estado.buscando) { desenharFiltroMarcas(); } });
+// Modo comparação ligado antes de a lista de marcas chegar: agora dá para juntar os modelos
+vocab.aoChegar.push(() => { if (!estado.buscando && modoComparacao() && estado.q && !estado.loja) desenharResultados(); });
 carregarVocabulario();
 $("#lojas-filtro").addEventListener("input", () => lojasParceiras && desenharListaLojas());
 document.querySelectorAll("[data-ver-lojas]").forEach((b) => b.addEventListener("click", abrirLojas));
