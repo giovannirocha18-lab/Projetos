@@ -159,6 +159,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **11/11, print do histórico ("6% abaixo" ao lado de "Maior R$ 49,90")**: a conta estava certa (preço de costume = o que
   valeu mais dias em 30). Janela do histórico ganhou o quadro "De costume" (14+ dias), a explicação e o aviso de pico
   ("O maior preço durou só N dias", até 3 dias e 15%+ acima) (`abrirHistorico` em app.js, `.com-costume` no CSS). No ar ✅.
+- **11/11: celular mais rápido** (pedido do Giovanni): o servidor põe na página um preload do 1º pedido de dados
+  (`comDadosDaPagina` no _middleware.js: início, busca só com ?q=, loja, Black Friday; o endereço tem que ser IGUAL ao de
+  `enderecoBusca`/`pedirLoja` do app.js) + preload de /api/lojas no index.html; `VERSAO_CACHE` exportada de buscar.js. Celular
+  simulado (4G, CPU 4x): 1º cartão no início 2,8 s → ~1,6 s; busca 2,9 s → ~1,8 s. Toque em categoria (sem recarregar):
+  1,2–1,8 s. Gargalo é rede, não CPU (tarefas longas ~0,5 s). Sobra: /api/lojas é pedida 2 vezes na busca.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
   lib/conta.js e o trecho da privacidade. Personagens guardados apagados (`DROP TABLE IF EXISTS personagens` em lib/conta.js,
