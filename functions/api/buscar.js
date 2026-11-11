@@ -246,33 +246,64 @@ export async function onRequestGet({ request, env, waitUntil }) {
   };
   // contar=1: o site usou a busca que adiantou enquanto a pessoa digitava; só falta contar para os "em alta"
   const soContar = params.has("contar");
-  const guardada = !preparar && !atualizar && cache && (await cache.match(chave));
+  // Medidor (11/11/2026, Giovanni: categoria lenta na 1ª vez no celular): Server-Timing diz quanto levou cada etapa da
+  // resposta guardada. medir=1 pula a cópia do Cloudflare (o caminho de quem é o 1º da cidade) e só lê a busca pronta do
+  // banco: sem pronta responde 404, nunca vai às lojas
+  const medir = params.has("medir") && !preparar && !atualizar;
+  const etapas = [];
+  let marco = Date.now();
+  const etapa = (nome) => { etapas.push(`${nome};dur=${Date.now() - marco}`); marco = Date.now(); };
+  const comTempos = (resposta) => {
+    const copia = new Response(resposta.body, resposta);
+    copia.headers.set("Server-Timing", etapas.join(", "));
+    if (medir) copia.headers.set("Cache-Control", "no-store");
+    return copia;
+  };
+  const guardada = !preparar && !atualizar && !medir && cache && (await cache.match(chave));
+  etapa("copia");
   if (guardada) {
     if (soContar) { contar(guardada); return new Response(null, { status: 204 }); }
     refazerPorTras(Number(guardada.headers.get("X-Criado")) || 0);
-    return contar(paraNavegador(await respostaSemNaoBuscados(env.DB, q, await respostaSemFotosQuebradas(env.DB, guardada, waitUntil))));
+    const semFotos = await respostaSemFotosQuebradas(env.DB, guardada, waitUntil);
+    etapa("fotos");
+    const pronta = await respostaSemNaoBuscados(env.DB, q, semFotos);
+    etapa("ia");
+    return contar(comTempos(paraNavegador(pronta)));
   }
   // Busca popular já preparada pelo robô: responde na hora (e guarda no cache por 1 hora)
   // Vale para as buscas populares e para as "Ofertas do dia" da página inicial (q vazio, 1ª página)
   // As primeiras páginas das "Ofertas do dia" também ficam prontas (29/10/2026: "Ver mais ofertas" levava ~4,5 s por página)
   const primeira = desde === 1 && (pagina === 1 || (!q && pagina <= PAGINAS_INICIO_PRONTAS));
+  if (medir && !(primeira && env.DB)) return new Response(null, { status: 404, headers: { "Cache-Control": "no-store" } });
   if (primeira && !preparar && !atualizar && env.DB) {
     try {
       const pronta = await env.DB.prepare(`SELECT resposta, total, criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
+      etapa("banco");
       if (pronta && Date.now() - pronta.criado < VELHA_DEMAIS_MS) {
         const resposta = responder(await descompactar(pronta.resposta));
+        etapa("abrir");
         resposta.headers.set("X-Total-Ofertas", String(pronta.total));
         resposta.headers.set("X-Pronta", "1");
         if (soContar) { contar(resposta); return new Response(null, { status: 204 }); }
         // Mais velha que 30 h (o robô não rodou): vai para o cache como vencida, então já é refeita por trás
         const criado = Date.now() - pronta.criado < VALIDADE_PRONTA_MS ? pronta.criado : 0;
-        if (cache) waitUntil(cache.put(chave, paraGuardar(resposta.clone(), criado)).catch(() => {}));
-        refazerPorTras(criado);
-        return contar(await respostaSemNaoBuscados(env.DB, q, await respostaSemFotosQuebradas(env.DB, resposta, waitUntil)));
+        if (cache && !medir) waitUntil(cache.put(chave, paraGuardar(resposta.clone(), criado)).catch(() => {}));
+        if (!medir) refazerPorTras(criado);
+        const semFotos = await respostaSemFotosQuebradas(env.DB, resposta, waitUntil);
+        etapa("fotos");
+        const limpa = await respostaSemNaoBuscados(env.DB, q, semFotos);
+        etapa("ia");
+        // medir=2: só os tempos e o ponto do Cloudflare que atendeu (para o Giovanni abrir no celular e mandar o print)
+        if (params.get("medir") === "2") {
+          return Response.json({ cidade: request.cf?.colo || "", etapas_ms: Object.fromEntries(etapas.map((x) => x.split(";dur=")).map(([n, v]) => [n, Number(v)])), total_ms: Date.now() - inicio },
+            { headers: { "Cache-Control": "no-store" } });
+        }
+        return medir ? comTempos(limpa) : contar(comTempos(limpa));
       }
     } catch {
       // tabela ainda não existe (o robô cria): segue buscando nas lojas
     }
+    if (medir) return new Response(null, { status: 404, headers: { "Cache-Control": "no-store" } });
   }
   // Nada guardado para contar: não vale buscar de novo nas lojas só para isso
   if (soContar) return new Response(null, { status: 204 });
