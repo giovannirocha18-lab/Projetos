@@ -1149,10 +1149,12 @@ function desenharAvisoComparacao() {
     "Busque um produto (geladeira, micro-ondas, smart tv 55…) e mostramos o mesmo modelo lado a lado nas lojas, do mais barato para o mais caro. ",
     el("button", { type: "button", class: "botao-link", onclick: () => { $("#modo-comparacao").checked = false; $("#modo-comparacao").dispatchEvent(new Event("change")); } }, "Desligar"));
 }
-try { $("#modo-comparacao").checked = localStorage.getItem(CHAVE_MODO_COMPARACAO) === "1"; } catch { /* sem armazenamento */ }
+// O modo NÃO fica guardado (Giovanni, 11/11/2026: "o site ao atualizar tem que voltar ao estado original"): vale enquanto a
+// página está aberta, de uma busca para a outra; atualizou, volta desligado. Apaga o que a 1ª versão guardou no aparelho
+$("#modo-comparacao").checked = false;
+try { localStorage.removeItem(CHAVE_MODO_COMPARACAO); } catch { /* sem armazenamento */ }
 $("#modo-comparacao").addEventListener("change", () => {
   const ligado = modoComparacao();
-  try { if (ligado) localStorage.setItem(CHAVE_MODO_COMPARACAO, "1"); else localStorage.removeItem(CHAVE_MODO_COMPARACAO); } catch { /* sem armazenamento */ }
   modelosMostrados = MODELOS_POR_VEZ;
   desenharAvisoComparacao();
   if (ligado && !estado.q) toast("Modo comparação ligado: busque um produto para comparar as lojas ⚖️", 4000);
