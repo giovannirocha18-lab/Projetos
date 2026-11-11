@@ -1152,8 +1152,15 @@ function cartaoModelo(g) {
   // Nome e foto: do anúncio de nome mais curto (costuma ser o mais limpo) e do primeiro que tem foto
   const titulo = [...g.ofertas].sort((a, b) => a.titulo.length - b.titulo.length)[0].titulo;
   const comFoto = g.ofertas.find((o) => o.imagem);
+  // Tocar no produto (foto/nome) abre os detalhes da oferta mais barata; tocar na linha de uma loja, os daquela loja
+  // (pedido do Giovanni, 11/11/2026: "igual temos no botão padrão"). Comprar/Ver e o cupom continuam com o próprio toque
+  const comDetalhes = g.ofertas.find(temDetalhes);
+  const aoTocar = (o) => (o && temDetalhes(o) ? { class: "abre-detalhes", role: "button", tabindex: "0", title: "Ver detalhes",
+    onclick: (e) => { if (!e.target.closest("a, button")) abrirDetalhes(o); },
+    onkeydown: (e) => { if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) { e.preventDefault(); abrirDetalhes(o); } } } : {});
+  const topo = aoTocar(temDetalhes(barata) ? barata : comDetalhes);
   return el("article", { class: "modelo" },
-    el("div", { class: "modelo-topo" },
+    el("div", { ...topo, class: `modelo-topo ${topo.class || ""}` },
       el("span", { class: "modelo-foto" }, comFoto
         ? el("img", { src: fotoPequena(comFoto.imagem), alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(comFoto) })
         : el("span", { class: "foto-emoji" }, "🛍️")),
@@ -1164,7 +1171,8 @@ function cartaoModelo(g) {
     el("ul", { class: "modelo-lojas" }, ...g.ofertas.map((o, i) => {
       const loja = infoLoja(o);
       const m = modeloDe(o);
-      return el("li", { class: i === 0 ? "mais-barata" : null, style: `--cor-loja:${loja.cor}` },
+      const linha = aoTocar(o);
+      return el("li", { ...linha, class: `${i === 0 ? "mais-barata" : ""} ${linha.class || ""}`.trim() || null, style: `--cor-loja:${loja.cor}` },
         el("span", { class: "modelo-loja" },
           el("span", { class: `loja-tag ${loja.tag || ""}` }, el("span", { class: "loja-ponto" }), loja.nome),
           m?.tensao && el("span", { class: "modelo-nota" }, m.tensao),
