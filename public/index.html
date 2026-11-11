@@ -25,6 +25,8 @@
   <link rel="preload" href="/assets/jakarta-latin.woff2" as="font" type="font/woff2" crossorigin>
   <!-- Atalhos e faixa "Em alta no Mercado Livre": o pedido começa junto com a página, antes do app.js (11/11/2026) -->
   <link rel="preload" href="/api/em-alta?v=17" as="fetch" crossorigin>
+  <!-- Lista de lojas: a busca espera por ela (até 400 ms) para saber se o que foi buscado é o nome de uma loja -->
+  <link rel="preload" href="/api/lojas" as="fetch" crossorigin>
   <link rel="stylesheet" href="/assets/estilo.css">
 </head>
 <body>

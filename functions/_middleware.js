@@ -12,6 +12,7 @@ import { destinoAli, CAMINHO_IR_ALI } from "../lib/fontes/aliexpress.js";
 import { concluirAutorizacao } from "../lib/mlConta.js";
 import { dentroDoLimite, ipDe } from "../lib/conta.js";
 import { categoriasDoSite } from "../lib/categorias.js";
+import { VERSAO_CACHE } from "./api/buscar.js";
 
 // Links de afiliado NOVOS (ainda não guardados) que um visitante pode gerar por hora em /ir/shopee e /ir/ali (10/11/2026).
 // Quem clica de verdade fica muito abaixo; acima disso o clique vai para a página do produto sem consultar a loja
@@ -148,7 +149,20 @@ function comDadosDaPagina(resposta, url) {
     else if (q) { filtros.set("q", q.toLowerCase()); if (p.get("cat")) filtros.set("cat", p.get("cat").slice(0, 40)); }
   }
   const canonico = `${SITE}${caminho}${filtros.size ? `?${filtros}` : ""}`;
+  // O 1º pedido de dados da página começa junto com ela, antes de o app.js chegar (11/11/2026, pedido do Giovanni: no
+  // celular os produtos demoravam; em 4G o app.js leva ~1 s e só então pedia os produtos). O endereço tem que ser
+  // IGUAL ao que o app.js pede (enderecoBusca e pedirLoja em app.js); se não for, o navegador só baixa à toa, por isso
+  // só os casos simples: página inicial, busca só com ?q=, Black Friday e página de loja
+  const qCru = (p.get("q") || "").trim();
+  const simples = !p.get("produto") && !p.has("exato") && !p.get("cat") && !p.has("mlcat");
+  const lojaCrua = (p.get("loja") || "").trim();
+  let dados = null;
+  if (caminho === "/" && simples && qCru && !lojaCrua && qCru.length <= 100) dados = `/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(qCru)}`;
+  else if (caminho === "/" && simples && !qCru && !lojaCrua && !p.has("q")) dados = `/api/buscar?v=${VERSAO_CACHE}&q=`;
+  else if (caminho === "/" && simples && !qCru && lojaCrua && lojaCrua.length <= 80) dados = `/api/lojas?id=${encodeURIComponent(lojaCrua)}&pagina=1`;
+  else if (caminho === "/black-friday" && !qCru && !lojaCrua) dados = "/api/black-friday?pagina=1";
   let rewriter = new HTMLRewriter().on("head", { element(el) {
+    if (dados) el.append(`<link rel="preload" as="fetch" crossorigin href="${dados.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}">`, { html: true });
     el.append(`<link rel="canonical" href="${canonico.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}">`, { html: true });
     el.append(`<meta property="og:url" content="${canonico.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}">`, { html: true });
   } });
