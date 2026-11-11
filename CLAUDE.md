@@ -243,6 +243,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Teste do GitHub apagado. **Conferir em 12/11**: pares/custo na aba Robô e `/api/casados?q=geladeira`. Limite visto: o
   navegador às vezes tem outro anúncio da mesma loja (não conferido → fica pela regra). Depois: ampliar para celular/notebook
   (pares por nome). Giovanni tem US$ 10 de saldo na Anthropic. PRF535I e PRF535ID são modelos diferentes (o site já separa).
+- 11/11: atalho "⚖️ Comparador" no celular (`#atalho-comparador`, 2º da fila `.atalhos-cel`): liga/desliga o Modo comparação, fica roxo ligado e leva à caixa de busca.
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
