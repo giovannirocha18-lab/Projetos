@@ -1216,8 +1216,16 @@ function desenharAvisoComparacao() {
 // página está aberta, de uma busca para a outra; atualizou, volta desligado. Apaga o que a 1ª versão guardou no aparelho
 $("#modo-comparacao").checked = false;
 try { localStorage.removeItem(CHAVE_MODO_COMPARACAO); } catch { /* sem armazenamento */ }
+// Atalho "Comparador" do celular (pedido do Giovanni, 11/11/2026): liga/desliga o modo; ligado sem busca, leva à caixa de busca
+$("#atalho-comparador").addEventListener("click", () => {
+  $("#modo-comparacao").checked = !modoComparacao();
+  $("#modo-comparacao").dispatchEvent(new Event("change"));
+  if (modoComparacao() && !estado.q) document.querySelector("input[name=q]")?.focus();
+});
 $("#modo-comparacao").addEventListener("change", () => {
   const ligado = modoComparacao();
+  $("#atalho-comparador").classList.toggle("ligado", ligado);
+  $("#atalho-comparador").setAttribute("aria-pressed", String(ligado));
   modelosMostrados = MODELOS_POR_VEZ;
   desenharAvisoComparacao();
   if (ligado && !estado.q) toast("Modo comparação ligado: busque um produto para comparar as lojas ⚖️", 4000);

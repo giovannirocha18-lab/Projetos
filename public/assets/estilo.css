@@ -937,6 +937,8 @@ body.com-comparar .rodape { padding-bottom: 96px; }
   .atalhos-cel span { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; font-size: 1.6rem;
     background: var(--card); box-shadow: 0 2px 8px rgba(60, 20, 120, .12); border: 1px solid var(--borda); }
   .atalhos-cel .atalho-bf span { background: #111827; border-color: #111827; }
+  .atalhos-cel .ligado span { background: #f3e8ff; border-color: var(--roxo-forte); box-shadow: 0 0 0 2px var(--roxo-forte); }
+  .atalhos-cel .ligado { color: var(--roxo-forte); }
 
   /* Faixa "milhões de produtos": menor; os botões de Black Friday e cupons já estão nos atalhos */
   .numeros-inicio { padding: 12px 14px; border-radius: 14px; font-size: .88rem; margin-bottom: 12px; }
