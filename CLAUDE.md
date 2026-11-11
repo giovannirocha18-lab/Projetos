@@ -172,7 +172,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (categoria) / 3 dias+ (busca). **Conferir após a madrugada**: `python3` medindo as 40 categorias (todas < 3 s) e perguntar
   ao Giovanni se melhorou. O cabeçalho X-Pronta fica na cópia do cache: não prova que a pronta existe no banco.
   Giovanni testou (10/11 à noite): 2ª abertura rápida ✅. Ideia dele: **robô que abre as 40 categorias toda manhã**
-  (`robo/abrir-categorias.mjs`, 1º passo do workflow conferir-fotos.yml às 07h40; sem IA; a lenta é montada e aberta de
+  (`robo/abrir-categorias.mjs`, 1º passo do workflow conferir-fotos.yml, 09:50 UTC = ~6h do horário do Giovanni, que parece ser UTC-4 (relógio do
+  celular num print; confirmar com ele); sem IA; a lenta é montada e aberta de
   novo; resumo com os tempos). Teste: 39 prontas, 1 montada (Bebês 3,2 s → 0,8 s).
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
@@ -188,7 +189,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **11/11: IA conferindo as FOTOS** (pedido do Giovanni): `robo/conferir-fotos.mjs` (foto reduzida a 384 px, 10 por pergunta,
   Haiku 5.5; teto de gasto por rodada, máx. US$ 4; ordem: Escolha rápida/Ofertas do dia → 24 primeiros → resto), tabela
   `ia_fotos`, `lib/iaFotos.js` (reprovada sai das buscas e Ofertas do dia enquanto tiver a mesma foto; lojas/Black Friday
-  ainda não). Workflow próprio `conferir-fotos.yml` (toda manhã 07h40, teto US$ 0,50; à mão: teto e minutos). 1ª rodada grande (10/11): 63.433 fotos (toda a fila
+  ainda não). Workflow próprio `conferir-fotos.yml` (toda manhã 09:50 UTC, teto US$ 0,50; à mão: teto e minutos). 1ª rodada grande (10/11): 63.433 fotos (toda a fila
   das 304 buscas), US$ 2,30 (US$ 0,036 por mil), 207 reprovadas — **mais da metade errada** (em perguntas de 10 fotos a IA
   trocava de produto). Corrigido: reprovação só vale se confirmada com a foto sozinha (`confirmaReprovacao`); modo
   `reconferir` (input do workflow) reolhou as 211: 149 voltaram, **62 ficaram** (34 "Imagem não disponível" da AliExpress,
