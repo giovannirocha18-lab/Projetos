@@ -227,7 +227,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   **Versão no Cloudflare (o GitHub deixou o teste ~7 min na fila)**: Giovanni cadastrou o Secret `ANTHROPIC_API_KEY` no Pages;
   `lib/casar.js` (pares + pergunta por fetch), fase `casar` da trilha lojas, partida `painel…/api/painel/robo-noite?comecar=casar`
   (30 min, teto US$ 0,20), resposta de `/api/robo-noite?trilha=lojas` traz `casar` (pares do passo, custo, erro). Ainda só teste:
-  não grava nada. Próximo: robô de verdade (tabela de grupos conferidos + Modo comparação lendo dela).
+  não grava nada. **Rodou no Cloudflare 11/11 17h14 ✅ (chave funciona)**: 122 pares em ~2 min, US$ 0,015, 0 erros. Com as
+  instruções ajustadas: Vaio Linux x Windows agora "diferente" ✅; Philco PRF535I segue "diferente" (errado); "outra voltagem"
+  com voltagem só de um lado continua (a IA até escreve "só o anúncio 1 informa") → no robô decidir a voltagem por código
+  (regex nos dois títulos), não pela IA. Próximo: robô de verdade (tabela de grupos conferidos + Modo comparação lendo dela);
+  depois apagar `robo/teste-casar.mjs` e `teste-casar.yml` (versão do GitHub, repetida).
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
 - **11/11: boneco da animação de busca e "Meu personagem" removidos** (pedido do Giovanni): quadro "Buscando…" com barra de
   progresso (`.barra-buscando`, `desenharResumoBuscando`); saíram editor da conta, rota `/api/conta/personagem`, funções em
