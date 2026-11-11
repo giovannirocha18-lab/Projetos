@@ -3385,7 +3385,8 @@ async function carregarDestaques() {
 
 // itens: [{ nome: "Moda masculina", busca: "roupa masculina" }] ou textos simples
 function desenharEmAlta(itens) {
-  $("#em-alta").replaceChildren(linkInterno("/black-friday", { class: "chip-alta chip-bf" }, irParaBlackFriday, "🖤 Black Friday"),
+  // O atalho da Black Friday saiu desta linha (pedido do Giovanni, 11/11/2026); segue na faixa de cima e na página inicial
+  $("#em-alta").replaceChildren(
     linkInterno("/quedas-de-preco", { class: "chip-alta" }, irParaQuedas, "📉 Quedas de preço"), ...itens.map((i) => {
     const { nome, busca } = typeof i === "string" ? { nome: i, busca: i } : i;
     const cat = categoriaPeloNome(nome)?.nome;
