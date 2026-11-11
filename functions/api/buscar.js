@@ -75,6 +75,7 @@ const LIMITE_LOJA_LENTA_MS = { lomadee: 5000 };
 const LIMITE_LOJA_ROBO_MS = 10000;
 // Buscas populares preparadas pelo robô da madrugada (/api/preparar-buscas) valem por até 30 horas
 const VALIDADE_PRONTA_MS = 30 * 60 * 60 * 1000;
+const PRONTA_SEM_SHOPEE_APOS_MS = 3 * 24 * 60 * 60 * 1000; // pronta mais velha que isso é trocada mesmo sem a Shopee
 // Até onde o "Ver mais" vai (pagina= nas "Ofertas do dia", desde= na busca e na vitrine)
 const MAX_PAGINA = 20;
 const MAX_DESDE = 100;
@@ -517,10 +518,28 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Busca pronta: guarda mesmo que uma loja pequena tenha falhado (vindo do robô do GitHub, a Lomadee às vezes
   // trava), desde que a Shopee tenha respondido
   const prontaOk = lojas.shopee?.ok && ofertas.length > 0;
-  if (preparar && primeira && prontaOk && reais.length && env.DB) {
-    await criarTabelaProntas(env.DB);
-    await env.DB.prepare(`INSERT OR REPLACE INTO ${TABELA_PRONTAS} (chave, resposta, total, criado, versao) VALUES (?, ?, ?, ?, ?)`)
-      .bind(chave.url, await compactar(await resposta.clone().text()), ofertas.length, Date.now(), VERSAO_CACHE).run();
+  // 11/11/2026 (Giovanni: no celular as categorias demoravam ~5 s a mais): a pronta só era guardada pelo robô e só com a
+  // Shopee respondendo. Categoria em que a Shopee recusava toda noite ficava sem pronta (some depois de 7 dias) e cada
+  // visitante esperava a consulta às lojas (7–9 s em Ferramentas e Bonés). Agora:
+  //  - a visita a uma categoria (e a atualização por trás dela) também guarda a pronta;
+  //  - sem a Shopee, guarda assim mesmo se não houver pronta ou se a guardada tiver mais de 3 dias (melhor uma lista sem
+  //    a Shopee na hora do que fazer o visitante esperar)
+  if ((preparar || categoria) && primeira && !rapido && !soLoja && ofertas.length > 0 && reais.length && env.DB) {
+    try {
+      await criarTabelaProntas(env.DB);
+      let guardar = prontaOk;
+      if (!guardar && ofertas.length >= 24) {
+        const atual = await env.DB.prepare(`SELECT criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
+        guardar = !atual || Date.now() - atual.criado > PRONTA_SEM_SHOPEE_APOS_MS;
+      }
+      if (guardar) {
+        const gravar = async () => env.DB.prepare(`INSERT OR REPLACE INTO ${TABELA_PRONTAS} (chave, resposta, total, criado, versao) VALUES (?, ?, ?, ?, ?)`)
+          .bind(chave.url, await compactar(await resposta.clone().text()), ofertas.length, Date.now(), VERSAO_CACHE).run();
+        if (preparar) await gravar(); else waitUntil(gravar().catch(() => {})); // o visitante não espera a gravação
+      }
+    } catch {
+      if (preparar) throw new Error("Não deu para guardar a busca pronta");
+    }
   }
   if (preparar || atualizar) return resposta; // o robô e a atualização por trás não contam como busca em alta
   return contar(resposta);
