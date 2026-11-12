@@ -1048,6 +1048,38 @@ const SECOES_SO_CONFERIDAS = new Set(["Informática", "Ferramentas", "Celulares"
 const MEDIDA_NAO_MODELO = /^\d+([.,]\d+)?(v|w|l|ml|kg|g|gb|tb|mb|mah|hz|khz|mhz|ghz|btus?|pol|k|p|cm|mm|m|un|pcs?|x|rpm|fps|mp|db|bar|psi|lm|kwh|cv|hp|dpi|ms|bits?|pecas?|em\d)$/;
 const TERMO_NAO_MODELO = new Set(["110v", "127v", "220v", "bivolt", "4k", "8k", "5g", "4g", "wifi6", "ipx4", "ipx5", "ipx7", "ip67", "ip68", "1080p", "720p",
   "2em1", "3em1", "4em1", "5em1", "mp3", "mp4", "hdr10", "hdmi2", "usb3", "usb2", "ddr4", "ddr5", "h264", "h265"]);
+// Celular, smartwatch, console… quase nunca trazem o código do fabricante: ali a chave é marca + modelo + armazenamento tirados
+// do nome (12/11/2026). Só serve para achar candidatos: nessas seções o cartão só aparece com o que a IA confirmou
+const SECOES_POR_NOME = new Set(["Celulares", "Smartwatches"]);
+const SECOES_NOME_SE_FALTAR = new Set(["Informática", "Fones de ouvido", "Caixas de som", "Games"]);
+// >>> nomeDoModelo (igual em lib/casar.js e public/assets/app.js)
+const QUALIFICADOR = new Set(["pro", "max", "plus", "ultra", "lite", "fe", "mini", "note", "edge", "neo", "fold", "flip", "air", "se", "slim", "oled", "play", "power", "fusion", "razr", "watch", "buds", "fit", "band", "active", "classic", "digital"]);
+const NAO_E_MODELO_ANTES = new Set(["ram", "camera", "cameras", "tela", "garantia", "memoria", "bateria", "ate", "com", "de", "e", "x", "em", "por", "android", "ios", "versao", "nfe", "nf", "windows", "win", "office", "wifi", "bluetooth"]);
+const DE_CAMERA = new Set(["camera", "cameras", "cam", "tripla", "dupla", "quadrupla", "tela", "display"]);
+const NAO_E_MODELO_DEPOIS = new Set(["chips", "chip", "ano", "anos", "meses", "mes", "cores", "cor", "unidades", "unidade", "pecas", "camadas", "cameras", "camera", "polegadas", "pol", "mp", "gb", "tb", "mah", "hz", "w", "v", "mm", "cm", "dias", "nucleos", "em", "x", "jogos", "controles", "controle", "g"]);
+function nomeDoModelo(tituloNormalizado, marca) {
+  const t = tituloNormalizado;
+  if (!marca || /\s\+\s|\b(kit|combo|conjunto)\b|\b[2-9]\s*(unidades|unid|un|pecas|pcs)\b/.test(t)) return null;
+  // Fora: números com vírgula/ponto (tela 6,7"), somas de câmeras (50+12+10MP); "S26+" vira "s26 plus"
+  const palavras = t.replace(/\d+(\+\d+)+ ?mp/g, " ").replace(/\d+[.,]\d+\S*/g, " ").replace(/([a-z0-9])\+(?=\s|$)/g, "$1 plus")
+    .replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(Boolean);
+  const modelo = [];
+  for (let i = 0; i < palavras.length; i++) {
+    const p = palavras[i];
+    if (QUALIFICADOR.has(p)) { if (!DE_CAMERA.has(palavras[i - 1]) && !DE_CAMERA.has(palavras[i - 2])) modelo.push(p); continue; }
+    if (!/\d/.test(p) || p.length > 8 || /^(ipx?\d+|\d+atm)$/.test(p) || MEDIDA_NAO_MODELO.test(p) || TERMO_NAO_MODELO.has(p) || /^(19|20)\d\d$/.test(p) || /^\d+x\d*$/.test(p) || /^\d{3,}$/.test(p) || /^[a-z]+\d{3,}[a-z]+$/.test(p)) continue; // por último: código do fabricante ("SM-A155M")
+    if (/^\d+$/.test(p) && (NAO_E_MODELO_ANTES.has(palavras[i - 1]) || NAO_E_MODELO_DEPOIS.has(palavras[i + 1]))) continue;
+    modelo.push(p);
+  }
+  if (!modelo.some((p) => /\d/.test(p))) return null;
+  // Armazenamento: o maior "NNN GB" a partir de 32 (o menor costuma ser a memória RAM) ou "N TB"
+  const gbs = [...t.matchAll(/\b(\d{2,4}) ?gb?\b/g)].map((m) => +m[1]).filter((n) => [32, 64, 128, 256, 512, 1024].includes(n));
+  const tb = (t.match(/\b([1-4]) ?tb\b/) || [])[1];
+  const guarda = tb ? `${tb}tb` : gbs.length ? `${Math.max(...gbs)}gb` : "";
+  const unicas = [...new Set(modelo)];
+  return { chave: `${marca}|nome|${[...unicas].sort().join("+")}${guarda ? `|${guarda}` : ""}`, cod: [...unicas, guarda].filter(Boolean).join(" ").toUpperCase() };
+}
+// <<< nomeDoModelo
 function modeloDe(o) {
   if (o._modelo !== undefined) return o._modelo;
   const marca = marcaDe(o);
@@ -1060,7 +1092,13 @@ function modeloDe(o) {
     .filter((p) => p.length >= 4 && /[a-z]/.test(p) && /\d/.test(p) && !MEDIDA_NAO_MODELO.test(p) && !TERMO_NAO_MODELO.has(p)
       && !/^\d+x\d+/.test(p) && !/^\d+(gb|tb|w|v|l|ml|mah|hz|pol|btus?|kg|g|cm|mm|k|p)(\/|$)/.test(p))
     .map((p) => p.replace(/[^a-z0-9]/g, "")).filter((p) => p.length >= 4);
-  if (!codigos.length) return null;
+  const porNome = () => {
+    const n = nomeDoModelo(normalizar(String(o.titulo || "")), marca.n);
+    if (n) o._modelo = { chave: n.chave, cod: n.cod, porNome: true, marca: marca.nome, tensao: "" };
+    return o._modelo;
+  };
+  if (SECOES_POR_NOME.has(o.secao)) return porNome();
+  if (!codigos.length) return SECOES_NOME_SE_FALTAR.has(o.secao) ? porNome() : null;
   // Combo ou kit (print do Giovanni, 11/11/2026: "Samsung Smart Tv 50 M75h + Samsung Smart Tv 43 Q5f", duas TVs por R$ 4.704,
   // entrou no cartão da M75H sozinha de R$ 2.759): só se junta com outro anúncio do MESMO combo (os mesmos códigos)
   const combo = /\s\+\s|\b(kit|combo|conjunto)\b|\b[2-9]\s*(unidades|unid|un|pecas|pcs)\b|\b(2|duas|dois)\s+(smart\s+)?tvs?\b/.test(t);
@@ -1174,7 +1212,7 @@ function cartaoModelo(g) {
         : el("span", { class: "foto-emoji" }, "🛍️")),
       el("div", { class: "modelo-texto" },
         el("h3", { title: titulo }, titulo),
-        el("p", { class: "modelo-resumo" }, `${g.modelo.combo ? "" : "Modelo "}${g.modelo.cod} · em ${g.ofertas.length} lojas · a partir de `, el("strong", {}, `R$ ${brl(barata.preco)}`),
+        el("p", { class: "modelo-resumo" }, `${g.modelo.combo || g.modelo.porNome ? "" : "Modelo "}${g.modelo.cod} · em ${g.ofertas.length} lojas · a partir de `, el("strong", {}, `R$ ${brl(barata.preco)}`),
           g.conferido && el("span", { class: "modelo-conferido", title: "Conferimos anúncio por anúncio que é o mesmo produto" }, " · ✓ conferido")))),
     el("ul", { class: "modelo-lojas" }, ...g.ofertas.map((o, i) => {
       const loja = infoLoja(o);
@@ -1205,7 +1243,7 @@ function desenharComparacao(lista) {
     caixa.replaceChildren(el("h2", { class: "comparacao-cabeca" }, "⚖️ Modo comparação"),
       el("p", { class: "comparacao-vazio" }, estado.completando ? "Procurando o mesmo modelo em mais de uma loja…"
         : "Nesta busca não achamos o mesmo modelo em mais de uma loja. O modo comparação funciona melhor com eletrodomésticos, "
-          + "eletroportáteis e TVs: experimente geladeira, micro-ondas, freezer, lava e seca, liquidificador ou smart tv 55."));
+          + "eletroportáteis, TVs e celulares: experimente geladeira, micro-ondas, lava e seca, smart tv 55 ou iphone 16."));
     return;
   }
   const mostrar = grupos.slice(0, modelosMostrados);

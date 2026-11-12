@@ -1,7 +1,8 @@
 // Robô de casar produtos (lib/casar.js): a chave do modelo, quais pares perguntar e um passo inteiro com banco e IA de
 // mentira (grava os vereditos, não pergunta de novo, respeita o teto). Uso: node testes/casar.mjs
 import { DatabaseSync } from "node:sqlite";
-import { chaveDoModelo, gruposDaBusca, proximoPar, idDoPar, passoDeCasar, casadosDaBusca, casadosDosIds, BUSCAS_EXTRAS } from "../lib/casar.js";
+import { readFileSync } from "node:fs";
+import { chaveDaOferta, chaveDoModelo, gruposDaBusca, proximoPar, idDoPar, passoDeCasar, casadosDaBusca, casadosDosIds, BUSCAS_EXTRAS } from "../lib/casar.js";
 
 let falhas = 0;
 const ok = (cond, msg) => { if (!cond) { falhas++; console.log(`✗ ${msg}`); } };
@@ -64,6 +65,20 @@ ok(r3.perguntados === 0 && r3.resta, `teto zerado: ${JSON.stringify(r3)}`);
 const r4 = await passoDeCasar(env, { q: "outra" }, async () => ofertas.map((o) => ({ ...o, id: `x${o.id}` })), { pedir: async () => ({ ok: false, status: 401, text: async () => "chave inválida" }) });
 ok(r4.erros === 1 && /401/.test(r4.ultimoErro) && (await casadosDaBusca(DB, "outra")).length === 0, `IA com erro: ${JSON.stringify(r4)}`);
 ok((await passoDeCasar({ DB }, { q: "x" }, async () => [])).erro, "sem chave: erro");
+
+// Pares por nome (celular, smartwatch, console): marca + modelo + armazenamento
+const cel = (titulo, secao = "Celulares") => chaveDaOferta({ titulo, secao });
+ok(cel("Smartphone Samsung Galaxy A15 128GB 4GB RAM Câmera Tripla 50MP Tela 6,5\" 5G") === "samsung|nome|a15|128gb", `celular: ${cel("Smartphone Samsung Galaxy A15 128GB 4GB RAM Câmera Tripla 50MP Tela 6,5\" 5G")}`);
+ok(cel("Celular Samsung Galaxy A15 4G 128gb 4gb Ram Dual Sim Azul SM-A155M") === "samsung|nome|a15|128gb", "celular: código do fabricante não entra");
+ok(cel("Samsung Galaxy A15 256GB") !== cel("Samsung Galaxy A15 128GB") && cel("Samsung Galaxy A16 128GB") !== cel("Samsung Galaxy A15 128GB"), "celular: armazenamento e modelo separam");
+ok(cel("Celular Motorola Edge 60 Pro 256GB") !== cel("Celular Motorola Edge 60 256GB"), "celular: Pro separa");
+ok(cel("Samsung Galaxy S26+ 256GB Câm. Tripla 50+12+10MP") === cel("Samsung Galaxy S26 Plus 5G 256GB 12GB RAM"), `S26+ = S26 Plus: ${cel("Samsung Galaxy S26+ 256GB Câm. Tripla 50+12+10MP")}`);
+ok(cel("Kit 2 Celulares Samsung Galaxy A15 128GB") === null && cel("Celular Samsung bom e barato") === null, "kit e nome sem modelo: sem chave");
+ok(cel("Geladeira Brastemp Frost Free 375 litros 2 portas", "Eletrodomésticos") === null, "eletrodoméstico nunca é juntado pelo nome");
+ok(cel("Console Sony Playstation 5 Slim 1TB Branco", "Games") === "playstation|nome|5+slim|1tb", `console: ${cel("Console Sony Playstation 5 Slim 1TB Branco", "Games")}`);
+// A cópia do site é igual à do robô
+const trecho = (arq) => (readFileSync(new URL(arq, import.meta.url), "utf8").match(/\/\/ >>> nomeDoModelo[\s\S]*?\/\/ <<< nomeDoModelo/) || [""])[0];
+ok(trecho("../lib/casar.js").length > 500 && trecho("../lib/casar.js") === trecho("../public/assets/app.js"), "nomeDoModelo de app.js igual à de lib/casar.js");
 
 console.log(falhas ? `✗ ${falhas} falha(s)` : "✓ robô de casar: tudo certo");
 process.exitCode = falhas ? 1 : 0;
