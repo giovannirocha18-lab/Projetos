@@ -309,6 +309,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   ordem" (`.barra-lista .botao-filtros`) abre a mesma `#filtros` como gaveta à esquerda (bloco "TESTE da opção 2" no FIM de
   estilo.css; tem que ficar no fim para ganhar das regras de `.filtros`). Falta ele dizer se fica a 1 ou a 2; para voltar à 1,
   o comentário do bloco diz como.
+- **12/11 (noite), print "xiaomi 18 pro"** (sugestão vinda das tendências do ML; o celular não está à venda): a lista mostrava
+  liquidificador/patinete Xiaomi e tinta "Super Pro 18 Litros" como produto e escondia as capas. Regra nova em
+  `separarAcessorios` (lib/relevancia.js, `MINIMO_DE_ACESSORIOS_DELE` = 5): busca de 2+ palavras sem NENHUM produto com todas,
+  mas com 5+ acessórios que batem → o resto vira "parecido" depois dos acessórios e o site mostra o aviso "não está à venda".
+  Caso em testes/busca.mjs. No ar ✅. **Falta (oferecido ao Giovanni)**: tirar das sugestões os termos de tendência sem produto.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
