@@ -321,6 +321,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   nenhum produto PRINCIPAL (não mais "nenhum com todas as palavras") e o site repete a conta na lista inteira
   (`rebaixarSemProduto` em app.js, porque os lotes seguintes chegam separados; desfaz se um lote trouxer o produto).
   Conferido em 26 buscas reais: nenhuma busca normal perdeu produto.
+- 12/11 (noite): **botão "⚖️ Comparador" ao lado do "Frete grátis"** na busca (`.botao-comparador`, `[data-comparador]`,
+  `marcarBotoesComparador` em app.js: marcado liga o Modo comparação, desmarcado desliga; roxo, cheio com ✓ quando ligado).
+  Modo ligado dentro de UMA loja (print "notebook" na loja ML): aviso "Você está buscando só na loja X… busque em todas as lojas".
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
