@@ -301,7 +301,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Teste com dados reais: 15 buscas → 111 grupos (bons: antipulgas, ração, whey, creatina; perfume fraco: marketplace cheio
   de genérico). Faltam 28 categorias (lista dada ao Giovanni: Maquiagem, Skincare, Cabelo, Bebês, Brinquedos… fazem sentido).
 - 12/11 (noite): **fundo em degradê no alto da página** (lilás → rosa, some em 640 px; `body` em estilo.css) e **página de volta a
-  1.200 px no meio** (`max-width: 1240px`; Giovanni quis margem dos lados como no print de tela larga; ofertas ficam 3 por linha em notebook).
+  1.200 px no meio** → ficou pequena na tela dele → **largura = 84% da tela** (`max-width: min(1800px, max(84vw, 1000px))`; "ficou bom").
+  **Início sem a barra lateral no computador** (pedido dele, "como o ML", opção 1 "para testar"): `body.modo-inicio .filtros`
+  some em telas ≥ 861 px e o cabeçalho ganhou o botão **"☰ Categorias"** (`#abrir-categorias` → `#menu-categorias`, as 40 em 4
+  colunas; `abrirMenuCategorias` em app.js). Busca, categoria e lojas seguem com os filtros à esquerda; celular não mudou.
+  Opção 2 (busca também sem lateral, filtros num botão "Filtrar") ficou só proposta.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
