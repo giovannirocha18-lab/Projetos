@@ -251,7 +251,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   prontas vão às lojas na hora) e mais seções (Informática, Ferramentas, Celulares, Fones, Caixas de som, Games, Smartwatches):
   nessas o site só mostra o que a IA confirmou (`SECOES_SO_CONFERIDAS`). **Conferir em 13/11**: pares/custo/tempo da fase casar
   e se notebook/furadeira/celular ganharam cartões. **Falta (próximo)**: celular e outros SEM código no nome (pares por nome
-  parecido, como no teste de 11/11: "Galaxy A15 128GB") — ainda não feito.
+  parecido) — **feito 12/11**: `nomeDoModelo` (lib/casar.js, cópia em app.js entre `// >>> nomeDoModelo`; teste confere as duas):
+  marca + palavras de modelo (a15, 16, pro, max…) + armazenamento; Celulares/Smartwatches sempre pelo nome, Informática/Fones/
+  Caixas/Games só sem código; +30 buscas de celular em `BUSCAS_EXTRAS`. Só aparece no site depois que o robô conferir
+  (noite de 13/11 ou `painel…/api/painel/robo-noite?comecar=casar`). Teste com dados reais: iphone 10 grupos, celular 12.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
 - 11/11: atalho "⚖️ Comparador" no celular (`#atalho-comparador`, 2º da fila `.atalhos-cel`): liga/desliga o Modo comparação, fica roxo ligado e leva à caixa de busca.
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
