@@ -471,7 +471,9 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 /* Página: barra lateral (ordem, categorias, lojas, filtros) + conteúdo */
 /* Cabeçalho, página e rodapé usam a tela toda: a barra lateral encosta na esquerda */
 /* Conteúdo com 1.200 px no meio da tela (Giovanni, 12/11/2026: de volta ao estreito, com margem dos lados para o fundo em degradê aparecer; em 10/11 tinha pedido 1.400); o fundo do topo vai de ponta a ponta */
-.topo .container, .pagina, .rodape .container { max-width: 1240px; margin-left: auto; margin-right: auto; padding-left: 20px; padding-right: 20px; }
+/* 12/11/2026 (2º ajuste do Giovanni: 1.200 fixo deixava os filtros longe da borda na tela grande dele): a largura acompanha
+   a tela (84% dela, margem de 8% de cada lado), nunca menos de 1.000 px nem mais de 1.800 px */
+.topo .container, .pagina, .rodape .container { max-width: min(1800px, max(84vw, 1000px)); margin-left: auto; margin-right: auto; padding-left: 20px; padding-right: 20px; }
 @media (max-width: 640px) { .topo .container, .pagina, .rodape .container { padding-left: 16px; padding-right: 16px; } }
 .pagina { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; align-items: start; }
 .pagina-conteudo { min-width: 0; }
