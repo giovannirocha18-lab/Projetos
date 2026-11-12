@@ -243,6 +243,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Teste do GitHub apagado. **Conferir em 12/11**: pares/custo na aba Robô e `/api/casados?q=geladeira`. Limite visto: o
   navegador às vezes tem outro anúncio da mesma loja (não conferido → fica pela regra). Depois: ampliar para celular/notebook
   (pares por nome). Giovanni tem US$ 10 de saldo na Anthropic. PRF535I e PRF535ID são modelos diferentes (o site já separa).
+- **Madrugada 12/11, 1ª noite do robô de casar ✅**: rodada inteira (589 buscas, 73 com grupos), 651 pares, 604 iguais, 47 não, 0 erros, US$ 0,08. No site: geladeira 17 de 27 cartões "✓ conferido", micro-ondas 12 de 14. Categorias da manhã 40 de 40, 0 lentas. Limite: só buscas da lista das prontas ("smart tv" tem 23 pares; "smart tv 55" e "tv 50" não estão na lista → 0, seguem pela regra); furadeira/notebook 0 grupos (seção fora). Teto segue US$ 4 (gasto real centavos; voltar a 0,50 se o Giovanni quiser).
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
 - 11/11: atalho "⚖️ Comparador" no celular (`#atalho-comparador`, 2º da fila `.atalhos-cel`): liga/desliga o Modo comparação, fica roxo ligado e leva à caixa de busca.
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
