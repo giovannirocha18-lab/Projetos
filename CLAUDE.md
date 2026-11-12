@@ -273,6 +273,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **10/11 (tarde)**: ML na busca passa de 24: páginas 2–10 vêm do banco (`paginaDoBanco`: mais vendidos que batem + catálogo
   guardado com preço; sem consulta ao ML). Link da AliExpress curto (`/ir/ali/<id>` → `destinoAli` gera o de afiliado no clique,
   cache 30 dias; era 40% da resposta, busca no celular mais lenta). Foto ruim no "Em alta no ML": pôr o id em `VITRINE_FORA`.
+- **Madrugada 12/11 (#141 + robô da noite)**: tudo verde. Awin +248 (713 preços), lista Shopee sem mudança (99.936), IA 331 categorias (US$ 0,07), 16 lojas nas buscas. Robô de casar 1ª noite: 589 buscas, 651 pares (604 iguais, 47 diferentes), US$ 0,08, 0 erros. Categorias da manhã 40/40, 0 lentas (05h31 do Giovanni). Site: air fryer 765 (ML 18), celular ML 72.
 - **Madrugada 11/11 (#139 + robô da noite)**: tudo verde. GitHub: Awin +566 novos (1.127 preços), lista Shopee 99.936, IA 324 categorias (US$ 0,03), 16 lojas nas buscas, sem loja nova. Cloudflare: ML fim ~02h58, lojas fim ~03h27 (horário do Giovanni). Site: air fryer 571 (ML 24, ⚡Full 7), celular ML 24 atuais. Cozinha renovada: 438, sem inversora/livro ✅.
 - **Madrugada 10/11 (#135 + robô da noite)**: 1ª noite completa com GitHub público + Cloudflare ✅. GitHub 14 min (Awin +389/705
   preços, 673 MB; lista Shopee 99.921 (trocou 84 mil); IA 494 categorias corrigidas, US$ 0,01). Cloudflare: Worker chamou sozinho,
