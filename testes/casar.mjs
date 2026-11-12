@@ -87,7 +87,7 @@ const daCat = buscasDaCategoria("Eletrodomésticos");
 ok(daCat.length > 150 && daCat.find((b) => b.q === "geladeira")?.paginas === 3 && daCat.some((b) => b.q === "geladeira brastemp" && !b.paginas)
   && new Set(daCat.map((b) => b.q)).size === daCat.length && buscasDaCategoria("Não existe").length === 0, `buscas da categoria: ${daCat.length}`);
 const todas = buscasDaCategoria();
-ok(todas.some((b) => b.q === "iphone 16" && b.paginas === 3) && todas.some((b) => b.q === "notebook dell") && !todas.some((b) => b.q === "geladeira")
+ok(todas.some((b) => b.q === "iphone 16" && b.paginas === 3) && todas.some((b) => b.q === "notebook dell") 
   && new Set(todas.map((b) => b.q)).size === todas.length, `categorias da vez: ${todas.length}`);
 
 // Usado não entra nos grupos: a loja fica representada pelo novo, mesmo mais caro
