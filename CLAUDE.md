@@ -272,7 +272,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   modelo: o robô junta por peso/volume do nome + palavras raras em comum (`gruposDeConsumo`, `tamanhoDoTitulo`,
   `SECOES_DE_CONSUMO` em lib/casar.js; kit e anúncio sem tamanho ficam fora) e a IA decide (sabor diferente = igual). O site
   NÃO repete a conta: junta só pelos vereditos "igual" entre os anúncios da tela (`SECOES_POR_VEREDITO`, `gruposPorVeredito`
-  em app.js; cartão sem "Modelo X"). `CATEGORIAS_DA_VEZ` = as 3 (330 buscas): **esvaziar depois da 1ª rodada completa**.
+  em app.js; cartão sem "Modelo X"). **Rodada feita 12/11 à noite**: 330 buscas, 2.170 pares, 765 iguais, US$ 0,31, 19 erros
+  da IA (resposta cortada); `CATEGORIAS_DA_VEZ` vazia de novo. No ar: bravecto 6 cartões, ração golden 9, antipulgas 11,
+  creatina 4, whey 3, perfume masculino 3, malbec 0. Projetor: Giovanni perguntou e decidiu deixar fora (genéricos sem marca).
   Teste com dados reais: 15 buscas → 111 grupos (bons: antipulgas, ração, whey, creatina; perfume fraco: marketplace cheio
   de genérico). Faltam 28 categorias (lista dada ao Giovanni: Maquiagem, Skincare, Cabelo, Bebês, Brinquedos… fazem sentido).
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
