@@ -1058,29 +1058,61 @@ const TERMO_NAO_MODELO = new Set(["110v", "127v", "220v", "bivolt", "4k", "8k", 
 const SECOES_POR_NOME = new Set(["Celulares"]);
 const SECOES_NOME_SE_FALTAR = new Set(["Informática"]);
 // >>> nomeDoModelo (igual em lib/casar.js e public/assets/app.js)
-const QUALIFICADOR = new Set(["pro", "max", "plus", "ultra", "lite", "fe", "mini", "note", "edge", "neo", "fold", "flip", "air", "se", "slim", "oled", "play", "power", "fusion", "razr", "watch", "buds", "fit", "band", "active", "classic", "digital"]);
-const NAO_E_MODELO_ANTES = new Set(["ram", "camera", "cameras", "tela", "garantia", "memoria", "bateria", "ate", "com", "de", "e", "x", "em", "por", "android", "ios", "versao", "nfe", "nf", "windows", "win", "office", "wifi", "bluetooth"]);
+const QUALIFICADOR = new Set(["pro", "max", "plus", "ultra", "lite", "fe", "mini", "note", "edge", "neo", "fold", "flip", "air", "se", "slim", "play", "power", "fusion", "razr"]);
+const NAO_E_MODELO_ANTES = new Set(["ram", "camera", "cameras", "tela", "garantia", "memoria", "bateria", "ate", "com", "de", "e", "x", "em", "por", "android", "andoid", "and", "ios", "versao", "nfe", "nf", "windows", "win", "office", "wifi", "bluetooth",
+  "interna", "externa", "glass", "shield", "hyperos", "miui", "ui", "lytia", "gen", "geracao", "ou"]);
 const DE_CAMERA = new Set(["camera", "cameras", "cam", "tripla", "dupla", "quadrupla", "tela", "display"]);
-const NAO_E_MODELO_DEPOIS = new Set(["chips", "chip", "ano", "anos", "meses", "mes", "cores", "cor", "unidades", "unidade", "pecas", "camadas", "cameras", "camera", "polegadas", "pol", "mp", "gb", "tb", "mah", "hz", "w", "v", "mm", "cm", "dias", "nucleos", "em", "x", "jogos", "controles", "controle", "g"]);
-function nomeDoModelo(tituloNormalizado, marca) {
-  const t = tituloNormalizado;
-  if (!marca || /\s\+\s|\b(kit|combo|conjunto)\b|\b[2-9]\s*(unidades|unid|un|pecas|pcs)\b/.test(t)) return null;
-  // Fora: números com vírgula/ponto (tela 6,7"), somas de câmeras (50+12+10MP); "S26+" vira "s26 plus"
-  const palavras = t.replace(/\d+(\+\d+)+ ?mp/g, " ").replace(/\d+[.,]\d+\S*/g, " ").replace(/([a-z0-9])\+(?=\s|$)/g, "$1 plus")
+const NAO_E_MODELO_DEPOIS = new Set(["chips", "chip", "ano", "anos", "meses", "mes", "cores", "cor", "unidades", "unidade", "pecas", "camadas", "cameras", "camera", "polegadas", "pol", "mp", "gb", "tb", "mah", "hz", "w", "v", "mm", "cm", "dias", "nucleos", "em", "x", "jogos", "controles", "controle", "g",
+  "ram", "gen", "geracao"]);
+// Submarcas: "Redmi Note 15" e "Xiaomi Redmi Note 15" são o mesmo aparelho (12/11/2026: ficavam em chaves diferentes)
+const MARCA_MAE = { redmi: "xiaomi", poco: "xiaomi", galaxy: "samsung", moto: "motorola", apple: "iphone" };
+// O que tem número no nome do anúncio e NÃO é o modelo (12/11/2026, medido em 2.258 anúncios de celular): processador
+// ("Snapdragon 7s Gen 4", "Helio G99-Ultra", "Chip A18"), memória RAM ("8+256", "4GB RAM + 8GB RAM Boost", "256/8GB"),
+// soma de câmeras ("50+12+10"), tela ('6, 9"') e frases com ultra/digital que não são do nome
+const PROCESSADOR = /\b(snapdragon|dimensity|helio|unisoc|mediatek|exynos|bionic|tensor|qualcomm)\b[^a-z0-9]*(?:(?!\d+ ?(?:gb|tb|mah|mp|hz|w)\b)(?:elite|gen|geracao|ultra|max|pro|plus|octa|core|4g|5g|[a-z]{0,2}\d\w*)\b[^a-z0-9]*)*/g;
+function semRuidoDeFicha(t, marca) {
+  let s = ` ${t} `
+    .replace(PROCESSADOR, " ")
+    .replace(/\b(chip|chipset|processador|cpu)\b [a-z]{0,2}\d\w*( pro\b| bionic\b)?/g, " ")
+    .replace(/\b\d+a geracao\b( \d\b)?|\bgen \d\b|\b\d gen\b/g, " ")
+    .replace(/\d+(\+\d+){2,}( ?mp)?|\d+\+\d+ ?mp/g, " ") // câmeras
+    .replace(/\d+, ?\d+ ?("|''|”|pol)/g, " ") // tela 6, 9"
+    .replace(/\b\d{1,2} ?(gb)? ?(de )?(ram)? ?\+ ?\d{1,2} ?gb( de)? ?ram( boost)?/g, " ") // 4GB RAM + 8GB RAM Boost
+    .replace(/\(\d{1,2} ?\+ ?\d{1,2}\)/g, " ") // 16gb Ram(8+8)
+    .replace(/\b\d{1,2} ?(?:gb)? ?(?:de )?(?:ram )?[+/] ?(\d{2,4}) ?(?:gb)?(?![\d/])/g, " $1gb ") // 8+256, 8GB+256GB, 8/256GB
+    .replace(/\b(\d{2,4}) ?(?:gb)? ?[+/] ?\d{1,2} ?gb( de)?( ram)?\b/g, " $1gb ") // 256GB+8GB, 256/8GB RAM
+    .replace(/\b(\d{2,4}) ?\/ ?(\d{2,4}) ?gb\b/g, " $1gb $2gb ") // 256/512GB: dois tamanhos no mesmo anúncio
+    .replace(/\b\d{1,2} ?gb( de)? ram( boost)?\b|\bram( de)? \d{1,2} ?gb\b|\b\d{1,2} ?(gb)?ram\b/g, " ")
+    .replace(/\bultra[- ]?(fino|fina|rapid[oa]|brilhante|wide|grande angular|resistente)\b|\bimpressao digital\b/g, " ")
+    .replace(/\s\+\s(?=selfie|frontal|camera|cam\b)/g, " ");
+  if (marca === "iphone") s = s.replace(/\ba1\d\b( pro\b| bionic\b)?/g, " ");
+  return s;
+}
+function nomeDoModelo(tituloNormalizado, marcaDoAnuncio) {
+  const marca = MARCA_MAE[marcaDoAnuncio] || marcaDoAnuncio;
+  if (!marca) return null;
+  const t = semRuidoDeFicha(tituloNormalizado, marca);
+  // Kit, combo e celular com brinde de valor (relógio, fone) não se comparam com o aparelho sozinho
+  if (/\s\+\s|\b(kit|combo|conjunto)\b|\b[2-9]\s*(unidades|unid|un|pecas|pcs)\b|\bgalaxy (fit|buds|watch)|\b(e|com) (fone|smartwatch|relogio)\b/.test(t)) return null;
+  // Fora: números com vírgula/ponto (tela 6,7"); "S26+" vira "s26 plus"
+  const palavras = t.replace(/\d+[.,]\d+\S*/g, " ").replace(/([a-z0-9])\+(?=\s|$)/g, "$1 plus")
     .replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(Boolean);
   const modelo = [];
   for (let i = 0; i < palavras.length; i++) {
     const p = palavras[i];
     if (QUALIFICADOR.has(p)) { if (!DE_CAMERA.has(palavras[i - 1]) && !DE_CAMERA.has(palavras[i - 2])) modelo.push(p); continue; }
-    if (!/\d/.test(p) || p.length > 8 || /^(ipx?\d+|\d+atm)$/.test(p) || MEDIDA_NAO_MODELO.test(p) || TERMO_NAO_MODELO.has(p) || /^(19|20)\d\d$/.test(p) || /^\d+x\d*$/.test(p) || /^\d{3,}$/.test(p) || /^[a-z]+\d{3,}[a-z]+$/.test(p)) continue; // por último: código do fabricante ("SM-A155M")
+    if (!/\d/.test(p) || p.length > 8 || /^(ipx?\d+|\d+atm|\d+anos?|\d+d)$/.test(p) || (MEDIDA_NAO_MODELO.test(p) && !(/^\d\dx$/.test(p) && palavras[i - 1] === "note")) || TERMO_NAO_MODELO.has(p) || /^(19|20)\d\d$/.test(p) || /^\d+x\d+$/.test(p) || /^\dx$/.test(p) || (/^\d+x$/.test(p) && palavras[i - 1] === "zoom") || /^\d{3,}$/.test(p)
+      || /^[a-z]+\d{3,}[a-z]+$/.test(p) || /^[a-z]{1,3}\d{4,}[a-z]*$/.test(p)) continue; // por último: código do fabricante ("SM-A155M", "XT2503")
     if (/^\d+$/.test(p) && (NAO_E_MODELO_ANTES.has(palavras[i - 1]) || NAO_E_MODELO_DEPOIS.has(palavras[i + 1]))) continue;
     modelo.push(p);
   }
   if (!modelo.some((p) => /\d/.test(p))) return null;
-  // Armazenamento: o maior "NNN GB" a partir de 32 (o menor costuma ser a memória RAM) ou "N TB"
-  const gbs = [...t.matchAll(/\b(\d{2,4}) ?gb?\b/g)].map((m) => +m[1]).filter((n) => [32, 64, 128, 256, 512, 1024].includes(n));
-  const tb = (t.match(/\b([1-4]) ?tb\b/) || [])[1];
-  const guarda = tb ? `${tb}tb` : gbs.length ? `${Math.max(...gbs)}gb` : "";
+  // Armazenamento: "NNN GB" a partir de 32 ou "N TB". Anúncio que lista vários ("128GB / 256GB") não diz qual está à
+  // venda por aquele preço: fica sem chave
+  const gbs = [...new Set([...t.matchAll(/\b(\d{2,4}) ?gb?\b/g)].map((m) => +m[1]).filter((n) => [32, 64, 128, 256, 512, 1024].includes(n)))];
+  const tbs = [...new Set([...t.matchAll(/\b([1-4]) ?tb\b/g)].map((m) => m[1]))];
+  if (tbs.length + gbs.length > 1) return null;
+  const guarda = tbs.length ? `${tbs[0]}tb` : gbs.length ? `${gbs[0]}gb` : "";
   const unicas = [...new Set(modelo)];
   return { chave: `${marca}|nome|${[...unicas].sort().join("+")}${guarda ? `|${guarda}` : ""}`, cod: [...unicas, guarda].filter(Boolean).join(" ").toUpperCase() };
 }

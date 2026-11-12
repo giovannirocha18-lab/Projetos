@@ -275,6 +275,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   `SECOES_POR_VEREDITO` vazias, código guardado para religar). Vereditos antigos ficam no banco sem uso. Ideias de melhoria
   ditas a ele: mais páginas por busca, menos cartões de só 2 lojas, anúncio da Shopee com vários tamanhos no nome.
   O item abaixo (Pets/Suplementos/Perfumes) ficou só como histórico.
+  **Melhoria 1+2 em Celulares (12/11 noite)**: `nomeDoModelo` relida (`semRuidoDeFicha`, `MARCA_MAE`): " + " de RAM Boost/selfie
+  não é kit (a loja Motorola inteira ficava fora), RAM/processador/câmeras/tela/Android fora da chave, "8+256" = 256 GB,
+  Redmi/Poco → xiaomi, Galaxy → samsung; anúncio com VÁRIOS tamanhos ("256GB / 512GB") e celular + relógio de brinde ficam
+  sem chave. Medido em 2.258 anúncios (12 buscas): modelos em 2+ lojas 65 → 126. Falta a ideia 3 (IA decidir o anúncio de
+  vários tamanhos pelo preço), não pedida. `CATEGORIAS_DA_VEZ` = ["Celulares"]: **esvaziar depois da rodada**.
 - **12/11 (noite): comparador em Pets, Suplementos e Perfumes** (Giovanni escolheu as 3 das 31 que faltavam). Sem código de
   modelo: o robô junta por peso/volume do nome + palavras raras em comum (`gruposDeConsumo`, `tamanhoDoTitulo`,
   `SECOES_DE_CONSUMO` em lib/casar.js; kit e anúncio sem tamanho ficam fora) e a IA decide (sabor diferente = igual). O site

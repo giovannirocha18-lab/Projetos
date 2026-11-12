@@ -78,6 +78,18 @@ ok(cel("Samsung Galaxy S26+ 256GB Câm. Tripla 50+12+10MP") === cel("Samsung Gal
 ok(cel("Kit 2 Celulares Samsung Galaxy A15 128GB") === null && cel("Celular Samsung bom e barato") === null, "kit e nome sem modelo: sem chave");
 ok(cel("Geladeira Brastemp Frost Free 375 litros 2 portas", "Eletrodomésticos") === null, "eletrodoméstico nunca é juntado pelo nome");
 ok(cel("Console Sony Playstation 5 Slim 1TB Branco", "Games") === null && cel("Apple Watch Series 10 46mm", "Smartwatches") === null, "Games e Smartwatches saíram do casamento");
+// 12/11/2026 (medido em 2.258 anúncios reais): memória, processador, câmera e tela não são o modelo; " + " de RAM/selfie não é kit
+ok(cel("Smartphone Motorola Moto G17 4g - 128gb 4gb Ram + 8gb Ram Boost, Camera 50mp Sony Lytia 600") === "motorola|nome|g17|128gb"
+  && cel("Smartphone Motorola Moto g35 5G - 128GB 4GB RAM+8GB Ram Boost, e Camera 50MP") === "motorola|nome|g35|128gb", `RAM Boost não é kit: ${cel("Smartphone Motorola Moto g35 5G - 128GB 4GB RAM+8GB Ram Boost, e Camera 50MP")}`);
+ok(cel("Smartphone Samsung Galaxy S25 FE 256GB 5G 8GB RAM Azul Marinho 6,7\" Câm. Tripla + Selfie 12MP") === "samsung|nome|fe+s25|256gb", `selfie não é kit: ${cel("Smartphone Samsung Galaxy S25 FE 256GB 5G 8GB RAM Azul Marinho 6,7\" Câm. Tripla + Selfie 12MP")}`);
+ok(cel("Celular Samsung Galaxy A56 128gb 8 Ram Grafite") === "samsung|nome|a56|128gb" && cel("Smartphone Samsung Galaxy A56 5G A566E Preto, 6.7\" - 5G+Wi-Fi+NFC, Câm.Tras 50MP, Andoid 15, 256GB, 8GB RAM") === "samsung|nome|a56|256gb"
+  && cel("Celular Samsung Galaxy S26 5G, 512GB, 12GB RAM, Galaxy AI, Câmera Tripla de 50+12+10, Tela de 6.3\"") === "samsung|nome|s26|512gb", "memória, Android e câmeras fora da chave");
+ok(cel("Xiaomi Redmi Note 15 PRO+ 5G, Versão Global, Câmera 200MP, Processador Snapdragon® 7s Gen 4 256GB") === "xiaomi|nome|15+note+plus+pro|256gb"
+  && cel("Redmi Note 14 4G, 256GB/8GB RAM, Processador Helio G99-Ultra, Câmera 108MP") === "xiaomi|nome|14+note|256gb"
+  && cel("Celular Apple iPhone 16 128GB 5G Tela 6,1\" Chip A18 iOS Original Novo Lacrado") === "iphone|nome|16|128gb", `processador fora e submarca na marca-mãe: ${cel("Redmi Note 14 4G, 256GB/8GB RAM, Processador Helio G99-Ultra, Câmera 108MP")}`);
+ok(cel("realme C73 8+256 GB Smartphone Celular Versão Global") === "realme|nome|c73|256gb" && cel("Motorola Edge 60 12+256gb Verde") === "motorola|nome|60+edge|256gb", "8+256 = 256 GB");
+ok(cel("Xiaomi Poco X8 5g 512GB / 256GB Nfc Versão Global") === null && cel("iPhone 17 Pro Max Laranja 256GB • 512GB • 1TB") === null && cel("Xiaomi Redmi Note 15 5G 256/512GB e 8GB RAM") === null, "anúncio com vários tamanhos: sem chave");
+ok(cel("Smartphone Samsung Galaxy A57 5G Tela 6.7 256GB + Galaxy Fit 3") === null && cel("Smartphone Samsung Galaxy A37 5G Tela 6.7 128GB e Galaxy Fit 3") === null, "celular com relógio de brinde: sem chave");
 // A cópia do site é igual à do robô
 const trecho = (arq) => (readFileSync(new URL(arq, import.meta.url), "utf8").match(/\/\/ >>> nomeDoModelo[\s\S]*?\/\/ <<< nomeDoModelo/) || [""])[0];
 ok(trecho("../lib/casar.js").length > 500 && trecho("../lib/casar.js") === trecho("../public/assets/app.js"), "nomeDoModelo de app.js igual à de lib/casar.js");
