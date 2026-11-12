@@ -298,6 +298,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   creatina 4, whey 3, perfume masculino 3, malbec 0. Projetor: Giovanni perguntou e decidiu deixar fora (genéricos sem marca).
   Teste com dados reais: 15 buscas → 111 grupos (bons: antipulgas, ração, whey, creatina; perfume fraco: marketplace cheio
   de genérico). Faltam 28 categorias (lista dada ao Giovanni: Maquiagem, Skincare, Cabelo, Bebês, Brinquedos… fazem sentido).
+- 12/11 (noite): **fundo em degradê no alto da página** (lilás → rosa, some em 640 px; `body` em estilo.css) e **página de volta a
+  1.200 px no meio** (`max-width: 1240px`; Giovanni quis margem dos lados como no print de tela larga; ofertas ficam 3 por linha em notebook).
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
