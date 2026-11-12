@@ -255,17 +255,21 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   marca + palavras de modelo (a15, 16, pro, max…) + armazenamento; Celulares/Smartwatches sempre pelo nome, Informática/Fones/
   Caixas/Games só sem código; +30 buscas de celular em `BUSCAS_EXTRAS`. Só aparece no site depois que o robô conferir
   (noite de 13/11 ou `painel…/api/painel/robo-noite?comecar=casar`). Teste com dados reais: iphone 10 grupos, celular 12.
-- **12/11: casar por CATEGORIA INTEIRA** (Giovanni: "vamos por categoria; quando estiver toda feita me avise que escolho outra"):
-  `CATEGORIAS_PARA_CASAR`/`CATEGORIA_DA_VEZ` em lib/casar.js = **Eletrodomésticos** (228 buscas: tipos de produto com 3 páginas
-  juntas + produto+marca), vão PRIMEIRO na lista do robô (rota casar em robo-noite.js; resposta traz `categoria`). Rodada manual
-  de casar agora 3 h (Giovanni cola `painel…/api/painel/robo-noite?comecar=casar`; o Claude chama `/api/robo-noite?trilha=lojas`
-  em laço até `busca` passar de `buscasDaCategoria`). **Eletrodomésticos FEITA 12/11** (38 min): 228 buscas, 147 com grupos,
-  511 pares (493 iguais, 18 diferentes), US$ 0,06, 0 erros. No site: geladeira 29 de 31 conferidos, freezer 31/33, lava e seca
-  17/17, micro-ondas 14/14, smart tv 20/20. **Eletroportáteis e Ferramentas FEITAS 12/11** (lista
-  `CATEGORIAS_DA_VEZ`, 652 buscas, 1h40, US$ 0,05, 0 erros; ferramentas: 94 pares). **Rodar categoria de dia fez o ML/Shopee limitarem
-  o site** (print do Giovanni: "trident chiclete" sem ML) → categoria nova só de madrugada, ou com espera entre as buscas.
-  Atenção: na madrugada as 652 buscas das categorias vêm antes das prontas na fase casar (limite 120 min): ver em 13/11 se coube;
-  se não, tirar de CATEGORIAS_DA_VEZ as já feitas. **Giovanni escolhe a próxima categoria.**
+- **12/11: casar por CATEGORIA INTEIRA** (Giovanni: "vamos por categoria"): `CATEGORIAS_PARA_CASAR` em lib/casar.js (tipos de
+  produto com 3 páginas juntas + produto+marca); as de `CATEGORIAS_DA_VEZ` vão PRIMEIRO na lista do robô (rota casar em
+  robo-noite.js; resposta traz `categoria`/`buscasDaCategoria`). **FEITAS as 9**: Eletrodomésticos, Eletroportáteis, Ferramentas,
+  Celulares, Informática, Games, Smartwatches, Fones de ouvido, Caixas de som (~4.500 pares, ~US$ 0,55 no dia, 5 erros).
+  `CATEGORIAS_DA_VEZ` ficou VAZIA (noite leve). Para rodar de dia: Giovanni cola `painel…/api/painel/robo-noite?comecar=casar`
+  (3 h; NÃO recarregar essa aba: recomeça a rodada) e o Claude chama `/api/robo-noite?trilha=lojas` em laço até `busca` passar
+  de `buscasDaCategoria` (não parar em `"erro":`, só em fim/foraDaJanela/parou). Rodar de dia limita ML/Shopee por minutos
+  (Giovanni aceitou: site ainda não é público). Mudanças do dia no comparador: **4 anúncios mais baratos por loja** (`POR_LOJA`;
+  Giovanni: "não se apegar só ao mais barato"; linha da loja = mais barato entre os conferidos), **usado/seminovo fora**
+  (`USADO`, igual em app.js), **celular etc. por nome** (`nomeDoModelo`), **categoria com o modo ligado busca por trás os
+  principais produtos dela** (`TERMOS_DA_COMPARACAO`/`completarComparacaoDaCategoria` em app.js: Eletrodomésticos 5 → 178 modelos),
+  botão "⚖️ Comparador" no quadro do início, logotipo desliga o modo, quadro some ao desligar. No ar: geladeira 27 modelos,
+  iphone 17 8, samsung galaxy 6, galaxy s24 1, furadeira 5. As outras 31 categorias: só o que a vitrine/busca traz (sem lista).
+- 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
+  coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
 - 11/11: atalho "⚖️ Comparador" no celular (`#atalho-comparador`, 2º da fila `.atalhos-cel`): liga/desliga o Modo comparação, fica roxo ligado e leva à caixa de busca.
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.

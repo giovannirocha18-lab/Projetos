@@ -86,9 +86,8 @@ ok(trecho("../lib/casar.js").length > 500 && trecho("../lib/casar.js") === trech
 const daCat = buscasDaCategoria("Eletrodomésticos");
 ok(daCat.length > 150 && daCat.find((b) => b.q === "geladeira")?.paginas === 3 && daCat.some((b) => b.q === "geladeira brastemp" && !b.paginas)
   && new Set(daCat.map((b) => b.q)).size === daCat.length && buscasDaCategoria("Não existe").length === 0, `buscas da categoria: ${daCat.length}`);
-const todas = buscasDaCategoria();
-ok(todas.some((b) => b.q === "iphone 16" && b.paginas === 3) && todas.some((b) => b.q === "furadeira bosch") 
-  && new Set(todas.map((b) => b.q)).size === todas.length, `categorias da vez: ${todas.length}`);
+const todas = ["Celulares", "Ferramentas"].flatMap((c) => buscasDaCategoria(c));
+ok(todas.some((b) => b.q === "iphone 16" && b.paginas === 3) && todas.some((b) => b.q === "furadeira bosch") && Array.isArray(buscasDaCategoria()), `categorias: ${todas.length}`);
 
 // Usado não entra nos grupos: a loja fica representada pelo novo, mesmo mais caro
 const s24 = gruposDaBusca([{ id: "s-1", loja: "shopee", preco: 2000, titulo: "Usado: Galaxy S24 128GB Cinza Bom - Trocafy - Samsung", bate: true, secao: "Celulares" },
