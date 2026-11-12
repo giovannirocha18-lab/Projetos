@@ -18,7 +18,7 @@ import { awin } from "../../lib/fontes/awin.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
 import { mercadolivre } from "../../lib/fontes/mercadolivre.js";
-import { registrarBusca, tendenciaAceitavel } from "../../lib/buscas.js";
+import { registrarBusca, tendenciaAceitavel, semProdutoAVenda, anotarSemProduto } from "../../lib/buscas.js";
 import { naoContar } from "../../lib/naoContar.js";
 import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
 import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js";
@@ -541,6 +541,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
     && ofertas.length >= 5 && tendenciaAceitavel(q)
     && (!lojas.mercadolivre.ok || ofertas.filter((o) => o.loja === "mercadolivre").length < POUCOS_ML)) {
     waitUntil(anotarNaFilaML(env.DB, q).catch(() => {}));
+  }
+  // Trouxe ofertas, mas nenhuma é o produto (só acessórios e parecidos): o termo sai das sugestões de tendência por 3 dias
+  // (lib/buscas.js). Vale também para o robô das prontas; só a busca comum, na 1ª página, no site todo
+  if (q && pagina === 1 && desde === 1 && !soLoja && !rapido && !categoria && env.DB && semProdutoAVenda(ofertas)) {
+    waitUntil(anotarSemProduto(env, q).catch(() => {}));
   }
   const resposta = responder({
     q,

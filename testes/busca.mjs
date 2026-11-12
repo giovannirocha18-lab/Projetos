@@ -11,6 +11,7 @@ import { separarAcessorios, produtoBuscado, temTodasAsPalavras, citaAlgumaPalavr
 import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
 import { categoriaDoProduto, categoriaPorNome, marcarSecoes, montarVitrine } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
+import { semProdutoAVenda } from "../lib/buscas.js";
 
 const CASOS = {
   // 11/11/2026 (print do Giovanni, "computador" na loja Mercado Livre): balança computadora no "Mais barato"
@@ -347,6 +348,8 @@ for (const [q, titulos, primeiro, naoBate] of [
   if (erradas.length || !ordem || saida.some((o) => !o.acessorio)) { falhas++; console.log(`✗ "xiaomi 18 pro": sem o celular, o resto é "parecido" e vem depois das capas (${erradas.map((o) => o.titulo).join(" | ")}; ordem ${ordem})`); }
   // Com o celular à venda nada muda: ele é o produto
   const comCelular = separarAcessorios([{ id: "c", titulo: "Smartphone Xiaomi 18 Pro 512GB 16GB RAM", preco: 6000 }, ...[...outros, ...capas].map((titulo, i) => ({ id: String(i), titulo, preco: 100 + i }))], "xiaomi 18 pro");
+  // E o termo sai das sugestões de tendência: a busca sem o celular conta como "sem produto à venda"; com ele, não
+  if (!semProdutoAVenda(saida) || semProdutoAVenda(comCelular) || semProdutoAVenda([])) { falhas++; console.log("✗ semProdutoAVenda: só capas = sem produto; com o celular (ou lista vazia) = não anota"); }
   if (comCelular[0].id !== "c" || comCelular[0].acessorio) { falhas++; console.log("✗ \"xiaomi 18 pro\" com o celular à venda: ele tem que ser o 1º produto"); }
 }
 
