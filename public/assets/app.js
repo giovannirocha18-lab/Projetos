@@ -4026,6 +4026,14 @@ function voltarAoInicio(e) {
   e?.preventDefault();
   zerarFiltros();
   $("input[name=ordem][value=relevancia]").checked = true;
+  // Voltar ao início também desliga o Modo comparação (print do Giovanni, 12/11/2026: o logotipo não limpava)
+  if (modoComparacao()) {
+    $("#modo-comparacao").checked = false;
+    $("#atalho-comparador").classList.remove("ligado");
+    $("#atalho-comparador").setAttribute("aria-pressed", "false");
+    $("#comparacao").hidden = true;
+    desenharAvisoComparacao();
+  }
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
   irPara("");
 }
@@ -4095,6 +4103,14 @@ function limparTudo() {
   if (estado.q && !estado.loja && !categoriaAtual() && temFiltroLigado()) return limparFiltros();
   zerarFiltros();
   $("input[name=ordem][value=relevancia]").checked = true;
+  // Voltar ao início também desliga o Modo comparação (print do Giovanni, 12/11/2026: o logotipo não limpava)
+  if (modoComparacao()) {
+    $("#modo-comparacao").checked = false;
+    $("#atalho-comparador").classList.remove("ligado");
+    $("#atalho-comparador").setAttribute("aria-pressed", "false");
+    $("#comparacao").hidden = true;
+    desenharAvisoComparacao();
+  }
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
   irPara("");
 }
