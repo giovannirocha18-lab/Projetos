@@ -18,14 +18,16 @@ const of = (id, loja, preco, titulo = "Geladeira Brastemp BRM45JB 375L") => ({ i
 const ofertas = [of("a-1", "a", 3000), of("a-2", "a", 3500), of("b-1", "b", 3100), of("c-1", "c", 900), of("d-1", "d", 3200),
   of("e-1", "e", 500, "Micro-ondas Electrolux ME36S 36L"), { ...of("f-1", "f", 3000), acessorio: true }, { ...of("g-1", "g", 3000), secao: "Moda feminina" }];
 const grupos = gruposDaBusca(ofertas);
-ok(grupos.length === 1 && grupos[0].map((o) => o.id).join() === "c-1,a-1,b-1,d-1", `grupos: ${JSON.stringify(grupos.map((g) => g.map((o) => o.id)))}`);
+ok(grupos.length === 1 && grupos[0].map((o) => o.id).join() === "c-1,a-1,b-1,d-1,a-2", `grupos: ${JSON.stringify(grupos.map((g) => g.map((o) => o.id)))}`);
 const v = new Map();
 const par = (m) => { const p = proximoPar(grupos[0], m); return p ? `${p.a.id}~${p.b.id}` : null; };
 ok(par(v) === "c-1~a-1", `1º par: ${par(v)}`);
-v.set(idDoPar("c-1", "a-1"), "diferente"); v.set(idDoPar("c-1", "b-1"), "diferente"); v.set(idDoPar("c-1", "d-1"), "nao_sei");
+v.set(idDoPar("c-1", "a-1"), "diferente"); v.set(idDoPar("c-1", "b-1"), "diferente"); v.set(idDoPar("c-1", "d-1"), "nao_sei"); v.set(idDoPar("c-1", "a-2"), "diferente");
 ok(par(v) === "a-1~b-1", `depois de separar a peça: ${par(v)}`);
 v.set(idDoPar("a-1", "b-1"), "igual"); v.set(idDoPar("a-1", "d-1"), "igual_outra_voltagem");
-ok(par(v) === null, `a=b e a=d: b com d não precisa de pergunta (${par(v)})`);
+ok(par(v) === "b-1~a-2", `a=b e a=d: b com d não precisa de pergunta; falta o 2º anúncio da loja a (${par(v)})`);
+v.set(idDoPar("b-1", "a-2"), "igual");
+ok(par(v) === null, `dois anúncios da mesma loja não são perguntados entre si (${par(v)})`);
 
 // Um passo inteiro: banco de mentira (SQLite) com a cara do D1 e IA de mentira (c-1 é uma peça: diferente de todos)
 const sqlite = new DatabaseSync(":memory:");
@@ -45,11 +47,11 @@ const pedir = async (_url, opcoes) => {
 };
 const env = { DB, ANTHROPIC_API_KEY: "chave-de-teste" };
 const r1 = await passoDeCasar(env, { q: "Geladeira  Brastemp" }, async () => ofertas, { pedir });
-ok(r1.perguntados === 5 && r1.iguais === 2 && r1.diferentes === 3 && !r1.resta && !r1.erros, `1º passo: ${JSON.stringify(r1)}`);
+ok(r1.perguntados === 7 && r1.iguais === 3 && r1.diferentes === 4 && !r1.resta && !r1.erros, `1º passo: ${JSON.stringify(r1)}`);
 const r2 = await passoDeCasar(env, { q: "geladeira brastemp" }, async () => ofertas, { pedir });
-ok(r2.perguntados === 0 && perguntas === 5, `2º passo não pergunta de novo: ${JSON.stringify(r2)}`);
+ok(r2.perguntados === 0 && perguntas === 7, `2º passo não pergunta de novo: ${JSON.stringify(r2)}`);
 const lidos = await casadosDaBusca(DB, " GELADEIRA brastemp ");
-ok(lidos.length === 5 && lidos.filter((p) => p[2] === 1).length === 2 && lidos.every((p) => p.length === 3), `o que o site lê: ${JSON.stringify(lidos)}`);
+ok(lidos.length === 7 && lidos.filter((p) => p[2] === 1).length === 3 && lidos.every((p) => p.length === 3), `o que o site lê: ${JSON.stringify(lidos)}`);
 ok((await casadosDaBusca(DB, "fogão")).length === 0, "busca sem pares: lista vazia");
 // Pelo que o site tem na tela (ids): só os pares entre eles, venham de que busca vierem
 const porIds = await casadosDosIds(DB, ["a-1", "b-1", "c-1", "zz-9"]);

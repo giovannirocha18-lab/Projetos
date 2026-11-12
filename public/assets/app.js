@@ -1162,19 +1162,37 @@ function gruposDeModelos(lista) {
     if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || !(SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(o.secao)) || USADO.test(normalizar(String(o.titulo || "")))) continue;
     const m = modeloDe(o);
     if (!m) continue;
-    if (!grupos.has(m.chave)) grupos.set(m.chave, { modelo: m, porLoja: new Map() });
+    if (!grupos.has(m.chave)) grupos.set(m.chave, { modelo: m, todas: [], lojas: new Set() });
     const g = grupos.get(m.chave);
-    const atual = g.porLoja.get(o.loja);
-    if (!atual || o.preco < atual.preco) g.porLoja.set(o.loja, o);
+    g.todas.push(o);
+    g.lojas.add(o.loja);
   }
-  pedirCasados([...grupos.values()].filter((g) => g.porLoja.size >= 2).flatMap((g) => [...g.porLoja.values()].map((o) => o.id)).slice(0, 600));
+  // De cada loja entram os mais baratos (até 4), não só o mais barato (Giovanni, 12/11/2026: "tem que pegar geral"): se o
+  // mais barato de uma loja for outra coisa, o seguinte ainda casa. Igual a gruposDaBusca em lib/casar.js
+  const candidatas = (g) => {
+    const porLoja = new Map();
+    for (const o of [...g.todas].sort((a, b) => a.preco - b.preco)) {
+      const daLoja = porLoja.get(o.loja) || [];
+      if (daLoja.length < 4) porLoja.set(o.loja, [...daLoja, o]);
+    }
+    return [...porLoja.values()].flat().sort((a, b) => a.preco - b.preco).slice(0, 16);
+  };
+  const comLojas = [...grupos.values()].filter((g) => g.lojas.size >= 2);
+  pedirCasados(comLojas.flatMap((g) => candidatas(g).map((o) => o.id)).slice(0, 600));
   const saida = [];
-  for (const g of grupos.values()) {
-    for (const parte of separarConferidos([...g.porLoja.values()].sort((a, b) => a.preco - b.preco))) {
+  for (const g of comLojas) {
+    for (const parte of separarConferidos(candidatas(g))) {
       // Preço muito fora do meio do grupo é outro produto com o mesmo código (peça, kit sem bateria, anúncio errado): sai.
       // O que a IA do robô conferiu como o mesmo produto fica, qualquer que seja o preço
       const meio = parte.ofertas[Math.floor(parte.ofertas.length / 2)].preco;
-      const ofertas = parte.ofertas.filter((o) => parte.conferidas.has(o) || (SECOES_COMPARAVEIS.has(o.secao) && o.preco >= meio * 0.55 && o.preco <= meio * 1.9));
+      const aceitas = parte.ofertas.filter((o) => parte.conferidas.has(o) || (SECOES_COMPARAVEIS.has(o.secao) && o.preco >= meio * 0.55 && o.preco <= meio * 1.9));
+      // Uma linha por loja: a mais barata entre as conferidas; sem conferida, a mais barata
+      const porLoja = new Map();
+      for (const o of aceitas) {
+        const atual = porLoja.get(o.loja);
+        if (!atual || (parte.conferidas.has(o) && !parte.conferidas.has(atual))) porLoja.set(o.loja, o);
+      }
+      const ofertas = [...porLoja.values()].sort((a, b) => a.preco - b.preco);
       if (ofertas.length < 2) continue;
       saida.push({ modelo: g.modelo, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco, conferido: ofertas.every((o) => parte.conferidas.has(o)) });
     }
