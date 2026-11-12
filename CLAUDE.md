@@ -258,8 +258,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **12/11: casar por CATEGORIA INTEIRA** (Giovanni: "vamos por categoria; quando estiver toda feita me avise que escolho outra"):
   `CATEGORIAS_PARA_CASAR`/`CATEGORIA_DA_VEZ` em lib/casar.js = **Eletrodomésticos** (228 buscas: tipos de produto com 3 páginas
   juntas + produto+marca), vão PRIMEIRO na lista do robô (rota casar em robo-noite.js; resposta traz `categoria`). Rodada manual
-  de casar agora 3 h. **Falta rodar**: Giovanni cola `painel…/api/painel/robo-noite?comecar=casar`, o Claude chama
-  `/api/robo-noite?trilha=lojas` em laço até passar da busca 228, confere e **avisa o Giovanni para escolher a próxima**.
+  de casar agora 3 h (Giovanni cola `painel…/api/painel/robo-noite?comecar=casar`; o Claude chama `/api/robo-noite?trilha=lojas`
+  em laço até `busca` passar de `buscasDaCategoria`). **Eletrodomésticos FEITA 12/11** (38 min): 228 buscas, 147 com grupos,
+  511 pares (493 iguais, 18 diferentes), US$ 0,06, 0 erros. No site: geladeira 29 de 31 conferidos, freezer 31/33, lava e seca
+  17/17, micro-ondas 14/14, smart tv 20/20. **Giovanni escolhe a próxima categoria** (criar a lista em CATEGORIAS_PARA_CASAR).
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
 - 11/11: atalho "⚖️ Comparador" no celular (`#atalho-comparador`, 2º da fila `.atalhos-cel`): liga/desliga o Modo comparação, fica roxo ligado e leva à caixa de busca.
 - 11/11: chip "🖤 Black Friday" saiu da linha dos atalhos "em alta" (pedido do Giovanni); segue na faixa de cima, no início e no celular.
