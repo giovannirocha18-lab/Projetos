@@ -1434,10 +1434,17 @@ $("#atalho-comparador").addEventListener("click", () => {
   $("#modo-comparacao").dispatchEvent(new Event("change"));
   if (modoComparacao() && !estado.q) document.querySelector("input[name=q]")?.focus();
 });
+// Botão "⚖️ Comparador" ao lado do "Frete grátis" na busca (pedido do Giovanni, 12/11/2026): marcado liga, desmarcado desliga
+const marcarBotoesComparador = () => document.querySelectorAll("[data-comparador]").forEach((b) => b.setAttribute("aria-pressed", String(modoComparacao())));
+document.querySelectorAll("[data-comparador]").forEach((b) => b.addEventListener("click", () => {
+  $("#modo-comparacao").checked = !modoComparacao();
+  $("#modo-comparacao").dispatchEvent(new Event("change"));
+}));
 $("#modo-comparacao").addEventListener("change", () => {
   const ligado = modoComparacao();
   $("#atalho-comparador").classList.toggle("ligado", ligado);
   $("#atalho-comparador").setAttribute("aria-pressed", String(ligado));
+  marcarBotoesComparador();
   modelosMostrados = MODELOS_POR_VEZ;
   // Desligou: o quadro some na hora, mesmo com uma busca ainda carregando (print do Giovanni, 12/11/2026)
   if (!ligado) $("#comparacao").hidden = true;
@@ -4155,6 +4162,7 @@ function voltarAoInicio(e) {
     $("#modo-comparacao").checked = false;
     $("#atalho-comparador").classList.remove("ligado");
     $("#atalho-comparador").setAttribute("aria-pressed", "false");
+    marcarBotoesComparador();
     $("#comparacao").hidden = true;
     desenharAvisoComparacao();
   }
@@ -4232,6 +4240,7 @@ function limparTudo() {
     $("#modo-comparacao").checked = false;
     $("#atalho-comparador").classList.remove("ligado");
     $("#atalho-comparador").setAttribute("aria-pressed", "false");
+    marcarBotoesComparador();
     $("#comparacao").hidden = true;
     desenharAvisoComparacao();
   }
