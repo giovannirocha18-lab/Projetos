@@ -1281,6 +1281,8 @@ $("#modo-comparacao").addEventListener("change", () => {
   $("#atalho-comparador").classList.toggle("ligado", ligado);
   $("#atalho-comparador").setAttribute("aria-pressed", String(ligado));
   modelosMostrados = MODELOS_POR_VEZ;
+  // Desligou: o quadro some na hora, mesmo com uma busca ainda carregando (print do Giovanni, 12/11/2026)
+  if (!ligado) $("#comparacao").hidden = true;
   desenharAvisoComparacao();
   if (ligado && !estado.q) toast("Modo comparação ligado: busque um produto para comparar as lojas ⚖️", 4000);
   desenharResultados();
@@ -2599,6 +2601,7 @@ function desenharResultados() {
 // Enquanto busca: uma barra de progresso que vai e volta embaixo do aviso (11/11/2026, pedido do Giovanni: saiu o boneco
 // empurrando o carrinho e, com ele, o "Meu personagem" da conta)
 function desenharResumoBuscando() {
+  $("#comparacao").hidden = true; // o quadro da busca anterior não fica na tela enquanto a nova carrega
   const cat = navegandoCategoria();
   $("#resumo").replaceChildren(
     el("div", {}, el("h1", {}, el("span", {}, "Buscando "), cat ? `${cat.nome}…` : `“${estado.q}”…`),
