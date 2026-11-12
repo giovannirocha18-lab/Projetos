@@ -196,12 +196,12 @@
     const cliques = somaDesde(d.cliquesDia, p.semana);
     const visitas = somaDesde(v.porDia, p.semana);
     $("resumo").replaceChildren(
-      v.erro ? quadro("Visitas", "—", null, v.erro) : quadro("Visitas", num(visitas), variacao(visitas, somaDesde(v.porDia, p.antes, p.fimAntes))),
-      quadro("Buscas", num(buscas), variacao(buscas, somaDesde(d.buscasDia, p.antes, p.fimAntes))),
-      quadro("Cliques para as lojas", num(cliques), variacao(cliques, somaDesde(d.cliquesDia, p.antes, p.fimAntes)), "contados desde 03/11"),
+      v.erro ? quadro("Visitas", "—", null, v.erro, "cor-azul") : quadro("Visitas", num(visitas), variacao(visitas, somaDesde(v.porDia, p.antes, p.fimAntes)), null, "cor-azul"),
+      quadro("Buscas", num(buscas), variacao(buscas, somaDesde(d.buscasDia, p.antes, p.fimAntes)), null, "cor-roxo"),
+      quadro("Cliques para as lojas", num(cliques), variacao(cliques, somaDesde(d.cliquesDia, p.antes, p.fimAntes)), "contados desde 03/11", "cor-ciano"),
       quadroDaComissao(),
-      quadro("Contas criadas", num(d.contas.total), null, `${plural(d.contas.semana, "nova", "novas")} na semana`),
-      quadro("Alertas de preço", num(d.alertas.total), null, `${plural(d.alertas.semana, "novo", "novos")} na semana`),
+      quadro("Contas criadas", num(d.contas.total), null, `${plural(d.contas.semana, "nova", "novas")} na semana`, "cor-amarelo"),
+      quadro("Alertas de preço", num(d.alertas.total), null, `${plural(d.alertas.semana, "novo", "novos")} na semana`, "cor-vermelho"),
     );
   }
 
@@ -449,11 +449,11 @@
   // Quadro "Comissões do mês" das Métricas (com o que já foi lido do mês atual)
   function quadroDaComissao() {
     const atual = comissoes.dados[hojeBr().slice(0, 7)];
-    if (!atual) return quadro("Comissões do mês", "…", null, "carregando");
+    if (!atual) return quadro("Comissões do mês", "…", null, "carregando", "cor-verde");
     const v = validos(atual.pedidos);
     const falhas = atual.redes.filter((r) => !r.ok).map((r) => r.rede);
     return quadro("Comissões do mês", textoMoedas(somaPorMoeda(v)), null,
-      falhas.length ? `sem ${falhas.join(", ")} (ver Comissões)` : `${plural(v.length, "pedido", "pedidos")} · ver Comissões`);
+      falhas.length ? `sem ${falhas.join(", ")} (ver Comissões)` : `${plural(v.length, "pedido", "pedidos")} · ver Comissões`, "cor-verde");
   }
   function atualizarQuadroDaComissao() {
     const antigo = document.querySelector("#resumo .quadro:nth-child(4)");
