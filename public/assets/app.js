@@ -1247,14 +1247,15 @@ function desenharComparacao(lista) {
     return;
   }
   const mostrar = grupos.slice(0, modelosMostrados);
-  caixa.replaceChildren(
+  // filter: sem "Ver mais modelos" sobrava um false, que aparecia escrito na tela (print do Giovanni, 12/11/2026)
+  caixa.replaceChildren(...[
     el("h2", { class: "comparacao-cabeca" }, "⚖️ O mesmo produto em várias lojas ",
       el("small", {}, `${grupos.length} ${grupos.length === 1 ? "modelo" : "modelos"} nesta busca`)),
     el("div", { class: "comparacao-lista" }, ...mostrar.map(cartaoModelo)),
     grupos.length > mostrar.length && el("div", { class: "mais-ofertas" }, el("button", { type: "button", class: "botao-secundario",
       onclick: () => { modelosMostrados += MODELOS_POR_VEZ; desenharResultados(); } }, `Ver mais modelos (${grupos.length - mostrar.length})`)),
     el("p", { class: "comparacao-nota" }, "Juntamos os anúncios pelo código do modelo. Confira a voltagem e os detalhes na loja antes de comprar. ",
-      "Abaixo, todas as ofertas desta busca."));
+      "Abaixo, todas as ofertas desta busca.")].filter(Boolean));
 }
 // Página inicial com o modo ligado: explica o que fazer
 function desenharAvisoComparacao() {
