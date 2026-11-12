@@ -768,6 +768,7 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .detalhes-loja { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: .85rem; }
 .detalhes-vendedor { color: var(--suave); }
 .selo-oficial { font-size: .75rem; font-weight: 800; color: #fff; background: #dc2626; padding: 2px 8px; border-radius: 6px; }
+.nota-pix { margin: 0; font-size: .85rem; color: #166534; }
 .detalhes-selos { display: flex; flex-wrap: wrap; gap: 6px; }
 .detalhes-selos .internacional { margin-top: 0; }
 .internacional.nacional { color: #15803d; background: #dcfce7; }

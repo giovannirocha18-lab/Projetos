@@ -1547,6 +1547,8 @@ function abrirDetalhes(o, { doLink = false } = {}) {
       o.precoAntigo && el("span", { class: "preco-antigo" }, `R$ ${brl(o.precoAntigo)}`, o.desconto && ` (-${o.desconto}%)`),
       el("span", { class: "preco" }, el("small", {}, "R$"), inteiro, el("small", { class: "centavos" }, `,${decimal}`)),
       o.precoAntigo > o.preco + 1 && el("span", { class: "economia-tag" }, `Você economiza R$ ${brl(o.precoAntigo - o.preco)}`)),
+    // O ML mostra na página dele o preço no Pix, que a API oficial não manda (print do Giovanni, 12/11/2026: R$ 38,58 lá, R$ 48,23 aqui)
+    o.loja === "mercadolivre" && el("p", { class: "nota-pix" }, "💡 No Pix pode sair mais barato no Mercado Livre."),
     el("div", { class: "detalhes-selos" },
       o.freteGratis && el("span", { class: "frete" }, "🚚 Frete grátis"),
       o.full && el("span", { class: "full" }, "⚡ Full · sai do depósito do Mercado Livre"),
