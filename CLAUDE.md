@@ -268,6 +268,13 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   principais produtos dela** (`TERMOS_DA_COMPARACAO`/`completarComparacaoDaCategoria` em app.js: Eletrodomésticos 5 → 178 modelos),
   botão "⚖️ Comparador" no quadro do início, logotipo desliga o modo, quadro some ao desligar. No ar: geladeira 27 modelos,
   iphone 17 8, samsung galaxy 6, galaxy s24 1, furadeira 5. As outras 31 categorias: só o que a vitrine/busca traz (sem lista).
+- **12/11 (noite): comparador em Pets, Suplementos e Perfumes** (Giovanni escolheu as 3 das 31 que faltavam). Sem código de
+  modelo: o robô junta por peso/volume do nome + palavras raras em comum (`gruposDeConsumo`, `tamanhoDoTitulo`,
+  `SECOES_DE_CONSUMO` em lib/casar.js; kit e anúncio sem tamanho ficam fora) e a IA decide (sabor diferente = igual). O site
+  NÃO repete a conta: junta só pelos vereditos "igual" entre os anúncios da tela (`SECOES_POR_VEREDITO`, `gruposPorVeredito`
+  em app.js; cartão sem "Modelo X"). `CATEGORIAS_DA_VEZ` = as 3 (330 buscas): **esvaziar depois da 1ª rodada completa**.
+  Teste com dados reais: 15 buscas → 111 grupos (bons: antipulgas, ração, whey, creatina; perfume fraco: marketplace cheio
+  de genérico). Faltam 28 categorias (lista dada ao Giovanni: Maquiagem, Skincare, Cabelo, Bebês, Brinquedos… fazem sentido).
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
