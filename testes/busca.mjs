@@ -333,6 +333,23 @@ for (const [q, titulos, primeiro, naoBate] of [
   }
 }
 
+// 12/11/2026 (print do Giovanni, "xiaomi 18 pro", sugerido pelo próprio site): o celular não está à venda, só capas e películas.
+// Liquidificador Xiaomi, patinete "6 Pro" e tinta "Super Pro 18 Litros" não podem aparecer como o produto
+{
+  const capas = ["Capa para Xiaomi 18 Pro/18 Pro Max, nova capa de silicone com proteção magnética", "Película protetora para Xiaomi 18 Pro/18 Pro Max/17T",
+    "Capa Rígida Antichoque de PC para Xiaomi 18 Pro Max 18 Pro 18 17 Pro Max", "4 unidades de vidro temperado HD para Xiaomi 18 Pro Max, Xiaomi 18 Pro",
+    "Capa de Kevlar com Textura de Couro para Xiaomi 18 Pro Max 18 Pro", "Capa magnética militar à prova de choque para Xiaomi 18 Pro Max 18 Pro"];
+  const outros = ["Liquidificador Xiaomi Blender Pro branco", "Patinete Xiaomi 6 Pro", "Xiaomi TV A Pro 65 2026",
+    "Tinta Acrílica Eucatex Standard Super Pro Gelo Ártico 18 Litros", "Escapamento CRF 250F 18/25 Curva + Ponteira Belparts Pro Short"];
+  const saida = separarAcessorios([...outros, ...capas].map((titulo, i) => ({ id: String(i), titulo, preco: 100 + i })), "xiaomi 18 pro");
+  const erradas = saida.filter((o) => outros.includes(o.titulo) && !(o.acessorio && o.parecido));
+  const ordem = saida.findIndex((o) => outros.includes(o.titulo)) > saida.findLastIndex((o) => capas.includes(o.titulo));
+  if (erradas.length || !ordem || saida.some((o) => !o.acessorio)) { falhas++; console.log(`✗ "xiaomi 18 pro": sem o celular, o resto é "parecido" e vem depois das capas (${erradas.map((o) => o.titulo).join(" | ")}; ordem ${ordem})`); }
+  // Com o celular à venda nada muda: ele é o produto
+  const comCelular = separarAcessorios([{ id: "c", titulo: "Smartphone Xiaomi 18 Pro 512GB 16GB RAM", preco: 6000 }, ...[...outros, ...capas].map((titulo, i) => ({ id: String(i), titulo, preco: 100 + i }))], "xiaomi 18 pro");
+  if (comCelular[0].id !== "c" || comCelular[0].acessorio) { falhas++; console.log("✗ \"xiaomi 18 pro\" com o celular à venda: ele tem que ser o 1º produto"); }
+}
+
 // Busca de 2+ palavras: só os que têm todas ficam visíveis; os outros vão para "Ver também" (ideia do Giovanni, 19/10/2026)
 {
   const fica = ["Babuche Masculina Forrada Pelúcia", "Sandália Babuche Nuvem Masculino e Feminino", "Babuche Masculino Adulto",
