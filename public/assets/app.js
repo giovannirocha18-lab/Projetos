@@ -2705,7 +2705,22 @@ function desenharAosPoucos(grade, lista, fazer, { minimo = 0, chave = (o) => o?.
   }
 }
 
+// Produto que as lojas ainda não vendem mas já tem acessórios (prints do Giovanni, 12/11/2026, "xiaomi 18 pro" e "xiaomi 18"):
+// a mesma regra do servidor (lib/relevancia.js), aplicada à lista inteira, porque os lotes seguintes da busca chegam
+// separados (uma "Chave Torx … Xiaomi … 18" de um lote sem capas aparecia como o produto). Sem nenhum produto principal e
+// com 5+ acessórios do que foi buscado, o que não é acessório vira "parecido"; se um lote trouxer o produto, volta ao que era
+const ACESSORIOS_DELE = 5;
+function rebaixarSemProduto() {
+  if (!estado.q || estado.loja || estado.cat || normalizar(estado.q).split(" ").length < 2) return;
+  const temProduto = estado.ofertas.some((o) => o.principal && !o.acessorio);
+  const acessorios = estado.ofertas.filter((o) => o.acessorio && o.bate && !o.parecido).length;
+  for (const o of estado.ofertas) {
+    if (!temProduto && acessorios >= ACESSORIOS_DELE && !o.acessorio) Object.assign(o, { acessorio: true, parecido: true, rebaixado: true });
+    else if (temProduto && o.rebaixado) { delete o.acessorio; delete o.parecido; delete o.rebaixado; }
+  }
+}
 function desenharResultados() {
+  rebaixarSemProduto();
   desenharBotaoFrete();
   if ((estado.q || estado.loja) && estado.buscando) return; // filtro mexido enquanto a busca carrega: espera a resposta
   const lista = filtrar();

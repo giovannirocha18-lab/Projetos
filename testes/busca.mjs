@@ -348,6 +348,14 @@ for (const [q, titulos, primeiro, naoBate] of [
   if (erradas.length || !ordem || saida.some((o) => !o.acessorio)) { falhas++; console.log(`✗ "xiaomi 18 pro": sem o celular, o resto é "parecido" e vem depois das capas (${erradas.map((o) => o.titulo).join(" | ")}; ordem ${ordem})`); }
   // Com o celular à venda nada muda: ele é o produto
   const comCelular = separarAcessorios([{ id: "c", titulo: "Smartphone Xiaomi 18 Pro 512GB 16GB RAM", preco: 6000 }, ...[...outros, ...capas].map((titulo, i) => ({ id: String(i), titulo, preco: 100 + i }))], "xiaomi 18 pro");
+  // 2º print, "xiaomi 18": uma miniatura de carro "escala 1:18, Xiaomi Auto" e uma chave Torx tinham as palavras e apareciam como o produto
+  const intrusos = ["Modelo em escala original 1:18, Xiaomi Auto SU7, SU7 Ultra, modelo fundido para coleção", "Chave Torx CRV em Forma Especial, Liga de Aço, para Xiaomi, 18 peças",
+    "Smartwatch Xiaomi Redmi Watch 5 Lite AMOLED Até 18 Dias de Bateria"];
+  const capas18 = capas.map((t) => t.replace(/18 Pro Max/g, "18").replace(/18 Pro/g, "18"));
+  const s18 = separarAcessorios([...intrusos, ...capas18].map((titulo, i) => ({ id: String(i), titulo, preco: 100 + i })), "xiaomi 18");
+  if (s18.some((o) => !o.acessorio) || !semProdutoAVenda(s18)) { falhas++; console.log(`✗ "xiaomi 18": miniatura e chave Torx não são o celular (${s18.filter((o) => !o.acessorio).map((o) => o.titulo).join(" | ")})`); }
+  const c18 = separarAcessorios([{ id: "c", titulo: "Smartphone Xiaomi 18 256GB 12GB RAM", preco: 5000 }, ...[...intrusos, ...capas18].map((titulo, i) => ({ id: String(i), titulo, preco: 100 + i }))], "xiaomi 18");
+  if (c18[0].id !== "c" || c18[0].acessorio) { falhas++; console.log("✗ \"xiaomi 18\" com o celular à venda: ele tem que ser o 1º produto"); }
   // E o termo sai das sugestões de tendência: a busca sem o celular conta como "sem produto à venda"; com ele, não
   if (!semProdutoAVenda(saida) || semProdutoAVenda(comCelular) || semProdutoAVenda([])) { falhas++; console.log("✗ semProdutoAVenda: só capas = sem produto; com o celular (ou lista vazia) = não anota"); }
   if (comCelular[0].id !== "c" || comCelular[0].acessorio) { falhas++; console.log("✗ \"xiaomi 18 pro\" com o celular à venda: ele tem que ser o 1º produto"); }

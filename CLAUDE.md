@@ -317,6 +317,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   ofertas e nenhuma é o produto anota o termo em `buscas_sem_produto` por 3 dias (`semProdutoAVenda`/`anotarSemProduto` em
   lib/buscas.js, chamado no fim de buscar.js; vale para visitante e robô das prontas) e /api/vocabulario (agora **v=13**) tira
   esses termos das TENDÊNCIAS (`termosSemProduto`). Não é varredura: o termo só some depois de alguém (ou o robô) buscá-lo.
+  **2º print ("xiaomi 18", chave Torx e miniatura "1:18 Xiaomi Auto" como produto)**: a regra passou a valer quando não há
+  nenhum produto PRINCIPAL (não mais "nenhum com todas as palavras") e o site repete a conta na lista inteira
+  (`rebaixarSemProduto` em app.js, porque os lotes seguintes chegam separados; desfaz se um lote trouxer o produto).
+  Conferido em 26 buscas reais: nenhuma busca normal perdeu produto.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
