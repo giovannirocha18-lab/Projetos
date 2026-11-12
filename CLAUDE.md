@@ -305,7 +305,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   **Início sem a barra lateral no computador** (pedido dele, "como o ML", opção 1 "para testar"): `body.modo-inicio .filtros`
   some em telas ≥ 861 px e o cabeçalho ganhou o botão **"☰ Categorias"** (`#abrir-categorias` → `#menu-categorias`, as 40 em 4
   colunas; `abrirMenuCategorias` em app.js). Busca, categoria e lojas seguem com os filtros à esquerda; celular não mudou.
-  Opção 2 (busca também sem lateral, filtros num botão "Filtrar") ficou só proposta.
+  **Depois ele pediu "teste o 2": NO AR a opção 2** = no computador o site todo sem lateral; na busca o botão "Filtros e
+  ordem" (`.barra-lista .botao-filtros`) abre a mesma `#filtros` como gaveta à esquerda (bloco "TESTE da opção 2" no FIM de
+  estilo.css; tem que ficar no fim para ganhar das regras de `.filtros`). Falta ele dizer se fica a 1 ou a 2; para voltar à 1,
+  o comentário do bloco diz como.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
