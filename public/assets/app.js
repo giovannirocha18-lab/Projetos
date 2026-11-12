@@ -1389,6 +1389,14 @@ function desenharComparacao(lista) {
   const procurando = Boolean(categoria && extrasDaCategoria.nome === categoria && extrasDaCategoria.faltam > 0);
   const grupos = gruposDeModelos(lista);
   caixa.hidden = false;
+  // Busca dentro de UMA loja (print do Giovanni, 12/11/2026, "notebook" na loja Mercado Livre): não há o que comparar, e o
+  // aviso antigo dava a entender que o comparador não tinha notebook
+  if (lojaAtual()) {
+    caixa.replaceChildren(el("h2", { class: "comparacao-cabeca" }, "⚖️ Modo comparação"),
+      el("p", { class: "comparacao-vazio" }, `Você está buscando só na loja ${nomeDaLoja(lojaAtual())}. Para comparar o mesmo produto entre as lojas, `,
+        el("button", { type: "button", class: "botao-link", onclick: () => irPara(estado.q) }, "busque em todas as lojas"), "."));
+    return;
+  }
   if (!grupos.length) {
     caixa.replaceChildren(el("h2", { class: "comparacao-cabeca" }, "⚖️ Modo comparação"),
       el("p", { class: "comparacao-vazio" }, estado.completando || procurando ? "Procurando o mesmo modelo em mais de uma loja…"
