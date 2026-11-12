@@ -3388,6 +3388,9 @@ async function mostrarNumeros() {
       el("span", { class: "botoes-inicio" },
         el("button", { type: "button", class: "botao-cupons-inicio botao-bf", onclick: irParaBlackFriday }, "🖤 Black Friday de verdade"),
         linkInterno("/quedas-de-preco", { class: "botao-cupons-inicio" }, irParaQuedas, "📉 Quedas de preço"),
+        // Liga/desliga o Modo comparação, como o atalho do celular (pedido do Giovanni, 12/11/2026)
+        el("button", { type: "button", class: "botao-cupons-inicio", title: "Mostra o mesmo produto lado a lado nas lojas",
+          onclick: () => $("#atalho-comparador").click() }, "⚖️ Comparador"),
         estado.cupons.length ? el("button", { type: "button", class: "botao-cupons-inicio", onclick: () => abrirCupons() },
           `🎟️ Ver ${estado.cupons.length} cupons de desconto`) : ""));
     inicio.hidden = false;
