@@ -2718,6 +2718,8 @@ function rebaixarSemProduto() {
     if (!temProduto && acessorios >= ACESSORIOS_DELE && !o.acessorio) Object.assign(o, { acessorio: true, parecido: true, rebaixado: true });
     else if (temProduto && o.rebaixado) { delete o.acessorio; delete o.parecido; delete o.rebaixado; }
   }
+  // Os acessórios do próprio produto primeiro; o que foi rebaixado vai para o fim (sem mexer na ordem de cada parte)
+  if (estado.ofertas.some((o) => o.rebaixado)) estado.ofertas = [...estado.ofertas.filter((o) => !o.rebaixado), ...estado.ofertas.filter((o) => o.rebaixado)];
 }
 function desenharResultados() {
   rebaixarSemProduto();
