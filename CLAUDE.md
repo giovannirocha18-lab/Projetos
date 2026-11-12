@@ -282,7 +282,13 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   vários tamanhos pelo preço), não pedida. **Rodada de Celulares feita** (93 buscas, 516 pares, 284 iguais, US$ 0,08, 3 erros);
   `CATEGORIAS_DA_VEZ` vazia. No ar (cartões ✓ conferido): celular 18, smartphone 25, samsung galaxy 16 (eram 6), iphone 17 9
   (8), redmi note 7, moto g 4, motorola edge 4, iphone 16 3, galaxy s25 3, galaxy a56 1. Loja Motorola agora nos cartões.
-  Próximo (sugerido): mesma revisão em Informática (ipad/tablet deram 0 grupos no teste) e nas outras 3.
+  **Revisão de Informática (12/11 noite)**: processador/memória não viram "código" (`NAO_E_CODIGO`: i5-1335U, 13420H, DDR4,
+  512SSD…; no nome fica só a família i5/r7); tablet e iPad lidos pelo nome mesmo sem categoria ou como "Celulares", impressora/
+  Kindle/roteador sem categoria entram (`secaoDeComparar` no bloco igual; `secaoDoComparador` em app.js); "Apple iPad" = "iPad",
+  chip M3/A16 fica no nome do iPad/MacBook. Medido em 16 buscas: grupos 73 → 88 (impressora 7 → 13, tablet 0 → 2, tablet
+  samsung 1 → 3, kindle 0 → 2, ipad 0 → 1; notebook 5 → 6: quase não há o mesmo notebook em 2 lojas). Muito anúncio sem marca
+  conhecida (AliExpress genérico). `CATEGORIAS_DA_VEZ` = ["Informática"] (125 buscas): **esvaziar depois da rodada**.
+  Próximo (sugerido): mesma revisão em Eletrodomésticos, Eletroportáteis e Ferramentas.
 - **12/11 (noite): comparador em Pets, Suplementos e Perfumes** (Giovanni escolheu as 3 das 31 que faltavam). Sem código de
   modelo: o robô junta por peso/volume do nome + palavras raras em comum (`gruposDeConsumo`, `tamanhoDoTitulo`,
   `SECOES_DE_CONSUMO` em lib/casar.js; kit e anúncio sem tamanho ficam fora) e a IA decide (sabor diferente = igual). O site

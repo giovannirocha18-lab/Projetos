@@ -90,6 +90,15 @@ ok(cel("Xiaomi Redmi Note 15 PRO+ 5G, Versão Global, Câmera 200MP, Processador
 ok(cel("realme C73 8+256 GB Smartphone Celular Versão Global") === "realme|nome|c73|256gb" && cel("Motorola Edge 60 12+256gb Verde") === "motorola|nome|60+edge|256gb", "8+256 = 256 GB");
 ok(cel("Xiaomi Poco X8 5g 512GB / 256GB Nfc Versão Global") === null && cel("iPhone 17 Pro Max Laranja 256GB • 512GB • 1TB") === null && cel("Xiaomi Redmi Note 15 5G 256/512GB e 8GB RAM") === null, "anúncio com vários tamanhos: sem chave");
 ok(cel("Smartphone Samsung Galaxy A57 5G Tela 6.7 256GB + Galaxy Fit 3") === null && cel("Smartphone Samsung Galaxy A37 5G Tela 6.7 128GB e Galaxy Fit 3") === null, "celular com relógio de brinde: sem chave");
+// Informática (12/11/2026): processador não é código do modelo; tablet/iPad lidos pelo nome mesmo sem categoria; impressora sem categoria entra
+ok(chaveDoModelo("Notebook Samsung Galaxy Book4 Intel Core i5-1335U 8GB 512GB SSD") === "samsung|book4" && chaveDoModelo("Notebook Lenovo IdeaPad Slim 3i Core I5 13420H 8GB RAM 512GB - 83NS0002BR") === "lenovo|83ns0002br"
+  && chaveDoModelo("Notebook Dell Vostro 8GB DDR4 SSD 256GB NVMe Core i5") === null, `processador e memória não são código: ${chaveDoModelo("Notebook Samsung Galaxy Book4 Intel Core i5-1335U 8GB 512GB SSD")}`);
+ok(chaveDaOferta({ titulo: "Tablet Samsung Galaxy Tab A9+ X216B - Grafite, Tela 11\", WiFi+5G, Android 13", secao: undefined }) === "samsung|nome|a9+plus"
+  && chaveDaOferta({ titulo: "Tablet Samsung Galaxy Tab A11 4GB RAM 64GB 8,7\" Android 15 Helio G99 Wi-Fi", secao: "Informática" }) === "samsung|nome|a11|64gb", `tablet pelo nome: ${chaveDaOferta({ titulo: "Tablet Samsung Galaxy Tab A9+ X216B - Grafite, Tela 11\", WiFi+5G, Android 13" })}`);
+ok(chaveDaOferta({ titulo: "iPad Apple 11\" A16, Wi-Fi, 256GB, Câmera 12MP, Amarelo - MD4J4BZ/A", secao: "Celulares" }) === "ipad|nome|a16|256gb"
+  && chaveDaOferta({ titulo: "iPad Wi-Fi 256 gb - Cor prata (a16)" }) === "ipad|nome|a16|256gb", `iPad: ${chaveDaOferta({ titulo: "iPad Apple 11\" A16, Wi-Fi, 256GB, Câmera 12MP, Amarelo - MD4J4BZ/A", secao: "Celulares" })}`);
+ok(gruposDaBusca([{ id: "i-1", loja: "a", preco: 900, titulo: "Impressora Multifuncional Epson EcoTank L3250 Wi-Fi", bate: true }, { id: "i-2", loja: "b", preco: 950, titulo: "Impressora Epson L3250 Tanque de Tinta", bate: true }]).length === 1
+  && gruposDaBusca([{ id: "c-1", loja: "a", preco: 900, titulo: "Capa Epson L3250 protetora", bate: true }, { id: "c-2", loja: "b", preco: 950, titulo: "Tampa Epson L3250", bate: true }]).length === 0, "impressora sem categoria entra; outra coisa sem categoria não");
 // A cópia do site é igual à do robô
 const trecho = (arq) => (readFileSync(new URL(arq, import.meta.url), "utf8").match(/\/\/ >>> nomeDoModelo[\s\S]*?\/\/ <<< nomeDoModelo/) || [""])[0];
 ok(trecho("../lib/casar.js").length > 500 && trecho("../lib/casar.js") === trecho("../public/assets/app.js"), "nomeDoModelo de app.js igual à de lib/casar.js");

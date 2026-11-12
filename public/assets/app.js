@@ -1060,7 +1060,7 @@ const SECOES_NOME_SE_FALTAR = new Set(["Informática"]);
 // >>> nomeDoModelo (igual em lib/casar.js e public/assets/app.js)
 const QUALIFICADOR = new Set(["pro", "max", "plus", "ultra", "lite", "fe", "mini", "note", "edge", "neo", "fold", "flip", "air", "se", "slim", "play", "power", "fusion", "razr"]);
 const NAO_E_MODELO_ANTES = new Set(["ram", "camera", "cameras", "tela", "garantia", "memoria", "bateria", "ate", "com", "de", "e", "x", "em", "por", "android", "andoid", "and", "ios", "versao", "nfe", "nf", "windows", "win", "office", "wifi", "bluetooth",
-  "interna", "externa", "glass", "shield", "hyperos", "miui", "ui", "lytia", "gen", "geracao", "ou"]);
+  "interna", "externa", "glass", "shield", "hyperos", "miui", "ui", "lytia", "gen", "geracao", "ou", "ipados", "macos"]);
 const DE_CAMERA = new Set(["camera", "cameras", "cam", "tripla", "dupla", "quadrupla", "tela", "display"]);
 const NAO_E_MODELO_DEPOIS = new Set(["chips", "chip", "ano", "anos", "meses", "mes", "cores", "cor", "unidades", "unidade", "pecas", "camadas", "cameras", "camera", "polegadas", "pol", "mp", "gb", "tb", "mah", "hz", "w", "v", "mm", "cm", "dias", "nucleos", "em", "x", "jogos", "controles", "controle", "g",
   "ram", "gen", "geracao"]);
@@ -1069,10 +1069,31 @@ const MARCA_MAE = { redmi: "xiaomi", poco: "xiaomi", galaxy: "samsung", moto: "m
 // O que tem número no nome do anúncio e NÃO é o modelo (12/11/2026, medido em 2.258 anúncios de celular): processador
 // ("Snapdragon 7s Gen 4", "Helio G99-Ultra", "Chip A18"), memória RAM ("8+256", "4GB RAM + 8GB RAM Boost", "256/8GB"),
 // soma de câmeras ("50+12+10"), tela ('6, 9"') e frases com ultra/digital que não são do nome
+// Código que não é do produto: processador (i5-1335U, 13420H, N4500), memória (DDR4, 512SSD, 256512GB), conexões.
+// Em notebook virava a "chave" e juntava aparelhos diferentes com o mesmo processador (12/11/2026)
+const NAO_E_CODIGO = /^(i[3579]\d{4,5}[a-z]{0,2}|[3579]\d{4}[a-z]{1,2}|\d{4,5}(u|h|hx|hs|hk|x|x3d|f|k|kf)|n\d{3,4}[a-z]?|l?p?ddr\d\w*|gddr\d|\d+(ssd|hd|hdd|nvme|emmc|ram)|\d+gb\w*|pcie\w*|sata\d|intelcore\w*|ryzen\d\w*|core\d\w*|ci[3579]\d+\w*|usb\d\w*|hdmi\d\w*|wifi\d\w*|win\d+\w*|windows\d+|w1[01]\w*)$/;
+// Tablet e iPad chegam sem categoria ou como "Celulares", e impressora, Kindle e roteador muitas vezes sem categoria
+// (12/11/2026: "ipad", "tablet" e "impressora" davam 0 grupos). Tablet é lido pelo nome, como celular
+function secaoDeComparar(tituloNormalizado, secao) {
+  const inicio = tituloNormalizado.replace(/[^a-z0-9 ]/g, " ").trim().split(/\s+/).slice(0, 5).join(" ");
+  if ((!secao || secao === "Celulares" || secao === "Informática") && /\b(tablet|ipad|galaxy tab|redmi pad|xiaomi pad)\b/.test(inicio)) return "Celulares";
+  if (!secao && /\b(impressora|multifuncional|kindle|roteador|notebook|monitor)\b/.test(inicio)) return "Informática";
+  return secao;
+}
 const PROCESSADOR = /\b(snapdragon|dimensity|helio|unisoc|mediatek|exynos|bionic|tensor|qualcomm)\b[^a-z0-9]*(?:(?!\d+ ?(?:gb|tb|mah|mp|hz|w)\b)(?:elite|gen|geracao|ultra|max|pro|plus|octa|core|4g|5g|[a-z]{0,2}\d\w*)\b[^a-z0-9]*)*/g;
 function semRuidoDeFicha(t, marca) {
-  let s = ` ${t} `
+  // iPad e MacBook: o chip (M3, A16) faz parte do nome do modelo
+  const comChip = marca === "ipad" || marca === "macbook" ? t.replace(/\bchip (m\d|a\d\d)\b/g, " $1 ") : t;
+  let s = ` ${comChip} `
     .replace(PROCESSADOR, " ")
+    // Notebook: do processador fica só a família (i5, r7); o número dele e a geração saem
+    .replace(/\b(intel|amd)\b/g, " ")
+    .replace(/\bcore[- ]?(ultra[- ]?)?i?([3579])\b[- ]?(\d{3,5}[a-z]{0,2}\b)?/g, " i$2 ")
+    .replace(/\bi([3579])[- ]?\d{4,5}[a-z]{0,2}\b/g, " i$1 ")
+    .replace(/\bryzen[- ]?(ai[- ]?)?([3579])\b[- ]?(\d{3,4}[a-z]{0,2}\b)?/g, " r$2 ")
+    .replace(/\b(celeron|pentium|athlon)\b[^a-z0-9]*(n?\d{3,4}[a-z]?\b)?/g, " ")
+    .replace(/\b\d{4,5}(u|h|hx|hs|hk)\b|\bn\d{4}[a-z]?\b|\bm\.2\b/g, " ")
+    .replace(/\b\d{2}(\.\d)? ?("|''|”|pol\b|polegadas)/g, " ") // tela de 14", 15.6"
     .replace(/\b(chip|chipset|processador|cpu)\b [a-z]{0,2}\d\w*( pro\b| bionic\b)?/g, " ")
     .replace(/\b\d+a geracao\b( \d\b)?|\bgen \d\b|\b\d gen\b/g, " ")
     .replace(/\d+(\+\d+){2,}( ?mp)?|\d+\+\d+ ?mp/g, " ") // câmeras
@@ -1089,7 +1110,8 @@ function semRuidoDeFicha(t, marca) {
   return s;
 }
 function nomeDoModelo(tituloNormalizado, marcaDoAnuncio) {
-  const marca = MARCA_MAE[marcaDoAnuncio] || marcaDoAnuncio;
+  // "Apple iPad…" e "iPad…" são a mesma marca para a chave (o mesmo com MacBook)
+  const marca = /\bipad\b/.test(tituloNormalizado) ? "ipad" : /\bmacbook\b/.test(tituloNormalizado) ? "macbook" : MARCA_MAE[marcaDoAnuncio] || marcaDoAnuncio;
   if (!marca) return null;
   const t = semRuidoDeFicha(tituloNormalizado, marca);
   // Kit, combo e celular com brinde de valor (relógio, fone) não se comparam com o aparelho sozinho
@@ -1101,8 +1123,8 @@ function nomeDoModelo(tituloNormalizado, marcaDoAnuncio) {
   for (let i = 0; i < palavras.length; i++) {
     const p = palavras[i];
     if (QUALIFICADOR.has(p)) { if (!DE_CAMERA.has(palavras[i - 1]) && !DE_CAMERA.has(palavras[i - 2])) modelo.push(p); continue; }
-    if (!/\d/.test(p) || p.length > 8 || /^(ipx?\d+|\d+atm|\d+anos?|\d+d)$/.test(p) || (MEDIDA_NAO_MODELO.test(p) && !(/^\d\dx$/.test(p) && palavras[i - 1] === "note")) || TERMO_NAO_MODELO.has(p) || /^(19|20)\d\d$/.test(p) || /^\d+x\d+$/.test(p) || /^\dx$/.test(p) || (/^\d+x$/.test(p) && palavras[i - 1] === "zoom") || /^\d{3,}$/.test(p)
-      || /^[a-z]+\d{3,}[a-z]+$/.test(p) || /^[a-z]{1,3}\d{4,}[a-z]*$/.test(p)) continue; // por último: código do fabricante ("SM-A155M", "XT2503")
+    if (!/\d/.test(p) || p.length > 8 || /^(ipx?\d+|\d+atm|\d+anos?|\d+d|\d+[ao]|w(in)?\d+\w*|l?p?ddr\d\w*|gddr\d|usb\d\w*|hdmi\d\w*|wifi\d)$/.test(p) || (MEDIDA_NAO_MODELO.test(p) && !(/^\d\dx$/.test(p) && palavras[i - 1] === "note")) || TERMO_NAO_MODELO.has(p) || /^(19|20)\d\d$/.test(p) || /^\d+x\d+$/.test(p) || /^\dx$/.test(p) || (/^\d+x$/.test(p) && palavras[i - 1] === "zoom") || /^\d{3,}$/.test(p)
+      || /^[a-z]+\d{3,}[a-z]+$/.test(p) || /^[a-z]{1,3}\d{4,}[a-z]*$/.test(p) || /^[a-z][a-z0-9]{3,5}bz$/.test(p)) continue; // por último: código do fabricante ("SM-A155M", "XT2503", "MD4D4BZ/A" da Apple)
     if (/^\d+$/.test(p) && (NAO_E_MODELO_ANTES.has(palavras[i - 1]) || NAO_E_MODELO_DEPOIS.has(palavras[i + 1]))) continue;
     modelo.push(p);
   }
@@ -1117,6 +1139,8 @@ function nomeDoModelo(tituloNormalizado, marcaDoAnuncio) {
   return { chave: `${marca}|nome|${[...unicas].sort().join("+")}${guarda ? `|${guarda}` : ""}`, cod: [...unicas, guarda].filter(Boolean).join(" ").toUpperCase() };
 }
 // <<< nomeDoModelo
+// A seção para o comparador (tablet sem categoria conta como celular, impressora sem categoria como informática)
+const secaoDoComparador = (o) => (o._secaoC !== undefined ? o._secaoC : (o._secaoC = secaoDeComparar(normalizar(String(o.titulo || "")), o.secao) || null));
 function modeloDe(o) {
   if (o._modelo !== undefined) return o._modelo;
   const marca = marcaDe(o);
@@ -1128,14 +1152,15 @@ function modeloDe(o) {
   const codigos = t.split(/\s+/).map((p) => p.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ""))
     .filter((p) => p.length >= 4 && /[a-z]/.test(p) && /\d/.test(p) && !MEDIDA_NAO_MODELO.test(p) && !TERMO_NAO_MODELO.has(p)
       && !/^\d+x\d+/.test(p) && !/^\d+(gb|tb|w|v|l|ml|mah|hz|pol|btus?|kg|g|cm|mm|k|p)(\/|$)/.test(p))
-    .map((p) => p.replace(/[^a-z0-9]/g, "")).filter((p) => p.length >= 4);
+    .map((p) => p.replace(/[^a-z0-9]/g, "")).filter((p) => p.length >= 4 && !NAO_E_CODIGO.test(p));
+  const secao = secaoDoComparador(o);
   const porNome = () => {
     const n = nomeDoModelo(normalizar(String(o.titulo || "")), marca.n);
     if (n) o._modelo = { chave: n.chave, cod: n.cod, porNome: true, marca: marca.nome, tensao: "" };
     return o._modelo;
   };
-  if (SECOES_POR_NOME.has(o.secao)) return porNome();
-  if (!codigos.length) return SECOES_NOME_SE_FALTAR.has(o.secao) ? porNome() : null;
+  if (SECOES_POR_NOME.has(secao)) return porNome();
+  if (!codigos.length) return SECOES_NOME_SE_FALTAR.has(secao) ? porNome() : null;
   // Combo ou kit (print do Giovanni, 11/11/2026: "Samsung Smart Tv 50 M75h + Samsung Smart Tv 43 Q5f", duas TVs por R$ 4.704,
   // entrou no cartão da M75H sozinha de R$ 2.759): só se junta com outro anúncio do MESMO combo (os mesmos códigos)
   const combo = /\s\+\s|\b(kit|combo|conjunto)\b|\b[2-9]\s*(unidades|unid|un|pecas|pcs)\b|\b(2|duas|dois)\s+(smart\s+)?tvs?\b/.test(t);
@@ -1222,7 +1247,7 @@ function gruposDeModelos(lista) {
   for (const o of lista) {
     if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || USADO.test(normalizar(String(o.titulo || "")))) continue;
     if (SECOES_POR_VEREDITO.has(o.secao)) { if (o.id) soltas.push(o); continue; }
-    if (!(SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(o.secao))) continue;
+    if (!(SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(secaoDoComparador(o)))) continue;
     const m = modeloDe(o);
     if (!m) continue;
     if (!grupos.has(m.chave)) grupos.set(m.chave, { modelo: m, todas: [], lojas: new Set() });
@@ -1343,7 +1368,7 @@ function completarComparacaoDaCategoria(nome) {
       const dados = await fetch(enderecoBusca(termo, null, "&atalho=1"), { priority: "low" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
       if (extrasDaCategoria.nome !== nome) return;
       extrasDaCategoria.faltam--;
-      const novas = (dados?.ofertas || []).filter((o) => o?.id && o.secao === nome && !ids.has(o.id) && ids.add(o.id));
+      const novas = (dados?.ofertas || []).filter((o) => o?.id && (o.secao === nome || secaoDoComparador(o) === nome) && !ids.has(o.id) && ids.add(o.id));
       if (!novas.length && extrasDaCategoria.faltam) continue;
       extrasDaCategoria.ofertas.push(...novas);
       if (modoComparacao() && !estado.buscando && navegandoCategoria()?.nome === nome) desenharComparacao(filtrar());
