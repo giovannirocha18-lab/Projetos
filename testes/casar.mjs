@@ -1,7 +1,7 @@
 // Robô de casar produtos (lib/casar.js): a chave do modelo, quais pares perguntar e um passo inteiro com banco e IA de
 // mentira (grava os vereditos, não pergunta de novo, respeita o teto). Uso: node testes/casar.mjs
 import { DatabaseSync } from "node:sqlite";
-import { chaveDoModelo, gruposDaBusca, proximoPar, idDoPar, passoDeCasar, casadosDaBusca } from "../lib/casar.js";
+import { chaveDoModelo, gruposDaBusca, proximoPar, idDoPar, passoDeCasar, casadosDaBusca, casadosDosIds, BUSCAS_EXTRAS } from "../lib/casar.js";
 
 let falhas = 0;
 const ok = (cond, msg) => { if (!cond) { falhas++; console.log(`✗ ${msg}`); } };
@@ -15,7 +15,7 @@ ok(chaveDoModelo("Geladeira Frost Free 375L Inox") === null, "sem marca ou sem c
 // Grupos e pares
 const of = (id, loja, preco, titulo = "Geladeira Brastemp BRM45JB 375L") => ({ id, loja, preco, titulo, bate: true, secao: "Eletrodomésticos" });
 const ofertas = [of("a-1", "a", 3000), of("a-2", "a", 3500), of("b-1", "b", 3100), of("c-1", "c", 900), of("d-1", "d", 3200),
-  of("e-1", "e", 500, "Micro-ondas Electrolux ME36S 36L"), { ...of("f-1", "f", 3000), acessorio: true }, { ...of("g-1", "g", 3000), secao: "Celulares" }];
+  of("e-1", "e", 500, "Micro-ondas Electrolux ME36S 36L"), { ...of("f-1", "f", 3000), acessorio: true }, { ...of("g-1", "g", 3000), secao: "Moda feminina" }];
 const grupos = gruposDaBusca(ofertas);
 ok(grupos.length === 1 && grupos[0].map((o) => o.id).join() === "c-1,a-1,b-1,d-1", `grupos: ${JSON.stringify(grupos.map((g) => g.map((o) => o.id)))}`);
 const v = new Map();
@@ -34,7 +34,7 @@ const comando = (sql, args = []) => ({
   all: async () => ({ results: sqlite.prepare(sql).all(...args) }),
   run: async () => sqlite.prepare(sql).run(...args),
 });
-const DB = { prepare: (sql) => comando(sql), batch: async (lista) => { for (const c of lista) sqlite.prepare(c.sql).run(...c.args); } };
+const DB = { prepare: (sql) => comando(sql), batch: async (lista) => lista.map((c) => (/^\s*SELECT/i.test(c.sql) ? { results: sqlite.prepare(c.sql).all(...c.args) } : (sqlite.prepare(c.sql).run(...c.args), { results: [] }))) };
 let perguntas = 0;
 const pedir = async (_url, opcoes) => {
   perguntas++;
@@ -50,6 +50,13 @@ ok(r2.perguntados === 0 && perguntas === 5, `2º passo não pergunta de novo: ${
 const lidos = await casadosDaBusca(DB, " GELADEIRA brastemp ");
 ok(lidos.length === 5 && lidos.filter((p) => p[2] === 1).length === 2 && lidos.every((p) => p.length === 3), `o que o site lê: ${JSON.stringify(lidos)}`);
 ok((await casadosDaBusca(DB, "fogão")).length === 0, "busca sem pares: lista vazia");
+// Pelo que o site tem na tela (ids): só os pares entre eles, venham de que busca vierem
+const porIds = await casadosDosIds(DB, ["a-1", "b-1", "c-1", "zz-9"]);
+ok(porIds.length === 3 && porIds.filter((p) => p[2] === 1).length === 1, `por ids: ${JSON.stringify(porIds)}`);
+ok((await casadosDosIds(DB, ["a-1"])).length === 0 && (await casadosDosIds(DB, ["a-1", "x|y", ""])).length === 0, "por ids: menos de 2 válidos = nada");
+ok(BUSCAS_EXTRAS.includes("smart tv 55") && BUSCAS_EXTRAS.includes("fogão") && new Set(BUSCAS_EXTRAS).size === BUSCAS_EXTRAS.length, "buscas extras sem repetição");
+// Seção que só vale conferida (Informática) entra nos grupos do robô
+ok(gruposDaBusca([{ ...of("n-1", "a", 3000, "Notebook Dell Inspiron I15-3520"), secao: "Informática" }, { ...of("n-2", "b", 3100, "Notebook Dell I15-3520 16GB"), secao: "Informática" }]).length === 1, "Informática entra no robô");
 // Sem saldo para gastar: não pergunta e avisa que resta
 const r3 = await passoDeCasar(env, { q: "outra" }, async () => ofertas.map((o) => ({ ...o, id: `x${o.id}` })), { pedir, teto: 0 });
 ok(r3.perguntados === 0 && r3.resta, `teto zerado: ${JSON.stringify(r3)}`);

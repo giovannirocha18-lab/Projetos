@@ -8,7 +8,7 @@ import { onRequestGet as prepararBuscas, listaDasProntas } from "./preparar-busc
 import { onRequestGet as coletarPrecos } from "./coletar-precos.js";
 import { onRequestGet as conferirLojas } from "./conferir-lojas.js";
 import { onRequestGet as buscar, VERSAO_CACHE } from "./buscar.js";
-import { passoDeCasar } from "../../lib/casar.js";
+import { passoDeCasar, BUSCAS_EXTRAS, chaveDaBusca } from "../../lib/casar.js";
 import { TRILHAS, noiteAtual, estadoInicial, passo, gravarNoPainel, criarTabela, rodadaManual } from "../../lib/roboNoite.js";
 
 // Abre uma categoria como o site faz quando o visitante toca nela (atalho=1 = não conta como busca): se a lista pronta
@@ -27,7 +27,9 @@ async function abrirCategoria({ request, env, waitUntil }) {
 async function casar({ request, env, waitUntil }) {
   const de = new URL(request.url).searchParams;
   const parte = Number(de.get("parte")) || 0;
-  const lista = (await listaDasProntas(env)).filter((b) => b.q && !b.cat && !b.pagina);
+  const vistas = new Set();
+  const lista = [...(await listaDasProntas(env)).filter((b) => b.q && !b.cat && !b.pagina), ...BUSCAS_EXTRAS.map((q) => ({ q }))]
+    .filter((b) => !vistas.has(chaveDaBusca(b.q)) && vistas.add(chaveDaBusca(b.q)));
   if (parte >= lista.length) return Response.json({ partes: lista.length, fim: true });
   const ofertasDaBusca = async (q) => {
     const url = new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q)}&atalho=1`, request.url);

@@ -1043,6 +1043,8 @@ const CELULAR = matchMedia("(max-width: 640px)");
 // ---------------------------------------------------------------------
 const CHAVE_MODO_COMPARACAO = "vpc_modo_comparacao";
 const SECOES_COMPARAVEIS = new Set(["Eletrodomésticos", "Eletroportáteis"]);
+// Nestas o cartão só aparece com os anúncios que a IA do robô confirmou (o "código" pode ser o processador, a memória…)
+const SECOES_SO_CONFERIDAS = new Set(["Informática", "Ferramentas", "Celulares", "Fones de ouvido", "Caixas de som", "Games", "Smartwatches"]);
 const MEDIDA_NAO_MODELO = /^\d+([.,]\d+)?(v|w|l|ml|kg|g|gb|tb|mb|mah|hz|khz|mhz|ghz|btus?|pol|k|p|cm|mm|m|un|pcs?|x|rpm|fps|mp|db|bar|psi|lm|kwh|cv|hp|dpi|ms|bits?|pecas?|em\d)$/;
 const TERMO_NAO_MODELO = new Set(["110v", "127v", "220v", "bivolt", "4k", "8k", "5g", "4g", "wifi6", "ipx4", "ipx5", "ipx7", "ip67", "ip68", "1080p", "720p",
   "2em1", "3em1", "4em1", "5em1", "mp3", "mp4", "hdr10", "hdmi2", "usb3", "usb2", "ddr4", "ddr5", "h264", "h265"]);
@@ -1076,22 +1078,27 @@ function modeloDe(o) {
 }
 // Pares que o robô de casar já conferiu com a IA (lib/casar.js, /api/casados?q=): par de ids → 1 (mesmo produto) ou 0.
 // Só é pedido com o modo ligado; busca que o robô ainda não viu segue só pela regra do código do modelo
-let casados = { q: null, mapa: null };
+let casados = { chave: null, mapa: null };
 const idDoPar = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`);
-function pedirCasados() {
-  const q = estado.q;
-  if (!q || casados.q === q) return;
-  casados = { q, mapa: null };
-  fetch(`/api/casados?q=${encodeURIComponent(q.toLowerCase().trim().replace(/\s+/g, " "))}`).then((r) => (r.ok ? r.json() : null)).then((d) => {
-    if (casados.q !== q || !d?.pares?.length) return;
-    casados.mapa = new Map(d.pares.map(([a, b, v]) => [idDoPar(a, b), v]));
-    if (modoComparacao() && estado.q === q && !estado.buscando) desenharResultados();
-  }).catch(() => { /* sem os conferidos: vale a regra do código */ });
+// Pede os pares conferidos entre os anúncios que podem formar cartão (os ids); só pede de novo quando a lista muda
+function pedirCasados(ids) {
+  const chave = [...ids].sort().join(",");
+  if (ids.length < 2 || casados.chave === chave) return;
+  const antes = casados.mapa;
+  casados = { chave, mapa: antes }; // enquanto a resposta nova não chega, vale o que já se sabia
+  fetch("/api/casados", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) })
+    .then((r) => (r.ok ? r.json() : null)).then((d) => {
+      if (casados.chave !== chave || !d?.pares) return;
+      const mapa = new Map(d.pares.map(([a, b, v]) => [idDoPar(a, b), v]));
+      const mudou = mapa.size !== (antes?.size || 0) || [...mapa].some(([k, v]) => antes?.get(k) !== v);
+      casados.mapa = mapa.size ? mapa : null;
+      if (mudou && modoComparacao() && !estado.buscando) desenharResultados();
+    }).catch(() => { /* sem os conferidos: vale a regra do código */ });
 }
 // Divide as ofertas de um modelo (uma por loja, da mais barata para a mais cara) conforme a IA: quem ela disse que NÃO é
 // o mesmo produto sai do cartão (e pode formar outro cartão com os seus iguais); anúncio ainda não conferido fica pela regra
 function separarConferidos(ofertas) {
-  const mapa = casados.q === estado.q ? casados.mapa : null;
+  const mapa = casados.mapa;
   if (!mapa) return [{ ofertas, conferidas: new Set() }];
   const v = (a, b) => mapa.get(idDoPar(a.id, b.id));
   const iguais = (o, lista) => lista.filter((x) => x !== o && v(o, x) === 1).length;
@@ -1112,7 +1119,7 @@ function separarConferidos(ofertas) {
 function gruposDeModelos(lista) {
   const grupos = new Map();
   for (const o of lista) {
-    if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || !SECOES_COMPARAVEIS.has(o.secao)) continue;
+    if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || !(SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(o.secao))) continue;
     const m = modeloDe(o);
     if (!m) continue;
     if (!grupos.has(m.chave)) grupos.set(m.chave, { modelo: m, porLoja: new Map() });
@@ -1120,13 +1127,14 @@ function gruposDeModelos(lista) {
     const atual = g.porLoja.get(o.loja);
     if (!atual || o.preco < atual.preco) g.porLoja.set(o.loja, o);
   }
+  pedirCasados([...grupos.values()].filter((g) => g.porLoja.size >= 2).flatMap((g) => [...g.porLoja.values()].map((o) => o.id)).slice(0, 600));
   const saida = [];
   for (const g of grupos.values()) {
     for (const parte of separarConferidos([...g.porLoja.values()].sort((a, b) => a.preco - b.preco))) {
       // Preço muito fora do meio do grupo é outro produto com o mesmo código (peça, kit sem bateria, anúncio errado): sai.
       // O que a IA do robô conferiu como o mesmo produto fica, qualquer que seja o preço
       const meio = parte.ofertas[Math.floor(parte.ofertas.length / 2)].preco;
-      const ofertas = parte.ofertas.filter((o) => parte.conferidas.has(o) || (o.preco >= meio * 0.55 && o.preco <= meio * 1.9));
+      const ofertas = parte.ofertas.filter((o) => parte.conferidas.has(o) || (SECOES_COMPARAVEIS.has(o.secao) && o.preco >= meio * 0.55 && o.preco <= meio * 1.9));
       if (ofertas.length < 2) continue;
       saida.push({ modelo: g.modelo, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco, conferido: ofertas.every((o) => parte.conferidas.has(o)) });
     }
@@ -1191,13 +1199,12 @@ let modelosMostrados = MODELOS_POR_VEZ;
 function desenharComparacao(lista) {
   const caixa = $("#comparacao");
   if (!modoComparacao() || !estado.q || estado.loja) { caixa.hidden = true; return; }
-  pedirCasados();
   const grupos = gruposDeModelos(lista);
   caixa.hidden = false;
   if (!grupos.length) {
     caixa.replaceChildren(el("h2", { class: "comparacao-cabeca" }, "⚖️ Modo comparação"),
       el("p", { class: "comparacao-vazio" }, estado.completando ? "Procurando o mesmo modelo em mais de uma loja…"
-        : "Nesta busca não achamos o mesmo modelo em mais de uma loja. Por enquanto o modo comparação funciona com eletrodomésticos, "
+        : "Nesta busca não achamos o mesmo modelo em mais de uma loja. O modo comparação funciona melhor com eletrodomésticos, "
           + "eletroportáteis e TVs: experimente geladeira, micro-ondas, freezer, lava e seca, liquidificador ou smart tv 55."));
     return;
   }
