@@ -1153,11 +1153,13 @@ function separarConferidos(ofertas) {
   }
   return partes;
 }
+// Usado/recondicionado não entra na comparação (igual a USADO em lib/casar.js)
+const USADO = /\b(usad[oa]s?|seminov[oa]s?|semi nov[oa]s?|recondicionad[oa]s?|reembalad[oa]s?|open box|mostruario|refurbished|trocafy)\b/;
 // Grupos de 2+ lojas com o mesmo modelo; de cada loja fica a oferta mais barata
 function gruposDeModelos(lista) {
   const grupos = new Map();
   for (const o of lista) {
-    if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || !(SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(o.secao))) continue;
+    if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || !(SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(o.secao)) || USADO.test(normalizar(String(o.titulo || "")))) continue;
     const m = modeloDe(o);
     if (!m) continue;
     if (!grupos.has(m.chave)) grupos.set(m.chave, { modelo: m, porLoja: new Map() });

@@ -88,5 +88,11 @@ const todas = buscasDaCategoria();
 ok(todas.some((b) => b.q === "iphone 16" && b.paginas === 3) && todas.some((b) => b.q === "notebook dell") && !todas.some((b) => b.q === "geladeira")
   && new Set(todas.map((b) => b.q)).size === todas.length, `categorias da vez: ${todas.length}`);
 
+// Usado não entra nos grupos: a loja fica representada pelo novo, mesmo mais caro
+const s24 = gruposDaBusca([{ id: "s-1", loja: "shopee", preco: 2000, titulo: "Usado: Galaxy S24 128GB Cinza Bom - Trocafy - Samsung", bate: true, secao: "Celulares" },
+  { id: "s-2", loja: "shopee", preco: 3900, titulo: "Samsung Galaxy S24 128GB Preto", bate: true, secao: "Celulares" },
+  { id: "m-1", loja: "mercadolivre", preco: 4000, titulo: "Celular Samsung Galaxy S24 128gb 8gb Ram", bate: true, secao: "Celulares" }]);
+ok(s24.length === 1 && s24[0].map((o) => o.id).join() === "s-2,m-1", `usado fora dos grupos: ${JSON.stringify(s24.map((g) => g.map((o) => o.id)))}`);
+
 console.log(falhas ? `✗ ${falhas} falha(s)` : "✓ robô de casar: tudo certo");
 process.exitCode = falhas ? 1 : 0;
