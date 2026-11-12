@@ -2,7 +2,7 @@
 // mentira (grava os vereditos, não pergunta de novo, respeita o teto). Uso: node testes/casar.mjs
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
-import { chaveDaOferta, chaveDoModelo, gruposDaBusca, proximoPar, idDoPar, passoDeCasar, casadosDaBusca, casadosDosIds, BUSCAS_EXTRAS, buscasDaCategoria } from "../lib/casar.js";
+import { chaveDaOferta, chaveDoModelo, gruposDaBusca, proximoPar, idDoPar, passoDeCasar, casadosDaBusca, casadosDosIds, BUSCAS_EXTRAS, buscasDaCategoria, tamanhoDoTitulo, gruposDeConsumo, CATEGORIAS_PARA_CASAR } from "../lib/casar.js";
 
 let falhas = 0;
 const ok = (cond, msg) => { if (!cond) { falhas++; console.log(`✗ ${msg}`); } };
@@ -94,6 +94,24 @@ const s24 = gruposDaBusca([{ id: "s-1", loja: "shopee", preco: 2000, titulo: "Us
   { id: "s-2", loja: "shopee", preco: 3900, titulo: "Samsung Galaxy S24 128GB Preto", bate: true, secao: "Celulares" },
   { id: "m-1", loja: "mercadolivre", preco: 4000, titulo: "Celular Samsung Galaxy S24 128gb 8gb Ram", bate: true, secao: "Celulares" }]);
 ok(s24.length === 1 && s24[0].map((o) => o.id).join() === "s-2,m-1", `usado fora dos grupos: ${JSON.stringify(s24.map((g) => g.map((o) => o.id)))}`);
+
+// Produtos de consumo (Pets, Suplementos, Perfumes): tamanho tirado do nome + nomes parecidos; kit e anúncio sem tamanho ficam fora
+ok(tamanhoDoTitulo("racao golden gatos castrados 10,1kg") === "10100g" && tamanhoDoTitulo("whey 1.8kg 840g protein") === "1800g"
+  && tamanhoDoTitulo("perfume malbec 100 ml") === "100ml" && tamanhoDoTitulo("bravecto caes 20 a 40kg 1000mg 1 comprimido") === "40000g"
+  && tamanhoDoTitulo("multivitaminico 60 capsulas") === "60un" && tamanhoDoTitulo("racao golden gatos") === null, "tamanho do nome");
+const pet = (id, loja, preco, titulo, secao = "Pets") => ({ id, loja, preco, titulo, bate: true, secao });
+const racoes = [
+  pet("m-1", "mercadolivre", 30, "Ração GoldeN Gatos Castrados Sabor Carne 1kg"), pet("s-1", "shopee", 33, "Ração pra Gatos Adultos Castrados Golden sabor Carne 1kg"),
+  pet("s-2", "shopee", 180, "Ração Golden Fórmula Cães Adultos Frango e Arroz 15kg"), pet("c-1", "cobasi", 175, "Ração Golden Fórmula Cães Adultos Frango e Arroz - 15 kg"),
+  pet("m-2", "mercadolivre", 255, "Ração Golden Formula Cães Adultos 15 Kg"), pet("e-1", "efacil", 72, "Ração Pitty para Cães Adultos 15kg"), pet("s-3", "shopee", 90, "Ração Pitty Cão Adulto 15kg"),
+  pet("s-4", "shopee", 300, "Kit 2 Ração Golden Fórmula Cães Adultos 15kg"), pet("c-2", "cobasi", 33, "Ração Golden Seleção Natural Gatos Filhotes Frango e Arroz"),
+  pet("s-5", "shopee", 50, "Ração Whiskas Carne Gatos Adultos 2,7 kg"), pet("e-2", "efacil", 23, "Ração Whiskas Premium Adulto Carne 2,7kg"),
+  pet("s-6", "shopee", 60, "Areia Higiênica Pipicat Floral para Gatos 4kg"), pet("x-1", "x", 61, "Coleira peitoral para cães tamanho M"),
+];
+const gc = gruposDaBusca(racoes).map((g) => g.map((o) => o.id).sort().join());
+ok(gc.includes("m-1,s-1") && gc.includes("c-1,m-2,s-2") && gc.includes("e-1,s-3") && gc.includes("e-2,s-5") && gc.length === 4, `grupos de consumo: ${JSON.stringify(gc)}`);
+ok(gruposDeConsumo(racoes).every((g) => !g.some((o) => o.id === "s-4" || o.id === "c-2")), "kit e anúncio sem tamanho não entram");
+ok(["Pets", "Suplementos", "Perfumes"].every((c) => buscasDaCategoria(c).length >= 60 && new Set(CATEGORIAS_PARA_CASAR[c].termos).size === CATEGORIAS_PARA_CASAR[c].termos.length), "Pets, Suplementos e Perfumes na lista, sem termo repetido");
 
 console.log(falhas ? `✗ ${falhas} falha(s)` : "✓ robô de casar: tudo certo");
 process.exitCode = falhas ? 1 : 0;

@@ -1045,6 +1045,9 @@ const CHAVE_MODO_COMPARACAO = "vpc_modo_comparacao";
 const SECOES_COMPARAVEIS = new Set(["Eletrodomésticos", "Eletroportáteis"]);
 // Nestas o cartão só aparece com os anúncios que a IA do robô confirmou (o "código" pode ser o processador, a memória…)
 const SECOES_SO_CONFERIDAS = new Set(["Informática", "Ferramentas", "Celulares", "Fones de ouvido", "Caixas de som", "Games", "Smartwatches"]);
+// Ração, suplemento, perfume (12/11/2026): sem código de modelo. Aqui o site não tenta adivinhar: junta só os anúncios que a
+// IA do robô disse serem o mesmo produto (grupos ligados pelos vereditos "igual"; lib/casar.js, SECOES_DE_CONSUMO)
+const SECOES_POR_VEREDITO = new Set(["Pets", "Suplementos", "Perfumes"]);
 const MEDIDA_NAO_MODELO = /^\d+([.,]\d+)?(v|w|l|ml|kg|g|gb|tb|mb|mah|hz|khz|mhz|ghz|btus?|pol|k|p|cm|mm|m|un|pcs?|x|rpm|fps|mp|db|bar|psi|lm|kwh|cv|hp|dpi|ms|bits?|pecas?|em\d)$/;
 const TERMO_NAO_MODELO = new Set(["110v", "127v", "220v", "bivolt", "4k", "8k", "5g", "4g", "wifi6", "ipx4", "ipx5", "ipx7", "ip67", "ip68", "1080p", "720p",
   "2em1", "3em1", "4em1", "5em1", "mp3", "mp4", "hdr10", "hdmi2", "usb3", "usb2", "ddr4", "ddr5", "h264", "h265"]);
@@ -1156,10 +1159,36 @@ function separarConferidos(ofertas) {
 // Usado/recondicionado não entra na comparação (igual a USADO em lib/casar.js)
 const USADO = /\b(usad[oa]s?|seminov[oa]s?|semi nov[oa]s?|recondicionad[oa]s?|reembalad[oa]s?|open box|mostruario|refurbished|trocafy)\b/;
 // Grupos de 2+ lojas com o mesmo modelo; de cada loja fica a oferta mais barata
+// Seções juntadas só pelo veredito: cada grupo de anúncios ligados por "é o mesmo produto" vira um cartão (2+ lojas)
+function gruposPorVeredito(soltas) {
+  const mapa = casados.mapa;
+  if (!mapa || soltas.length < 2) return [];
+  const porId = new Map(soltas.map((o) => [o.id, o]));
+  const dono = new Map(soltas.map((o) => [o.id, o.id]));
+  const raiz = (id) => { while (dono.get(id) !== id) id = dono.get(id); return id; };
+  for (const [par, v] of mapa) {
+    if (v !== 1) continue;
+    const [a, b] = par.split("|");
+    if (porId.has(a) && porId.has(b)) dono.set(raiz(a), raiz(b));
+  }
+  const juntos = new Map();
+  for (const o of soltas) { const r = raiz(o.id); juntos.set(r, [...(juntos.get(r) || []), o]); }
+  const saida = [];
+  for (const grupo of juntos.values()) {
+    const porLoja = new Map();
+    for (const o of grupo) if (!porLoja.has(o.loja) || o.preco < porLoja.get(o.loja).preco) porLoja.set(o.loja, o);
+    const ofertas = [...porLoja.values()].sort((a, b) => a.preco - b.preco);
+    if (ofertas.length >= 2) saida.push({ modelo: { cod: "", semCodigo: true }, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco, conferido: true });
+  }
+  return saida;
+}
 function gruposDeModelos(lista) {
   const grupos = new Map();
+  const soltas = [];
   for (const o of lista) {
-    if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || !(SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(o.secao)) || USADO.test(normalizar(String(o.titulo || "")))) continue;
+    if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || USADO.test(normalizar(String(o.titulo || "")))) continue;
+    if (SECOES_POR_VEREDITO.has(o.secao)) { if (o.id) soltas.push(o); continue; }
+    if (!(SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(o.secao))) continue;
     const m = modeloDe(o);
     if (!m) continue;
     if (!grupos.has(m.chave)) grupos.set(m.chave, { modelo: m, todas: [], lojas: new Set() });
@@ -1178,8 +1207,8 @@ function gruposDeModelos(lista) {
     return [...porLoja.values()].flat().sort((a, b) => a.preco - b.preco).slice(0, 16);
   };
   const comLojas = [...grupos.values()].filter((g) => g.lojas.size >= 2);
-  pedirCasados(comLojas.flatMap((g) => candidatas(g).map((o) => o.id)).slice(0, 600));
-  const saida = [];
+  pedirCasados([...comLojas.flatMap((g) => candidatas(g).map((o) => o.id)).slice(0, 600), ...soltas.map((o) => o.id)].slice(0, 1000));
+  const saida = gruposPorVeredito(soltas);
   for (const g of comLojas) {
     for (const parte of separarConferidos(candidatas(g))) {
       // Preço muito fora do meio do grupo é outro produto com o mesmo código (peça, kit sem bateria, anúncio errado): sai.
@@ -1232,7 +1261,7 @@ function cartaoModelo(g) {
         : el("span", { class: "foto-emoji" }, "🛍️")),
       el("div", { class: "modelo-texto" },
         el("h3", { title: titulo }, titulo),
-        el("p", { class: "modelo-resumo" }, `${g.modelo.combo || g.modelo.porNome ? "" : "Modelo "}${g.modelo.cod} · em ${g.ofertas.length} lojas · a partir de `, el("strong", {}, `R$ ${brl(barata.preco)}`),
+        el("p", { class: "modelo-resumo" }, g.modelo.semCodigo ? `Em ${g.ofertas.length} lojas · a partir de ` : `${g.modelo.combo || g.modelo.porNome ? "" : "Modelo "}${g.modelo.cod} · em ${g.ofertas.length} lojas · a partir de `, el("strong", {}, `R$ ${brl(barata.preco)}`),
           g.conferido && el("span", { class: "modelo-conferido", title: "Conferimos anúncio por anúncio que é o mesmo produto" }, " · ✓ conferido")))),
     el("ul", { class: "modelo-lojas" }, ...g.ofertas.map((o, i) => {
       const loja = infoLoja(o);
@@ -1272,6 +1301,12 @@ const TERMOS_DA_COMPARACAO = {
   "Smartwatches": ["smartwatch", "apple watch", "galaxy watch", "amazfit", "smartwatch xiaomi", "garmin"],
   "Fones de ouvido": ["fone bluetooth", "headphone bluetooth", "airpods", "galaxy buds", "jbl tune", "qcy", "edifier", "redmi buds"],
   "Caixas de som": ["caixa de som bluetooth", "caixa de som jbl", "jbl flip", "jbl charge", "jbl go", "soundbar", "echo dot", "jbl boombox"],
+  "Pets": ["ração", "ração para cães", "ração para gatos", "ração golden", "ração premier", "ração royal canin", "ração pedigree", "ração whiskas", "antipulgas",
+    "bravecto", "simparic", "nexgard", "areia para gatos", "tapete higiênico"],
+  "Suplementos": ["whey protein", "whey protein isolado", "creatina", "creatina monohidratada", "pré-treino", "multivitamínico", "ômega 3", "colágeno", "glutamina",
+    "hipercalórico", "whey protein max titanium", "creatina integralmedica"],
+  "Perfumes": ["perfume masculino", "perfume feminino", "perfume importado", "perfume árabe", "perfume o boticário", "malbec", "perfume natura", "perfume calvin klein",
+    "perfume antonio banderas", "perfume lattafa", "asad", "perfume brand collection"],
 };
 const extrasDaCategoria = { nome: null, ofertas: [], faltam: 0 };
 function completarComparacaoDaCategoria(nome) {
@@ -1309,7 +1344,7 @@ function desenharComparacao(lista) {
     caixa.replaceChildren(el("h2", { class: "comparacao-cabeca" }, "⚖️ Modo comparação"),
       el("p", { class: "comparacao-vazio" }, estado.completando || procurando ? "Procurando o mesmo modelo em mais de uma loja…"
         : "Nesta busca não achamos o mesmo modelo em mais de uma loja. O modo comparação funciona melhor com eletrodomésticos, "
-          + "eletroportáteis, TVs e celulares: experimente geladeira, micro-ondas, lava e seca, smart tv 55 ou iphone 16."));
+          + "eletroportáteis, TVs, celulares, ração e suplementos: experimente geladeira, micro-ondas, smart tv 55, iphone 16 ou ração golden."));
     return;
   }
   const mostrar = grupos.slice(0, modelosMostrados);
@@ -1320,7 +1355,7 @@ function desenharComparacao(lista) {
     el("div", { class: "comparacao-lista" }, ...mostrar.map(cartaoModelo)),
     grupos.length > mostrar.length && el("div", { class: "mais-ofertas" }, el("button", { type: "button", class: "botao-secundario",
       onclick: () => { modelosMostrados += MODELOS_POR_VEZ; desenharResultados(); } }, `Ver mais modelos (${grupos.length - mostrar.length})`)),
-    el("p", { class: "comparacao-nota" }, "Juntamos os anúncios pelo código do modelo. Confira a voltagem e os detalhes na loja antes de comprar. ",
+    el("p", { class: "comparacao-nota" }, "Juntamos os anúncios do mesmo produto. Confira a voltagem, o tamanho e os detalhes na loja antes de comprar. ",
       "Abaixo, todas as ofertas desta busca.")].filter(Boolean));
 }
 // Página inicial com o modo ligado: explica o que fazer
