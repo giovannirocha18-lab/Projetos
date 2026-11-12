@@ -287,7 +287,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Kindle/roteador sem categoria entram (`secaoDeComparar` no bloco igual; `secaoDoComparador` em app.js); "Apple iPad" = "iPad",
   chip M3/A16 fica no nome do iPad/MacBook. Medido em 16 buscas: grupos 73 → 88 (impressora 7 → 13, tablet 0 → 2, tablet
   samsung 1 → 3, kindle 0 → 2, ipad 0 → 1; notebook 5 → 6: quase não há o mesmo notebook em 2 lojas). Muito anúncio sem marca
-  conhecida (AliExpress genérico). `CATEGORIAS_DA_VEZ` = ["Informática"] (125 buscas): **esvaziar depois da rodada**.
+  conhecida (AliExpress genérico). **Rodada de Informática feita** (131 buscas, 316 pares, 198 iguais, US$ 0,05, 0 erros; 1ª
+  chamada deu erro 1101 passageiro do Cloudflare); `CATEGORIAS_DA_VEZ` vazia. No ar: monitor gamer 12, impressora 10, ssd 6,
+  notebook 4, mouse gamer 4, roteador 3, ipad 1, kindle 1, macbook 1; tablet e tablet samsung 0 (a IA não confirmou).
   Próximo (sugerido): mesma revisão em Eletrodomésticos, Eletroportáteis e Ferramentas.
 - **12/11 (noite): comparador em Pets, Suplementos e Perfumes** (Giovanni escolheu as 3 das 31 que faltavam). Sem código de
   modelo: o robô junta por peso/volume do nome + palavras raras em comum (`gruposDeConsumo`, `tamanhoDoTitulo`,
