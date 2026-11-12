@@ -104,8 +104,8 @@ let passosCaro = 0;
 for (; passosCaro < 20 && caro.fase !== "fim"; passosCaro++) await passo("lojas", caro, async () => ({ partes: 500, grupos: 1, perguntados: 40, iguais: 40, entrada: 3e7, saida: 1e5 }), agora, null);
 ok(passosCaro === 2 && /gasto máximo/.test(caro.c.casarParou), `teto de gasto: ${passosCaro} passos, ${caro.c.casarParou}`);
 const lento = estadoInicial("lojas", agora, "manual-casar-x");
-await passo("lojas", lento, chamar, agora + 121 * 60e3, null);
-ok(lento.fase === "fim" && /120 minutos/.test(lento.c.casarParou), "casar para aos 120 minutos");
+await passo("lojas", lento, chamar, agora + 181 * 60e3, null);
+ok(lento.fase === "fim" && /limite de tempo/.test(lento.c.casarParou), "casar manual para aos 180 minutos");
 
 // Junta com o que o GitHub gravou (awin, ia, auditoria): na ordem do painel, sem repetir
 const juntas = juntarNaExecucao([{ chave: "awin" }, { chave: "ia" }, { chave: "prontas", velha: true }], partes);
