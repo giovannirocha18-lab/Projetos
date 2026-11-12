@@ -3750,6 +3750,12 @@ function desenharCategorias(lista = categoriasAtuais) {
       e.currentTarget.textContent = todas ? "Ver menos ▲" : `Ver todas (${lista.length}) ▼`;
     } }, `Ver todas (${lista.length}) ▼`);
   caixa.replaceChildren(...botoes, ...(verTodas ? [verTodas] : []));
+  // Menu "Categorias" do cabeçalho (computador): as mesmas categorias, todas de uma vez
+  $("#menu-categorias").replaceChildren(...lista.map((c, i) =>
+    linkInterno(enderecoDaBusca(c.busca || c.nome, { cat: c.nome }), { class: "cat-item", "data-nome": c.nome,
+      style: `--fundo-cat:${FUNDOS_MENU[i % FUNDOS_MENU.length]}` },
+      () => { abrirMenuCategorias(false); irPara(c.busca || c.nome, { atalho: true, cat: c.nome }); },
+      el("span", { class: "cat-icone", "aria-hidden": "true" }, c.emoji), c.nome)));
   // Celular: abas que deslizam no topo ("Tudo" + as categorias que mais vendem), como no app do Mercado Livre
   $("#abas-cel").replaceChildren(
     linkInterno("/", { class: "aba-cel", "data-tudo": "1" }, voltarAoInicio, "Tudo"),
@@ -3763,6 +3769,15 @@ function desenharCategorias(lista = categoriasAtuais) {
     else if (estado.ofertas.length) desenharResumo(filtrar());
   }
 }
+
+// Menu "Categorias" do cabeçalho: abre/fecha no botão; fecha ao clicar fora, no Esc e ao escolher
+function abrirMenuCategorias(abrir) {
+  $("#menu-categorias").hidden = !abrir;
+  $("#abrir-categorias").setAttribute("aria-expanded", String(abrir));
+}
+$("#abrir-categorias").addEventListener("click", () => abrirMenuCategorias($("#menu-categorias").hidden));
+document.addEventListener("click", (e) => { if (!$("#menu-categorias").hidden && !e.target.closest("#menu-categorias, #abrir-categorias")) abrirMenuCategorias(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") abrirMenuCategorias(false); });
 
 const categoriaPeloNome = (nome) => (nome ? categoriasAtuais.find((c) => c.nome === nome) : null);
 

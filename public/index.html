@@ -55,7 +55,12 @@
           </button>
           <ul class="sugestoes" id="sugestoes-busca" role="listbox" aria-label="Sugestões de busca" hidden></ul>
         </form>
-        <div class="em-alta" aria-label="Buscas em alta"><div class="chips" id="em-alta"></div></div>
+        <!-- Botão "Categorias" (12/11/2026, pedido do Giovanni: página inicial sem a barra lateral, como no Mercado Livre): abre o menu abaixo -->
+        <div class="em-alta" aria-label="Buscas em alta">
+          <button type="button" class="botao-categorias" id="abrir-categorias" aria-expanded="false" aria-controls="menu-categorias">☰ Categorias</button>
+          <div class="chips" id="em-alta"></div>
+        </div>
+        <nav class="menu-categorias" id="menu-categorias" aria-label="Todas as categorias" hidden></nav>
       </div>
 
       <div class="topo-acoes">
