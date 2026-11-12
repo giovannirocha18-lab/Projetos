@@ -1254,14 +1254,60 @@ function cartaoModelo(g) {
 const modoComparacao = () => $("#modo-comparacao").checked;
 const MODELOS_POR_VEZ = 12;
 let modelosMostrados = MODELOS_POR_VEZ;
+// Vendo uma CATEGORIA com o modo ligado (print do Giovanni, 12/11/2026: "geladeira" mostrava vários modelos e a categoria
+// Eletrodomésticos só 5): a lista da categoria é só uma vitrine. Então o comparador busca por trás os principais produtos da
+// categoria (as mesmas buscas que o robô de casar conferiu; são buscas prontas, rápidas) e compara tudo junto. Só o quadro
+// do comparador usa essas ofertas: a lista de baixo continua a da categoria
+const TERMOS_DA_COMPARACAO = {
+  "Eletrodomésticos": ["geladeira", "freezer", "frigobar", "fogão", "cooktop", "micro-ondas", "forno de embutir", "máquina de lavar", "lava e seca", "lava-louças",
+    "ar condicionado", "ventilador", "climatizador", "purificador de água", "coifa", "smart tv", "smart tv 50", "smart tv 55", "smart tv 65"],
+  "Eletroportáteis": ["air fryer", "liquidificador", "batedeira", "cafeteira", "cafeteira expresso", "sanduicheira", "mixer", "panela elétrica", "forno elétrico",
+    "aspirador de pó", "robô aspirador", "ferro de passar", "secador de cabelo", "chapinha", "barbeador elétrico"],
+  "Ferramentas": ["furadeira", "parafusadeira", "esmerilhadeira", "serra circular", "serra tico-tico", "lixadeira", "martelete", "lavadora de alta pressão",
+    "compressor de ar", "inversora de solda", "roçadeira", "motosserra"],
+  "Celulares": ["celular", "smartphone", "iphone", "iphone 17", "iphone 16", "samsung galaxy", "galaxy s25", "motorola", "moto g", "xiaomi", "redmi note", "poco", "realme"],
+  "Informática": ["notebook", "notebook gamer", "macbook", "tablet", "ipad", "monitor", "monitor gamer", "impressora", "roteador wifi", "ssd", "placa de vídeo",
+    "teclado mecânico", "mouse gamer", "pc gamer"],
+  "Games": ["playstation 5", "xbox series", "nintendo switch", "controle ps5", "controle xbox", "headset gamer", "cadeira gamer"],
+  "Smartwatches": ["smartwatch", "apple watch", "galaxy watch", "amazfit", "smartwatch xiaomi", "garmin"],
+  "Fones de ouvido": ["fone bluetooth", "headphone bluetooth", "airpods", "galaxy buds", "jbl tune", "qcy", "edifier", "redmi buds"],
+  "Caixas de som": ["caixa de som bluetooth", "caixa de som jbl", "jbl flip", "jbl charge", "jbl go", "soundbar", "echo dot", "jbl boombox"],
+};
+const extrasDaCategoria = { nome: null, ofertas: [], faltam: 0 };
+function completarComparacaoDaCategoria(nome) {
+  if (extrasDaCategoria.nome === nome) return;
+  Object.assign(extrasDaCategoria, { nome, ofertas: [], faltam: TERMOS_DA_COMPARACAO[nome].length });
+  const fila = [...TERMOS_DA_COMPARACAO[nome]];
+  const ids = new Set();
+  const trabalhar = async () => {
+    for (let termo = fila.shift(); termo && extrasDaCategoria.nome === nome; termo = fila.shift()) {
+      const dados = await fetch(enderecoBusca(termo, null, "&atalho=1"), { priority: "low" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      if (extrasDaCategoria.nome !== nome) return;
+      extrasDaCategoria.faltam--;
+      const novas = (dados?.ofertas || []).filter((o) => o?.id && o.secao === nome && !ids.has(o.id) && ids.add(o.id));
+      if (!novas.length && extrasDaCategoria.faltam) continue;
+      extrasDaCategoria.ofertas.push(...novas);
+      if (modoComparacao() && !estado.buscando && navegandoCategoria()?.nome === nome) desenharComparacao(filtrar());
+    }
+  };
+  for (let i = 0; i < 3; i++) trabalhar();
+}
 function desenharComparacao(lista) {
   const caixa = $("#comparacao");
   if (!modoComparacao() || !estado.q || estado.loja) { caixa.hidden = true; return; }
+  const categoria = navegandoCategoria()?.nome;
+  if (categoria && TERMOS_DA_COMPARACAO[categoria]) {
+    completarComparacaoDaCategoria(categoria);
+    const ja = new Set(lista.map((o) => o.id));
+    const daMarca = (o) => !estado.marcasSo?.size || estado.marcasSo.has(marcaDe(o)?.n);
+    lista = [...lista, ...extrasDaCategoria.ofertas.filter((o) => !ja.has(o.id) && daMarca(o))];
+  }
+  const procurando = Boolean(categoria && extrasDaCategoria.nome === categoria && extrasDaCategoria.faltam > 0);
   const grupos = gruposDeModelos(lista);
   caixa.hidden = false;
   if (!grupos.length) {
     caixa.replaceChildren(el("h2", { class: "comparacao-cabeca" }, "⚖️ Modo comparação"),
-      el("p", { class: "comparacao-vazio" }, estado.completando ? "Procurando o mesmo modelo em mais de uma loja…"
+      el("p", { class: "comparacao-vazio" }, estado.completando || procurando ? "Procurando o mesmo modelo em mais de uma loja…"
         : "Nesta busca não achamos o mesmo modelo em mais de uma loja. O modo comparação funciona melhor com eletrodomésticos, "
           + "eletroportáteis, TVs e celulares: experimente geladeira, micro-ondas, lava e seca, smart tv 55 ou iphone 16."));
     return;
@@ -1270,7 +1316,7 @@ function desenharComparacao(lista) {
   // filter: sem "Ver mais modelos" sobrava um false, que aparecia escrito na tela (print do Giovanni, 12/11/2026)
   caixa.replaceChildren(...[
     el("h2", { class: "comparacao-cabeca" }, "⚖️ O mesmo produto em várias lojas ",
-      el("small", {}, `${grupos.length} ${grupos.length === 1 ? "modelo" : "modelos"} nesta busca`)),
+      el("small", {}, `${grupos.length} ${grupos.length === 1 ? "modelo" : "modelos"} ${categoria ? "nesta categoria" : "nesta busca"}${procurando ? " · procurando mais…" : ""}`)),
     el("div", { class: "comparacao-lista" }, ...mostrar.map(cartaoModelo)),
     grupos.length > mostrar.length && el("div", { class: "mais-ofertas" }, el("button", { type: "button", class: "botao-secundario",
       onclick: () => { modelosMostrados += MODELOS_POR_VEZ; desenharResultados(); } }, `Ver mais modelos (${grupos.length - mostrar.length})`)),
