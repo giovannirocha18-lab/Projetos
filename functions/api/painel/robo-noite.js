@@ -19,11 +19,11 @@ export async function onRequestGet({ request, env }) {
   }
   // ?comecar=categorias: rodada curta (30 min) só do passo que abre as 40 categorias
   const soCategorias = params.get("comecar") === "categorias";
-  // ?comecar=casar: rodada só do robô de casar produtos (lib/casar.js; 1 h, gasto máximo US$ 4)
+  // ?comecar=casar: rodada só do robô de casar produtos (lib/casar.js; 3 h, gasto máximo US$ 4)
   const soCasar = params.get("comecar") === "casar";
   if (params.has("comecar")) {
     await env.DB.prepare("INSERT OR REPLACE INTO robo_noite (trilha, noite, estado, ocupado_ate, atualizado) VALUES ('_manual', ?, '{}', ?, ?)")
-      .bind(`${soCategorias ? SO_CATEGORIAS : soCasar ? SO_CASAR : "manual-"}${new Date(agora).toISOString().slice(0, 16)}`, agora + (soCategorias ? 0.5 : soCasar ? 1 : 3) * 3600e3, agora).run();
+      .bind(`${soCategorias ? SO_CATEGORIAS : soCasar ? SO_CASAR : "manual-"}${new Date(agora).toISOString().slice(0, 16)}`, agora + (soCategorias ? 0.5 : 3) * 3600e3, agora).run();
   }
   if (params.has("parar")) await env.DB.prepare("UPDATE robo_noite SET ocupado_ate = 0 WHERE trilha = '_manual'").run();
   const manual = await rodadaManual(env.DB);

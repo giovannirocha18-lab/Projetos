@@ -8,7 +8,7 @@ import { onRequestGet as prepararBuscas, listaDasProntas } from "./preparar-busc
 import { onRequestGet as coletarPrecos } from "./coletar-precos.js";
 import { onRequestGet as conferirLojas } from "./conferir-lojas.js";
 import { onRequestGet as buscar, VERSAO_CACHE } from "./buscar.js";
-import { passoDeCasar, BUSCAS_EXTRAS, chaveDaBusca } from "../../lib/casar.js";
+import { passoDeCasar, BUSCAS_EXTRAS, chaveDaBusca, buscasDaCategoria, CATEGORIA_DA_VEZ } from "../../lib/casar.js";
 import { TRILHAS, noiteAtual, estadoInicial, passo, gravarNoPainel, criarTabela, rodadaManual } from "../../lib/roboNoite.js";
 
 // Abre uma categoria como o site faz quando o visitante toca nela (atalho=1 = não conta como busca): se a lista pronta
@@ -28,16 +28,26 @@ async function casar({ request, env, waitUntil }) {
   const de = new URL(request.url).searchParams;
   const parte = Number(de.get("parte")) || 0;
   const vistas = new Set();
-  const lista = [...(await listaDasProntas(env)).filter((b) => b.q && !b.cat && !b.pagina), ...BUSCAS_EXTRAS.map((q) => ({ q }))]
+  // Primeiro a categoria da vez inteira (lib/casar.js, CATEGORIA_DA_VEZ), depois as buscas prontas e as extras
+  const daCategoria = buscasDaCategoria();
+  const lista = [...daCategoria, ...(await listaDasProntas(env)).filter((b) => b.q && !b.cat && !b.pagina), ...BUSCAS_EXTRAS.map((q) => ({ q }))]
     .filter((b) => !vistas.has(chaveDaBusca(b.q)) && vistas.add(chaveDaBusca(b.q)));
-  if (parte >= lista.length) return Response.json({ partes: lista.length, fim: true });
+  const categoria = { nome: CATEGORIA_DA_VEZ, buscas: daCategoria.length };
+  if (parte >= lista.length) return Response.json({ partes: lista.length, fim: true, categoria });
+  // As páginas pedidas (categoria da vez: 3) vêm juntas, sem repetir anúncio
+  const paginas = lista[parte].paginas || 1;
+  const umaPagina = async (q, pagina) => {
+    const url = new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q)}${pagina > 1 ? `&pagina=${pagina}` : ""}&atalho=1`, request.url);
+    const resposta = await buscar({ request: new Request(url), env, waitUntil }).catch(() => null);
+    return resposta?.ok ? (await resposta.json()).ofertas || [] : [];
+  };
   const ofertasDaBusca = async (q) => {
-    const url = new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q)}&atalho=1`, request.url);
-    const resposta = await buscar({ request: new Request(url), env, waitUntil });
-    return resposta.ok ? (await resposta.json()).ofertas || [] : [];
+    const ids = new Set();
+    const todas = (await Promise.all(Array.from({ length: paginas }, (_, i) => umaPagina(q, i + 1)))).flat();
+    return todas.filter((o) => o?.id && !ids.has(o.id) && ids.add(o.id));
   };
   const r = await passoDeCasar(env, lista[parte], ofertasDaBusca, de.has("teto") ? { teto: Number(de.get("teto")) || 0 } : {});
-  return Response.json({ ...r, parte, partes: lista.length, fim: !r.resta && parte + 1 >= lista.length });
+  return Response.json({ ...r, parte, partes: lista.length, fim: !r.resta && parte + 1 >= lista.length, categoria });
 }
 
 const ROTAS = { "abrir-categoria": abrirCategoria, casar, "preparar-ml": prepararML, "preparar-buscas": prepararBuscas, "coletar-precos": coletarPrecos, "conferir-lojas": conferirLojas };
@@ -51,7 +61,8 @@ const categoriasDe = (e) => ({
   // Robô de casar produtos: só os totais
   ...(e?.c?.casarPartes !== undefined || e?.c?.casarErro ? { casar: { busca: e.parte || 0, buscas: e.c.casarPartes || 0, comGrupos: e.c.casarBuscas || 0,
     pares: e.c.casarPares || 0, iguais: e.c.casarIguais || 0, diferentes: e.c.casarDiferentes || 0, custoUS: e.c.casarCusto || 0,
-    erros: e.c.casarErros || 0, erro: e.c.casarErro || e.c.casarUltimoErro || null, parou: e.c.casarParou || null } } : {}),
+    erros: e.c.casarErros || 0, erro: e.c.casarErro || e.c.casarUltimoErro || null, parou: e.c.casarParou || null,
+      categoria: e.c.casarCategoria || null, buscasDaCategoria: e.c.casarDaCategoria || 0 } } : {}),
 });
 const lerEstado = (texto) => { try { return JSON.parse(texto); } catch { return null; } };
 

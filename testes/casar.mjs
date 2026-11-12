@@ -2,7 +2,7 @@
 // mentira (grava os vereditos, não pergunta de novo, respeita o teto). Uso: node testes/casar.mjs
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
-import { chaveDaOferta, chaveDoModelo, gruposDaBusca, proximoPar, idDoPar, passoDeCasar, casadosDaBusca, casadosDosIds, BUSCAS_EXTRAS } from "../lib/casar.js";
+import { chaveDaOferta, chaveDoModelo, gruposDaBusca, proximoPar, idDoPar, passoDeCasar, casadosDaBusca, casadosDosIds, BUSCAS_EXTRAS, buscasDaCategoria } from "../lib/casar.js";
 
 let falhas = 0;
 const ok = (cond, msg) => { if (!cond) { falhas++; console.log(`✗ ${msg}`); } };
@@ -79,6 +79,11 @@ ok(cel("Console Sony Playstation 5 Slim 1TB Branco", "Games") === "playstation|n
 // A cópia do site é igual à do robô
 const trecho = (arq) => (readFileSync(new URL(arq, import.meta.url), "utf8").match(/\/\/ >>> nomeDoModelo[\s\S]*?\/\/ <<< nomeDoModelo/) || [""])[0];
 ok(trecho("../lib/casar.js").length > 500 && trecho("../lib/casar.js") === trecho("../public/assets/app.js"), "nomeDoModelo de app.js igual à de lib/casar.js");
+
+// Categoria inteira: tipos de produto com 3 páginas e produto + marca, sem repetir
+const daCat = buscasDaCategoria("Eletrodomésticos");
+ok(daCat.length > 150 && daCat.find((b) => b.q === "geladeira")?.paginas === 3 && daCat.some((b) => b.q === "geladeira brastemp" && !b.paginas)
+  && new Set(daCat.map((b) => b.q)).size === daCat.length && buscasDaCategoria("Não existe").length === 0, `buscas da categoria: ${daCat.length}`);
 
 console.log(falhas ? `✗ ${falhas} falha(s)` : "✓ robô de casar: tudo certo");
 process.exitCode = falhas ? 1 : 0;
