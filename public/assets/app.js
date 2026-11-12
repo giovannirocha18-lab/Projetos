@@ -1044,17 +1044,19 @@ const CELULAR = matchMedia("(max-width: 640px)");
 const CHAVE_MODO_COMPARACAO = "vpc_modo_comparacao";
 const SECOES_COMPARAVEIS = new Set(["Eletrodomésticos", "Eletroportáteis"]);
 // Nestas o cartão só aparece com os anúncios que a IA do robô confirmou (o "código" pode ser o processador, a memória…)
-const SECOES_SO_CONFERIDAS = new Set(["Informática", "Ferramentas", "Celulares", "Fones de ouvido", "Caixas de som", "Games", "Smartwatches"]);
+// 12/11/2026 (noite), decisão do Giovanni: só as 5 categorias principais; fones, caixas de som, games, smartwatches, pets,
+// suplementos e perfumes saíram do comparador
+const SECOES_SO_CONFERIDAS = new Set(["Informática", "Ferramentas", "Celulares"]);
 // Ração, suplemento, perfume (12/11/2026): sem código de modelo. Aqui o site não tenta adivinhar: junta só os anúncios que a
 // IA do robô disse serem o mesmo produto (grupos ligados pelos vereditos "igual"; lib/casar.js, SECOES_DE_CONSUMO)
-const SECOES_POR_VEREDITO = new Set(["Pets", "Suplementos", "Perfumes"]);
+const SECOES_POR_VEREDITO = new Set(); // desligado em 12/11/2026 (noite): foco nas 5 categorias principais
 const MEDIDA_NAO_MODELO = /^\d+([.,]\d+)?(v|w|l|ml|kg|g|gb|tb|mb|mah|hz|khz|mhz|ghz|btus?|pol|k|p|cm|mm|m|un|pcs?|x|rpm|fps|mp|db|bar|psi|lm|kwh|cv|hp|dpi|ms|bits?|pecas?|em\d)$/;
 const TERMO_NAO_MODELO = new Set(["110v", "127v", "220v", "bivolt", "4k", "8k", "5g", "4g", "wifi6", "ipx4", "ipx5", "ipx7", "ip67", "ip68", "1080p", "720p",
   "2em1", "3em1", "4em1", "5em1", "mp3", "mp4", "hdr10", "hdmi2", "usb3", "usb2", "ddr4", "ddr5", "h264", "h265"]);
 // Celular, smartwatch, console… quase nunca trazem o código do fabricante: ali a chave é marca + modelo + armazenamento tirados
 // do nome (12/11/2026). Só serve para achar candidatos: nessas seções o cartão só aparece com o que a IA confirmou
-const SECOES_POR_NOME = new Set(["Celulares", "Smartwatches"]);
-const SECOES_NOME_SE_FALTAR = new Set(["Informática", "Fones de ouvido", "Caixas de som", "Games"]);
+const SECOES_POR_NOME = new Set(["Celulares"]);
+const SECOES_NOME_SE_FALTAR = new Set(["Informática"]);
 // >>> nomeDoModelo (igual em lib/casar.js e public/assets/app.js)
 const QUALIFICADOR = new Set(["pro", "max", "plus", "ultra", "lite", "fe", "mini", "note", "edge", "neo", "fold", "flip", "air", "se", "slim", "oled", "play", "power", "fusion", "razr", "watch", "buds", "fit", "band", "active", "classic", "digital"]);
 const NAO_E_MODELO_ANTES = new Set(["ram", "camera", "cameras", "tela", "garantia", "memoria", "bateria", "ate", "com", "de", "e", "x", "em", "por", "android", "ios", "versao", "nfe", "nf", "windows", "win", "office", "wifi", "bluetooth"]);
@@ -1297,16 +1299,6 @@ const TERMOS_DA_COMPARACAO = {
   "Celulares": ["celular", "smartphone", "iphone", "iphone 17", "iphone 16", "samsung galaxy", "galaxy s25", "motorola", "moto g", "xiaomi", "redmi note", "poco", "realme"],
   "Informática": ["notebook", "notebook gamer", "macbook", "tablet", "ipad", "monitor", "monitor gamer", "impressora", "roteador wifi", "ssd", "placa de vídeo",
     "teclado mecânico", "mouse gamer", "pc gamer"],
-  "Games": ["playstation 5", "xbox series", "nintendo switch", "controle ps5", "controle xbox", "headset gamer", "cadeira gamer"],
-  "Smartwatches": ["smartwatch", "apple watch", "galaxy watch", "amazfit", "smartwatch xiaomi", "garmin"],
-  "Fones de ouvido": ["fone bluetooth", "headphone bluetooth", "airpods", "galaxy buds", "jbl tune", "qcy", "edifier", "redmi buds"],
-  "Caixas de som": ["caixa de som bluetooth", "caixa de som jbl", "jbl flip", "jbl charge", "jbl go", "soundbar", "echo dot", "jbl boombox"],
-  "Pets": ["ração", "ração para cães", "ração para gatos", "ração golden", "ração premier", "ração royal canin", "ração pedigree", "ração whiskas", "antipulgas",
-    "bravecto", "simparic", "nexgard", "areia para gatos", "tapete higiênico"],
-  "Suplementos": ["whey protein", "whey protein isolado", "creatina", "creatina monohidratada", "pré-treino", "multivitamínico", "ômega 3", "colágeno", "glutamina",
-    "hipercalórico", "whey protein max titanium", "creatina integralmedica"],
-  "Perfumes": ["perfume masculino", "perfume feminino", "perfume importado", "perfume árabe", "perfume o boticário", "malbec", "perfume natura", "perfume calvin klein",
-    "perfume antonio banderas", "perfume lattafa", "asad", "perfume brand collection"],
 };
 const extrasDaCategoria = { nome: null, ofertas: [], faltam: 0 };
 function completarComparacaoDaCategoria(nome) {
@@ -1344,7 +1336,7 @@ function desenharComparacao(lista) {
     caixa.replaceChildren(el("h2", { class: "comparacao-cabeca" }, "⚖️ Modo comparação"),
       el("p", { class: "comparacao-vazio" }, estado.completando || procurando ? "Procurando o mesmo modelo em mais de uma loja…"
         : "Nesta busca não achamos o mesmo modelo em mais de uma loja. O modo comparação funciona melhor com eletrodomésticos, "
-          + "eletroportáteis, TVs, celulares, ração e suplementos: experimente geladeira, micro-ondas, smart tv 55, iphone 16 ou ração golden."));
+          + "eletroportáteis, TVs, ferramentas, informática e celulares: experimente geladeira, micro-ondas, smart tv 55, furadeira ou iphone 16."));
     return;
   }
   const mostrar = grupos.slice(0, modelosMostrados);

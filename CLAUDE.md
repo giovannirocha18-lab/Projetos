@@ -268,6 +268,13 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   principais produtos dela** (`TERMOS_DA_COMPARACAO`/`completarComparacaoDaCategoria` em app.js: Eletrodomésticos 5 → 178 modelos),
   botão "⚖️ Comparador" no quadro do início, logotipo desliga o modo, quadro some ao desligar. No ar: geladeira 27 modelos,
   iphone 17 8, samsung galaxy 6, galaxy s24 1, furadeira 5. As outras 31 categorias: só o que a vitrine/busca traz (sem lista).
+- **12/11 (noite), DECISÃO DO GIOVANNI: comparador só nas 5 categorias principais** (Eletrodomésticos, Eletroportáteis,
+  Ferramentas, Informática, Celulares: "mais fáceis e mais procuradas"; foco em melhorar essas). Fones, Caixas de som, Games,
+  Smartwatches, Pets, Suplementos e Perfumes SAÍRAM do robô e do site (`SECOES_COMPARAVEIS`, `CATEGORIAS_PARA_CASAR`,
+  `BUSCAS_EXTRAS` em lib/casar.js; `SECOES_SO_CONFERIDAS`, `TERMOS_DA_COMPARACAO` em app.js; `SECOES_DE_CONSUMO` e
+  `SECOES_POR_VEREDITO` vazias, código guardado para religar). Vereditos antigos ficam no banco sem uso. Ideias de melhoria
+  ditas a ele: mais páginas por busca, menos cartões de só 2 lojas, anúncio da Shopee com vários tamanhos no nome.
+  O item abaixo (Pets/Suplementos/Perfumes) ficou só como histórico.
 - **12/11 (noite): comparador em Pets, Suplementos e Perfumes** (Giovanni escolheu as 3 das 31 que faltavam). Sem código de
   modelo: o robô junta por peso/volume do nome + palavras raras em comum (`gruposDeConsumo`, `tamanhoDoTitulo`,
   `SECOES_DE_CONSUMO` em lib/casar.js; kit e anúncio sem tamanho ficam fora) e a IA decide (sabor diferente = igual). O site

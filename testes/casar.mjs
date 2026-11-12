@@ -77,7 +77,7 @@ ok(cel("Celular Motorola Edge 60 Pro 256GB") !== cel("Celular Motorola Edge 60 2
 ok(cel("Samsung Galaxy S26+ 256GB Câm. Tripla 50+12+10MP") === cel("Samsung Galaxy S26 Plus 5G 256GB 12GB RAM"), `S26+ = S26 Plus: ${cel("Samsung Galaxy S26+ 256GB Câm. Tripla 50+12+10MP")}`);
 ok(cel("Kit 2 Celulares Samsung Galaxy A15 128GB") === null && cel("Celular Samsung bom e barato") === null, "kit e nome sem modelo: sem chave");
 ok(cel("Geladeira Brastemp Frost Free 375 litros 2 portas", "Eletrodomésticos") === null, "eletrodoméstico nunca é juntado pelo nome");
-ok(cel("Console Sony Playstation 5 Slim 1TB Branco", "Games") === "playstation|nome|5+slim|1tb", `console: ${cel("Console Sony Playstation 5 Slim 1TB Branco", "Games")}`);
+ok(cel("Console Sony Playstation 5 Slim 1TB Branco", "Games") === null && cel("Apple Watch Series 10 46mm", "Smartwatches") === null, "Games e Smartwatches saíram do casamento");
 // A cópia do site é igual à do robô
 const trecho = (arq) => (readFileSync(new URL(arq, import.meta.url), "utf8").match(/\/\/ >>> nomeDoModelo[\s\S]*?\/\/ <<< nomeDoModelo/) || [""])[0];
 ok(trecho("../lib/casar.js").length > 500 && trecho("../lib/casar.js") === trecho("../public/assets/app.js"), "nomeDoModelo de app.js igual à de lib/casar.js");
@@ -108,10 +108,10 @@ const racoes = [
   pet("s-5", "shopee", 50, "Ração Whiskas Carne Gatos Adultos 2,7 kg"), pet("e-2", "efacil", 23, "Ração Whiskas Premium Adulto Carne 2,7kg"),
   pet("s-6", "shopee", 60, "Areia Higiênica Pipicat Floral para Gatos 4kg"), pet("x-1", "x", 61, "Coleira peitoral para cães tamanho M"),
 ];
-const gc = gruposDaBusca(racoes).map((g) => g.map((o) => o.id).sort().join());
+const gc = gruposDeConsumo(racoes).filter((g) => new Set(g.map((o) => o.loja)).size >= 2).map((g) => g.map((o) => o.id).sort().join());
 ok(gc.includes("m-1,s-1") && gc.includes("c-1,m-2,s-2") && gc.includes("e-1,s-3") && gc.includes("e-2,s-5") && gc.length === 4, `grupos de consumo: ${JSON.stringify(gc)}`);
 ok(gruposDeConsumo(racoes).every((g) => !g.some((o) => o.id === "s-4" || o.id === "c-2")), "kit e anúncio sem tamanho não entram");
-ok(["Pets", "Suplementos", "Perfumes"].every((c) => buscasDaCategoria(c).length >= 60 && new Set(CATEGORIAS_PARA_CASAR[c].termos).size === CATEGORIAS_PARA_CASAR[c].termos.length), "Pets, Suplementos e Perfumes na lista, sem termo repetido");
+ok(gruposDaBusca(racoes).length === 0 && Object.keys(CATEGORIAS_PARA_CASAR).join() === "Eletrodomésticos,Eletroportáteis,Ferramentas,Celulares,Informática", `só as 5 categorias principais: ${Object.keys(CATEGORIAS_PARA_CASAR)}`);
 
 console.log(falhas ? `✗ ${falhas} falha(s)` : "✓ robô de casar: tudo certo");
 process.exitCode = falhas ? 1 : 0;
