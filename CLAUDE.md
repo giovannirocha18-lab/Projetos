@@ -279,7 +279,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   não é kit (a loja Motorola inteira ficava fora), RAM/processador/câmeras/tela/Android fora da chave, "8+256" = 256 GB,
   Redmi/Poco → xiaomi, Galaxy → samsung; anúncio com VÁRIOS tamanhos ("256GB / 512GB") e celular + relógio de brinde ficam
   sem chave. Medido em 2.258 anúncios (12 buscas): modelos em 2+ lojas 65 → 126. Falta a ideia 3 (IA decidir o anúncio de
-  vários tamanhos pelo preço), não pedida. `CATEGORIAS_DA_VEZ` = ["Celulares"]: **esvaziar depois da rodada**.
+  vários tamanhos pelo preço), não pedida. **Rodada de Celulares feita** (93 buscas, 516 pares, 284 iguais, US$ 0,08, 3 erros);
+  `CATEGORIAS_DA_VEZ` vazia. No ar (cartões ✓ conferido): celular 18, smartphone 25, samsung galaxy 16 (eram 6), iphone 17 9
+  (8), redmi note 7, moto g 4, motorola edge 4, iphone 16 3, galaxy s25 3, galaxy a56 1. Loja Motorola agora nos cartões.
+  Próximo (sugerido): mesma revisão em Informática (ipad/tablet deram 0 grupos no teste) e nas outras 3.
 - **12/11 (noite): comparador em Pets, Suplementos e Perfumes** (Giovanni escolheu as 3 das 31 que faltavam). Sem código de
   modelo: o robô junta por peso/volume do nome + palavras raras em comum (`gruposDeConsumo`, `tamanhoDoTitulo`,
   `SECOES_DE_CONSUMO` em lib/casar.js; kit e anúncio sem tamanho ficam fora) e a IA decide (sabor diferente = igual). O site
