@@ -84,6 +84,9 @@ ok(trecho("../lib/casar.js").length > 500 && trecho("../lib/casar.js") === trech
 const daCat = buscasDaCategoria("Eletrodomésticos");
 ok(daCat.length > 150 && daCat.find((b) => b.q === "geladeira")?.paginas === 3 && daCat.some((b) => b.q === "geladeira brastemp" && !b.paginas)
   && new Set(daCat.map((b) => b.q)).size === daCat.length && buscasDaCategoria("Não existe").length === 0, `buscas da categoria: ${daCat.length}`);
+const todas = buscasDaCategoria();
+ok(todas.slice(0, daCat.length).every((b, i) => b.q === daCat[i].q) && todas.some((b) => b.q === "air fryer mondial") && todas.some((b) => b.q === "furadeira bosch")
+  && new Set(todas.map((b) => b.q)).size === todas.length, `categorias da vez: ${todas.length}`);
 
 console.log(falhas ? `✗ ${falhas} falha(s)` : "✓ robô de casar: tudo certo");
 process.exitCode = falhas ? 1 : 0;
