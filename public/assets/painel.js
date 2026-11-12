@@ -353,8 +353,9 @@
 
   // Medidor em semicírculo: buscas prontas renovadas na última noite
   function medidor(d) {
-    const total = d.prontas.total;
-    const recentes = d.prontas.recentes || 0;
+    // Conta sobre a lista que o robô renova (as guardadas incluem reservas antigas, fora da lista)
+    const total = d.prontas.lista || d.prontas.total;
+    const recentes = Math.min(d.prontas.recentes || 0, total);
     const pct = total ? Math.round((recentes / total) * 100) : 0;
     const [estadoTexto, classe] = pct >= 80 ? ["✓ Bom", "ok"] : pct >= 50 ? ["! Atenção", "pendente"] : ["✕ Ruim", "erro"];
     const s = svg("svg", { viewBox: "0 0 180 104", role: "img", "aria-label": `${pct}% das buscas prontas renovadas` });
@@ -373,7 +374,7 @@
     s.append(t);
     $("medidor").replaceChildren(
       el("div", "rotulo", "Buscas prontas renovadas na última noite"), s, el("span", `selo ${classe}`, estadoTexto),
-      el("div", "nota", `${num(recentes)} de ${num(total)} guardadas (últimas 30 h)`),
+      el("div", "nota", `${num(recentes)} de ${num(total)} da lista do robô (últimas 30 h)`),
     );
   }
 

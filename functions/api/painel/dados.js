@@ -6,6 +6,7 @@
 import { ehPainel, quemEntrou } from "../../../lib/painel.js";
 import { visitasDoSite } from "../../../lib/visitas.js";
 import { inicioDaContagem, diaEmBrasilia } from "../../../lib/inicioPainel.js";
+import { listaDasProntas } from "../preparar-buscas.js";
 
 const DIAS = 30;
 const hoje = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
@@ -92,7 +93,10 @@ export async function onRequestGet({ request, env }) {
     contas: { total: contas[0]?.total || 0, semana: contas[0]?.semana || 0 },
     alertas: { total: alertas[0]?.total || 0, semana: alertas[0]?.semana || 0 },
     carrinhos: carrinhos[0]?.total || 0,
-    prontas: { total: prontas[0]?.total || 0, recentes: prontas[0]?.recentes || 0, ultima: prontas[0]?.ultima || null },
+    // "lista" = quantas buscas o robô renova por noite (12/11/2026: o medidor dividia pelas guardadas, que incluem buscas
+    // antigas que já saíram da lista e ficam de reserva: dava "Atenção" mesmo em noite boa)
+    prontas: { total: prontas[0]?.total || 0, recentes: prontas[0]?.recentes || 0, ultima: prontas[0]?.ultima || null,
+      lista: await listaDasProntas(env).then((l) => l.length).catch(() => 0) },
     lojasAwin,
     ultimaColeta: coletas[0]?.dia || null,
     visitas,
