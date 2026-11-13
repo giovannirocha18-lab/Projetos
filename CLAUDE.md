@@ -348,6 +348,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   marca ainda não pedida por trás é buscada no toque (`juntarMarcaAoComparador`). **Combinado com ele (13/11): mudança de
   visual = mostrar a simulação (Playwright com `p.route` dos arquivos locais no site real) ANTES de publicar**; o trabalho
   aguardando OK fica na branch `claude/epic-albattani-pz7e7q` (não publica).
+- 13/11: **comparador escondido na Black Friday, nas Quedas de preço e na página de loja sem busca** (o botão aparecia e não
+  fazia nada; Giovanni: "faça apenas o 1"): classe `sem-comparador` no body (`marcarCategoria` em app.js + regra no CSS; some
+  o botão da barra, a opção dos filtros e o quadro). O "⚖️ Comparar" de cada cartão é OUTRA função (escolher 2+ produtos) e
+  continua em todo lugar. Ideia não pedida: na Black Friday mostrar "este modelo custa R$ X em outra loja" (medir antes).
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
