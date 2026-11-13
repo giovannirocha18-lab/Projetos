@@ -7,6 +7,12 @@ import { tendenciaAceitavel } from "../lib/buscas.js";
 // Tendências do Mercado Livre que nunca viram sugestão nem busca pronta (robô #123, 06/11/2026)
 for (const [termo, aceita] of [["videos paola oliveira nua", false], ["filhote de mico", false], ["filhotes de lebre", false],
   ["insetos vivos", false], ["airsoft", false], ["bloqueador bluetooth", false], ["jamer bloqueador bluetooth", false], ["juliana paes nua revistas masculinos", false], ["mascara airsoft", false], ["vinho tinto", false],
+  // 13/11/2026 (auditoria das sugestões)
+  ["video ou filme cavalo fudendo mulher", false], ["filme a serbian film terror sem limites", false], ["carabinadepressao rossi", false], ["pcp usada", false],
+  ["chumbo 5 5", false], ["equipamentos de tiro esportivo", false], ["aparelho de choque defesa pessoal", false], ["skol beats pink lemonade", false],
+  ["mansao maromba", false], ["absolut", false], ["pomada tktx", false], ["caneta de insulina", false], ["peixe beta", false], ["curso conserto tv lcd", false],
+  ["ebooks pdf", false], ["compro cilindro gas gnv usado", false], ["loja apple", false], ["pc gamer usado", false], ["rastreador bloqueador veicular", false],
+  ["geladeira frost free", true], ["absoluta", true], ["fone bluetooth", true], ["chuveiro eletrico", true], ["luminaria de mesa", true], ["rosa do deserto", true],
   ["celular motorola", true], ["piano digital", true], ["gaiola para calopsita", true], ["vivo y29", true], ["caneta laser", true]]) {
   if (tendenciaAceitavel(termo) !== aceita) { console.log(`✗ tendência "${termo}": ${aceita ? "devia aceitar" : "devia bloquear"}`); process.exitCode = 1; }
 }

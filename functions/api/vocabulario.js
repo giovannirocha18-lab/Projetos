@@ -11,7 +11,7 @@ const CACHE_SEGUNDOS = 6 * 60 * 60;
 
 export async function onRequestGet({ request, env }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/vocabulario?v=13", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/vocabulario?v=14", request.url)); // trocar o v= para descartar o guardado
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
 
