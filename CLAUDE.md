@@ -405,6 +405,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   fora; seção de mentira "Consoles" (`secaoDeComparar`), só o que a IA confirmar (`SECOES_SO_CONFERIDAS`); 16 buscas de console
   em `BUSCAS_EXTRAS`. Medido em 11 buscas: só 5 grupos (poucas lojas vendem console; Shopee fora no dia). Aparece depois do
   robô da noite: **conferir 14/11** "ps5", "nintendo switch", "xbox series s" com o comparador ligado.
+  Rodada de dia feita (13/11): categoria `Consoles` em `CATEGORIAS_PARA_CASAR` (só lista de buscas; `CATEGORIAS_DA_VEZ` vazia
+  de novo). No site o cartão de console junta pelos vereditos "igual" da IA (`gruposPorVeredito`), não pela chave; "com
+  controle DualSense" (o da caixa, KaBuM) não é controle extra. No ar: ps5 2 cartões, playstation 5 2 (PS5 Pro e Slim
+  digital, KaBuM x ML); nintendo switch e xbox 0 (a IA não confirmou / só o ML vende). A KaBuM só entrou depois da rodada:
+  a noite de 13/11 confere mais pares.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).

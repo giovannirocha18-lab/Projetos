@@ -1094,7 +1094,7 @@ function consoleDoTitulo(tituloNormalizado) {
   const m = t.match(/^(?:novo |nova )?(?:consoles? |video ?game )?(?:microsoft |sony |nintendo )?(?:consoles? )?(xbox series? [sx]|xbox one(?: [sx])?|xbox 360|(?:playstation|ps) ?[45]|nintendo switch)\b(.*)$/);
   if (!m) return null;
   const resto = m[2];
-  if (/\+|\b(kit|pacote|bundle|combo|jogos?|games?|gamepass|controles?|headset|volante|meses|mes|limitada|limited|edicao especial|usado|seminovo|caixa|suporte|capa|skin|adesivo|base|cooler|carregador|fonte|cabo|placa|gabinete|carcaca|tampa)\b/.test(resto)) return null;
+  if (/\+|\b(kit|pacote|bundle|combo|jogos?|games?|gamepass|(?:2|dois|duas|3) controles|controles? (?:adiciona(?:l|is)|extras?)|sem controle|headset|volante|meses|mes|limitada|limited|edicao especial|usado|seminovo|caixa|suporte|capa|skin|adesivo|base|cooler|carregador|fonte|cabo|placa|gabinete|carcaca|tampa)\b/.test(resto)) return null;
   let familia = m[1].replace(/^(playstation|ps) ?/, "ps").replace(/^xbox serie /, "xbox series ");
   if (familia.startsWith("ps")) familia += /\bpro\b/.test(resto) ? " pro" : /\bslim\b/.test(resto) ? " slim" : "";
   if (familia === "nintendo switch") familia += /^ 2\b/.test(resto) ? " 2" : /\boled\b/.test(resto) ? " oled" : /\blite\b/.test(resto) ? " lite" : "";
@@ -1295,7 +1295,8 @@ function gruposPorVeredito(soltas) {
     const porLoja = new Map();
     for (const o of grupo) if (!porLoja.has(o.loja) || o.preco < porLoja.get(o.loja).preco) porLoja.set(o.loja, o);
     const ofertas = [...porLoja.values()].sort((a, b) => a.preco - b.preco);
-    if (ofertas.length >= 2) saida.push({ modelo: { cod: "", semCodigo: true }, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco, conferido: true });
+    const doConsole = secaoDoComparador(ofertas[0]) === "Consoles" ? modeloDe(ofertas[0]) : null;
+    if (ofertas.length >= 2) saida.push({ modelo: doConsole || { cod: "", semCodigo: true }, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco, conferido: true });
   }
   return saida;
 }
@@ -1304,7 +1305,9 @@ function gruposDeModelos(lista) {
   const soltas = [];
   for (const o of lista) {
     if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || USADO.test(normalizar(String(o.titulo || "")))) continue;
-    if (SECOES_POR_VEREDITO.has(o.secao)) { if (o.id) soltas.push(o); continue; }
+    // Consoles (13/11/2026): as lojas escrevem o mesmo aparelho de jeitos diferentes ("Pro 2TB" x "Pro Digital 2TB"); o cartão
+    // junta pelos vereditos "igual" da IA entre os anúncios da tela, não pela chave
+    if (SECOES_POR_VEREDITO.has(o.secao) || secaoDoComparador(o) === "Consoles") { if (o.id) soltas.push(o); continue; }
     if (!(SECOES_COMPARAVEIS.has(secaoDoComparador(o)) || SECOES_SO_CONFERIDAS.has(secaoDoComparador(o)))) continue;
     const m = modeloDe(o);
     if (!m) continue;
