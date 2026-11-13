@@ -3588,7 +3588,9 @@ async function completarSozinho(pedido) {
   } finally {
     if (pedido === estado.pedido) {
       estado.completando = false;
-      if (!estado.buscando) desenharEscolhaRapida(filtrar());
+      // O quadro do comparador também (auditoria de 13/11/2026): com o modo já ligado, busca nova sem modelos ("ração")
+      // ficava para sempre em "Procurando o mesmo modelo…" e as buscas por marca por trás às vezes nem começavam
+      if (!estado.buscando) { const lista = filtrar(); desenharEscolhaRapida(lista); desenharComparacao(lista); }
     }
   }
 }

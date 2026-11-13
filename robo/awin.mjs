@@ -255,6 +255,7 @@ function paraOferta(p, feed = {}) {
   if (!produtoId) return "sem código do produto";
   if (!titulo) return "sem nome";
   if (!(preco > 0)) return "sem preço";
+  if (preco > 1_000_000) return "preço impossível"; // erro do feed (Central Ar, 13/11/2026: R$ 16 quatrilhões); igual a PRECO_TETO em lib/lojasRemovidas.js
   if (!link) return "sem link de afiliado";
   if (/^(0|no|false|n)$/i.test(p.in_stock || "") || /^(0|no|false|n)$/i.test(p.is_for_sale || "")) return "fora de estoque";
   if (/out.of.stock|esgotado|indispon/i.test(p.availability || p.stock_status || "")) return "fora de estoque";
