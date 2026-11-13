@@ -103,6 +103,16 @@ ok(chaveDaOferta({ titulo: "iPad Apple 11\" A16, Wi-Fi, 256GB, Câmera 12MP, Ama
   && chaveDaOferta({ titulo: "iPad Wi-Fi 256 gb - Cor prata (a16)" }) === "ipad|nome|a16|256gb", `iPad: ${chaveDaOferta({ titulo: "iPad Apple 11\" A16, Wi-Fi, 256GB, Câmera 12MP, Amarelo - MD4J4BZ/A", secao: "Celulares" })}`);
 ok(gruposDaBusca([{ id: "i-1", loja: "a", preco: 900, titulo: "Impressora Multifuncional Epson EcoTank L3250 Wi-Fi", bate: true }, { id: "i-2", loja: "b", preco: 950, titulo: "Impressora Epson L3250 Tanque de Tinta", bate: true }]).length === 1
   && gruposDaBusca([{ id: "c-1", loja: "a", preco: 900, titulo: "Capa Epson L3250 protetora", bate: true }, { id: "c-2", loja: "b", preco: 950, titulo: "Tampa Epson L3250", bate: true }]).length === 0, "impressora sem categoria entra; outra coisa sem categoria não");
+// Revisão de 13/11/2026 (Eletrodomésticos, Eletroportáteis, Ferramentas): código curto, marcas só do comparador, aspirador
+const ep = (titulo, secao = "Eletroportáteis") => chaveDaOferta({ titulo, secao });
+ok(ep("Liquidificador Turbo Power Mondial 550W - L-99 FB") === "mondial|l99" && ep("Liquidificador Mondial Turbo Power L99 Preto") === "mondial|l99", `código curto: ${ep("Liquidificador Turbo Power Mondial 550W - L-99 FB")}`);
+ok(ep("Ar Condicionado Split LG 12000 Btus R-32 220V", "Eletrodomésticos") === null && ep("Esmerilhadeira Bosch M14 720W", "Ferramentas") === null
+  && ep("Sanduicheira Mondial S-12 e S-19") === null && ep("Notebook Dell G15 16GB", "Games") === null, "gás, rosca, dois códigos curtos e outra seção: sem chave");
+ok(ep("Purificador De Água IBBL FR600 Speciale Branco 127V", "Eletrodomésticos") === "ibbl|fr600" && ep("Fogão Itatiaia Waves 4 Bocas", "Eletrodomésticos") === null, "marca só do comparador");
+ok(gruposDaBusca([{ id: "s-1", loja: "a", preco: 190, titulo: "Aspirador de Pó Vertical Electrolux STK15 1450W", bate: true, secao: "Limpeza" },
+  { id: "s-2", loja: "b", preco: 200, titulo: "Aspirador de Pó Vertical com Fio Electrolux 1450W STK15", bate: true, secao: "Limpeza" }]).length === 1
+  && gruposDaBusca([{ id: "s-3", loja: "a", preco: 19, titulo: "Detergente Ypê ABC123 500ml", bate: true, secao: "Limpeza" }, { id: "s-4", loja: "b", preco: 20, titulo: "Detergente Ypê ABC123", bate: true, secao: "Limpeza" }]).length === 0,
+  "aspirador (Limpeza) entra no comparador; o resto da Limpeza não");
 // A cópia do site é igual à do robô
 const trecho = (arq) => (readFileSync(new URL(arq, import.meta.url), "utf8").match(/\/\/ >>> nomeDoModelo[\s\S]*?\/\/ <<< nomeDoModelo/) || [""])[0];
 ok(trecho("../lib/casar.js").length > 500 && trecho("../lib/casar.js") === trecho("../public/assets/app.js"), "nomeDoModelo de app.js igual à de lib/casar.js");

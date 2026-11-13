@@ -1058,6 +1058,17 @@ const TERMO_NAO_MODELO = new Set(["110v", "127v", "220v", "bivolt", "4k", "8k", 
 const SECOES_POR_NOME = new Set(["Celulares"]);
 const SECOES_NOME_SE_FALTAR = new Set(["Informática"]);
 // >>> nomeDoModelo (igual em lib/casar.js e public/assets/app.js)
+// Código curto (13/11/2026, revisão de Eletrodomésticos, Eletroportáteis e Ferramentas): eletroportátil costuma ter código de
+// 3 caracteres, quase sempre com hífen ("Mondial L-99", "S-20", "Electrolux IB7", "Samsung Q5F"). Só vale nessas 3 seções e
+// quando o anúncio não traz código maior nem dois curtos diferentes. Nunca medida (12v), rosca/bit (M14, T20, PH2), gás
+// (R-32), soquete (E27) nem termo comum (mp3, 4k). t = título sem acento, só com letras, números e + . - /
+const SECOES_COM_CODIGO_CURTO = new Set(["Eletrodomésticos", "Eletroportáteis", "Ferramentas"]);
+const NAO_E_CURTO = /^(m\d\d|t\d\d|r\d\d|e\d\d|ph\d|pz\d|mp\d|ip\d|nr\d|no\d|em\d|aa\d|ps\d|\w\d[dkgvwlxp])$/;
+function codigoCurto(t) {
+  const achados = [...new Set(t.split(/\s+/).map((p) => p.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, "")).filter((p) => /^([a-z]{1,2}-?\d{1,2}|[a-z]\d[a-z])$/.test(p))
+    .map((p) => p.replace(/-/g, "")).filter((p) => p.length === 3 && !NAO_E_CURTO.test(p) && !MEDIDA_NAO_MODELO.test(p) && !TERMO_NAO_MODELO.has(p)))];
+  return achados.length === 1 ? achados[0] : null;
+}
 const QUALIFICADOR = new Set(["pro", "max", "plus", "ultra", "lite", "fe", "mini", "note", "edge", "neo", "fold", "flip", "air", "se", "slim", "play", "power", "fusion", "razr"]);
 const NAO_E_MODELO_ANTES = new Set(["ram", "camera", "cameras", "tela", "garantia", "memoria", "bateria", "ate", "com", "de", "e", "x", "em", "por", "android", "andoid", "and", "ios", "versao", "nfe", "nf", "windows", "win", "office", "wifi", "bluetooth",
   "interna", "externa", "glass", "shield", "hyperos", "miui", "ui", "lytia", "gen", "geracao", "ou", "ipados", "macos"]);
@@ -1078,6 +1089,10 @@ function secaoDeComparar(tituloNormalizado, secao) {
   const inicio = tituloNormalizado.replace(/[^a-z0-9 ]/g, " ").trim().split(/\s+/).slice(0, 5).join(" ");
   if ((!secao || secao === "Celulares" || secao === "Informática") && /\b(tablet|ipad|galaxy tab|redmi pad|xiaomi pad)\b/.test(inicio)) return "Celulares";
   if (!secao && /\b(impressora|multifuncional|kindle|roteador|notebook|monitor)\b/.test(inicio)) return "Informática";
+  // 13/11/2026: aspirador e robô aspirador chegam como "Limpeza" (o robô já buscava os dois e nunca achava grupo) e
+  // ferramenta de jardim sem categoria
+  if ((!secao || secao === "Limpeza") && /^(robo )?aspirador\b|^(mini |super )?aspirador\b|\brobo aspirador\b/.test(inicio)) return "Eletroportáteis";
+  if (!secao && /^(rocadeira|soprador|aparador de grama|cortador de grama|motosserra|lavadora de alta pressao)\b/.test(inicio)) return "Ferramentas";
   return secao;
 }
 const PROCESSADOR = /\b(snapdragon|dimensity|helio|unisoc|mediatek|exynos|bionic|tensor|qualcomm)\b[^a-z0-9]*(?:(?!\d+ ?(?:gb|tb|mah|mp|hz|w)\b)(?:elite|gen|geracao|ultra|max|pro|plus|octa|core|4g|5g|[a-z]{0,2}\d\w*)\b[^a-z0-9]*)*/g;
@@ -1141,9 +1156,21 @@ function nomeDoModelo(tituloNormalizado, marcaDoAnuncio) {
 // <<< nomeDoModelo
 // A seção para o comparador (tablet sem categoria conta como celular, impressora sem categoria como informática)
 const secaoDoComparador = (o) => (o._secaoC !== undefined ? o._secaoC : (o._secaoC = secaoDeComparar(normalizar(String(o.titulo || "")), o.secao) || null));
+// Marcas que só o comparador precisa conhecer (igual em lib/casar.js; não entram no filtro de marcas)
+const MARCAS_DO_COMPARADOR = ["itatiaia", "ibbl", "roborock", "ecovacs", "irobot", "liectroux", "kemei", "vgr", "braun", "gallant", "gaabor", "sonifer", "biolomix", "vix",
+  "eos", "skymsen", "skil", "fricon", "colormaq", "newmaq", "wanke", "praxis", "latina", "tekna", "toyama", "amvox", "braslar", "kian", "intech machine", "boxer", "delonghi",
+  "chiaperini", "stihl", "husqvarna", "garthen", "wesco", "libell", "metvisa", "ventisol", "suggar", "fischer", "venax", "dako", "atlas", "mueller", "nespresso", "dolce gusto",
+  "nutribullet", "ninja", "tres coracoes", "3 coracoes", "black+decker", "black & decker", "black decker", "einhell", "worx", "schulz", "lavor", "tramontina", "trapp", "songhe"];
+let marcasSoDoComparador = null;
+function marcaSoDoComparador(o) {
+  marcasSoDoComparador = marcasSoDoComparador || MARCAS_DO_COMPARADOR.map((m) => normalizar(m).replace(/[^a-z0-9]+/g, " ").trim()).sort((a, b) => b.length - a.length);
+  const t = ` ${normalizar(String(o.titulo || "")).replace(/[^a-z0-9]+/g, " ")} `;
+  const n = marcasSoDoComparador.find((m) => t.includes(` ${m} `));
+  return n ? { n, nome: n.replace(/(^| )[a-z]/g, (l) => l.toUpperCase()) } : null;
+}
 function modeloDe(o) {
   if (o._modelo !== undefined) return o._modelo;
-  const marca = marcaDe(o);
+  const marca = marcaDe(o) || (marcasDoTitulo ? marcaSoDoComparador(o) : null);
   // A lista de marcas ainda não chegou: não guarda "sem modelo" (ligar o modo logo ao abrir a página não achava nada)
   if (!marcasDoTitulo) return null;
   o._modelo = null;
@@ -1154,6 +1181,7 @@ function modeloDe(o) {
       && !/^\d+x\d+/.test(p) && !/^\d+(gb|tb|w|v|l|ml|mah|hz|pol|btus?|kg|g|cm|mm|k|p)(\/|$)/.test(p))
     .map((p) => p.replace(/[^a-z0-9]/g, "")).filter((p) => p.length >= 4 && !NAO_E_CODIGO.test(p));
   const secao = secaoDoComparador(o);
+  if (!codigos.length && SECOES_COM_CODIGO_CURTO.has(secao)) { const curto = codigoCurto(t); if (curto) codigos.push(curto); }
   const porNome = () => {
     const n = nomeDoModelo(normalizar(String(o.titulo || "")), marca.n);
     if (n) o._modelo = { chave: n.chave, cod: n.cod, porNome: true, marca: marca.nome, n: marca.n, tensao: "" };
@@ -1249,7 +1277,7 @@ function gruposDeModelos(lista) {
   for (const o of lista) {
     if (!o.bate || o.acessorio || o.parecido || !(o.preco > 0) || USADO.test(normalizar(String(o.titulo || "")))) continue;
     if (SECOES_POR_VEREDITO.has(o.secao)) { if (o.id) soltas.push(o); continue; }
-    if (!(SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(secaoDoComparador(o)))) continue;
+    if (!(SECOES_COMPARAVEIS.has(secaoDoComparador(o)) || SECOES_SO_CONFERIDAS.has(secaoDoComparador(o)))) continue;
     const m = modeloDe(o);
     if (!m) continue;
     if (!grupos.has(m.chave)) grupos.set(m.chave, { modelo: m, todas: [], lojas: new Set() });
@@ -1275,7 +1303,7 @@ function gruposDeModelos(lista) {
       // Preço muito fora do meio do grupo é outro produto com o mesmo código (peça, kit sem bateria, anúncio errado): sai.
       // O que a IA do robô conferiu como o mesmo produto fica, qualquer que seja o preço
       const meio = parte.ofertas[Math.floor(parte.ofertas.length / 2)].preco;
-      const aceitas = parte.ofertas.filter((o) => parte.conferidas.has(o) || (SECOES_COMPARAVEIS.has(o.secao) && o.preco >= meio * 0.55 && o.preco <= meio * 1.9));
+      const aceitas = parte.ofertas.filter((o) => parte.conferidas.has(o) || (SECOES_COMPARAVEIS.has(secaoDoComparador(o)) && o.preco >= meio * 0.55 && o.preco <= meio * 1.9));
       // Uma linha por loja: a mais barata entre as conferidas; sem conferida, a mais barata
       const porLoja = new Map();
       for (const o of aceitas) {
@@ -1384,7 +1412,7 @@ function completarComparacaoDaCategoria(nome) {
 // quase sempre já guardada) e compara tudo junto. Poucas marcas e 2 por vez: busca nova vai às lojas, e a Shopee limita
 const MARCAS_DA_COMPARACAO = 6;
 const extrasDaBusca = { pedido: -1, ofertas: [], faltam: 0, ids: new Set(), marcas: new Set() };
-const comparavelNaBusca = (o) => o.bate && !o.acessorio && (SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(secaoDoComparador(o)));
+const comparavelNaBusca = (o) => o.bate && !o.acessorio && (SECOES_COMPARAVEIS.has(secaoDoComparador(o)) || SECOES_SO_CONFERIDAS.has(secaoDoComparador(o)));
 // Pede a busca "produto + marca" e junta ao quadro o que for novo (uma vez por marca em cada busca)
 async function juntarMarcaAoComparador(n, nome, pedido) {
   extrasDaBusca.marcas.add(n);
