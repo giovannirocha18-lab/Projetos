@@ -414,6 +414,17 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   não tem os consoles do ML; `CONSOLES_DESDE`/`buscaSoDeConsole` (buscar.js) mandam refazer por trás, mas com a Shopee em
   erro a resposta nova não substitui a guardada (regra da reserva). Resolve sozinho quando a Shopee voltar/robô da noite:
   **conferir 14/11** "xbox series" com consoles do ML e cartões no comparador; se a Shopee seguir em erro, investigar a chave.
+- **13/11 (fim da tarde): ML com prazo de 2,5 s para o visitante** (Giovanni: "pode fazer"): medido (`lojas.mercadolivre.etapas`
+  na resposta de /api/buscar: indice, destaques, catBanco, token, catApi, precos): o que demora é a busca do catálogo NO
+  Mercado Livre (1–3 s, até 5 s). `PRAZO_DO_VISITANTE_MS` em lib/fontes/mercadolivre.js: passou de 2,5 s, a resposta sai com
+  os mais vendidos que batem, o ML conta como incompleto ("catálogo demorou… continua por trás") e o trabalho segue com
+  waitUntil, guardando catálogo e preços; a visita seguinte lê do banco (0,6–2 s, ML completo). Busca nova: 4–7 s → ~2,6–2,9 s.
+- **13/11 (fim da tarde): comparador para eletro COM marca e SEM código** ("Britânia Diamante", "Elgin Start Fry"):
+  `gruposSemCodigo` (lib/casar.js; Eletrodomésticos, Eletroportáteis, Ferramentas): mesma marca + palavras raras do nome em
+  comum + mesma capacidade quando os dois dizem; a IA decide; no site esses anúncios juntam só pelos vereditos "igual"
+  (`SECOES_SEM_CODIGO` → `soltas` → `gruposPorVeredito`). Medido: +97 grupos candidatos em 39 buscas (349 por código).
+  Só aparece depois do robô da noite: **conferir 14/11** (liquidificador, air fryer, sanduicheira, fogão: cartões sem
+  "Modelo X") e o custo da IA da noite (esperado: dezenas de centavos; teto US$ 4).
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
