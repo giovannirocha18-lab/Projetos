@@ -358,7 +358,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   continua em todo lugar. Ideia não pedida: na Black Friday mostrar "este modelo custa R$ X em outra loja" (medir antes).
 - **13/11: AUDITORIA do site** (pedido do Giovanni, "me diga amanhã cedo"): achados em `docs/auditoria-2026-11-13.md` (13 bugs
   em ordem de gravidade + melhorias). Corrigido só as sugestões impróprias (vocabulário v=14). **Nada mais foi corrigido: ele
-  decide.** Os 2 primeiros a sugerir: teto de preço (ar condicionado de R$ 16 quatrilhões) e comparador preso em "Procurando…".
+  decide.** **Itens 1 e 2 feitos (13/11, "comece pelo 1 e 2")**: teto de preço R$ 1 milhão (`PRECO_TETO` em
+  lib/lojasRemovidas.js: sai das respostas guardadas via `ofertaDeLojaRemovida`, da leitura do banco via `comHistorico` e o
+  robô da Awin não grava) e comparador não fica preso em "Procurando…" (`completarSozinho` redesenha o quadro). No ar ✅.
+  Próximos da lista: 3 ("Limpar filtros" em Quedas/loja vai ao início), 4 (xbox), 5 (usado/vitrine no topo).
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).

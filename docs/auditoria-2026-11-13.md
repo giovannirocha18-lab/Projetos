@@ -8,6 +8,8 @@ Os 7 testes (`testes/*.mjs`) passam. Nenhum erro de JavaScript, imagem quebrada,
 - Sugestões impróprias ou que não são produto (pornô, armas de pressão, bebidas pelo nome, anestésico/insulina, curso, pdf,
   usado, "loja …"): `BLOQUEADOS_TENDENCIAS` em lib/buscas.js, casos em testes/sugestoes.mjs, vocabulário v=14 (3.530 → 3.460).
 
+- Itens 1 (só o preço impossível; os preços "de enfeite" da Shopee continuam) e 2 abaixo: corrigidos em 13/11, no ar.
+
 ## Bugs (em ordem de gravidade)
 1. **Preço absurdo**: "ar condicionado", 2ª posição, Central Ar (Awin, `awin-17608-35456293056`), R$ 16.004.370.000.000.000
    (vem assim do feed desde 28/10). Falta um teto de preço na carga da Awin/na busca. Outros preços "de enfeite" como produto:
