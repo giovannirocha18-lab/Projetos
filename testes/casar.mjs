@@ -154,7 +154,7 @@ const racoes = [
 const gc = gruposDeConsumo(racoes).filter((g) => new Set(g.map((o) => o.loja)).size >= 2).map((g) => g.map((o) => o.id).sort().join());
 ok(gc.includes("m-1,s-1") && gc.includes("c-1,m-2,s-2") && gc.includes("e-1,s-3") && gc.includes("e-2,s-5") && gc.length === 4, `grupos de consumo: ${JSON.stringify(gc)}`);
 ok(gruposDeConsumo(racoes).every((g) => !g.some((o) => o.id === "s-4" || o.id === "c-2")), "kit e anúncio sem tamanho não entram");
-ok(gruposDaBusca(racoes).length === 0 && Object.keys(CATEGORIAS_PARA_CASAR).join() === "Eletrodomésticos,Eletroportáteis,Ferramentas,Celulares,Informática", `só as 5 categorias principais: ${Object.keys(CATEGORIAS_PARA_CASAR)}`);
+ok(gruposDaBusca(racoes).length === 0 && Object.keys(CATEGORIAS_PARA_CASAR).join() === "Consoles,Eletrodomésticos,Eletroportáteis,Ferramentas,Celulares,Informática", `só as 5 categorias principais + consoles (13/11/2026): ${Object.keys(CATEGORIAS_PARA_CASAR)}`);
 
 console.log(falhas ? `✗ ${falhas} falha(s)` : "✓ robô de casar: tudo certo");
 process.exitCode = falhas ? 1 : 0;
