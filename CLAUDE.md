@@ -333,8 +333,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **13/11: 🆕 Olympikus (Awin)**: Giovanni viu 20 lojas na Awin; `so_awin` (#143) mostrou a nova: Olympikus BR, 7.256 produtos
   (cada numeração = 1 anúncio, com o número ANTES da cor: "… Titanium 41 Bege"). `modeloBase`/`semTamanho` (lib/variacoes.js e
   cópia em app.js) juntam só nos títulos com "olympikus" (em outras marcas "Pegasus 41" é modelo); /api/lojas VERSAO 44 (também "32 Bege" infantil e faixa "39-40 Roxo").
-  Lojas aprovadas na Awin: as 17 de antes + Olympikus + Stanley (fotos 410) + Elements (pausada) = 20. **Falta**: `so_auditoria`
-  para ver as categorias da loja (tênis saindo em "Esporte e fitness" e em "Calçados") e completar `REGRAS` em lib/caminhos.js.
+  Lojas aprovadas na Awin: as 17 de antes + Olympikus + Stanley (fotos 410) + Elements (pausada) = 20. **Categoria (Giovanni,
+  13/11: "somente em Esporte e fitness")**: `PADRAO_DA_LOJA.olympikus` forte em lib/caminhos.js (tênis, meias, tudo da loja);
+  /api/lojas VERSAO 45. No ar ✅ (loja e buscas novas); a pronta "tenis olympikus" ainda era de antes da loja: conferir após a madrugada.
   Cartões: 🔍/📈 em ícones ficam (Giovanni: "ficou bom, deixe assim").
 - **13/11, print "máquina de lavar" com só 3 modelos no comparador (marcando Electrolux, 7)**: a busca geral traz só parte dos
   anúncios de cada loja. Com o modo ligado numa busca comum, o comparador pede por trás "produto + marca" das 6 marcas que mais
