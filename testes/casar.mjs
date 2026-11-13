@@ -121,6 +121,11 @@ ok([ "Controle Sem Fio Xbox Series X|S", "Battlefield 6 - Xbox Series X", "Ninte
   "Console PlayStation5 Slim Disk - Pacote ASTRO BOT e Gran Turismo 7", "Xbox Série S - Sem Controle" ].every((t) => cs(t) === null), "jogo, acessório e pacote: sem chave");
 ok(gruposDaBusca([{ id: "x-1", loja: "a", preco: 3900, titulo: "Console Xbox Series S 512gb Cor Branco", bate: true, secao: "Games" }, { id: "x-2", loja: "b", preco: 2899, titulo: "Xbox Series S 512gb", bate: true, secao: "Games" },
   { id: "x-3", loja: "c", preco: 99, titulo: "Pentiment Xbox Series X|S, Xbox One (Digital)", bate: true, secao: "Games" }]).length === 1, "console em 2 lojas vira grupo; jogo não");
+// Eletro com marca e sem código no nome (13/11/2026): candidatos pelo nome da linha; a IA decide
+const sc = (id, loja, titulo, preco = 100) => ({ id, loja, preco, titulo, bate: true, secao: "Eletroportáteis" });
+const gn = gruposDaBusca([sc("n-1", "a", "Liquidificador Britânia Diamante Branco - 110V"), sc("n-2", "b", "Liquidificador Britania Diamante 800W Preto 2,1L"), sc("n-4", "c", "Liquidificador Mondial Diamante Preto")]);
+ok(gn.length === 1 && gn[0].map((o) => o.id).sort().join() === "n-1,n-2", `sem código: mesma marca + nome da linha, outra marca fora (${JSON.stringify(gn.map((g) => g.map((o) => o.id)))})`);
+ok(gruposDaBusca([sc("n-5", "a", "Fritadeira Air Fryer Elgin Start Fry 3,5L"), sc("n-6", "b", "Air Fryer Elgin Start Fry 5L Preta")]).length === 0, "sem código: capacidades diferentes não se juntam");
 // A cópia do site é igual à do robô
 const trecho = (arq) => (readFileSync(new URL(arq, import.meta.url), "utf8").match(/\/\/ >>> nomeDoModelo[\s\S]*?\/\/ <<< nomeDoModelo/) || [""])[0];
 ok(trecho("../lib/casar.js").length > 500 && trecho("../lib/casar.js") === trecho("../public/assets/app.js"), "nomeDoModelo de app.js igual à de lib/casar.js");

@@ -1049,6 +1049,7 @@ const SECOES_COMPARAVEIS = new Set(["Eletrodomésticos", "Eletroportáteis"]);
 const SECOES_SO_CONFERIDAS = new Set(["Informática", "Ferramentas", "Celulares", "Consoles"]); // "Consoles" = console de videogame (secaoDeComparar)
 // Ração, suplemento, perfume (12/11/2026): sem código de modelo. Aqui o site não tenta adivinhar: junta só os anúncios que a
 // IA do robô disse serem o mesmo produto (grupos ligados pelos vereditos "igual"; lib/casar.js, SECOES_DE_CONSUMO)
+const SECOES_SEM_CODIGO = new Set(["Eletrodomésticos", "Eletroportáteis", "Ferramentas"]); // igual em lib/casar.js
 const SECOES_POR_VEREDITO = new Set(); // desligado em 12/11/2026 (noite): foco nas 5 categorias principais
 const MEDIDA_NAO_MODELO = /^\d+([.,]\d+)?(v|w|l|ml|kg|g|gb|tb|mb|mah|hz|khz|mhz|ghz|btus?|pol|k|p|cm|mm|m|un|pcs?|x|rpm|fps|mp|db|bar|psi|lm|kwh|cv|hp|dpi|ms|bits?|pecas?|em\d)$/;
 const TERMO_NAO_MODELO = new Set(["110v", "127v", "220v", "bivolt", "4k", "8k", "5g", "4g", "wifi6", "ipx4", "ipx5", "ipx7", "ip67", "ip68", "1080p", "720p",
@@ -1296,7 +1297,8 @@ function gruposPorVeredito(soltas) {
     for (const o of grupo) if (!porLoja.has(o.loja) || o.preco < porLoja.get(o.loja).preco) porLoja.set(o.loja, o);
     const ofertas = [...porLoja.values()].sort((a, b) => a.preco - b.preco);
     const doConsole = secaoDoComparador(ofertas[0]) === "Consoles" ? modeloDe(ofertas[0]) : null;
-    if (ofertas.length >= 2) saida.push({ modelo: doConsole || { cod: "", semCodigo: true }, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco, conferido: true });
+    const marca = doConsole ? null : marcaDe(ofertas[0]) || marcaSoDoComparador(ofertas[0]);
+    if (ofertas.length >= 2) saida.push({ modelo: doConsole || { cod: "", semCodigo: true, marca: marca?.nome, n: marca?.n }, ofertas, economia: ofertas.at(-1).preco - ofertas[0].preco, conferido: true });
   }
   return saida;
 }
@@ -1310,7 +1312,9 @@ function gruposDeModelos(lista) {
     if (SECOES_POR_VEREDITO.has(o.secao) || secaoDoComparador(o) === "Consoles") { if (o.id) soltas.push(o); continue; }
     if (!(SECOES_COMPARAVEIS.has(secaoDoComparador(o)) || SECOES_SO_CONFERIDAS.has(secaoDoComparador(o)))) continue;
     const m = modeloDe(o);
-    if (!m) continue;
+    // Eletro com marca e sem código no nome ("Britânia Diamante", 13/11/2026): o robô procura os candidatos pelo nome
+    // (gruposSemCodigo em lib/casar.js) e aqui o cartão junta só o que a IA disse ser o mesmo produto
+    if (!m) { if (o.id && marcasDoTitulo && SECOES_SEM_CODIGO.has(secaoDoComparador(o))) soltas.push(o); continue; }
     if (!grupos.has(m.chave)) grupos.set(m.chave, { modelo: m, todas: [], lojas: new Set() });
     const g = grupos.get(m.chave);
     g.todas.push(o);

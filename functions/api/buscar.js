@@ -411,6 +411,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
           const tamanho = ultima.temMais === true ? Math.max(ultima.length, fonte.porPagina)
             : ultima.temMais === false ? Math.min(ultima.length, fonte.porPagina - 1) : ultima.length;
           lojas[fonte.nome] = { ok: lojas[fonte.nome]?.ok !== false, total: Math.max(tamanho, lojas[fonte.nome]?.total || 0) };
+          const etapas = listas.find((l) => l.etapas)?.etapas; // quanto levou cada parte dentro da loja (Mercado Livre)
+          if (etapas) lojas[fonte.nome].etapas = etapas;
           medir();
           return ofertas;
         } catch (erro) {
