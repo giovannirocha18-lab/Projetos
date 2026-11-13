@@ -410,6 +410,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   controle DualSense" (o da caixa, KaBuM) não é controle extra. No ar: ps5 2 cartões, playstation 5 2 (PS5 Pro e Slim
   digital, KaBuM x ML); nintendo switch e xbox 0 (a IA não confirmou / só o ML vende). A KaBuM só entrou depois da rodada:
   a noite de 13/11 confere mais pares.
+  Print dele à tarde ("xbox series" com o comparador vazio): a cópia guardada (14h38 UTC) é de antes da regra do "console" e
+  não tem os consoles do ML; `CONSOLES_DESDE`/`buscaSoDeConsole` (buscar.js) mandam refazer por trás, mas com a Shopee em
+  erro a resposta nova não substitui a guardada (regra da reserva). Resolve sozinho quando a Shopee voltar/robô da noite:
+  **conferir 14/11** "xbox series" com consoles do ML e cartões no comparador; se a Shopee seguir em erro, investigar a chave.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
