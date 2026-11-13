@@ -335,6 +335,41 @@ for (const [q, titulos, primeiro, naoBate] of [
   }
 }
 
+// 13/11/2026 (auditoria): usado/vitrine, outro tipo do produto e console antigo recuam (variante: fora da Escolha rápida e
+// depois dos produtos comuns); jogo, HD e headset com o console no meio do nome são acessório; a busca que pede a palavra não recua
+{
+  const marcar = (q, titulos) => separarAcessorios(titulos.map((titulo, i) => ({ id: String(i), titulo, preco: 1000 })), q);
+  const VARIANTES_NOVAS = {
+    "xbox": ["Xbox One Fat 500GB + Controle do xbox Series + Bateria Original Xbox", "XBOX 360 COM MAIS DE 130 JOGOs+2CONTROLES VÍDEO GAME COMPLETO COM JOGOS! Xbox360"],
+    "iphone 16": ["iPhone 16 Original 256GB, IPHONE 15, IPHONE 14 OU IPHONE 13 Todos VITRINE Impecável", "iPhone 16 Pro Max 256GB Apple Original Seminovo Vitrine Bateria 85% a 100%"],
+    "celular": ["Celular De Mesa 3g E 4g Com Wi-fi Dual Chip Aquário Ca42sx4g Cor Preto"],
+    "notebook": ["Notebook Lenovo ThinkPad T480s i5 8GB SSD 256GB Notebook de Exposição", "Notebook Dell Latitude 5490 i5 RECONDICIONADO"],
+    "ps5": ["PS5 Fat Edição Mídia Física Seminovo"],
+    "bicicleta": ["Bicicleta Ergométrica Bike Spinning 6kg Sensação Inércia Fitness", "Bicicleta de Equilíbrio Infantil Sem Pedal"],
+    "colchão casal": ["Kit Colchão Casal + 2 Colchão Solteiro Inflável Bomba Embutida - Mor"],
+    "sofá": ["Sofá Cama Poltrona Inflável Conforto Até 100kg"],
+    "whey protein": ["Whey Protein JUICEDOP ISO Clear Sachê Pote 12g"],
+  };
+  const COMUNS = {
+    "xbox": ["Console Xbox Series S 512GB Branco", "Microsoft Xbox Series X 1TB Preto", "Xbox Series S 1TB Carbon Black", "Novo Xbox Series X 1TB"],
+    "xbox 360": ["Console Xbox 360 Super Slim"], "bicicleta ergometrica": ["Bicicleta Ergométrica Bike Spinning 6kg"],
+    "colchão inflável": ["Colchão Inflável Casal Com Bomba"], "iphone 16": ["Apple iPhone 16 128GB Preto"], "ps5": ["Console PS5 Slim 1TB", "Sony PlayStation 5 Pro"],
+    "playstation 5": ["Sony PlayStation 5 Pro 2TB", "PlayStation 5 Slim Digital"], "nintendo switch": ["Console Nintendo Switch 2", "Nintendo Switch OLED Branco"],
+    "celular": ["Celular Motorola Moto G15 128GB"], "bicicleta": ["Bicicleta Aro 29 Caloi 21 Marchas"],
+  };
+  const ACESSORIOS_NOVOS = {
+    "xbox": ["Bayonetta / Xbox 360 - Xbox One e Xbox Series X/S / Original / Completo", "FC 25 Xbox 360 Funciona em qualquer xbox Original Bloqueado",
+      "HD 500GB Xbox 360 com case interna RGH/Aurora com 246 títulos de Xbox 360 + jogos retro", "Headset Gamer Xbox Stereo",
+      "Xbox Live Arcade Unplugged Xbox 360 - Jogos de Plataforma Ação Jogos de Xbox 360"],
+    "xbox series s 1tb": ["SSD 1TB Expansão Xbox Series S X Seagate"],
+    "ps5": ["God of War Ragnarok PS5 Mídia Física", "Computador para jogos 4K180HZ com monitor de tela de peixe PS5"],
+    "nintendo switch": ["Mario Kart 8 Deluxe Nintendo Switch"],
+  };
+  const conferir = (grupo, nome, certo) => { for (const [q, titulos] of Object.entries(grupo)) for (const o of marcar(q, titulos)) if (!certo(o)) { falhas++; console.log(`✗ "${q}": devia ser ${nome}: ${o.titulo}`); } };
+  conferir(VARIANTES_NOVAS, "variante (recua)", (o) => o.variante && !o.acessorio);
+  conferir(COMUNS, "produto comum", (o) => o.bate && !o.variante && !o.acessorio);
+  conferir(ACESSORIOS_NOVOS, "acessório", (o) => o.acessorio);
+}
 // 13/11/2026: loja Olympikus (Awin) manda cada numeração como um anúncio, com o número ANTES da cor
 if (modeloBase("Tênis Olympikus Titanium 41 Bege") !== modeloBase("Tênis Olympikus Titanium 42 Bege") || semTamanho("Tênis Olympikus Essential 3 Feminino 34 Preto") !== "Tênis Olympikus Essential 3 Feminino Preto"
   || modeloBase("Tênis Olympikus Titanium 41 Bege") === modeloBase("Tênis Olympikus Titanium 41 Preto") || semTamanho("Tênis Nike Pegasus 41 Masculino Preto") !== "Tênis Nike Pegasus 41 Masculino Preto"

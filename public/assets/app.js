@@ -4307,8 +4307,9 @@ function zerarFiltros() {
 function limparFiltros() {
   zerarFiltros();
   $("input[name=ordem][value=relevancia]").checked = true;
-  // Na Black Friday, "Limpar filtros" só limpa os filtros (a página é o próprio assunto, não um filtro)
-  if ((estado.loja && estado.loja.id !== BLACK_FRIDAY) || categoriaAtual()) {
+  // Na Black Friday, nas Quedas de preço e na página de uma loja, "Limpar filtros" só limpa os filtros: a página é o
+  // próprio assunto, não um filtro (auditoria de 13/11/2026: nas Quedas e na loja a pessoa era jogada para o início)
+  if (!estado.loja && categoriaAtual()) {
     const q = estado.loja || navegandoCategoria() ? "" : estado.q;
     if (!q) document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
     return irPara(q);
