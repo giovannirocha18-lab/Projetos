@@ -369,8 +369,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   `CONSOLE_ANTIGO` (360, one, fat, desbloqueado) recua e título que não começa pelo console é acessório; "xbox"/"playstation"/
   "nintendo" pesquisam também o console atual (`variantesDeConsole` em lib/vocabulario.js). Busca nova já sai certa; as
   guardadas só depois do robô da noite: **conferir 14/11** "xbox" (tem que abrir com Series), "iphone 16" e "bicicleta".
-  Faltam da auditoria: tênis nike só AliExpress, preços "de enfeite" da Shopee, Quedas sem queda, sugestão sumir quando
-  loja falha, categorias erradas, detalhes de tela, cupons velhos.
+  **"Faça as demais correções" (13/11): feitos os itens 6 (resto), 8, 9, 10, 11, 12 e 13** (lista no começo de
+  docs/auditoria-2026-11-13.md): Quedas só com queda de 2%+ (/api/quedas v=2), cupons velhos/sem valor/em inglês fora
+  (`cupomRuim`, /api/cupons VERSAO 15), PC gamer/tablet/Kindle em Informática, Voltar do celular fecha qualquer janela
+  (`showModal` com `passoDeCamada`), /api/em-alta v=18 sem atalho repetido, robô de casar não abandona o grupo num erro.
+  "tênis nike" só AliExpress NÃO é defeito (as outras parceiras não vendem). Faltam só miudezas e as "Melhorias sugeridas".
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
