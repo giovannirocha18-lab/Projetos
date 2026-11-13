@@ -538,6 +538,12 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   **Filtro Marcas (print "gamesir" mostrava Xbox/Nintendo/Apple)**: `MARCAS_SO_DO_FILTRO` (GameSir, 8BitDo, PXN…; só no app.js,
   NÃO pôr em `MARCAS` do servidor), marca depois de "para/compatível" e plataforma (`PLATAFORMAS`) perdem em `marcaDe`.
   **Giovanni mostrou a senha da API da Shopee num print**: recomendado "Redefinir" + atualizar o Secret `SHOPEE_SECRET` juntos (ele não respondeu).
+- **13/11 (noite): quadro "Tipo" na busca só do videogame** (ideia do Giovanni, print "xbox"; simulação aprovada): Todos ·
+  Consoles · Controles · Jogos · Acessórios entre "Ordenar por" e "Marcas" (`#caixa-tipos`, `tipoDe`/`desenharFiltroTipos`/
+  `BUSCA_DE_VIDEOGAME`/`estado.tipoSo` em app.js; lido do nome do anúncio; tipo escolhido mostra os acessórios e as marcas
+  seguem o tipo). Gift card e Game Pass = Acessórios (decisão dele). Limites: console "Kit…/USADO -…" cai em Acessórios;
+  "Console + Jogo" do Switch às vezes em Jogos. **Cópia velha do Cloudflare trocada pela pronta mais nova do banco**
+  (`trocarPelaPronta` em buscar.js: sem isso, com a Shopee em erro, "xbox" seguia com a lista da madrugada).
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
