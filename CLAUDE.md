@@ -395,6 +395,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   contam como Eletroportáteis (`secaoDeComparar`). No ar: aspirador de pó 0 → 18 modelos, purificador 15 → 20, sanduicheira
   12 → 16. Ferramentas só muda depois do robô da noite (só mostra o que a IA conferiu). Sobra: ~1.100 anúncios com marca e sem
   código nenhum ("Britânia Diamante", "Elgin Start Fry"): precisaria casar por nome + IA (não feito).
+- **13/11, print "xbox series" sem console do ML**: o catálogo do ML só devolve o aparelho com "console" na busca. Busca só
+  do console com modelo (`SO_O_CONSOLE` em lib/vocabulario.js: xbox series/one, ps2–ps5, nintendo switch…) pesquisa também
+  "console …" e junta. No ar: xbox series x 10 consoles do ML, xbox series s 12, ps5 slim 8. A cópia guardada de "xbox series"
+  era de antes: **conferir 14/11**. Giovanni perguntou do comparador em videogame: Games saiu em 12/11 (decisão dele);
+  oferecido religar só para consoles (medir antes) — aguardando resposta.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
