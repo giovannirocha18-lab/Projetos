@@ -1046,7 +1046,7 @@ const SECOES_COMPARAVEIS = new Set(["Eletrodomésticos", "Eletroportáteis"]);
 // Nestas o cartão só aparece com os anúncios que a IA do robô confirmou (o "código" pode ser o processador, a memória…)
 // 12/11/2026 (noite), decisão do Giovanni: só as 5 categorias principais; fones, caixas de som, games, smartwatches, pets,
 // suplementos e perfumes saíram do comparador
-const SECOES_SO_CONFERIDAS = new Set(["Informática", "Ferramentas", "Celulares"]);
+const SECOES_SO_CONFERIDAS = new Set(["Informática", "Ferramentas", "Celulares", "Consoles"]); // "Consoles" = console de videogame (secaoDeComparar)
 // Ração, suplemento, perfume (12/11/2026): sem código de modelo. Aqui o site não tenta adivinhar: junta só os anúncios que a
 // IA do robô disse serem o mesmo produto (grupos ligados pelos vereditos "igual"; lib/casar.js, SECOES_DE_CONSUMO)
 const SECOES_POR_VEREDITO = new Set(); // desligado em 12/11/2026 (noite): foco nas 5 categorias principais
@@ -1085,7 +1085,30 @@ const MARCA_MAE = { redmi: "xiaomi", poco: "xiaomi", galaxy: "samsung", moto: "m
 const NAO_E_CODIGO = /^(i[3579]\d{4,5}[a-z]{0,2}|[3579]\d{4}[a-z]{1,2}|\d{4,5}(u|h|hx|hs|hk|x|x3d|f|k|kf)|n\d{3,4}[a-z]?|l?p?ddr\d\w*|gddr\d|\d+(ssd|hd|hdd|nvme|emmc|ram)|\d+gb\w*|pcie\w*|sata\d|intelcore\w*|ryzen\d\w*|core\d\w*|ci[3579]\d+\w*|usb\d\w*|hdmi\d\w*|wifi\d\w*|win\d+\w*|windows\d+|w1[01]\w*)$/;
 // Tablet e iPad chegam sem categoria ou como "Celulares", e impressora, Kindle e roteador muitas vezes sem categoria
 // (12/11/2026: "ipad", "tablet" e "impressora" davam 0 grupos). Tablet é lido pelo nome, como celular
+// Videogame (13/11/2026, Giovanni: "sim pode colocar videogame no comparador"): só o CONSOLE, não jogos nem acessórios (a
+// seção Games tem os três). O anúncio tem que começar pelo console; a chave é família + modelo + edição (digital/disco) +
+// armazenamento. Fica sem chave: pacote com jogo, controle a mais, "sem controle", kit. Só para achar candidatos: o site só
+// mostra o que a IA confirmou. cod = o que aparece no cartão
+function consoleDoTitulo(tituloNormalizado) {
+  const t = tituloNormalizado.replace(/[^a-z0-9+ ]/g, " ").replace(/\s+/g, " ").trim();
+  const m = t.match(/^(?:novo |nova )?(?:consoles? |video ?game )?(?:microsoft |sony |nintendo )?(?:consoles? )?(xbox series? [sx]|xbox one(?: [sx])?|xbox 360|(?:playstation|ps) ?[45]|nintendo switch)\b(.*)$/);
+  if (!m) return null;
+  const resto = m[2];
+  if (/\+|\b(kit|pacote|bundle|combo|jogos?|games?|gamepass|controles?|headset|volante|meses|mes|limitada|limited|edicao especial|usado|seminovo|caixa|suporte|capa|skin|adesivo|base|cooler|carregador|fonte|cabo|placa|gabinete|carcaca|tampa)\b/.test(resto)) return null;
+  let familia = m[1].replace(/^(playstation|ps) ?/, "ps").replace(/^xbox serie /, "xbox series ");
+  if (familia.startsWith("ps")) familia += /\bpro\b/.test(resto) ? " pro" : /\bslim\b/.test(resto) ? " slim" : "";
+  if (familia === "nintendo switch") familia += /^ 2\b/.test(resto) ? " 2" : /\boled\b/.test(resto) ? " oled" : /\blite\b/.test(resto) ? " lite" : "";
+  // Series S é sempre digital; no PS5 e no Series X o digital e o com disco são produtos (e preços) diferentes
+  const edicao = /^(ps5|xbox series x)/.test(familia) ? (/\bdigital\b/.test(resto) ? "digital" : /\b(disk|disco|disc|midia fisica|standard|leitor)\b/.test(resto) ? "disco" : "") : "";
+  const tamanhos = [...new Set([...resto.matchAll(/\b(\d{2,4}) ?gb\b|\b([1-8]) ?tb\b/g)].map((x) => (x[1] ? `${x[1]}gb` : `${x[2]}tb`)))];
+  if (tamanhos.length > 1) return null;
+  // Sem a palavra "console" e sem armazenamento nem modelo, pode ser jogo ("Nintendo Switch Sports Resort")
+  if (!/\b(consoles?|video ?game)\b/.test(t) && !tamanhos.length && !/ (2|oled|lite|pro|slim)$/.test(familia)) return null;
+  const partes = [familia, edicao, tamanhos[0] || ""].filter(Boolean);
+  return { chave: `console|${partes.join("|")}`, cod: partes.join(" ").toUpperCase(), marca: familia.startsWith("ps") ? "playstation" : familia.split(" ")[0] };
+}
 function secaoDeComparar(tituloNormalizado, secao) {
+  if ((!secao || secao === "Games" || secao === "Informática") && consoleDoTitulo(tituloNormalizado)) return "Consoles";
   const inicio = tituloNormalizado.replace(/[^a-z0-9 ]/g, " ").trim().split(/\s+/).slice(0, 5).join(" ");
   if ((!secao || secao === "Celulares" || secao === "Informática") && /\b(tablet|ipad|galaxy tab|redmi pad|xiaomi pad)\b/.test(inicio)) return "Celulares";
   if (!secao && /\b(impressora|multifuncional|kindle|roteador|notebook|monitor)\b/.test(inicio)) return "Informática";
@@ -1170,6 +1193,11 @@ function marcaSoDoComparador(o) {
 }
 function modeloDe(o) {
   if (o._modelo !== undefined) return o._modelo;
+  if (marcasDoTitulo && secaoDoComparador(o) === "Consoles") {
+    const c = consoleDoTitulo(normalizar(String(o.titulo || "")));
+    o._modelo = { chave: c.chave, cod: c.cod, porNome: true, marca: c.marca.replace(/^./, (l) => l.toUpperCase()), n: c.marca, tensao: "" };
+    return o._modelo;
+  }
   const marca = marcaDe(o) || (marcasDoTitulo ? marcaSoDoComparador(o) : null);
   // A lista de marcas ainda não chegou: não guarda "sem modelo" (ligar o modo logo ao abrir a página não achava nada)
   if (!marcasDoTitulo) return null;

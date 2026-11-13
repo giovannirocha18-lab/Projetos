@@ -81,7 +81,7 @@ ok(cel("Celular Motorola Edge 60 Pro 256GB") !== cel("Celular Motorola Edge 60 2
 ok(cel("Samsung Galaxy S26+ 256GB Câm. Tripla 50+12+10MP") === cel("Samsung Galaxy S26 Plus 5G 256GB 12GB RAM"), `S26+ = S26 Plus: ${cel("Samsung Galaxy S26+ 256GB Câm. Tripla 50+12+10MP")}`);
 ok(cel("Kit 2 Celulares Samsung Galaxy A15 128GB") === null && cel("Celular Samsung bom e barato") === null, "kit e nome sem modelo: sem chave");
 ok(cel("Geladeira Brastemp Frost Free 375 litros 2 portas", "Eletrodomésticos") === null, "eletrodoméstico nunca é juntado pelo nome");
-ok(cel("Console Sony Playstation 5 Slim 1TB Branco", "Games") === null && cel("Apple Watch Series 10 46mm", "Smartwatches") === null, "Games e Smartwatches saíram do casamento");
+ok(cel("Jogo God of War Ragnarok PS5 Mídia Física", "Games") === null && cel("Apple Watch Series 10 46mm", "Smartwatches") === null, "jogos e Smartwatches fora do casamento (console voltou em 13/11/2026)");
 // 12/11/2026 (medido em 2.258 anúncios reais): memória, processador, câmera e tela não são o modelo; " + " de RAM/selfie não é kit
 ok(cel("Smartphone Motorola Moto G17 4g - 128gb 4gb Ram + 8gb Ram Boost, Camera 50mp Sony Lytia 600") === "motorola|nome|g17|128gb"
   && cel("Smartphone Motorola Moto g35 5G - 128GB 4GB RAM+8GB Ram Boost, e Camera 50MP") === "motorola|nome|g35|128gb", `RAM Boost não é kit: ${cel("Smartphone Motorola Moto g35 5G - 128GB 4GB RAM+8GB Ram Boost, e Camera 50MP")}`);
@@ -113,6 +113,14 @@ ok(gruposDaBusca([{ id: "s-1", loja: "a", preco: 190, titulo: "Aspirador de Pó 
   { id: "s-2", loja: "b", preco: 200, titulo: "Aspirador de Pó Vertical com Fio Electrolux 1450W STK15", bate: true, secao: "Limpeza" }]).length === 1
   && gruposDaBusca([{ id: "s-3", loja: "a", preco: 19, titulo: "Detergente Ypê ABC123 500ml", bate: true, secao: "Limpeza" }, { id: "s-4", loja: "b", preco: 20, titulo: "Detergente Ypê ABC123", bate: true, secao: "Limpeza" }]).length === 0,
   "aspirador (Limpeza) entra no comparador; o resto da Limpeza não");
+// Consoles de videogame (13/11/2026): só o aparelho; jogo, acessório, pacote e controle a mais ficam sem chave
+const cs = (titulo) => chaveDaOferta({ titulo, secao: "Games" });
+ok(cs("Console Xbox Series S 512gb Cor Branco") === "console|xbox series s|512gb" && cs("Microsoft Xbox Series S 512gb Standard Cor Branco") === "console|xbox series s|512gb", `console: ${cs("Console Xbox Series S 512gb Cor Branco")}`);
+ok(cs("Console Playstation 5 Slim Edição Digital 825 Gb") === "console|ps5 slim|digital|825gb" && cs("Console Sony Playstation 5 Edição Slim Disk 1tb Branco") === "console|ps5 slim|disco|1tb", "PS5: digital e com disco separados");
+ok([ "Controle Sem Fio Xbox Series X|S", "Battlefield 6 - Xbox Series X", "Nintendo Switch Sports Resort - NS2", "Console Microsoft Xbox Series S 512gb Com Controle Adicional Cor Vermelho",
+  "Console PlayStation5 Slim Disk - Pacote ASTRO BOT e Gran Turismo 7", "Xbox Série S - Sem Controle" ].every((t) => cs(t) === null), "jogo, acessório e pacote: sem chave");
+ok(gruposDaBusca([{ id: "x-1", loja: "a", preco: 3900, titulo: "Console Xbox Series S 512gb Cor Branco", bate: true, secao: "Games" }, { id: "x-2", loja: "b", preco: 2899, titulo: "Xbox Series S 512gb", bate: true, secao: "Games" },
+  { id: "x-3", loja: "c", preco: 99, titulo: "Pentiment Xbox Series X|S, Xbox One (Digital)", bate: true, secao: "Games" }]).length === 1, "console em 2 lojas vira grupo; jogo não");
 // A cópia do site é igual à do robô
 const trecho = (arq) => (readFileSync(new URL(arq, import.meta.url), "utf8").match(/\/\/ >>> nomeDoModelo[\s\S]*?\/\/ <<< nomeDoModelo/) || [""])[0];
 ok(trecho("../lib/casar.js").length > 500 && trecho("../lib/casar.js") === trecho("../public/assets/app.js"), "nomeDoModelo de app.js igual à de lib/casar.js");
