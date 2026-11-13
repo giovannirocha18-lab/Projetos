@@ -306,10 +306,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   **Início sem a barra lateral no computador** (pedido dele, "como o ML", opção 1 "para testar"): `body.modo-inicio .filtros`
   some em telas ≥ 861 px e o cabeçalho ganhou o botão **"☰ Categorias"** (`#abrir-categorias` → `#menu-categorias`, as 40 em 4
   colunas; `abrirMenuCategorias` em app.js). Busca, categoria e lojas seguem com os filtros à esquerda; celular não mudou.
-  **Depois ele pediu "teste o 2": NO AR a opção 2** = no computador o site todo sem lateral; na busca o botão "Filtros e
-  ordem" (`.barra-lista .botao-filtros`) abre a mesma `#filtros` como gaveta à esquerda (bloco "TESTE da opção 2" no FIM de
-  estilo.css; tem que ficar no fim para ganhar das regras de `.filtros`). Falta ele dizer se fica a 1 ou a 2; para voltar à 1,
-  o comentário do bloco diz como.
+  **13/11: decidido (Giovanni: "gostei da opção 1")**: no computador o início fica sem lateral; busca, categoria, loja, Black
+  Friday e Quedas com a lateral fixa, SEM a lista das 40 categorias (`#caixa-categorias`, só no "☰ Categorias" do topo) e em
+  quadros brancos: ordem/envio com ✓ roxo, marcas em pílulas, frete/avaliados/comparação em chavinha (bloco "Barra lateral no
+  computador" no fim de estilo.css). O quadro "Categorias" dos resultados (`#caixa-secoes`) ficou. Celular igual. A opção 2
+  (gaveta) saiu do CSS.
 - **12/11 (noite), print "xiaomi 18 pro"** (sugestão vinda das tendências do ML; o celular não está à venda): a lista mostrava
   liquidificador/patinete Xiaomi e tinta "Super Pro 18 Litros" como produto e escondia as capas. Regra nova em
   `separarAcessorios` (lib/relevancia.js, `MINIMO_DE_ACESSORIOS_DELE` = 5): busca de 2+ palavras sem NENHUM produto com todas,
