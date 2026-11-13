@@ -341,6 +341,13 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   aparecem (`completarComparacaoDaBusca`/`extrasDaBusca` em app.js; usa `pedirMarca(…, "completo")`, 2 por vez; só se a busca
   tem 5+ produtos de seção comparável; a busca rápida `rapido=1` NÃO ajudou no teste). No ar: máquina de lavar 3 → 12,
   geladeira 28 → 71, air fryer 37, celular 18 → 54; "ração" não dispara nada. Menu "☰ Categorias" em ordem alfabética (colunas).
+- **13/11: filtro de marcas no quadro do comparador** (pedido do Giovanni; simulação mostrada antes, ele aprovou): fila de
+  pílulas "Marcas: Todas · Consul · …" no alto do quadro (`filtroDeMarcasDoComparador`, `marcaDoComparador`,
+  `escolherMarcaDoComparador` em app.js; `.comparacao-marcas`/`.chip-marca` no CSS). Um toque = só os modelos da marca; vale
+  só para o quadro e só na busca atual; sem números; 12 à vista + "+ N marcas"; no celular rola de lado. Numa busca comum,
+  marca ainda não pedida por trás é buscada no toque (`juntarMarcaAoComparador`). **Combinado com ele (13/11): mudança de
+  visual = mostrar a simulação (Playwright com `p.route` dos arquivos locais no site real) ANTES de publicar**; o trabalho
+  aguardando OK fica na branch `claude/epic-albattani-pz7e7q` (não publica).
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
