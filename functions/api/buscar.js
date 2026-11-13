@@ -247,7 +247,24 @@ export async function onRequestGet({ request, env, waitUntil }) {
     if (Date.now() - (atualizando.get(chave.url) || 0) < PAUSA_ENTRE_ATUALIZACOES_MS) return;
     if (atualizando.size > 5000) atualizando.clear();
     atualizando.set(chave.url, Date.now());
-    waitUntil(onRequestGet({ request, env: { ...env, __ATUALIZAR: true }, waitUntil }).catch(() => {}));
+    waitUntil(trocarPelaPronta(criado).then((trocou) => trocou || onRequestGet({ request, env: { ...env, __ATUALIZAR: true }, waitUntil })).catch(() => {}));
+  };
+  // A cópia deste ponto do Cloudflare é mais velha que a busca pronta do banco (o robô refez a busca depois): troca pela
+  // pronta em vez de ir às lojas. Sem isso, com a Shopee em erro a cópia velha ficava até vencer, porque a busca refeita
+  // por trás sem a Shopee não substitui a guardada (13/11/2026, print do Giovanni: "xbox" abrindo com Xbox One Fat horas
+  // depois de o robô ter guardado a lista nova)
+  const trocarPelaPronta = async (criado) => {
+    if (!cache || !env.DB || desde !== 1 || !(pagina === 1 || (!q && pagina <= PAGINAS_INICIO_PRONTAS))) return false;
+    const nova = await env.DB.prepare(`SELECT criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first().catch(() => null);
+    if (!nova || nova.criado <= criado + 60 * 1000 || Date.now() - nova.criado > FRESCO_MS) return false;
+    const pronta = await env.DB.prepare(`SELECT resposta, total, criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
+    if (!pronta) return false;
+    const resposta = responder(await descompactar(pronta.resposta));
+    resposta.headers.set("X-Total-Ofertas", String(pronta.total));
+    resposta.headers.set("X-Pronta", "1");
+    await cache.put(chave, paraGuardar(resposta.clone(), pronta.criado));
+    await guardarLimpa(await limpar(resposta), pronta.criado);
+    return true;
   };
   // contar=1: o site usou a busca que adiantou enquanto a pessoa digitava; só falta contar para os "em alta"
   const soContar = params.has("contar");
