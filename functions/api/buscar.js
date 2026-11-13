@@ -388,7 +388,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
           // Prazo por página (10/11/2026, revisão): com um prazo só para o lote, a página lenta jogava fora as que já tinham
           // chegado. prazoMs = a loja pode desistir da parte lenta antes e devolver o que tem (Shopee: lista oficial do banco)
           const prazo = limiteDe(fonte);
-          const comPrazo = { ...opcoes, prazoMs: prazo - 1000 };
+          const comPrazo = { ...opcoes, prazoMs: prazo - 1000, visitante: !preparar && !atualizar };
           const porPagina = await Promise.allSettled(paginas.map((p) => comLimite(fonte.buscar(termo, env, p, comPrazo), prazo)));
           // Uma página falhou: a loja conta como em erro, mas o que as outras páginas trouxeram não se perde
           const falha = porPagina.find((r) => r.status === "rejected");
