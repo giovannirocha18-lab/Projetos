@@ -311,6 +311,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   quadros brancos: ordem/envio com ✓ roxo, marcas em pílulas, frete/avaliados/comparação em chavinha (bloco "Barra lateral no
   computador" no fim de estilo.css). O quadro "Categorias" dos resultados (`#caixa-secoes`) ficou. Celular igual. A opção 2
   (gaveta) saiu do CSS.
+  **13/11: fundo nas cores da marca na página TODA** (print: "o site fica muito branco" ao rolar; escolheu a opção 1 de 3
+  simulações): lilás → rosa de lado a lado, vivo no alto e com véu branco de 50% de 640 px para baixo (`body` em estilo.css).
 - **12/11 (noite), print "xiaomi 18 pro"** (sugestão vinda das tendências do ML; o celular não está à venda): a lista mostrava
   liquidificador/patinete Xiaomi e tinta "Super Pro 18 Litros" como produto e escondia as capas. Regra nova em
   `separarAcessorios` (lib/relevancia.js, `MINIMO_DE_ACESSORIOS_DELE` = 5): busca de 2+ palavras sem NENHUM produto com todas,
