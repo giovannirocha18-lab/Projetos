@@ -26,7 +26,7 @@ import { normalizar } from "../../lib/texto.js";
 import { anotarNaFilaML, POUCOS_ML } from "../../lib/mlFila.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
-import { corrigirBusca, acentuarBusca, buscaNasLojas } from "../../lib/vocabulario.js";
+import { corrigirBusca, acentuarBusca, buscaNasLojas, buscaSoDeConsole } from "../../lib/vocabulario.js";
 import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
@@ -39,6 +39,7 @@ const FONTES_REAIS = [mercadolivre, curadoria, shopee, awin, aliexpress, lomadee
 // e o próximo já recebe a nova. O navegador guarda só NAVEGADOR_SEGUNDOS (para ver a atualização logo).
 // Era 1 hora; 6 horas desde 03/11/2026 (limite da Shopee: cada busca refeita gasta o limite)
 const FRESCO_MS = 6 * 60 * 60 * 1000;
+const CONSOLES_DESDE = Date.UTC(2026, 10, 13, 17, 5);
 const GUARDAR_SEGUNDOS = 24 * 60 * 60;
 const LIMPA_FRESCA_MS = 10 * 60 * 1000; // de quanto em quanto tempo a cópia limpa é conferida de novo com o banco
 const NAVEGADOR_SEGUNDOS = 10 * 60;
@@ -239,7 +240,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const chave = rapido ? new Request(`${chaveCheia.url}&rapido=1`) : chaveCheia;
   // Refaz a busca nas lojas em segundo plano (sem contar como busca)
   const refazerPorTras = (criado) => {
-    if (preparar || atualizar || Date.now() - criado < FRESCO_MS) return;
+    // Busca só do console ("xbox series", "ps5"…): a guardada antes de 13/11/2026 17h05 UTC não tem os consoles do Mercado
+    // Livre (print do Giovanni: comparador vazio em "xbox series"); refaz já, sem esperar as 6 horas
+    const semConsoles = Boolean(q) && criado < CONSOLES_DESDE && buscaSoDeConsole(q);
+    if (preparar || atualizar || (Date.now() - criado < FRESCO_MS && !semConsoles)) return;
     if (Date.now() - (atualizando.get(chave.url) || 0) < PAUSA_ENTRE_ATUALIZACOES_MS) return;
     if (atualizando.size > 5000) atualizando.clear();
     atualizando.set(chave.url, Date.now());
