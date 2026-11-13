@@ -255,6 +255,16 @@ a { color: inherit; }
 /* Os links ficam ao lado dos botões redondos quando cabem; se não, vão para a linha de cima (sem quebrar "Ver detalhes") */
 .acoes-oferta .links-oferta { flex: 1 1 100px; }
 .acoes-oferta .links-oferta .ver-historico { white-space: nowrap; }
+/* TESTE (Giovanni, 12/11/2026, opção 1 para encurtar os cartões): "Ver detalhes" e "Histórico" viram ícones redondos, na
+   mesma linha do WhatsApp, sino e carrinho. Para voltar: apagar este bloco e devolver os textos em cartaoOferta (app.js) */
+.acoes-oferta { flex-wrap: nowrap; }
+.acoes-oferta .links-oferta { flex: none; flex-wrap: nowrap; gap: 6px; }
+.acoes-oferta .links-oferta .ver-historico {
+  width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 1.5px solid var(--borda); background: #fff;
+  display: grid; place-items: center; font-size: .95rem; line-height: 1; text-decoration: none; transition: transform .15s, border-color .15s;
+}
+.acoes-oferta .links-oferta .ver-historico:hover { transform: scale(1.12); border-color: var(--roxo); text-decoration: none; }
+.acoes-oferta .favoritar, .acoes-oferta .alertar, .acoes-oferta .whatsapp { width: 34px; height: 34px; }
 .botoes-oferta { display: flex; gap: 6px; margin-left: auto; flex: none; }
 .botoes-oferta > * { margin-left: 0 !important; }
 .favoritar {

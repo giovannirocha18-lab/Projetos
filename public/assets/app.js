@@ -1517,8 +1517,10 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       // Botão do carrinho logo acima do "Comprar" (pedido do Giovanni, 22/10/2026: em cima da foto ficava escondido)
       el("div", { class: "acoes-oferta" },
         el("div", { class: "links-oferta" },
-          temDetalhes(o) && el("button", { class: "ver-historico", type: "button", onclick: () => abrirDetalhes(o) }, "🔍 Ver detalhes"),
-          o.historico && el("button", { class: "ver-historico", type: "button", onclick: () => abrirHistorico(o) }, "📈 Histórico")),
+          // Só o ícone, na mesma linha dos botões redondos (teste do Giovanni, 12/11/2026: cartões mais baixos); o nome fica
+          // na dica do mouse e para leitores de tela
+          temDetalhes(o) && el("button", { class: "ver-historico", type: "button", title: "Ver detalhes", "aria-label": "Ver detalhes", onclick: () => abrirDetalhes(o) }, "🔍"),
+          o.historico && el("button", { class: "ver-historico", type: "button", title: "Histórico de preço", "aria-label": "Histórico de preço", onclick: () => abrirHistorico(o) }, "📈")),
         el("div", { class: "botoes-oferta" },
         el("button", { class: "whatsapp", type: "button", "aria-label": "Enviar no WhatsApp", title: "Enviar no WhatsApp",
           onclick: () => compartilharWhatsApp(o) }, ICONE_WHATSAPP()),
