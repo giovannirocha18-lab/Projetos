@@ -418,7 +418,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         } catch (erro) {
           // Uma loja fora do ar não derruba a busca nas outras. erro.parciais = o que a loja ainda conseguiu trazer
           // (Shopee recusando: os produtos da lista oficial guardada no banco, lib/shopeeLista.js)
-          lojas[fonte.nome] = { ok: false, erro: String(erro.message || erro) };
+          lojas[fonte.nome] = { ok: false, erro: String(erro.message || erro), ...(erro?.etapas ? { etapas: erro.etapas } : {}) };
           medir();
           return Array.isArray(erro?.parciais) ? erro.parciais : [];
         }
