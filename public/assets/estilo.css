@@ -383,7 +383,13 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .nota span { white-space: nowrap; }
 .estrelas { color: #f59e0b; letter-spacing: 1px; }
 
+/* Preço antigo riscado AO LADO do preço novo (pedido do Giovanni, 12/11/2026: os cartões ficavam compridos, com o riscado
+   numa linha só dele): o preço vem primeiro, o riscado (e o "% OFF" do celular) à direita, a economia embaixo */
 .precos { margin-top: auto; padding-top: 6px; }
+.oferta-corpo .precos { padding-top: 4px; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+.oferta-corpo .precos .preco { order: 1; display: inline-block; }
+.oferta-corpo .precos .linha-de { order: 2; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.oferta-corpo .precos .economia-tag { order: 3; flex-basis: 100%; margin-top: 0; }
 .preco-antigo { font-size: .85rem; color: var(--suave); text-decoration: line-through; }
 .preco { display: block; font-size: 1.55rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
 .preco small { font-size: .9rem; font-weight: 700; margin-right: 2px; }
@@ -397,8 +403,8 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .internacional { display: inline-block; align-self: flex-start; font-size: .75rem; font-weight: 700; color: #1d4ed8; background: #dbeafe; padding: 3px 8px; border-radius: 6px; margin-top: 4px; }
 
 .botao-oferta {
-  display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px;
-  padding: 12px; border-radius: 12px; font-weight: 800; text-decoration: none; font-size: .95rem; line-height: 1.4rem;
+  display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px;
+  padding: 10px 12px; border-radius: 12px; font-weight: 800; text-decoration: none; font-size: .95rem; line-height: 1.4rem;
   /* Uma cor só para todas as lojas (muitas lojas = "salada de frutas"; pedido do Giovanni, 20/10/2026).
      A loja aparece em destaque no selo acima do nome do produto (.loja-tag) */
   background: var(--gradiente); color: #fff;

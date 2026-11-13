@@ -324,6 +324,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - 12/11 (noite): **botão "⚖️ Comparador" ao lado do "Frete grátis"** na busca (`.botao-comparador`, `[data-comparador]`,
   `marcarBotoesComparador` em app.js: marcado liga o Modo comparação, desmarcado desliga; roxo, cheio com ✓ quando ligado).
   Modo ligado dentro de UMA loja (print "notebook" na loja ML): aviso "Você está buscando só na loja X… busque em todas as lojas".
+- 12/11 (noite): **cartões mais baixos** (print do Giovanni: "compridos, muito espaço em branco"): preço antigo riscado AO LADO
+  do novo (`.oferta-corpo .precos` em flex: preço, riscado/% OFF, economia embaixo) e botão Comprar mais enxuto; no PC 643 → 612 px.
+  O espaço que sobra em alguns cartões é a fileira igualando a altura pelo cartão mais cheio (selos Full/Internacional, vendidos).
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
