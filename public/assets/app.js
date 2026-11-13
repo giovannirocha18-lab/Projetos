@@ -2118,7 +2118,7 @@ function lerPreco(texto) {
 }
 
 // Acessórios só aparecem se pedidos (ou se a busca só achou acessórios)
-const escondeAcessorios = () => !$("#com-acessorios").checked && estado.ofertas.some((o) => !o.acessorio);
+const escondeAcessorios = () => !estado.tipoSo && !$("#com-acessorios").checked && estado.ofertas.some((o) => !o.acessorio);
 
 // O produto buscado: todas as palavras e, numa busca dentro de categoria, da categoria
 const produtoExato = (o) => o.bate && (!estado.cat || estado.foraDaCategoria || o.naCategoria);
@@ -2166,7 +2166,9 @@ function passaNosFiltros(comMarca = true) {
   const bemAvaliados = $("#bem-avaliados").checked;
   const envio = $("input[name=envio]:checked")?.value || "todos";
   const semAcessorios = escondeAcessorios();
+  const tipo = estado.tipoSo;
   return (o) => secaoVisivel(o)
+    && (!tipo || tipoDe(o) === tipo)
     && !(comMarca && estado.marcasSo.size && !estado.marcasSo.has(marcaDe(o)?.n))
     && !(semAcessorios && o.acessorio)
     && !(min >= 0 && o.preco < min)
@@ -2218,10 +2220,55 @@ const secaoVisivel = (o) => (estado.secoesSo ? estado.secoesSo.has(o.secao || ""
 
 function zerarSecoes() {
   estado.secoesSo = null;
+  estado.tipoSo = null;
   estado.secoesFora.clear();
   estado.marcasSo.clear();
   estado.todasMarcas = false;
   estado.todasSecoes = false;
+}
+
+// Quadro "Tipo" na busca só do videogame (13/11/2026, ideia do Giovanni com o print de "xbox": vinha console, controle,
+// jogo e acessório misturados): Consoles, Controles, Jogos ou Acessórios, lido do nome do anúncio. Um toque mostra só
+// aquele tipo (e aí os acessórios, que ficam escondidos na busca, entram); "Todos" volta
+const BUSCA_DE_VIDEOGAME = /^(xbox|playstation|ps ?[2-5]|nintendo|nintendo switch|switch)( series( [sx])?| one( [sx])?| 360| slim| pro| 2| oled| lite)?$/;
+const buscaDeVideogame = () => Boolean(estado.q) && !estado.cat && BUSCA_DE_VIDEOGAME.test(normalizar(estado.q).replace(/\s+/g, " ").trim());
+const TIPOS = [["Consoles", "🎮"], ["Controles", "🕹️"], ["Jogos", "💿"], ["Acessórios", "🎧"]];
+const INICIO_DE_CONSOLE = /^(?:novo |nova )?(?:(?:consoles?|video ?games?|videogames?) )?(?:microsoft |sony |nintendo )?(?:consoles? )?(?:xbox(?: series?(?: [sx])?| one(?: [sx])?| 360)?|(?:playstation|ps) ?[1-5]?|nintendo switch|switch(?: 2| oled| lite)|nintendo (?:wii|3ds|2ds|ds))\b/;
+const E_CONTROLE = /\b(controles?|joystick|gamepad|manete|controller|joy ?con|joycon|dualsense|dualshock)\b/;
+const E_JOGO = /\b(jogos?|games?|midia fisica|midia digital|edicao (?:standard|deluxe|gold|ultimate)|cartucho)\b/;
+const E_ACESSORIO = /\b(headset|fone|cabo|fonte|carregador|base|dock|suporte|capa|case|bolsa|skin|adesivo|pelicula|cooler|bateria|pilha|hd externo|ssd|cartao de memoria|memoria|adaptador|grip|protetor|kit|pasta termica|gift ?card|cartao presente|assinatura|game ?pass|plus|live gold|teclado|mouse|tv|monitor|camera|microfone|oculos|vr2?|portal|receptor|estojo|tampa|carcaca|placa|leitor|ventilador|limpeza|mochila|camiseta|caneca|chaveiro|boneco|luminaria|quadro|poster|posteres|volante|pedais|cambio|controle remoto|substituicao|reposicao|reparo)\b/;
+const PECA = /^(?:\S+ ){0,2}(hd|analogico 3d|bateria|pilha|capa|case|suporte|carregador|base|dock|cabo|protetor|protetores|grip|botoes|botao|kit|adaptador|receptor|analogico|modulo|sensor|pelicula|skin|adesivo|bolsa|estojo|par|conjuntos?|\d+ (?:unidades?|conjuntos?|pecas?|pares?))\b|\b(controle remoto|substituicao|reposicao|reparo)\b/;
+const PARA_O_CONSOLE = /\b(para|p|compativel|compativeis|compatible|for)\b/;
+function tipoDe(o) {
+  if (o.tipoLido) return o.tipoLido;
+  const t = normalizar(o.titulo || "").replace(/[^a-z0-9+ ]/g, " ").replace(/\s+/g, " ").trim();
+  const palavras = t.split(" ");
+  const dizConsole = /^(?:novo |nova )?(consoles?|video ?games?|videogames?)\b/.test(t);
+  let tipo;
+  if (!dizConsole && !PECA.test(t) && E_CONTROLE.test(palavras.slice(0, 3).join(" "))) tipo = "Controles";
+  else if (PECA.test(t)) tipo = "Acessórios";
+  else if (dizConsole && o.preco >= 500) tipo = "Consoles";
+  else if (INICIO_DE_CONSOLE.test(t) && o.preco >= 600 && !PARA_O_CONSOLE.test(palavras.slice(0, 5).join(" "))
+    && (/\b\d+ ?(gb|tb)\b|\b(consoles?|video ?games?|desbloqueado|destravado|lite|oled)\b/.test(t) || !E_JOGO.test(palavras.slice(0, 6).join(" ")))) tipo = "Consoles";
+  else if (E_ACESSORIO.test(palavras.slice(0, 4).join(" "))) tipo = "Acessórios";
+  else if (E_JOGO.test(t.split(PARA_O_CONSOLE)[0])) tipo = "Jogos";
+  else if (E_ACESSORIO.test(t) || E_CONTROLE.test(t)) tipo = "Acessórios";
+  else tipo = o.secao === "Games" && o.preco < 700 && !PARA_O_CONSOLE.test(t) ? "Jogos" : "Acessórios";
+  o.tipoLido = tipo;
+  return tipo;
+}
+function desenharFiltroTipos() {
+  const caixa = $("#caixa-tipos");
+  if (!caixa) return;
+  const tem = new Set(buscaDeVideogame() && !naEspecial() ? estado.ofertas.map(tipoDe) : []);
+  if (tem.size < 2) { caixa.hidden = true; if (estado.tipoSo) estado.tipoSo = null; return; }
+  caixa.hidden = false;
+  const escolher = (tipo) => { estado.tipoSo = tipo; estado.marcasSo.clear(); desenharFiltroLojas(); desenharResultados(); };
+  const linha = (ativa, tipo, icone, nome) => el("button", { type: "button", class: `secao-item${ativa ? " ativa" : ""}`,
+    "aria-pressed": String(ativa), onclick: () => escolher(tipo) },
+  el("span", { class: "secao-icone", "aria-hidden": "true" }, icone), el("span", { class: "secao-nome" }, nome));
+  $("#filtro-tipos").replaceChildren(linha(!estado.tipoSo, null, "🗂️", "Todos"),
+    ...TIPOS.filter(([tipo]) => tem.has(tipo)).map(([tipo, icone]) => linha(estado.tipoSo === tipo, tipo, icone, tipo)));
 }
 
 const PARTE_FORA_AMBIGUA = 0.2;
@@ -2566,6 +2613,7 @@ function lojasNoResumo() {
 }
 
 function desenharFiltroLojas() {
+  desenharFiltroTipos();
   desenharFiltroSecoes();
   desenharFiltroMarcas();
   desenharLojasDaLista();
@@ -2686,7 +2734,7 @@ function escolhaRapida(lista) {
 // A escolha fica parada enquanto a lista e os filtros são os mesmos: só muda quando o visitante mexe num filtro ou
 // pede "Ver mais resultados"
 function chaveDaEscolha() {
-  return JSON.stringify([estado.pedido, estado.cargasManuais || 0, [...estado.lojasDesmarcadas], estado.secoesSo && [...estado.secoesSo],
+  return JSON.stringify([estado.pedido, estado.cargasManuais || 0, [...estado.lojasDesmarcadas], estado.secoesSo && [...estado.secoesSo], estado.tipoSo,
     [...estado.secoesFora], [...estado.marcasSo], $("#preco-min").value, $("#preco-max").value, $("#so-frete").checked,
     $("#bem-avaliados").checked, $("#com-acessorios").checked, $("input[name=envio]:checked")?.value]);
 }
@@ -2962,6 +3010,7 @@ function desenharFiltrosLigados() {
     if (ordem && ordem.value !== "relevancia") {
       pilula(ordem.closest("label").textContent.trim(), () => { const r = $("input[name=ordem][value=relevancia]"); r.checked = true; mudar(r); });
     }
+    if (estado.tipoSo) pilula(estado.tipoSo, () => { estado.tipoSo = null; desenharFiltroLojas(); desenharResultados(); });
     for (const n of estado.marcasSo) {
       pilula(marcasDoTitulo?.find((m) => m.n === n)?.nome || n, () => { estado.marcasSo.delete(n); desenharFiltroMarcas(); desenharResultados(); });
     }
