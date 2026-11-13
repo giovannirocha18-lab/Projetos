@@ -528,6 +528,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Botão "Zerar contadores" no painel (`lib/inicioPainel.js`, `/api/painel/zerar`): conta a partir do momento do zerar.
   Foto quebrada no cartão: tenta outras fotos e, na Awin, a foto de hoje (`fotoAtual` em app.js) — Giovanni confirmou ✅.
 
+- **13/11 (14h20 do Giovanni), conferências de 14/11 adiantadas**: ainda não dá (as guardadas são da madrugada de 13/11, antes das correções). Shopee segue recusando busca por palavra (erro 10000), mas **produto por id responde ao vivo** (`/api/produto?id=shopee-…`) → a chave está boa, o defeito é da busca da Shopee. Se seguir assim após a noite, as prontas não se renovam (regra da reserva): pensar em trocar a guardada mesmo sem a Shopee, reaproveitando os produtos dela da cópia antiga. Lembrete agendado nesta conversa para 14/11 06h15.
+
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
   2) ✅ robô guardando preços; catálogo 48 → preço até 16 com vendedor; sem vendedor re-perguntado só após 4 dias (04/11,
