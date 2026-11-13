@@ -3942,6 +3942,9 @@ function marcarCategoria() {
   const loja = lojaAtual();
   document.querySelectorAll(".cat-item").forEach((b) => b.classList.toggle("ativa", b.dataset.nome === cat));
   const noInicio = !new URLSearchParams(location.search).get("q") && !loja && !naEspecial();
+  // Black Friday, Quedas de preço e página de uma loja sem busca: são listas de ofertas avulsas, não há o mesmo modelo em
+  // várias lojas para comparar. O botão aparecia e não fazia nada (Giovanni, 13/11/2026): ali o comparador some
+  document.body.classList.toggle("sem-comparador", naEspecial() || Boolean(loja && !new URLSearchParams(location.search).get("q")));
   $("[data-bb=inicio]")?.classList.toggle("ativa", noInicio);
   document.querySelectorAll(".aba-cel").forEach((b) => {
     const ativa = b.dataset.tudo ? noInicio : b.dataset.nome === cat;
