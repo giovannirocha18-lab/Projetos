@@ -378,7 +378,12 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (`showModal` com `passoDeCamada`), /api/em-alta v=18 sem atalho repetido, robô de casar não abandona o grupo num erro.
   "tênis nike" só AliExpress NÃO é defeito (as outras parceiras não vendem). **Miudezas feitas (13/11)**: dias do histórico =
   os dos detalhes (`o.historico.dias`), texto da caixa de busca menor no celular com "…", opção do Modo comparação numa linha
-  na gaveta (`.opcao-explica`). Faltam as "Melhorias sugeridas": Giovanni vai passando uma a uma.
+  na gaveta (`.opcao-explica`). **Melhorias 4 a 9 feitas e no ar (13/11)**: "238+ ofertas" enquanto carrega (`quantasOfertas`,
+  o "+" não foi visto em teste), pílulas dos filtros ligados no celular (`desenharFiltrosLigados`, `#filtros-ligados`), cores
+  do mesmo produto num cartão (`soMudaACor`/`PALAVRA_DE_COR` em `semRepetidos`: mesma loja e mesmo preço), título-spam recua
+  (lib/relevancia.js, caso "lego" em testes/busca.mjs), "Tente: …" na busca vazia (`parecidasCom`/`avisoParecidas`), botões
+  maiores no celular, `pedirCasados` pede de novo se falhar. Não feito: demora de 8–10 s da busca vazia, `rebaixarSemProduto`
+  mais largo que o servidor e corrida rara em `completarComparacaoDaCategoria`. **Conferir 14/11**: "lego" sem spam no topo.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
