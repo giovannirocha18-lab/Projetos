@@ -1188,12 +1188,14 @@ function pedirCasados(ids) {
   casados = { chave, mapa: antes }; // enquanto a resposta nova não chega, vale o que já se sabia
   fetch("/api/casados", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) })
     .then((r) => (r.ok ? r.json() : null)).then((d) => {
-      if (casados.chave !== chave || !d?.pares) return;
+      if (casados.chave !== chave) return;
+      // Falhou (servidor): esquece a chave para o próximo desenho pedir de novo (ficava sem os conferidos até a lista mudar)
+      if (!d?.pares) { casados.chave = null; return; }
       const mapa = new Map(d.pares.map(([a, b, v]) => [idDoPar(a, b), v]));
       const mudou = mapa.size !== (antes?.size || 0) || [...mapa].some(([k, v]) => antes?.get(k) !== v);
       casados.mapa = mapa.size ? mapa : null;
       if (mudou && modoComparacao() && !estado.buscando) desenharResultados();
-    }).catch(() => { /* sem os conferidos: vale a regra do código */ });
+    }).catch(() => { if (casados.chave === chave) casados.chave = null; /* sem os conferidos: vale a regra do código */ });
 }
 // Divide as ofertas de um modelo (uma por loja, da mais barata para a mais cara) conforme a IA: quem ela disse que NÃO é
 // o mesmo produto sai do cartão (e pode formar outro cartão com os seus iguais); anúncio ainda não conferido fica pela regra
@@ -1912,8 +1914,24 @@ function semTamanho(titulo) {
   if (/\bolympikus\b/i.test(t) && antesDaCor.test(t)) return t.replace(antesDaCor, "").trim();
   return (roupa.test(t) ? t.replace(roupa, "") : t.replace(numero, "")).trim() || t;
 }
+// A mesma oferta em várias cores/lados/tecidos (auditoria de 13/11/2026: "Sofá Cama Bloom Tecido Boucle Cinza", "… Linho",
+// "… Laranja" da Sofá na Caixa eram 11 dos 25 primeiros de "sofá"): mesma loja, MESMO preço e títulos que só mudam em
+// palavras desta lista viram um cartão só (a cor se escolhe na loja)
+const PALAVRA_DE_COR = new Set(("preto preta branco branca cinza bege azul marinho verde musgo vermelho vermelha rosa roxo roxa lilas amarelo amarela "
+  + "laranja marrom linho grafite chumbo prata prateado dourado dourada off white cru crua castanho caramelo nude vinho bordo turquesa creme "
+  + "claro clara escuro escura esquerda direita esquerdo direito boucle cotele veloure suede jatoba stain natural mel terracota fendi "
+  + "areia gelo champagne cobre rose gold black blue red pink green grey gray silver cafe chocolate tabaco petroleo royal bic celeste "
+  + "oliva militar mostarda salmao coral magenta violeta lavanda menta agua ceu neon fosco fosca brilho cor cores").split(" "));
+function soMudaACor(a, b) {
+  const pa = normalizar(a).split(/[^a-z0-9]+/).filter(Boolean), pb = normalizar(b).split(/[^a-z0-9]+/).filter(Boolean);
+  if (pa.length < 3 || pb.length < 3 || pa[0] !== pb[0] || pa[1] !== pb[1]) return false;
+  const sa = new Set(pa), sb = new Set(pb);
+  const fora = [...pa.filter((p) => !sb.has(p)), ...pb.filter((p) => !sa.has(p))];
+  return fora.length > 0 && fora.length <= 6 && fora.every((p) => PALAVRA_DE_COR.has(p));
+}
 function semRepetidos(lista) {
   const posicao = new Map();
+  const porPreco = new Map(); // loja + preço -> posições na saída (cores do mesmo produto)
   const porTitulo = new Map(); // loja + título -> posições na saída
   const saida = [];
   for (const o of lista) {
@@ -1925,10 +1943,13 @@ function semRepetidos(lista) {
     let i = chaves.map((c) => posicao.get(c)).find((x) => x !== undefined);
     i ??= (porTitulo.get(titulo) || []).find((j) => o.preco > 0 && saida[j].preco > 0
       && Math.max(o.preco, saida[j].preco) <= Math.min(o.preco, saida[j].preco) * DIFERENCA_REPETIDO);
+    const preco = `${o.loja}|${o.preco}`;
+    if (i === undefined && o.preco > 0) i = (porPreco.get(preco) || []).find((j) => soMudaACor(o.titulo, saida[j].titulo));
     const anterior = i === undefined ? null : saida[i];
     if (i === undefined) {
       i = saida.length;
       porTitulo.set(titulo, [...(porTitulo.get(titulo) || []), i]);
+      porPreco.set(preco, [...(porPreco.get(preco) || []), i]);
       saida.push(o);
     } else if ((o.vendidos || 0) > (saida[i].vendidos || 0)) {
       saida[i] = o;
@@ -2647,6 +2668,34 @@ function avisoSemProduto() {
     : `😕 “${estado.q}” não está à venda nas nossas lojas parceiras no momento. Abaixo, peças, acessórios e produtos parecidos.`);
 }
 
+// "238+ ofertas" enquanto os lotes seguintes ainda chegam sozinhos (auditoria de 13/11/2026: o total mudava na mesma
+// busca, 238 → 370 → 242, e parecia erro); o número fechado só aparece quando a busca termina de carregar
+const quantasOfertas = (n) => `${n}${estado.completando && n ? "+" : ""} ${n === 1 ? "oferta" : "ofertas"}`;
+
+// Sem nenhuma oferta: buscas parecidas que existem no site (auditoria de 13/11/2026: a tela vazia não sugeria nada).
+// Tenta a busca inteira e depois vai tirando a última palavra ("geladeira bravecto" -> buscas com "geladeira")
+function parecidasCom(q) {
+  if (!vocab?.itens?.length) return [];
+  const palavras = String(q || "").trim().split(/\s+/).filter(Boolean).slice(0, 6);
+  const saida = [];
+  for (let n = palavras.length; n >= 1 && saida.length < 4; n--) {
+    const parte = palavras.slice(0, n).join(" ");
+    const achadas = sugerir(`${parte} `);
+    // A própria parte ("geladeira") só entra se o site conhece buscas com ela (senão seria outra tela vazia)
+    for (const s of [...(n < palavras.length && achadas.length ? [parte] : []), ...achadas]) {
+      if (limpo(s) !== limpo(q) && !saida.some((x) => limpo(x) === limpo(s))) saida.push(s);
+    }
+  }
+  return saida.slice(0, 4);
+}
+function avisoParecidas() {
+  if (estado.ofertas.length || estado.buscando || navegandoCategoria() || estado.sugestao) return null;
+  const lista = parecidasCom(estado.q);
+  if (!lista.length) return null;
+  return el("p", { class: "resumo-categoria resumo-parecidas" }, "Tente: ",
+    ...lista.map((s) => el("button", { type: "button", onclick: () => irPara(s, { loja: lojaAtual() }) }, s)));
+}
+
 function desenharResumo(lista) {
   if (estado.loja) return desenharResumoLoja(lista);
   const qtdLojas = new Set(lista.map((o) => o.loja)).size;
@@ -2654,11 +2703,12 @@ function desenharResumo(lista) {
   const titulo = el("div", {},
     cat ? el("h1", {}, `${cat.emoji || ""} ${cat.nome}`) : el("h1", {}, el("span", {}, "Resultados para "), `“${estado.q}”`),
     el("p", {}, lista.length
-      ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"} em ${qtdLojas} ${qtdLojas === 1 ? "loja" : "lojas"}`
+      ? `${quantasOfertas(lista.length)} em ${qtdLojas} ${qtdLojas === 1 ? "loja" : "lojas"}`
       : estado.ofertas.length ? "Nenhuma oferta com esses filtros"
         // Busca sem nenhum resultado (print "geladeira bravecto", 31/10/2026): não fala de filtros que ninguém escolheu
         : "Não achamos ofertas com essas palavras nas lojas parceiras. Confira a escrita ou tente uma palavra mais simples."),
     avisoCorrecao(),
+    avisoParecidas(),
     avisoCategoria(),
     avisoLoja(),
     avisoSemProduto(),
@@ -2826,9 +2876,43 @@ function rebaixarSemProduto() {
   // Os acessórios do próprio produto primeiro; o que foi rebaixado vai para o fim (sem mexer na ordem de cada parte)
   if (estado.ofertas.some((o) => o.rebaixado)) estado.ofertas = [...estado.ofertas.filter((o) => !o.rebaixado), ...estado.ofertas.filter((o) => o.rebaixado)];
 }
+// Filtros ligados à vista, acima da lista (auditoria de 13/11/2026: no celular o filtro ficava escondido na gaveta e a
+// pessoa não sabia por que a lista estava curta). Um toque na pílula desliga só aquele filtro
+function desenharFiltrosLigados() {
+  const caixa = $("#filtros-ligados");
+  if (!caixa) return;
+  const pilulas = [];
+  const pilula = (texto, tirar) => pilulas.push(el("button", { type: "button", class: "filtro-ligado", "aria-label": `Tirar o filtro ${texto}`, onclick: tirar },
+    el("span", {}, texto), el("span", { "aria-hidden": "true" }, "✕")));
+  const mudar = (campo) => campo.dispatchEvent(new Event("change", { bubbles: true }));
+  if (estado.q || estado.loja) {
+    const ordem = $("input[name=ordem]:checked");
+    if (ordem && ordem.value !== "relevancia") {
+      pilula(ordem.closest("label").textContent.trim(), () => { const r = $("input[name=ordem][value=relevancia]"); r.checked = true; mudar(r); });
+    }
+    for (const n of estado.marcasSo) {
+      pilula(marcasDoTitulo?.find((m) => m.n === n)?.nome || n, () => { estado.marcasSo.delete(n); desenharFiltroMarcas(); desenharResultados(); });
+    }
+    if (estado.lojaSo && !estado.loja) pilula(nomeDaLoja(estado.lojaSo), () => escolherLoja(null));
+    if ($("#bem-avaliados").checked) pilula("⭐ Bem avaliados", () => { $("#bem-avaliados").checked = false; mudar($("#bem-avaliados")); });
+    const envio = $("input[name=envio]:checked");
+    if (envio && envio.value !== "todos") {
+      pilula(envio.closest("label").textContent.trim(), () => { const r = $("input[name=envio][value=todos]"); r.checked = true; mudar(r); });
+    }
+    const min = $("#preco-min").value.trim(), max = $("#preco-max").value.trim();
+    if (min || max) {
+      pilula(min && max ? `R$ ${min} a R$ ${max}` : min ? `A partir de R$ ${min}` : `Até R$ ${max}`,
+        () => { $("#preco-min").value = ""; $("#preco-max").value = ""; desenharResultados(); });
+    }
+  }
+  caixa.hidden = !pilulas.length;
+  caixa.replaceChildren(...pilulas);
+}
+
 function desenharResultados() {
   rebaixarSemProduto();
   desenharBotaoFrete();
+  desenharFiltrosLigados();
   if ((estado.q || estado.loja) && estado.buscando) return; // filtro mexido enquanto a busca carrega: espera a resposta
   const lista = filtrar();
   // Na busca as lojas ficam no card de resultados; a lista da barra lateral só vale nas "Ofertas do dia"
@@ -2839,7 +2923,7 @@ function desenharResultados() {
   }
   const idMelhor = lista.length > 1 ? melhorOferta(lista)?.id : null;
   desenharResumo(lista);
-  $("#total").textContent = `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}`;
+  $("#total").textContent = estado.loja ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}` : quantasOfertas(lista.length);
   const idVendido = idMaisVendido(lista);
   // Mais produtos chegando sozinhos (completarSozinho) redesenham a lista: os cartões que já estavam na tela não refazem
   // a animação de surgir (todos piscavam e subiam de novo a cada lote: "a tela dá uma pulada", Giovanni 04/11/2026)

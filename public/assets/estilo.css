@@ -256,7 +256,7 @@ a { color: inherit; }
 /* Os links ficam ao lado dos botões redondos quando cabem; se não, vão para a linha de cima (sem quebrar "Ver detalhes") */
 .acoes-oferta .links-oferta { flex: 1 1 100px; }
 .acoes-oferta .links-oferta .ver-historico { white-space: nowrap; }
-/* TESTE (Giovanni, 12/11/2026, opção 1 para encurtar os cartões): "Ver detalhes" e "Histórico" viram ícones redondos, na
+/* Cartões mais baixos (Giovanni, 12/11/2026; aprovado em 13/11: "ficou bom, deixe assim"): "Ver detalhes" e "Histórico" viram ícones redondos, na
    mesma linha do WhatsApp, sino e carrinho. Para voltar: apagar este bloco e devolver os textos em cartaoOferta (app.js) */
 .acoes-oferta { flex-wrap: nowrap; }
 .acoes-oferta .links-oferta { flex: none; flex-wrap: nowrap; gap: 6px; }
@@ -1209,6 +1209,25 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
   [data-busca] input::placeholder { font-size: 14px; }
 }
 [data-busca] input:placeholder-shown { text-overflow: ellipsis; }
+
+/* Melhorias da auditoria (13/11/2026) */
+/* Filtros ligados acima da lista (só no celular: no computador a barra lateral já mostra) */
+.filtros-ligados { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.filtro-ligado {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--roxo); background: var(--roxo-claro); color: var(--roxo-forte); font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer;
+}
+.filtro-ligado span:last-child { font-size: .8rem; opacity: .75; }
+@media (min-width: 861px) { .filtros-ligados { display: none; } }
+/* Busca sem oferta: "Tente: …" */
+.resumo-parecidas button { margin: 3px 8px 3px 0; }
+/* Botões pequenos demais para o dedo no celular: comparar do cartão, cupom e lojas do quadro da busca */
+@media (max-width: 860px) {
+  .comparar { min-width: 40px; min-height: 36px; }
+  .selo-cupom { min-height: 30px; padding: 5px 10px; font-size: .74rem; }
+  .chip-loja, .chip-acao { min-height: 36px; padding: 7px 12px; }
+  .resumo-categoria button { min-height: 32px; }
+}
 
 /* Barra lateral no computador (Giovanni, 13/11/2026): some só no início; em busca, categoria, loja, Black Friday e Quedas
    fica fixa à esquerda, sem a lista de categorias (já está no botão "☰ Categorias" do topo) e em quadros separados:

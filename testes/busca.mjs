@@ -351,6 +351,8 @@ for (const [q, titulos, primeiro, naoBate] of [
     "fone bluetooth": ["Fone De Ouvido Para Capacete Intercomunicador Bluetooth"], "cadeira gamer": ["Cadeiras com Pernas de Ferro, Cadeira de Cozinha, Gamer, Jantar"],
     "air fryer": ["Forno de Embutir Elétrico Electrolux 80L Experience Air Fryer"],
     "whey protein": ["Whey Protein JUICEDOP ISO Clear Sachê Pote 12g"],
+    // Título-spam (auditoria, melhorias): a mesma palavra 3+ vezes seguidas
+    "lego": ["LEGO LEGO LEGO LEGO LEGO 853130 Lego bloco de construção brinquedos Star Wars minifigura"],
   };
   const COMUNS = {
     "xbox": ["Console Xbox Series S 512GB Branco", "Microsoft Xbox Series X 1TB Preto", "Xbox Series S 1TB Carbon Black", "Novo Xbox Series X 1TB"],
@@ -358,6 +360,7 @@ for (const [q, titulos, primeiro, naoBate] of [
     "colchão inflável": ["Colchão Inflável Casal Com Bomba"], "iphone 16": ["Apple iPhone 16 128GB Preto"], "ps5": ["Console PS5 Slim 1TB", "Sony PlayStation 5 Pro"],
     "playstation 5": ["Sony PlayStation 5 Pro 2TB", "PlayStation 5 Slim Digital"], "nintendo switch": ["Console Nintendo Switch 2", "Nintendo Switch OLED Branco"],
     "celular": ["Celular Motorola Moto G15 128GB"], "bicicleta": ["Bicicleta Aro 29 Caloi 21 Marchas"],
+    "lego": ["LEGO Classic Maleta da Criatividade 10713", "Lego 77242 Speed Champions Ferrari Sf24 F1"],
   };
   const ACESSORIOS_NOVOS = {
     "xbox": ["Bayonetta / Xbox 360 - Xbox One e Xbox Series X/S / Original / Completo", "FC 25 Xbox 360 Funciona em qualquer xbox Original Bloqueado",
