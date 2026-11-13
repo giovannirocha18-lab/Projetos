@@ -96,6 +96,12 @@ const casar = estadoInicial("lojas", agora, "manual-casar-x");
 cont.casar = 0; cont.casarResta = 0;
 for (let i = 0; i < 20 && casar.fase !== "fim"; i++) await passo("lojas", casar, chamar, agora, null);
 ok(estadoInicial("ml", agora, "manual-casar-x").fase === "fim" && casar.fase === "fim" && cont.casar === 4 && !casar.tempos.manha, `só casar: ${casar.fase}, ${cont.casar} passos`);
+// Rodada manual das prontas: começa nas prontas, passa pelo casar e termina em "fim" (sem Shopee/Lomadee/categorias)
+const soProntas = estadoInicial("lojas", agora, "manual-prontas-x");
+cont.casar = 0; cont.casarResta = 0;
+const comecouEm = soProntas.fase;
+for (let i = 0; i < 2000 && soProntas.fase !== "fim"; i++) await passo("lojas", soProntas, chamar, agora, null);
+ok(estadoInicial("ml", agora, "manual-prontas-x").fase === "fim" && comecouEm === "prontas" && soProntas.fase === "fim" && soProntas.tempos.casar && !soProntas.tempos.manha && !soProntas.tempos.shopee, `só prontas: ${comecouEm} → ${soProntas.fase}`);
 const semChave = estadoInicial("lojas", agora, "manual-casar-x");
 await passo("lojas", semChave, async () => ({ erro: "sem chave" }), agora, null);
 ok(semChave.fase === "fim" && semChave.c.casarErro === "sem chave", "casar sem chave para no 1º passo");

@@ -419,12 +419,58 @@ export async function onRequestGet({ request, env, waitUntil }) {
           // Uma loja fora do ar não derruba a busca nas outras. erro.parciais = o que a loja ainda conseguiu trazer
           // (Shopee recusando: os produtos da lista oficial guardada no banco, lib/shopeeLista.js)
           lojas[fonte.nome] = { ok: false, erro: String(erro.message || erro), ...(erro?.etapas ? { etapas: erro.etapas } : {}) };
+          if (fonte.nome === "shopee" && shopeeReaproveitadas) lojas.shopee.reaproveitadas = shopeeReaproveitadas; // outro termo da mesma busca já trouxe
           medir();
-          return Array.isArray(erro?.parciais) ? erro.parciais : [];
+          const parciais = Array.isArray(erro?.parciais) ? erro.parciais : [];
+          if (fonte.nome !== "shopee") return parciais;
+          // Shopee recusando e é o robô das prontas: os produtos dela da busca guardada entram de novo (ver antigasDaShopee)
+          const antigas = await antigasDaShopee();
+          if (!antigas.length) return parciais;
+          const jaVeio = new Set(parciais.map((o) => o.id));
+          const voltam = antigas.filter((o) => !jaVeio.has(o.id));
+          lojas.shopee.reaproveitadas = shopeeReaproveitadas = voltam.length;
+          return [...parciais, ...voltam];
         }
       }),
     );
     return comCategoriaDaIa(env.DB, aplicarMapa(intercalar(resultados), mapa));
+  };
+
+  // 13/11/2026: a busca por palavra da Shopee passou o dia em "System Error 10000" (o testador oficial dela dava o mesmo).
+  // O robô só trocava a busca pronta com a Shopee respondendo, então as prontas ficavam com as regras da véspera. Agora,
+  // quando a Shopee recusa, o robô reaproveita os produtos dela da pronta guardada (passam de novo pelas regras da busca
+  // com os das outras lojas) e a pronta é trocada. guardadaEm = quando o produto veio da Shopee de verdade: depois de
+  // 7 dias sem a Shopee responder, ele sai. Só na busca comum do robô (categoria já se renova sem a Shopee); uma vez por busca
+  // Só os campos que a Shopee manda (lib/fontes/shopee.js e lib/shopeeLista.js): as marcas das regras da véspera
+  // (principal, acessorio, variante, parecido, secao, historico…) saem e são refeitas. O desconto que o histórico tinha
+  // escondido (descontoDaLoja) volta a ser o da loja, para ser conferido de novo
+  const CAMPOS_DA_SHOPEE = ["id", "loja", "titulo", "preco", "precoAntigo", "desconto", "imagem", "imagens", "avaliacao", "vendidos", "curtidas",
+    "vendedor", "lojaOficial", "internacional", "catsLoja", "link", "daLista"];
+  const comoVeioDaShopee = (o, criado) => {
+    const limpa = Object.fromEntries(CAMPOS_DA_SHOPEE.filter((c) => o[c] !== undefined).map((c) => [c, o[c]]));
+    if (o.descontoDaLoja) {
+      limpa.desconto = o.descontoDaLoja;
+      limpa.precoAntigo = Math.round((o.preco / (1 - o.descontoDaLoja / 100)) * 100) / 100;
+    }
+    limpa.guardadaEm = o.guardadaEm || criado;
+    return limpa;
+  };
+  const REAPROVEITAR_SHOPEE_MS = 7 * 24 * 60 * 60 * 1000;
+  let antigasPedidas = null;
+  let shopeeReaproveitadas = 0;
+  const antigasDaShopee = () => {
+    if (!preparar || !q || categoria || soLoja || rapido || pagina !== 1 || desde !== 1 || !env.DB) return Promise.resolve([]);
+    if (antigasPedidas) return Promise.resolve([]); // a busca tem vários termos ("xbox" + "xbox series x"): entram uma vez só
+    antigasPedidas = (async () => {
+      const pronta = await env.DB.prepare(`SELECT resposta, criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
+      if (!pronta) return [];
+      const dados = JSON.parse(await descompactar(pronta.resposta));
+      return (dados.ofertas || [])
+        .filter((o) => o.loja === "shopee")
+        .map((o) => comoVeioDaShopee(o, pronta.criado))
+        .filter((o) => Date.now() - o.guardadaEm < REAPROVEITAR_SHOPEE_MS);
+    })().catch(() => []);
+    return antigasPedidas;
   };
 
   // Busca digitada: pede páginas de 3 em 3 até ter produtos suficientes (ver MINIMO_PRODUTOS).
@@ -600,7 +646,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   // Busca pronta: guarda mesmo que uma loja pequena tenha falhado (vindo do robô do GitHub, a Lomadee às vezes
   // trava), desde que a Shopee tenha respondido
-  const prontaOk = lojas.shopee?.ok && ofertas.length > 0;
+  const prontaOk = (lojas.shopee?.ok || lojas.shopee?.reaproveitadas > 0) && ofertas.length > 0;
   // 11/11/2026 (Giovanni: no celular as categorias demoravam ~5 s a mais): a pronta só era guardada pelo robô e só com a
   // Shopee respondendo. Categoria em que a Shopee recusava toda noite ficava sem pronta (some depois de 7 dias) e cada
   // visitante esperava a consulta às lojas (7–9 s em Ferramentas e Bonés). Agora:

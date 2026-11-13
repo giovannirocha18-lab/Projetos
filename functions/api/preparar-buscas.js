@@ -65,7 +65,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const blackFriday = await guardarDaBusca(env.DB, dados.ofertas).catch(() => 0);
   return Response.json({
     parte, partes: lista.length, fim, busca: cat ? `${cat} (${q})` : q || `Ofertas do dia${pagina ? ` (página ${pagina})` : ""}`,
-    produtos: dados.ofertas?.length || 0, guardada: Boolean(dados.lojas?.shopee?.ok && dados.ofertas?.length), falhou,
+    produtos: dados.ofertas?.length || 0, guardada: Boolean((dados.lojas?.shopee?.ok || dados.lojas?.shopee?.reaproveitadas > 0) && dados.ofertas?.length), falhou,
     blackFriday, segundos: (Date.now() - inicio) / 1000, categoriasAprendidas: (await carregarMapa(env)).size,
   }, { headers: { "Cache-Control": "no-store" } });
 }
