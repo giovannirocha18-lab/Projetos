@@ -1376,6 +1376,37 @@ function completarComparacaoDaCategoria(nome) {
   };
   for (let i = 0; i < 3; i++) trabalhar();
 }
+// Numa BUSCA com o modo ligado (print do Giovanni, 13/11/2026: "máquina de lavar" mostrava 3 modelos e, marcando Electrolux,
+// 7): a busca geral traz só uma parte dos anúncios de cada loja; "máquina de lavar electrolux" traz os outros. Então o
+// comparador pede por trás a busca "produto + marca" das marcas que mais aparecem (a mesma que o clique na marca faria,
+// quase sempre já guardada) e compara tudo junto. Poucas marcas e 2 por vez: busca nova vai às lojas, e a Shopee limita
+const MARCAS_DA_COMPARACAO = 6;
+const extrasDaBusca = { pedido: -1, ofertas: [], faltam: 0 };
+function completarComparacaoDaBusca() {
+  const pedido = estado.pedido;
+  if (extrasDaBusca.pedido === pedido || estado.buscando || estado.completando) return;
+  const comparavel = (o) => o.bate && !o.acessorio && (SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(secaoDoComparador(o)));
+  const base = estado.ofertas.filter(comparavel);
+  if (base.length < 5) return; // não é busca de produto que o comparador conhece
+  const q = normalizar(estado.q);
+  const conta = new Map();
+  for (const o of base) { const m = marcaDe(o); if (m && !q.includes(m.n)) conta.set(m.n, { nome: m.nome, qtd: (conta.get(m.n)?.qtd || 0) + 1 }); }
+  const fila = [...conta].sort((a, b) => b[1].qtd - a[1].qtd).slice(0, MARCAS_DA_COMPARACAO);
+  Object.assign(extrasDaBusca, { pedido, ofertas: [], faltam: fila.length });
+  const ids = new Set(estado.ofertas.map((o) => o.id));
+  const trabalhar = async () => {
+    for (let item = fila.shift(); item && estado.pedido === pedido; item = fila.shift()) {
+      const dados = await pedirMarca(item[0], item[1].nome, "completo");
+      if (estado.pedido !== pedido) return;
+      extrasDaBusca.faltam--;
+      const novas = (dados?.ofertas || []).filter((o) => o?.id && comparavel(o) && !ids.has(o.id) && ids.add(o.id));
+      if (!novas.length && extrasDaBusca.faltam) continue;
+      extrasDaBusca.ofertas.push(...novas);
+      if (modoComparacao() && !estado.buscando) desenharComparacao(filtrar());
+    }
+  };
+  for (let i = 0; i < 2; i++) trabalhar();
+}
 function desenharComparacao(lista) {
   const caixa = $("#comparacao");
   if (!modoComparacao() || !estado.q || estado.loja) { caixa.hidden = true; return; }
@@ -1386,7 +1417,16 @@ function desenharComparacao(lista) {
     const daMarca = (o) => !estado.marcasSo?.size || estado.marcasSo.has(marcaDe(o)?.n);
     lista = [...lista, ...extrasDaCategoria.ofertas.filter((o) => !ja.has(o.id) && daMarca(o))];
   }
-  const procurando = Boolean(categoria && extrasDaCategoria.nome === categoria && extrasDaCategoria.faltam > 0);
+  let procurando = Boolean(categoria && extrasDaCategoria.nome === categoria && extrasDaCategoria.faltam > 0);
+  if (!categoria && !lojaAtual()) {
+    completarComparacaoDaBusca();
+    if (extrasDaBusca.pedido === estado.pedido) {
+      const ja = new Set(lista.map((o) => o.id));
+      const daMarca = (o) => !estado.marcasSo?.size || estado.marcasSo.has(marcaDe(o)?.n);
+      lista = [...lista, ...extrasDaBusca.ofertas.filter((o) => !ja.has(o.id) && daMarca(o))];
+      procurando = extrasDaBusca.faltam > 0;
+    }
+  }
   const grupos = gruposDeModelos(lista);
   caixa.hidden = false;
   // Busca dentro de UMA loja (print do Giovanni, 12/11/2026, "notebook" na loja Mercado Livre): não há o que comparar, e o
