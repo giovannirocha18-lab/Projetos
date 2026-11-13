@@ -376,7 +376,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   docs/auditoria-2026-11-13.md): Quedas só com queda de 2%+ (/api/quedas v=2), cupons velhos/sem valor/em inglês fora
   (`cupomRuim`, /api/cupons VERSAO 15), PC gamer/tablet/Kindle em Informática, Voltar do celular fecha qualquer janela
   (`showModal` com `passoDeCamada`), /api/em-alta v=18 sem atalho repetido, robô de casar não abandona o grupo num erro.
-  "tênis nike" só AliExpress NÃO é defeito (as outras parceiras não vendem). Faltam só miudezas e as "Melhorias sugeridas".
+  "tênis nike" só AliExpress NÃO é defeito (as outras parceiras não vendem). **Miudezas feitas (13/11)**: dias do histórico =
+  os dos detalhes (`o.historico.dias`), texto da caixa de busca menor no celular com "…", opção do Modo comparação numa linha
+  na gaveta (`.opcao-explica`). Faltam as "Melhorias sugeridas": Giovanni vai passando uma a uma.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
