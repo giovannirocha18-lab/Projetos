@@ -707,6 +707,10 @@ for (const [q, buscaEsperada, itens, esperado] of [
   ["celular", "smartphone", [["Smartphone Motorola Moto G06 128GB", 699]], { "Smartphone Motorola Moto G06 128GB": "P" }],
   ["Smartphone Xiaomi", "celular xiaomi", [["Celular Xiaomi Redmi 15C 256GB", 999]], { "Celular Xiaomi Redmi 15C 256GB": "P" }],
   ["celular samsung", "smartphone samsung", [["Smartphone Samsung Galaxy A07 128GB", 799]], { "Smartphone Samsung Galaxy A07 128GB": "P" }],
+  // Console com o modelo (print do Giovanni, 13/11/2026: "xbox series" sem nenhum console do Mercado Livre)
+  ["xbox series", "console xbox series", [["Console Xbox Series S 512gb Cor Branco", 3982], ["Cabo Hdmi 2.1 8k Compatível Com Ps5 Xbox Series X/s 3 Metros", 29], ["Battlefield 6 - Xbox Series X", 529]],
+    { "Console Xbox Series S 512gb Cor Branco": "P", "Cabo Hdmi 2.1 8k Compatível Com Ps5 Xbox Series X/s 3 Metros": "A", "Battlefield 6 - Xbox Series X": "A" }],
+  ["ps5 slim", "console ps5 slim", [["Console Playstation 5 Slim Edição Digital 825 Gb", 4249]], { "Console Playstation 5 Slim Edição Digital 825 Gb": "P" }],
   ["Kindle", "kindle paperwhite",
     [["Kindle Paperwhite 12ª geração 16GB", 1399], ["Kindle kit 2 unidades Card para Capinha de Kindle", 12], ["Kindle Charm Pingente Anti Poeira", 17]],
     { "Kindle Paperwhite 12ª geração 16GB": "P", "Kindle kit 2 unidades Card para Capinha de Kindle": "A", "Kindle Charm Pingente Anti Poeira": "A" }],
