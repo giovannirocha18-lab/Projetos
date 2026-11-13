@@ -361,7 +361,16 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   decide.** **Itens 1 e 2 feitos (13/11, "comece pelo 1 e 2")**: teto de preço R$ 1 milhão (`PRECO_TETO` em
   lib/lojasRemovidas.js: sai das respostas guardadas via `ofertaDeLojaRemovida`, da leitura do banco via `comHistorico` e o
   robô da Awin não grava) e comparador não fica preso em "Procurando…" (`completarSozinho` redesenha o quadro). No ar ✅.
-  Próximos da lista: 3 ("Limpar filtros" em Quedas/loja vai ao início), 4 (xbox), 5 (usado/vitrine no topo).
+  **Itens 3, 4, 5 e parte do 6 feitos (13/11, "pode fazer as correções sugeridas")**: "Limpar filtros" fica na página nas
+  Quedas e na loja (`limparFiltros`; em categoria segue indo ao início); lib/relevancia.js: usado/seminovo/vitrine/
+  recondicionado/exposição/sachê viram `variante` (recuam e ficam fora da Escolha rápida), `VARIANTES_DO_TERMO` (só em
+  algumas buscas: bicicleta ergométrica/equilíbrio, colchão/sofá inflável, celular de mesa — "inflável" e "ergométrica"
+  globais rebaixavam piscina inflável e esteira ergométrica: conferir sempre com dados reais), busca só de console:
+  `CONSOLE_ANTIGO` (360, one, fat, desbloqueado) recua e título que não começa pelo console é acessório; "xbox"/"playstation"/
+  "nintendo" pesquisam também o console atual (`variantesDeConsole` em lib/vocabulario.js). Busca nova já sai certa; as
+  guardadas só depois do robô da noite: **conferir 14/11** "xbox" (tem que abrir com Series), "iphone 16" e "bicicleta".
+  Faltam da auditoria: tênis nike só AliExpress, preços "de enfeite" da Shopee, Quedas sem queda, sugestão sumir quando
+  loja falha, categorias erradas, detalhes de tela, cupons velhos.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
