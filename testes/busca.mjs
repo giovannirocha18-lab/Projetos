@@ -12,6 +12,7 @@ import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
 import { categoriaDoProduto, categoriaPorNome, marcarSecoes, montarVitrine } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 import { semProdutoAVenda } from "../lib/buscas.js";
+import { modeloBase, semTamanho } from "../lib/variacoes.js";
 
 const CASOS = {
   // 11/11/2026 (print do Giovanni, "computador" na loja Mercado Livre): balança computadora no "Mais barato"
@@ -333,6 +334,11 @@ for (const [q, titulos, primeiro, naoBate] of [
     falhas++; console.log(`✗ outro produto "${q}": ${saida.map((o) => `${o.titulo}${o.bate ? " (bate)" : ""}`).join(" | ")}`);
   }
 }
+
+// 13/11/2026: loja Olympikus (Awin) manda cada numeração como um anúncio, com o número ANTES da cor
+if (modeloBase("Tênis Olympikus Titanium 41 Bege") !== modeloBase("Tênis Olympikus Titanium 42 Bege") || semTamanho("Tênis Olympikus Essential 3 Feminino 34 Preto") !== "Tênis Olympikus Essential 3 Feminino Preto"
+  || modeloBase("Tênis Olympikus Titanium 41 Bege") === modeloBase("Tênis Olympikus Titanium 41 Preto") || semTamanho("Tênis Nike Pegasus 41 Masculino Preto") !== "Tênis Nike Pegasus 41 Masculino Preto"
+  || semTamanho("Tênis Olympikus Corre Grafeno 3 Azul 40") !== "Tênis Olympikus Corre Grafeno 3 Azul") { falhas++; console.log("✗ numerações da Olympikus: juntar \"… 41 Bege\" com \"… 42 Bege\", sem mexer no Pegasus 41"); }
 
 // 12/11/2026 (print do Giovanni, "xiaomi 18 pro", sugerido pelo próprio site): o celular não está à venda, só capas e películas.
 // Liquidificador Xiaomi, patinete "6 Pro" e tinta "Super Pro 18 Litros" não podem aparecer como o produto

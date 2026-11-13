@@ -330,6 +330,12 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   **TESTE no ar ("faça o 1 pra eu testar")**: "Ver detalhes" e "Histórico" viraram ícones redondos 🔍 📈 na mesma linha do
   WhatsApp/sino/carrinho (bloco "TESTE … opção 1 para encurtar" em estilo.css + `cartaoOferta` em app.js): 612 → 578 px no PC
   (era 643 no começo). Celular igual (lá essa linha não aparece). Falta ele dizer se fica.
+- **13/11: 🆕 Olympikus (Awin)**: Giovanni viu 20 lojas na Awin; `so_awin` (#143) mostrou a nova: Olympikus BR, 7.256 produtos
+  (cada numeração = 1 anúncio, com o número ANTES da cor: "… Titanium 41 Bege"). `modeloBase`/`semTamanho` (lib/variacoes.js e
+  cópia em app.js) juntam só nos títulos com "olympikus" (em outras marcas "Pegasus 41" é modelo); /api/lojas VERSAO 43.
+  Lojas aprovadas na Awin: as 17 de antes + Olympikus + Stanley (fotos 410) + Elements (pausada) = 20. **Falta**: `so_auditoria`
+  para ver as categorias da loja (tênis saindo em "Esporte e fitness" e em "Calçados") e completar `REGRAS` em lib/caminhos.js.
+  Cartões: 🔍/📈 em ícones ficam (Giovanni: "ficou bom, deixe assim").
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
