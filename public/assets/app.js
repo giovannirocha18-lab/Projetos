@@ -3788,7 +3788,10 @@ function desenharCategorias(lista = categoriasAtuais) {
     } }, `Ver todas (${lista.length}) ▼`);
   caixa.replaceChildren(...botoes, ...(verTodas ? [verTodas] : []));
   // Menu "Categorias" do cabeçalho (computador): as mesmas categorias, todas de uma vez
-  $("#menu-categorias").replaceChildren(...lista.map((c, i) =>
+  // Sempre em ordem alfabética, lida de cima para baixo em cada coluna (pedido do Giovanni, 13/11/2026)
+  const alfabetica = [...categoriasAtuais].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  $("#menu-categorias").style.setProperty("--linhas-menu", String(Math.ceil(alfabetica.length / 4)));
+  $("#menu-categorias").replaceChildren(...alfabetica.map((c, i) =>
     linkInterno(enderecoDaBusca(c.busca || c.nome, { cat: c.nome }), { class: "cat-item", "data-nome": c.nome,
       style: `--fundo-cat:${FUNDOS_MENU[i % FUNDOS_MENU.length]}` },
       () => { abrirMenuCategorias(false); irPara(c.busca || c.nome, { atalho: true, cat: c.nome }); },
