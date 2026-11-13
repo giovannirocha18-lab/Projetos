@@ -1141,6 +1141,16 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 .comparacao-cabeca small { font-size: .82rem; font-weight: 600; color: #92400e; margin-left: 6px; }
 .comparacao-vazio, .comparacao-nota { margin: 0; font-size: .88rem; color: #78350f; }
 .comparacao-nota { margin-top: 12px; opacity: .85; }
+/* Filtro de marcas do quadro (13/11/2026): pílulas de um toque; a escolhida fica cheia com o degradê da marca do site */
+.comparacao-marcas { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; }
+.comparacao-marcas-titulo { font-size: .76rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #92400e; margin-right: 2px; }
+.chip-marca {
+  padding: 6px 14px; border-radius: 999px; border: 1.5px solid #fcd34d; background: #fff; color: #78350f; white-space: nowrap;
+  font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; transition: box-shadow .15s, transform .15s, border-color .15s, color .15s;
+}
+.chip-marca:hover { border-color: var(--roxo); color: var(--roxo); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(109, 40, 217, .18); }
+.chip-marca[aria-pressed="true"] { background: var(--gradiente); border-color: transparent; color: #fff; box-shadow: 0 4px 14px rgba(109, 40, 217, .35); }
+.chip-marca-mais { border-style: dashed; background: transparent; }
 .comparacao-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 18px; align-items: start; }
 .modelo { background: var(--card); border: 1px solid var(--borda); border-radius: var(--raio); padding: 14px; min-width: 0; }
 /* Cada cartão com uma cor de fundo (print do Giovanni, 11/11/2026: todos brancos, parecia que a comparação era de um cartão
@@ -1179,6 +1189,10 @@ body.com-comparar .rodape { padding-bottom: 96px; }
 @media (max-width: 640px) {
   .comparacao { padding: 12px 10px; margin-bottom: 16px; }
   .comparacao-lista { grid-template-columns: 1fr; gap: 10px; }
+  .comparacao-marcas { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -10px 12px; padding: 3px 10px 5px; }
+  .comparacao-marcas::-webkit-scrollbar { display: none; }
+  .chip-marca { flex: none; padding: 6px 12px; font-size: .84rem; }
+  .chip-marca:hover { transform: none; }
   .modelo { padding: 12px 10px; }
   .modelo-foto { width: 68px; height: 68px; }
   .modelo-preco { font-size: .95rem; }

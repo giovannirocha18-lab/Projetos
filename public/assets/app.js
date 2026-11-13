@@ -1156,7 +1156,7 @@ function modeloDe(o) {
   const secao = secaoDoComparador(o);
   const porNome = () => {
     const n = nomeDoModelo(normalizar(String(o.titulo || "")), marca.n);
-    if (n) o._modelo = { chave: n.chave, cod: n.cod, porNome: true, marca: marca.nome, tensao: "" };
+    if (n) o._modelo = { chave: n.chave, cod: n.cod, porNome: true, marca: marca.nome, n: marca.n, tensao: "" };
     return o._modelo;
   };
   if (SECOES_POR_NOME.has(secao)) return porNome();
@@ -1166,14 +1166,14 @@ function modeloDe(o) {
   const combo = /\s\+\s|\b(kit|combo|conjunto)\b|\b[2-9]\s*(unidades|unid|un|pecas|pcs)\b|\b(2|duas|dois)\s+(smart\s+)?tvs?\b/.test(t);
   if (combo) {
     const todos = [...new Set(codigos)].sort();
-    o._modelo = { chave: `${marca.n}|combo|${todos.join("+")}`, cod: `Combo ${todos.join(" + ").toUpperCase()}`, combo: true, marca: marca.nome, tensao: "" };
+    o._modelo = { chave: `${marca.n}|combo|${todos.join("+")}`, cod: `Combo ${todos.join(" + ").toUpperCase()}`, combo: true, marca: marca.nome, n: marca.n, tensao: "" };
     return o._modelo;
   }
   const cod = codigos.sort((a, b) => b.length - a.length)[0];
   const tensao = /\b220 ?v(olts?)?\b/.test(t) ? "220V" : /\b(110|127) ?v(olts?)?\b/.test(t) ? "127V" : /bivolt/.test(t) ? "Bivolt" : "";
   // TV: a mesma série existe em vários tamanhos ("M75H" de 50 e de 65 polegadas): o tamanho entra na chave
   const tela = /\b(tv|televisor|televisao|monitor)\b/.test(t) ? (t.match(/\b(\d{2,3}) ?(pol\b|polegadas)/) || t.match(/\b(?:tv|televisor|led|qled|oled|miniled) (\d{2,3})\b/) || [])[1] || "" : "";
-  o._modelo = { chave: `${marca.n}|${cod}${tela ? `|${tela}` : ""}`, cod: cod.toUpperCase(), marca: marca.nome, tensao };
+  o._modelo = { chave: `${marca.n}|${cod}${tela ? `|${tela}` : ""}`, cod: cod.toUpperCase(), marca: marca.nome, n: marca.n, tensao };
   return o._modelo;
 }
 // Pares que o robô de casar já conferiu com a IA (lib/casar.js, /api/casados?q=): par de ids → 1 (mesmo produto) ou 0.
@@ -1381,31 +1381,65 @@ function completarComparacaoDaCategoria(nome) {
 // comparador pede por trás a busca "produto + marca" das marcas que mais aparecem (a mesma que o clique na marca faria,
 // quase sempre já guardada) e compara tudo junto. Poucas marcas e 2 por vez: busca nova vai às lojas, e a Shopee limita
 const MARCAS_DA_COMPARACAO = 6;
-const extrasDaBusca = { pedido: -1, ofertas: [], faltam: 0 };
+const extrasDaBusca = { pedido: -1, ofertas: [], faltam: 0, ids: new Set(), marcas: new Set() };
+const comparavelNaBusca = (o) => o.bate && !o.acessorio && (SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(secaoDoComparador(o)));
+// Pede a busca "produto + marca" e junta ao quadro o que for novo (uma vez por marca em cada busca)
+async function juntarMarcaAoComparador(n, nome, pedido) {
+  extrasDaBusca.marcas.add(n);
+  const dados = await pedirMarca(n, nome, "completo");
+  if (estado.pedido !== pedido || extrasDaBusca.pedido !== pedido) return;
+  extrasDaBusca.faltam--;
+  const ids = extrasDaBusca.ids;
+  const novas = (dados?.ofertas || []).filter((o) => o?.id && comparavelNaBusca(o) && !ids.has(o.id) && ids.add(o.id));
+  if (!novas.length && extrasDaBusca.faltam) return;
+  extrasDaBusca.ofertas.push(...novas);
+  if (modoComparacao() && !estado.buscando) desenharComparacao(filtrar());
+}
 function completarComparacaoDaBusca() {
   const pedido = estado.pedido;
   if (extrasDaBusca.pedido === pedido || estado.buscando || estado.completando) return;
-  const comparavel = (o) => o.bate && !o.acessorio && (SECOES_COMPARAVEIS.has(o.secao) || SECOES_SO_CONFERIDAS.has(secaoDoComparador(o)));
-  const base = estado.ofertas.filter(comparavel);
+  const base = estado.ofertas.filter(comparavelNaBusca);
   if (base.length < 5) return; // não é busca de produto que o comparador conhece
   const q = normalizar(estado.q);
   const conta = new Map();
   for (const o of base) { const m = marcaDe(o); if (m && !q.includes(m.n)) conta.set(m.n, { nome: m.nome, qtd: (conta.get(m.n)?.qtd || 0) + 1 }); }
   const fila = [...conta].sort((a, b) => b[1].qtd - a[1].qtd).slice(0, MARCAS_DA_COMPARACAO);
-  Object.assign(extrasDaBusca, { pedido, ofertas: [], faltam: fila.length });
-  const ids = new Set(estado.ofertas.map((o) => o.id));
+  Object.assign(extrasDaBusca, { pedido, ofertas: [], faltam: fila.length, ids: new Set(estado.ofertas.map((o) => o.id)), marcas: new Set() });
   const trabalhar = async () => {
-    for (let item = fila.shift(); item && estado.pedido === pedido; item = fila.shift()) {
-      const dados = await pedirMarca(item[0], item[1].nome, "completo");
-      if (estado.pedido !== pedido) return;
-      extrasDaBusca.faltam--;
-      const novas = (dados?.ofertas || []).filter((o) => o?.id && comparavel(o) && !ids.has(o.id) && ids.add(o.id));
-      if (!novas.length && extrasDaBusca.faltam) continue;
-      extrasDaBusca.ofertas.push(...novas);
-      if (modoComparacao() && !estado.buscando) desenharComparacao(filtrar());
-    }
+    for (let item = fila.shift(); item && estado.pedido === pedido; item = fila.shift()) await juntarMarcaAoComparador(item[0], item[1].nome, pedido);
   };
   for (let i = 0; i < 2; i++) trabalhar();
+}
+// Filtro de marcas do próprio quadro (pedido do Giovanni, 13/11/2026: "um filtro estiloso das marcas encontradas para um
+// fácil acesso"): um toque mostra só os modelos daquela marca, "Todas" volta. Vale só para o quadro (a lista de baixo não
+// muda) e só nesta busca. Numa busca comum, tocar numa marca que ainda não foi pedida por trás pede "produto + marca"
+const MARCAS_NO_QUADRO = 12;
+const marcaDoComparador = { pedido: -1, n: null, todas: false };
+function escolherMarcaDoComparador(n, nome) {
+  marcaDoComparador.n = n;
+  modelosMostrados = MODELOS_POR_VEZ;
+  const pedido = estado.pedido;
+  if (n && !navegandoCategoria() && !lojaAtual() && extrasDaBusca.pedido === pedido && !extrasDaBusca.marcas.has(n) && !normalizar(estado.q).includes(n)) {
+    extrasDaBusca.faltam++;
+    juntarMarcaAoComparador(n, nome, pedido);
+  }
+  desenharComparacao(filtrar());
+}
+function filtroDeMarcasDoComparador(grupos, escolhida) {
+  const marcas = new Map();
+  for (const g of grupos) if (g.modelo.n) marcas.set(g.modelo.n, { nome: g.modelo.marca, qtd: (marcas.get(g.modelo.n)?.qtd || 0) + 1 });
+  if (marcas.size < 2) return null;
+  // Quem tem mais modelos primeiro; a escolhida nunca fica escondida atrás do "+ marcas"
+  const ordem = [...marcas].sort((a, b) => b[1].qtd - a[1].qtd || a[1].nome.localeCompare(b[1].nome, "pt-BR"));
+  const visiveis = marcaDoComparador.todas ? ordem : ordem.filter(([n], i) => i < MARCAS_NO_QUADRO || n === escolhida);
+  const chip = (texto, n, nome) => el("button", { type: "button", class: "chip-marca", "aria-pressed": String(n === escolhida),
+    onclick: () => escolherMarcaDoComparador(n, nome) }, texto);
+  return el("div", { class: "comparacao-marcas", role: "group", "aria-label": "Filtrar os modelos por marca" },
+    el("span", { class: "comparacao-marcas-titulo" }, "Marcas"),
+    chip("Todas", null),
+    ...visiveis.map(([n, m]) => chip(m.nome, n, m.nome)),
+    ordem.length > visiveis.length && el("button", { type: "button", class: "chip-marca chip-marca-mais",
+      onclick: () => { marcaDoComparador.todas = true; desenharComparacao(filtrar()); } }, `+ ${ordem.length - visiveis.length} marcas`));
 }
 function desenharComparacao(lista) {
   const caixa = $("#comparacao");
@@ -1444,16 +1478,22 @@ function desenharComparacao(lista) {
           + "eletroportáteis, TVs, ferramentas, informática e celulares: experimente geladeira, micro-ondas, smart tv 55, furadeira ou iphone 16."));
     return;
   }
-  const mostrar = grupos.slice(0, modelosMostrados);
+  if (marcaDoComparador.pedido !== estado.pedido) Object.assign(marcaDoComparador, { pedido: estado.pedido, n: null, todas: false });
+  const escolhida = grupos.some((g) => g.modelo.n === marcaDoComparador.n) ? marcaDoComparador.n : null;
+  const daEscolhida = escolhida ? grupos.filter((g) => g.modelo.n === escolhida) : grupos;
+  const mostrar = daEscolhida.slice(0, modelosMostrados);
+  const rolado = caixa.querySelector(".comparacao-marcas")?.scrollLeft || 0; // no celular a fila de marcas rola de lado
   // filter: sem "Ver mais modelos" sobrava um false, que aparecia escrito na tela (print do Giovanni, 12/11/2026)
   caixa.replaceChildren(...[
     el("h2", { class: "comparacao-cabeca" }, "⚖️ O mesmo produto em várias lojas ",
-      el("small", {}, `${grupos.length} ${grupos.length === 1 ? "modelo" : "modelos"} ${categoria ? "nesta categoria" : "nesta busca"}${procurando ? " · procurando mais…" : ""}`)),
+      el("small", {}, `${daEscolhida.length} ${daEscolhida.length === 1 ? "modelo" : "modelos"} ${escolhida ? `da ${daEscolhida[0].modelo.marca}` : categoria ? "nesta categoria" : "nesta busca"}${procurando ? " · procurando mais…" : ""}`)),
+    filtroDeMarcasDoComparador(grupos, escolhida),
     el("div", { class: "comparacao-lista" }, ...mostrar.map(cartaoModelo)),
-    grupos.length > mostrar.length && el("div", { class: "mais-ofertas" }, el("button", { type: "button", class: "botao-secundario",
-      onclick: () => { modelosMostrados += MODELOS_POR_VEZ; desenharResultados(); } }, `Ver mais modelos (${grupos.length - mostrar.length})`)),
+    daEscolhida.length > mostrar.length && el("div", { class: "mais-ofertas" }, el("button", { type: "button", class: "botao-secundario",
+      onclick: () => { modelosMostrados += MODELOS_POR_VEZ; desenharResultados(); } }, `Ver mais modelos (${daEscolhida.length - mostrar.length})`)),
     el("p", { class: "comparacao-nota" }, "Juntamos os anúncios do mesmo produto. Confira a voltagem, o tamanho e os detalhes na loja antes de comprar. ",
       "Abaixo, todas as ofertas desta busca.")].filter(Boolean));
+  if (rolado) caixa.querySelector(".comparacao-marcas")?.scrollTo(rolado, 0);
 }
 // Página inicial com o modo ligado: explica o que fazer
 function desenharAvisoComparacao() {
