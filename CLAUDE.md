@@ -327,6 +327,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - 12/11 (noite): **cartões mais baixos** (print do Giovanni: "compridos, muito espaço em branco"): preço antigo riscado AO LADO
   do novo (`.oferta-corpo .precos` em flex: preço, riscado/% OFF, economia embaixo) e botão Comprar mais enxuto; no PC 643 → 612 px.
   O espaço que sobra em alguns cartões é a fileira igualando a altura pelo cartão mais cheio (selos Full/Internacional, vendidos).
+  **TESTE no ar ("faça o 1 pra eu testar")**: "Ver detalhes" e "Histórico" viraram ícones redondos 🔍 📈 na mesma linha do
+  WhatsApp/sino/carrinho (bloco "TESTE … opção 1 para encurtar" em estilo.css + `cartaoOferta` em app.js): 612 → 578 px no PC
+  (era 643 no começo). Celular igual (lá essa linha não aparece). Falta ele dizer se fica.
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
