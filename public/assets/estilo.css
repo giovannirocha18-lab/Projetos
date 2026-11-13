@@ -1202,6 +1202,14 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
   .modelo-comprar { padding: 6px 10px; }
 }
 
+/* Miudezas da auditoria (13/11/2026): no celular a opção do Modo comparação cabe numa linha (a explicação fica só no
+   computador) e o texto da caixa de busca ("Buscar em Eletrodomésticos…") é um pouco menor e termina em "…" se não couber */
+@media (max-width: 860px) {
+  .opcao-explica { display: none; }
+  [data-busca] input::placeholder { font-size: 14px; }
+}
+[data-busca] input:placeholder-shown { text-overflow: ellipsis; }
+
 /* Barra lateral no computador (Giovanni, 13/11/2026): some só no início; em busca, categoria, loja, Black Friday e Quedas
    fica fixa à esquerda, sem a lista de categorias (já está no botão "☰ Categorias" do topo) e em quadros separados:
    escolha marcada em roxo com ✓, opções de ligar/desligar como chavinha. O celular (gaveta de baixo) não muda. */

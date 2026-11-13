@@ -1843,7 +1843,9 @@ async function abrirHistorico(o) {
   if (pedido !== pedidoHistorico || !janela.open) return;
   const pontos = dados.pontos || [];
   const precos = [...pontos.map((p) => p.preco), o.preco];
-  const diasAcompanhando = pontos.length ? Math.round((Date.now() - Date.parse(`${pontos[0].dia}T00:00:00`)) / 864e5) : 0;
+  // Mesma conta do servidor (o "há N dias" dos detalhes): dias inteiros entre o 1º registro e hoje, sem contar as horas
+  // do dia de hoje (à tarde o arredondamento dava 1 dia a mais que nos detalhes)
+  const diasAcompanhando = o.historico?.dias ?? (pontos.length ? Math.max(Math.floor((Date.now() - Date.parse(`${pontos[0].dia}T00:00:00`)) / 864e5), 0) : 0);
   const costume = o.historico?.dias >= DIAS_PARA_OPINAR ? o.historico.habitual : null;
   const maior = Math.max(...precos);
   // Pico: o maior preço está bem acima do de costume (15%+), não é o de hoje e valeu poucos dias (até 3)
