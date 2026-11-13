@@ -336,6 +336,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Lojas aprovadas na Awin: as 17 de antes + Olympikus + Stanley (fotos 410) + Elements (pausada) = 20. **Falta**: `so_auditoria`
   para ver as categorias da loja (tênis saindo em "Esporte e fitness" e em "Calçados") e completar `REGRAS` em lib/caminhos.js.
   Cartões: 🔍/📈 em ícones ficam (Giovanni: "ficou bom, deixe assim").
+- **13/11, print "máquina de lavar" com só 3 modelos no comparador (marcando Electrolux, 7)**: a busca geral traz só parte dos
+  anúncios de cada loja. Com o modo ligado numa busca comum, o comparador pede por trás "produto + marca" das 6 marcas que mais
+  aparecem (`completarComparacaoDaBusca`/`extrasDaBusca` em app.js; usa `pedirMarca(…, "completo")`, 2 por vez; só se a busca
+  tem 5+ produtos de seção comparável; a busca rápida `rapido=1` NÃO ajudou no teste). No ar: máquina de lavar 3 → 12,
+  geladeira 28 → 71, air fryer 37, celular 18 → 54; "ração" não dispara nada. Menu "☰ Categorias" em ordem alfabética (colunas).
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).
