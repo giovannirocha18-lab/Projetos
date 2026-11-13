@@ -10,6 +10,17 @@ Os 7 testes (`testes/*.mjs`) passam. Nenhum erro de JavaScript, imagem quebrada,
 
 - Itens 1 (só o preço impossível; os preços "de enfeite" da Shopee continuam) e 2 abaixo: corrigidos em 13/11, no ar.
 
+- Itens 3, 4, 5 e parte do 6: corrigidos em 13/11 ("pode fazer as correções sugeridas").
+- "Faça as demais correções" (13/11): resto do 6 (fone de capacete, cadeira de jantar, forno de embutir, combo de TV recuam),
+  8 (só anota "sem produto" com no máximo 1 loja em erro), 9 (queda mínima de 2% sobre o preço do cartão; "antes" até 5x),
+  10 (PC gamer em Informática, fralda de adulto fora de Bebês, tablet/iPad/Kindle em Informática), 11 (rolagem de 8 px,
+  dois "Cozinha", "dia(s)", Voltar fecha qualquer janela, selo "mais vendido" sem corte), 12 (erro num par não abandona o
+  grupo; 2 erros seguidos param o passo), 13 (`cupomRuim` em lib/cupons.js: 9 cupons fora), preço de enfeite fora do
+  "Mais bem avaliado" (até 2x o preço do meio). **Item 7 não é defeito**: só a AliExpress vende tênis Nike entre as
+  parceiras (ML sem catálogo de calçado, Shopee devolve 0/erro para "tenis nike"; Olympikus sai como "parecido", certo).
+  Não feito: "7 dias" x "8 dias" (detalhes x histórico), placeholder "Buscar em Eletrodoméstico…" cortado, caixinha do Modo
+  comparação menor na gaveta, e as "Melhorias sugeridas" abaixo.
+
 ## Bugs (em ordem de gravidade)
 1. **Preço absurdo**: "ar condicionado", 2ª posição, Central Ar (Awin, `awin-17608-35456293056`), R$ 16.004.370.000.000.000
    (vem assim do feed desde 28/10). Falta um teto de preço na carga da Awin/na busca. Outros preços "de enfeite" como produto:

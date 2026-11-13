@@ -41,7 +41,7 @@ function paraNavegador(r) {
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/em-alta?v=17", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/em-alta?v=18", request.url)); // trocar o v= para descartar o guardado
   // ?depurar=termo: como a vitrine do ML escolhe foto e preço desse termo (sem guardar)
   const depurar = new URL(request.url).searchParams.get("depurar");
   if (depurar) return Response.json(await vitrineTendencias(env, [depurar.slice(0, 60)], true), { headers: { "Cache-Control": "no-store" } });
@@ -76,7 +76,8 @@ async function montar(env, cache, chave) {
   const categorias = categoriasEmAlta(maisVendidos, QUANTIDADE);
   const vistos = new Set();
   const itens = [...doSite.map((t) => VIRA_CATEGORIA[normalizar(t)] || { nome: t, busca: t }), ...categorias]
-    .filter((i) => !vistos.has(normalizar(i.busca)) && vistos.add(normalizar(i.busca)))
+    // …nem pela busca nem pelo nome: havia dois atalhos "Cozinha" (o termo buscado e a categoria; auditoria de 13/11/2026)
+    .filter((i) => !vistos.has(normalizar(i.busca)) && !vistos.has(normalizar(i.nome)) && vistos.add(normalizar(i.busca)) && vistos.add(normalizar(i.nome)))
     .slice(0, QUANTIDADE);
 
   // Shopee fora do ar: responde (categorias na ordem padrão), mas guarda só 5 minutos para tentar de novo logo

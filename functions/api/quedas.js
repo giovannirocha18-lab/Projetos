@@ -14,7 +14,7 @@ export async function onRequestGet({ request, env }) {
   if (!env.DB) return Response.json(vazio);
   const pagina = Math.min(Math.max(parseInt(new URL(request.url).searchParams.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/quedas?v=1&pagina=${pagina}`, request.url));
+  const chave = new Request(new URL(`/api/quedas?v=2&pagina=${pagina}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
   const dados = await listarQuedas(env.DB, pagina, POR_PAGINA);

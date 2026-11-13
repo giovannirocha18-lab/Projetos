@@ -63,9 +63,13 @@ ok(gruposDaBusca([{ ...of("n-1", "a", 3000, "Notebook Dell Inspiron I15-3520"), 
 // Sem saldo para gastar: não pergunta e avisa que resta
 const r3 = await passoDeCasar(env, { q: "outra" }, async () => ofertas.map((o) => ({ ...o, id: `x${o.id}` })), { pedir, teto: 0 });
 ok(r3.perguntados === 0 && r3.resta, `teto zerado: ${JSON.stringify(r3)}`);
-// IA fora do ar: conta o erro e não grava veredito
+// IA fora do ar: para depois de 2 erros seguidos e não grava veredito
 const r4 = await passoDeCasar(env, { q: "outra" }, async () => ofertas.map((o) => ({ ...o, id: `x${o.id}` })), { pedir: async () => ({ ok: false, status: 401, text: async () => "chave inválida" }) });
-ok(r4.erros === 1 && /401/.test(r4.ultimoErro) && (await casadosDaBusca(DB, "outra")).length === 0, `IA com erro: ${JSON.stringify(r4)}`);
+ok(r4.erros === 2 && /401/.test(r4.ultimoErro) && (await casadosDaBusca(DB, "outra")).length === 0, `IA com erro: ${JSON.stringify(r4)}`);
+// Erro só num par (resposta cortada): pula esse par e confere o resto do grupo
+let vez = 0;
+const r5 = await passoDeCasar(env, { q: "terceira" }, async () => ofertas.map((o) => ({ ...o, id: `y${o.id}` })), { pedir: (...a) => (vez++ === 0 ? { ok: false, status: 529, text: async () => "cheio" } : pedir(...a)) });
+ok(r5.erros === 1 && r5.perguntados > 1 && r5.iguais + r5.diferentes === r5.perguntados - 1, `erro num par só: ${JSON.stringify(r5)}`);
 ok((await passoDeCasar({ DB }, { q: "x" }, async () => [])).erro, "sem chave: erro");
 
 // Pares por nome (celular, smartwatch, console): marca + modelo + armazenamento

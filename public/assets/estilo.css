@@ -1120,7 +1120,8 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
 .cartao-ml-preco { font-size: .9rem; font-weight: 800; color: var(--texto); }
 .cartao-ml-preco small { display: block; font-size: .7rem; font-weight: 600; color: var(--suave); }
 @media (max-width: 720px) {
-  .chips-ml { margin: 0 -16px; padding-left: 16px; padding-right: 16px; scroll-padding-left: 16px; scrollbar-width: none; }
+  /* -8px = a margem da página no celular (com -16px a página inteira rolava 8 px de lado; auditoria de 13/11/2026) */
+  .chips-ml { margin: 0 -8px; padding-left: 8px; padding-right: 8px; scroll-padding-left: 8px; scrollbar-width: none; }
   .chips-ml::-webkit-scrollbar { display: none; }
   .cartao-ml { flex-basis: 118px; }
 }

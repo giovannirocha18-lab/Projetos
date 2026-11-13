@@ -544,7 +544,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   // Trouxe ofertas, mas nenhuma é o produto (só acessórios e parecidos): o termo sai das sugestões de tendência por 3 dias
   // (lib/buscas.js). Vale também para o robô das prontas; só a busca comum, na 1ª página, no site todo
-  if (q && pagina === 1 && desde === 1 && !soLoja && !rapido && !categoria && env.DB && semProdutoAVenda(ofertas)) {
+  if (q && pagina === 1 && desde === 1 && !soLoja && !rapido && !categoria && env.DB && semProdutoAVenda(ofertas)
+    // …e só se as lojas responderam: com 2+ lojas em erro o produto pode estar justamente nelas (auditoria de 13/11/2026)
+    && Object.values(lojas).filter((l) => !l.ok).length <= 1) {
     waitUntil(anotarSemProduto(env, q).catch(() => {}));
   }
   const resposta = responder({

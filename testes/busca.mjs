@@ -348,6 +348,8 @@ for (const [q, titulos, primeiro, naoBate] of [
     "bicicleta": ["Bicicleta Ergométrica Bike Spinning 6kg Sensação Inércia Fitness", "Bicicleta de Equilíbrio Infantil Sem Pedal"],
     "colchão casal": ["Kit Colchão Casal + 2 Colchão Solteiro Inflável Bomba Embutida - Mor"],
     "sofá": ["Sofá Cama Poltrona Inflável Conforto Até 100kg"],
+    "fone bluetooth": ["Fone De Ouvido Para Capacete Intercomunicador Bluetooth"], "cadeira gamer": ["Cadeiras com Pernas de Ferro, Cadeira de Cozinha, Gamer, Jantar"],
+    "air fryer": ["Forno de Embutir Elétrico Electrolux 80L Experience Air Fryer"],
     "whey protein": ["Whey Protein JUICEDOP ISO Clear Sachê Pote 12g"],
   };
   const COMUNS = {
@@ -478,6 +480,10 @@ for (const [q, titulos, primeiro] of ORDEM) {
 
 // Categoria pelo título (print de 17/10/2026: vara de pesca caía em Óculos)
 const CATEGORIAS_ESPERADAS = [
+  // Auditoria de 13/11/2026: busca "computador gamer led" punha os PCs em Iluminação LED; fralda de adulto em Bebês; tablet sem categoria
+  ["computador gamer led", "Informática"], ["PC Gamer WaveX Start Rosa I7 16GB Ram LED Controlável ARGB", "Informática"],
+  ["Fralda Geriátrica Bigfral Plus G 8 unidades", undefined], ["Fralda Pampers Confort Sec G 60 unidades", "Bebês"],
+  ["Tablet Samsung Galaxy Tab A9 64GB", "Informática"], ["Kindle 11ª Geração 16GB Preto", "Informática"], ["Fita LED RGB 5m", "Iluminação LED"],
   // 11/11/2026 (print do Giovanni: inversora de solda da Stanley na categoria Cozinha)
   ["Kit Inversora Solda 100A 220V KLISL-145 Stanley", "Ferramentas"], ["Esmerilhadeira Angular 4 1/2 850W Bosch", "Ferramentas"],
   ["Copo Térmico Stanley 473ml", "Cozinha"],

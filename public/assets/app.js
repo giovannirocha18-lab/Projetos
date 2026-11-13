@@ -623,7 +623,7 @@ function caixaMomento(o) {
   if (!m) {
     return o.historico && el("div", { class: "momento momento-cedo" },
       el("strong", {}, "⏳ Vale a pena comprar agora?"),
-      el("span", {}, `Acompanhamos este preço há ${o.historico.dias || 0} dia(s). Com ${DIAS_PARA_OPINAR} dias dizemos se é um bom momento.`));
+      el("span", {}, `Acompanhamos este preço há ${o.historico.dias || 0} ${o.historico.dias === 1 ? "dia" : "dias"}. Com ${DIAS_PARA_OPINAR} dias dizemos se é um bom momento.`));
   }
   return el("div", { class: `momento momento-${m.cor}` }, el("strong", {}, m.titulo), el("span", {}, m.texto));
 }
@@ -1577,7 +1577,8 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         o.avaliacao && el("span", {}, String(o.avaliacao).replace(".", ",")),
         o.vendidos && el("span", { class: o.vendidos >= 1000 ? "vendidos-muitos" : null },
           `${o.vendidos >= 1000 ? "🔥 " : ""}${vendidosTexto(o.vendidos)}`),
-        !o.vendidos && rankTexto(o) && el("span", { class: "vendidos-muitos" }, rankTexto(o))),
+        // No cartão, sem "da categoria" (o selo era cortado: "mais vendido da categor…"); a janela Ver detalhes diz inteiro
+        !o.vendidos && rankTexto(o) && el("span", { class: "vendidos-muitos", title: rankTexto(o) }, rankTexto(o).replace(" da categoria", ""))),
       el("div", { class: "precos" },
         // No celular o desconto sai de cima da foto e vem em verde ao lado do preço antigo ("60% OFF")
         o.precoAntigo && el("span", { class: "linha-de" },
@@ -2572,7 +2573,9 @@ function escolhaRapida(lista) {
     return o;
   };
   const barato = primeiro(base.filter(comProva), (a, b) => a.preco - b.preco);
-  const avaliado = primeiro(base.filter((o) => o.avaliacao >= 4.5 && o.vendidos >= VENDAS_MINIMAS),
+  // Preço "de enfeite" (auditoria de 13/11/2026: PS5 de R$ 9.999 e iPhone 17 de R$ 20.000 na Shopee saíam como "Mais bem
+  // avaliado"; a nota e as vendas são de quando o anúncio tinha preço de verdade): só até 2 vezes o preço do meio da lista
+  const avaliado = primeiro(base.filter((o) => o.avaliacao >= 4.5 && o.vendidos >= VENDAS_MINIMAS && o.preco <= mediana * 2),
     (a, b) => b.avaliacao - a.avaliacao || b.vendidos - a.vendidos);
   // Mercado Livre entra pelo ranking de mais vendidos (até o 5º da categoria; pesoVendas), 05/11/2026
   const custo = primeiro(base.filter((o) => o.preco <= mediana && (o.vendidos >= VENDAS_MINIMAS || (o.rankML > 0 && o.rankML <= 5))
@@ -3828,7 +3831,7 @@ async function carregarEmAlta() {
   const guardada = faixaMLGuardada();
   if (guardada) desenharBuscadosML(guardada);
   try {
-    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=17")).json();
+    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=18")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);
@@ -4582,15 +4585,30 @@ function restaurarLugar(endereco) {
 
 // enderecoAtual = o endereço antes do Voltar: se não mudou, o passo era só de um painel aberto e a página fica como está
 let enderecoAtual = location.href;
+const trocarPasso = history.replaceState.bind(history);
 for (const m of ["pushState", "replaceState"]) {
   const original = history[m].bind(history);
   history[m] = (...a) => {
     // Indo para outra página do site: guarda o lugar desta antes de sair
-    if (m === "pushState" && a[2] != null && new URL(a[2], location.href).href !== location.href) guardarLugar(location.href);
-    original(...a);
+    const outraPagina = m === "pushState" && a[2] != null && new URL(a[2], location.href).href !== location.href;
+    if (outraPagina) guardarLugar(location.href);
+    // Saindo com uma janela ou gaveta aberta: a página nova ocupa o passo da camada (senão sobrava um Voltar que não fazia nada)
+    (outraPagina && history.state?.camada ? trocarPasso : original)(...a);
     enderecoAtual = location.href;
   };
 }
+// Janelas (Ver detalhes, Histórico, Lojas, Cupons, Conta…): o Voltar do celular fecha a janela em vez de sair da página
+// (auditoria de 13/11/2026; antes só a gaveta de filtros e o carrinho tinham o passo). Ao fechar pelo ✕, pelo fundo ou pelo
+// Esc o passo é devolvido; a espera é para o caso de uma janela fechar e outra abrir em seguida (Detalhes → Histórico)
+const abrirJanelaModal = HTMLDialogElement.prototype.showModal;
+HTMLDialogElement.prototype.showModal = function showModal() {
+  abrirJanelaModal.call(this);
+  passoDeCamada();
+};
+document.addEventListener("close", () => setTimeout(() => {
+  const aberta = document.querySelector("dialog[open]") || !$("#painel-favoritos").hidden || $("#filtros").classList.contains("aberto");
+  if (!aberta && history.state?.camada) history.back();
+}, 0), true);
 window.addEventListener("popstate", () => {
   const anterior = enderecoAtual;
   const mesmo = location.href === anterior;
