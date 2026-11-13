@@ -1202,18 +1202,56 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
   .modelo-comprar { padding: 6px 10px; }
 }
 
-/* TESTE da opção 2 (Giovanni, 12/11/2026): no computador o site todo fica sem a barra lateral; na busca, o botão
-   "Filtros e ordem" abre os filtros numa gaveta à esquerda (a mesma do celular, que lá sobe de baixo). Para voltar à
-   opção 1 (lateral fixa na busca): trocar este bloco por body.modo-inicio .filtros { display: none } + .pagina 1 coluna */
+/* Barra lateral no computador (Giovanni, 13/11/2026): some só no início; em busca, categoria, loja, Black Friday e Quedas
+   fica fixa à esquerda, sem a lista de categorias (já está no botão "☰ Categorias" do topo) e em quadros separados:
+   escolha marcada em roxo com ✓, opções de ligar/desligar como chavinha. O celular (gaveta de baixo) não muda. */
 @media (min-width: 861px) {
-  .pagina { grid-template-columns: minmax(0, 1fr); }
-  .filtros {
-    position: fixed; top: 0; left: 0; bottom: 0; z-index: 51; width: 340px; max-height: none; margin: 0;
-    padding: 8px 22px 20px; border-radius: 0 20px 20px 0; border: 0; box-shadow: 10px 0 40px rgba(0, 0, 0, .25);
-    transform: translateX(-105%); transition: transform .25s ease; visibility: hidden;
+  body.modo-inicio .pagina { grid-template-columns: minmax(0, 1fr); }
+  body.modo-inicio .filtros, #caixa-categorias { display: none; }
+  .pagina { grid-template-columns: 264px minmax(0, 1fr); }
+  .filtros { padding: 0 6px 12px 0; border: 0; border-radius: 0; background: none; scrollbar-width: thin; scrollbar-color: #d9d5e6 transparent; }
+  .filtros fieldset {
+    margin: 0 0 12px; padding: 14px 14px 12px; min-width: 0; border-radius: 18px; background: var(--card);
+    border: 1px solid var(--borda); box-shadow: 0 6px 18px rgba(60, 30, 120, .06);
   }
-  .filtros.aberto { transform: none; visibility: visible; }
-  .filtros .filtros-cabecalho { display: flex; position: sticky; top: -8px; z-index: 2; margin: 0 -22px; padding: 14px 22px 8px; background: var(--card); }
-  .barra-lista .botao-filtros.so-celular { display: inline-flex; }
-  .filtros-rodape .botao-primario.so-celular { display: block; }
+  .filtros fieldset[hidden] { display: none; }
+  .filtros legend {
+    float: left; width: 100%; margin: 0 0 8px; padding: 0; text-transform: none; letter-spacing: 0;
+    font-size: .95rem; font-weight: 800; color: var(--texto);
+  }
+  .filtros legend + * { clear: both; }
+  .filtros .opcao, .filtros .secao-item {
+    position: relative; width: 100%; margin: 0 0 2px; padding: 8px 10px; border-radius: 12px; font-size: .9rem; font-weight: 500;
+    transition: background .15s ease, color .15s ease;
+  }
+  /* Escolha única (ordem, envio): sem a bolinha; a marcada fica roxa com ✓ */
+  .filtros .opcao input[type="radio"] { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  .filtros .opcao:has(input[type="radio"]:checked), .filtros .secao-item.ativa { background: var(--roxo-claro); color: var(--roxo-forte); font-weight: 700; }
+  .filtros .opcao:has(input[type="radio"]:checked)::after, .filtros .secao-item.ativa::after { content: "✓"; margin-left: auto; font-weight: 800; color: var(--roxo); }
+  .filtros .opcao:has(input:focus-visible) { outline: 2px solid var(--roxo); outline-offset: 1px; }
+  /* Ligar/desligar (frete, avaliados, comparação, marcas): chavinha à direita */
+  .filtros .opcao input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none; order: 2; flex: none; margin: 0 0 0 auto; width: 36px; height: 21px;
+    border-radius: 999px; background: #d9d5e6; cursor: pointer; position: relative; transition: background .18s ease;
+  }
+  .filtros .opcao input[type="checkbox"]::before {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; border-radius: 50%; background: #fff;
+    box-shadow: 0 1px 3px rgba(26, 21, 48, .3); transition: transform .18s ease;
+  }
+  .filtros .opcao input[type="checkbox"]:checked { background: var(--roxo); }
+  .filtros .opcao input[type="checkbox"]:checked::before { transform: translateX(15px); }
+  .filtros .opcao:has(input[type="checkbox"]:checked) { color: var(--roxo-forte); font-weight: 700; }
+  /* Marcas: pílulas (cabem muitas em pouco espaço); a marcada fica roxa */
+  #filtro-marcas { display: flex; flex-wrap: wrap; gap: 6px; }
+  #filtro-marcas .opcao {
+    width: auto; margin: 0; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--borda); background: var(--bg);
+    font-size: .84rem; font-weight: 600;
+  }
+  #filtro-marcas .opcao:hover { border-color: var(--roxo); background: var(--card); }
+  #filtro-marcas .opcao input[type="checkbox"] { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+  #filtro-marcas .opcao:has(input:checked) { border-color: var(--roxo); background: var(--roxo); color: #fff; }
+  #filtro-marcas > :not(.opcao) { flex-basis: 100%; text-align: left; }
+  .filtros .faixa-preco input { border-radius: 12px; padding: 10px 12px; }
+  .filtros .botao-ver-lojas { margin-top: 10px; border-radius: 12px; }
+  .filtros-rodape .botao-secundario { margin-top: 0; border-radius: 999px; background: var(--card); }
 }
