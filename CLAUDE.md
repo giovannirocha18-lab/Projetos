@@ -529,6 +529,15 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Foto quebrada no cartão: tenta outras fotos e, na Awin, a foto de hoje (`fotoAtual` em app.js) — Giovanni confirmou ✅.
 
 - **13/11 (14h20 do Giovanni), conferências de 14/11 adiantadas**: ainda não dá (as guardadas são da madrugada de 13/11, antes das correções). Shopee segue recusando busca por palavra (erro 10000), mas **produto por id responde ao vivo** (`/api/produto?id=shopee-…`) → a chave está boa, o defeito é da busca da Shopee. Se seguir assim após a noite, as prontas não se renovam (regra da reserva): pensar em trocar a guardada mesmo sem a Shopee, reaproveitando os produtos dela da cópia antiga. Lembrete agendado nesta conversa para 14/11 06h15.
+- **13/11 (tarde): Shopee com erro 10000 confirmado no testador oficial dela** (defeito da Shopee na busca por palavra; por id
+  responde). **Prontas trocam mesmo sem a Shopee**: os produtos dela da pronta antiga (até 7 dias) voltam para a resposta nova
+  (`antigasDaShopee`/`comoVeioDaShopee` em buscar.js, `lojas.shopee.reaproveitadas`, oferta com `guardadaEm` não vira preço de
+  hoje). Rodada de dia `painel…/api/painel/robo-noite?comecar=prontas` (prontas + casar, 5 h; laço em `/api/robo-noite?trilha=lojas`).
+  Feita 13/11: 635 passos de prontas em ~1h50; conferido: xbox abre com Series (ML), xbox series com consoles do ML, lego sem
+  spam, iphone 16 sem seminovo, bicicleta sem ergométrica, tenis olympikus com 100 da loja ✅.
+  **Filtro Marcas (print "gamesir" mostrava Xbox/Nintendo/Apple)**: `MARCAS_SO_DO_FILTRO` (GameSir, 8BitDo, PXN…; só no app.js,
+  NÃO pôr em `MARCAS` do servidor), marca depois de "para/compatível" e plataforma (`PLATAFORMAS`) perdem em `marcaDe`.
+  **Giovanni mostrou a senha da API da Shopee num print**: recomendado "Redefinir" + atualizar o Secret `SHOPEE_SECRET` juntos (ele não respondeu).
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
