@@ -1825,7 +1825,7 @@ function semTamanho(titulo) {
   const roupa = /\s+(\d?(PP|P|M|G|GG|XG|XGG|EG|EGG|EXG)|XXS|XS|S|L|XL|XXL|XXXL|2XL|3XL|G[1-4]|U|UN|[ÚU]NICO|Tam(anho)?\.? \w+)$/i;
   const numero = /\s+(N(º|o|um)?\.?\s*)?\d{1,2}(\s*[\/-]\s*\d{1,2})?( BR)?$/i;
   // Olympikus: numeração antes da cor ("… Titanium 41 Bege" -> "… Titanium Bege"); igual a lib/variacoes.js
-  const antesDaCor = /\s(3[3-9]|4[0-8])(?=(\s[A-Za-zÀ-ú\/-]+){1,4}$)/;
+  const antesDaCor = /\s(2\d|3\d|4[0-8])([ \/-](2\d|3\d|4[0-8]))?(?=(\s[A-Za-zÀ-ú\/-]+){1,4}$)/;
   if (/\bolympikus\b/i.test(t) && antesDaCor.test(t)) return t.replace(antesDaCor, "").trim();
   return (roupa.test(t) ? t.replace(roupa, "") : t.replace(numero, "")).trim() || t;
 }
