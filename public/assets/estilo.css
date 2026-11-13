@@ -44,11 +44,11 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  /* Fundo "que se mistura" no alto da página, como o do Mercado Livre, mas discreto (pedido do Giovanni, 12/11/2026):
-     lilás claro → rosa claro (as cores da marca), sumindo no cinza do fundo em 640 px. Rola junto com a página */
+  /* Fundo nas cores da marca na página TODA (Giovanni, 13/11/2026: "o site fica muito branco" ao rolar; em 12/11 o degradê
+     sumia no cinza em 640 px): lilás → rosa de lado a lado, mais vivo no alto e clareado (véu branco de 50%) dali para baixo */
   background:
-    linear-gradient(180deg, rgba(246, 245, 251, 0) 0, rgba(246, 245, 251, 0) 120px, var(--bg) 640px) 0 0 / 100% 640px no-repeat,
-    linear-gradient(90deg, #d6c8fb 0, #f8cde2 100%) 0 0 / 100% 640px no-repeat,
+    linear-gradient(180deg, rgba(255, 255, 255, 0) 120px, rgba(255, 255, 255, .5) 640px),
+    linear-gradient(90deg, #d6c8fb 0, #f8cde2 100%),
     var(--bg);
   color: var(--texto);
   line-height: 1.5;
