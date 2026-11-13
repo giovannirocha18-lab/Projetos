@@ -2292,16 +2292,23 @@ const marcaDaLoja = (o) => {
   const chave = Object.keys(LOJAS_QUE_SAO_MARCA).find((k) => loja === k || loja.startsWith(`${k} `));
   return chave ? { n: limpo(LOJAS_QUE_SAO_MARCA[chave]), nome: LOJAS_QUE_SAO_MARCA[chave] } : null;
 };
-const nomeDaMarca = (m) => MARCAS_SIGLAS[limpo(m)] || m.replace(/(^|\s)(\S)/g, (_, e, l) => e + l.toUpperCase());
+const nomeDaMarca = (m) => MARCAS_SIGLAS[limpo(m)] || MARCAS_SIGLAS_DO_FILTRO[limpo(m)] || m.replace(/(^|\s)(\S)/g, (_, e, l) => e + l.toUpperCase());
+// 13/11/2026 (print do Giovanni: busca "gamesir" com as marcas Xbox, Nintendo e Apple no filtro): o controle é da GameSir,
+// as outras são os aparelhos em que ele funciona ("GameSir Nova Lite para Switch, PC, iPhone"). Marcas de acessório que só
+// valem para o filtro (ficam fora de MARCAS do servidor: lá, "controle xbox" esconderia o controle GameSir como "outra marca")
+const MARCAS_SO_DO_FILTRO = ["gamesir", "8bitdo", "flydigi", "easysmx", "machenike", "ipega", "powera", "pxn"];
+const MARCAS_SIGLAS_DO_FILTRO = { gamesir: "GameSir", "8bitdo": "8BitDo", easysmx: "EasySMX", powera: "PowerA", pxn: "PXN" };
+const PLATAFORMAS = new Set(["xbox", "nintendo", "playstation"]);
+const PARA_QUEM_SERVE = / (para|pra|p|for|compativel|compatible|fits|serve) /;
 let marcasDoTitulo = null; // [{ chave: " samsung ", n: "samsung", nome: "Samsung", amb }], montada quando o vocabulário chega
 function prepararMarcas() {
   if (!vocab.marcas.length) return null;
   // A lista tem "britânia" e "britania": fica a 1ª (com acento) para o nome que aparece
   const nomes = new Map();
-  for (const m of vocab.marcas) if (!nomes.has(limpo(m))) nomes.set(limpo(m), m);
+  for (const m of [...vocab.marcas, ...MARCAS_SO_DO_FILTRO]) if (!nomes.has(limpo(m))) nomes.set(limpo(m), m);
   marcasDoTitulo = [...nomes].map(([n]) => {
     const dona = limpo(MARCA_APELIDOS[n] || n);
-    return { chave: ` ${n} `, n: dona, nome: nomeDaMarca(nomes.get(dona) || MARCA_APELIDOS[n] || n), amb: MARCAS_AMBIGUAS.has(n) };
+    return { chave: ` ${n} `, n: dona, nome: nomeDaMarca(nomes.get(dona) || MARCA_APELIDOS[n] || n), amb: MARCAS_AMBIGUAS.has(n), plataforma: PLATAFORMAS.has(dona) };
   });
   return marcasDoTitulo;
 }
@@ -2315,7 +2322,9 @@ function marcaDe(o) {
     if (i < 0) continue;
     const posicao = t.slice(0, i).split(" ").length - 1; // 0 = 1ª palavra do título
     if (m.amb && posicao > 2) continue;
-    if (!melhor || posicao < melhor.posicao) melhor = { n: m.n, nome: m.nome, posicao };
+    // Marca citada depois de "para/compatível" e plataforma (Xbox, Nintendo…) perdem para outra marca do título
+    const peso = (PARA_QUEM_SERVE.test(t.slice(0, i + 1)) ? 2 : 0) + (m.plataforma ? 1 : 0);
+    if (!melhor || peso < melhor.peso || (peso === melhor.peso && posicao < melhor.posicao)) melhor = { n: m.n, nome: m.nome, posicao, peso };
   }
   o._marcaDe = marcasDoTitulo;
   o._marca = melhor ? { n: melhor.n, nome: melhor.nome } : marcaDaLoja(o);
