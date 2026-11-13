@@ -384,6 +384,17 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (lib/relevancia.js, caso "lego" em testes/busca.mjs), "Tente: …" na busca vazia (`parecidasCom`/`avisoParecidas`), botões
   maiores no celular, `pedirCasados` pede de novo se falhar. Não feito: demora de 8–10 s da busca vazia, `rebaixarSemProduto`
   mais largo que o servidor e corrida rara em `completarComparacaoDaCategoria`. **Conferir 14/11**: "lego" sem spam no topo.
+- **13/11 (tarde): busca nova mais rápida** (era 5–8 s, agora ~2–4,5 s). Causa: a Shopee recusava TODA busca nova ("System
+  Error 10000") e o visitante esperava 3 tentativas; o ML pedia preço de 24 fichas que nem batiam com a busca. Feito: "Shopee em
+  pane" (lib/fontes/shopee.js: `emPane`/`marcarPane`, 3 min, 1 tentativa e 2,5 s; visitante só 1 repetição; robô igual a antes;
+  `lojas.shopee.erro` traz "[pane, ao vivo N ms…]") e ML (`FICHAS_SOLTAS_DO_VISITANTE` = 2, gravações depois da resposta).
+  **Conferir 14/11**: se a Shopee voltou a responder (estava em erro o dia todo em 13/11) e o robô da noite guardou as prontas.
+- **13/11 (tarde): revisão do comparador em Eletrodomésticos, Eletroportáteis e Ferramentas**: código curto de modelo
+  (`codigoCurto`: "L-99", "IB7", "Q5F"; só nessas 3 seções, nunca M14/R-32/E27), `MARCAS_DO_COMPARADOR` (Itatiaia, IBBL,
+  Roborock, Skil…; lib/casar.js e cópia em app.js, fora do filtro de marcas) e aspirador/robô aspirador (vinham como "Limpeza")
+  contam como Eletroportáteis (`secaoDeComparar`). No ar: aspirador de pó 0 → 18 modelos, purificador 15 → 20, sanduicheira
+  12 → 16. Ferramentas só muda depois do robô da noite (só mostra o que a IA conferiu). Sobra: ~1.100 anúncios com marca e sem
+  código nenhum ("Britânia Diamante", "Elgin Start Fry"): precisaria casar por nome + IA (não feito).
 - 12/11: Ver detalhes do ML com "💡 No Pix pode sair mais barato" (API não manda preço no Pix). Painel: quadros do Resumo
   coloridos; medidor de saúde conta sobre a lista do robô (`prontas.lista`), não sobre todas as guardadas.
 - 11/11: cartão do Modo comparação abre "Ver detalhes" ao toque (`aoTocar` em `cartaoModelo`: foto/nome = oferta mais barata; linha da loja = a daquela loja; Comprar/Ver e cupom seguem iguais).

@@ -1888,3 +1888,15 @@ se sobrar par; para com teto, 45 min, 09:30 UTC, ou IA sem responder), tabelas `
 e `casados_buscas` (q, par), rota pública `/api/casados?q=` e o Modo comparação lendo (`separarConferidos`). Testado no
 navegador com pares simulados sobre a busca real "geladeira": 9 de 12 cartões viraram "✓ conferido", sem erro de JS.
 Apagados `robo/teste-casar.mjs` e `.github/workflows/teste-casar.yml`. testes.yml roda agora casar.mjs e robo-noite.mjs.
+
+
+## 13/11/2026 (tarde) — busca nova mais rápida e revisão do comparador (3 categorias)
+Busca sem resultado/nova levava 5–8 s. Medido no ar (lojas.*.ms): Shopee 5–8 s (erro 10000 em toda busca nova, 3 tentativas
+com pausas de 1,5 e 3 s, prazo de 7 s) e ML 3–5 s (catálogo solto do ML + preço de até 24 fichas, 2 por vez, mesmo sem bater
+com a busca). Correções: aviso de pane da Shopee na memória + cache do Cloudflare (gravado com waitUntil; a 2ª página da mesma
+busca espera a mesma conferência: sem isso ela fazia as 3 tentativas), resposta boa com mais de 3 s não desfaz o aviso,
+visitante com 1 repetição (1 s); ML pede preço de todas as fichas que batem + 2 das outras e grava catálogo/preços depois da
+resposta. Medição final (10 buscas novas): 1,7–4,7 s; o que sobra é o ML (2,3 s morno; mais com cópia nova do site).
+Comparador: 39 buscas reais (14.953 anúncios): das 6.940 em seção comparável, 3.068 sem marca (maioria genérico de
+AliExpress/Shopee), 921 com marca e sem código. Marcas só do comparador, código curto e aspirador: grupos 234 → 252 no 1º lote
+(no site, com o completar por marca, aspirador de pó 0 → 18). Casos novos em testes/casar.mjs.
