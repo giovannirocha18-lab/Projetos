@@ -344,7 +344,7 @@ for (const [q, titulos, primeiro, naoBate] of [
     "iphone 16": ["iPhone 16 Original 256GB, IPHONE 15, IPHONE 14 OU IPHONE 13 Todos VITRINE Impecável", "iPhone 16 Pro Max 256GB Apple Original Seminovo Vitrine Bateria 85% a 100%"],
     "celular": ["Celular De Mesa 3g E 4g Com Wi-fi Dual Chip Aquário Ca42sx4g Cor Preto"],
     "notebook": ["Notebook Lenovo ThinkPad T480s i5 8GB SSD 256GB Notebook de Exposição", "Notebook Dell Latitude 5490 i5 RECONDICIONADO"],
-    "ps5": ["PS5 Fat Edição Mídia Física Seminovo"],
+    "ps5": ["PS5 Fat Edição Mídia Física Seminovo"], "xbox series x": ["Xbox Series X Semi Novo (COMPLETO NA CAIXA)"],
     "bicicleta": ["Bicicleta Ergométrica Bike Spinning 6kg Sensação Inércia Fitness", "Bicicleta de Equilíbrio Infantil Sem Pedal"],
     "colchão casal": ["Kit Colchão Casal + 2 Colchão Solteiro Inflável Bomba Embutida - Mor"],
     "sofá": ["Sofá Cama Poltrona Inflável Conforto Até 100kg"],
