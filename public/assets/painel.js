@@ -563,7 +563,7 @@
       : linhaSemApi("Mercado Livre", "https://www.mercadolivre.com.br/afiliados", "Ver no ML ↗",
         "o ML não envia os ganhos por API: veja em Afiliados → Métricas e digite em Parâmetros"));
     const linhaShein = () => (manual("shein") ? linhaManual(manual("shein"))
-      : linhaSemApi("Shein", "https://br.shein.com/", "Ver na Shein ↗",
+      : linhaSemApi("Shein", "https://m.shein.com/br/affiliate/", "Ver na Shein ↗",
         "a Shein não envia os ganhos por API: busque “Afiliado” na Shein e digite em Parâmetros"));
 
     // Por rede (card do topo): comissão, pedidos e se a rede foi lida (o erro vem escrito)
