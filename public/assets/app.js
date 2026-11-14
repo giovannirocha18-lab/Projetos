@@ -2609,6 +2609,8 @@ function lojasNoResumo() {
         onclick: () => escolherLoja(id),
       }, el("span", { class: "loja-ponto" }), loja.nome); // sem o número de ofertas (11/11/2026, pedido do Giovanni)
     }),
+    // No celular o "Limpar filtros" vai no fim desta fila (o de baixo some): o card fica uma linha mais baixo (14/11/2026)
+    el("button", { type: "button", class: "chip-acao chip-limpar so-na-fila", onclick: limparTudo }, "✕ Limpar filtros"),
     el("small", { class: "resumo-lojas-nota" },
       estado.qtdParceiras ? `Temos ${estado.qtdParceiras} parceiras; aqui aparecem as que têm ofertas nesta busca. ` : "",
       el("button", { type: "button", class: "botao-link-claro", onclick: abrirLojas }, "Ver lojas parceiras"),
@@ -2814,7 +2816,7 @@ function desenharResumo(lista) {
   if (estado.loja) return desenharResumoLoja(lista);
   const qtdLojas = new Set(lista.map((o) => o.loja)).size;
   const cat = navegandoCategoria();
-  const titulo = el("div", {},
+  const titulo = el("div", { class: "resumo-busca" },
     cat ? el("h1", {}, `${cat.emoji || ""} ${cat.nome}`) : el("h1", {}, el("span", {}, "Resultados para "), `“${estado.q}”`),
     el("p", {}, lista.length
       ? `${quantasOfertas(lista.length)} em ${qtdLojas} ${qtdLojas === 1 ? "loja" : "lojas"}`

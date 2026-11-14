@@ -1294,3 +1294,28 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
   .filtros .botao-ver-lojas { margin-top: 10px; border-radius: 12px; }
   .filtros-rodape .botao-secundario { margin-top: 0; border-radius: 999px; background: var(--card); }
 }
+
+/* Card roxo da busca/categoria mais baixo no celular (14/11/2026, print do Giovanni: "toma muito espaço na tela"):
+   nome e contagem na mesma linha, lojas sem o título "Lojas com ofertas:", "Limpar filtros" no fim da fila das lojas e
+   os botões Filtros / Frete grátis / Comparador numa linha só (a contagem repetida some) */
+.so-na-fila { display: none; }
+@media (max-width: 640px) {
+  .resumo { padding: 10px 14px; }
+  .resumo-busca { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+  .resumo-busca > * { flex: 1 1 100%; min-width: 0; }
+  .resumo-busca > h1, .resumo-busca > h1 + p { flex: 0 1 auto; }
+  .resumo-busca > h1 + p { margin: 0; }
+  .resumo-busca .resumo-lojas { margin-top: 8px; }
+  .resumo-busca .resumo-lojas-titulo, .resumo-busca .resumo-acoes { display: none; }
+  .resumo-busca .so-na-fila { display: inline-flex; }
+  #resultados .barra-lista { flex-wrap: nowrap; gap: 8px; margin-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
+  #resultados .barra-lista::-webkit-scrollbar { display: none; }
+  #resultados .barra-lista > * { flex: none; }
+  #resultados .barra-lista .total { display: none; }
+  #resultados .barra-lista :is(.botao-filtros, .botao-frete, .botao-comparador) { font-size: .82rem; padding: 8px 11px; white-space: nowrap; }
+}
+@media (max-width: 640px) {
+  /* A nota das parceiras ficava no fim da fila que desliza (fora da tela) e deixava a fila com 79 px de altura */
+  .resumo-busca .resumo-lojas-nota { display: none !important; }
+  .resumo-busca > h1 { font-size: 1.05rem; }
+}
