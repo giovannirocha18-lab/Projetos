@@ -578,6 +578,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   Rótulos são PALPITE (ML "Ganho estimado"/"Ordens"; Shein "Pendente"/"Pedidos"; a "Renda" da Shein não é lida): **falta o
   Giovanni testar** e mandar o "texto que veio da tela" se não achar → ajustar só painel-captura.js (o favorito não muda).
   Comissões: ML/Shein com "✓ atualizado" ou "⚠ há N dias" (3+ dias).
+- **14/11: card roxo da busca/categoria mais baixo no CELULAR** (print: "toma muito espaço"; simulação aprovada): nome e
+  contagem na mesma linha (`.resumo-busca`), fila das lojas sem "Lojas com ofertas:" e sem a nota, "✕ Limpar filtros" no fim
+  da fila (`.so-na-fila`), botões "Filtros" (era "Filtros e ordem") / Frete grátis / Comparador numa linha, contagem repetida
+  fora (bloco no fim de estilo.css). Card 198 → 91 px (categoria), 243 → 112 px (busca). Computador igual. No ar ✅.
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
