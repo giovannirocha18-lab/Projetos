@@ -208,7 +208,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Erros comuns de digitação são trocados antes de buscar ("eletrolux" -> "electrolux"); a resposta traz o q
   // corrigido e o site avisa. exato=1 = "Buscar por eletrolux mesmo". sugestao = "Você quis dizer…?" (não troca sozinho)
   const digitado = (params.get("q") || "").trim().slice(0, 100);
-  const { q, sugestao } = params.has("exato") ? { q: acentuarBusca(digitado), sugestao: null } : corrigirBusca(digitado);
+  // 14/11/2026 (Giovanni: "a opção com a correção automática é melhor e passa mais segurança"): a marca parecida
+  // ("playsation" -> "playstation") também é trocada sozinha; antes só aparecia o "Você quis dizer…?", que ele quase não viu.
+  // O site mostra "Corrigimos … · Buscar como digitei" (exato=1 desfaz)
+  const corrigida = params.has("exato") ? null : corrigirBusca(digitado);
+  const q = corrigida ? corrigida.sugestao || corrigida.q : acentuarBusca(digitado);
+  const sugestao = null;
   const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const desde = Math.min(Math.max(parseInt(params.get("desde"), 10) || 1, 1), MAX_DESDE);
   // Busca dentro de uma loja (id como em /api/lojas: shopee, aliexpress, mercadolivre, awin:<loja>, lomadee:<marca>). A categoria não vale junto
