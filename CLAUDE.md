@@ -559,7 +559,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
 - **14/11, print "playstation 5" com consoles PS4 no meio**: "playstation 5" vira a palavra "ps5" e a regra dos parecidos só
   valia com 2+ palavras → em busca de console com geração (ps2–ps5), com 10+ que batem, o console de outra geração vira
   `parecido` (lib/relevancia.js; caso em testes/busca.mjs); no quadro Tipo o parecido não entra (só o de outra marca).
-  A cópia guardada de "playstation 5" é de antes: **conferir 15/11** sem PS4 entre os PS5.
+  Também sem a regra das 10: PS de outra geração (`geracaoPedida`) e Xbox Series S x X (`seriePedida`) viram parecido com 1+
+  produto que bate. No ar: "playstation 5" 0 PS4 ✅. Cópias guardadas de "playstation 5 slim"/"xbox series s": **conferir 15/11**.
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
