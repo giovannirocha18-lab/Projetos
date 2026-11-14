@@ -565,6 +565,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   passa mais segurança"): buscar.js usa `corrigirBusca(...).sugestao` como a busca (sai o "Você quis dizer"; `sugestao`
   sempre null). O aviso "Corrigimos … · Buscar como digitei" foi REMOVIDO a pedido dele no mesmo dia (`avisoCorrecao` devolve
   null): a caixa de busca e o título já mostram a palavra corrigida.
+- **14/11, print "Projetor Android Smart TV" em Eletrodomésticos**: a categoria da loja (AliExpress) mandava. Agora projetor =
+  Informática (palavra nova; título que COMEÇA por projetor vence a categoria da loja, `COMECA_POR_PROJETOR` em
+  lib/categorias.js; de estrelas/farol não). Varredura de 20 buscas: fora de Eletrodomésticos antena, controle remoto (também
+  fora de Games), receptor, TV stick, aparador/cristaleira com adega (→ Móveis), vela aquecedora, ventoinha de PC. Busca nova
+  já sai certa; as guardadas mudam com o robô da noite: **conferir 15/11** "smart tv" sem projetor em Eletrodomésticos.
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
