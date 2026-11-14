@@ -347,6 +347,22 @@ for (const [q, titulos, primeiro, naoBate] of [
   }
 }
 
+// 14/11/2026: "playstation 5 slim" com poucos PS5 e PS4 Slim no meio
+{
+  const saida = separarAcessorios(["Console PlayStation 5 Slim Digital 825GB", "Console Sony PS5 Slim 1TB", "Console Playstation 4 Slim 1tb Standard Sony Cor Preto"]
+    .map((titulo, i) => ({ id: String(i), titulo, preco: 3000 })), "playstation 5 slim");
+  if (!saida.find((o) => /Playstation 4/.test(o.titulo))?.parecido) { console.error('✗ "playstation 5 slim": o PS4 Slim devia ser parecido'); falhas += 1; }
+  if (saida.filter((o) => !o.acessorio).length !== 2) { console.error('✗ "playstation 5 slim": os 2 PS5 deviam ficar como produto'); falhas += 1; }
+}
+
+// 14/11/2026: "xbox series s" com o Series X no meio
+{
+  const saida = separarAcessorios(["Console Xbox Series S 512GB Cor Branco", "Xbox Séries S 1TB Carbon Black", "Console Xbox Series X 1TB Standard", "Console Xbox Series X|S 1TB all Digital"]
+    .map((titulo, i) => ({ id: String(i), titulo, preco: 3000 })), "xbox series s");
+  if (!saida.find((o) => /Series X 1TB/.test(o.titulo))?.parecido) { console.error('✗ "xbox series s": o Series X devia ser parecido'); falhas += 1; }
+  if (saida.filter((o) => !o.acessorio).length !== 3) { console.error(`✗ "xbox series s": deviam ficar 3 produtos, ficaram ${saida.filter((o) => !o.acessorio).length}`); falhas += 1; }
+}
+
 // 13/11/2026 (auditoria): usado/vitrine, outro tipo do produto e console antigo recuam (variante: fora da Escolha rápida e
 // depois dos produtos comuns); jogo, HD e headset com o console no meio do nome são acessório; a busca que pede a palavra não recua
 {
