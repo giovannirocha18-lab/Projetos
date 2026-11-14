@@ -240,13 +240,27 @@
         <h2 class="titulo-vista">Parâmetros</h2>
         <label class="sub">Mês <input type="month" id="param-mes" class="campo-mes"></label>
       </div>
-      <p class="sub">Shein e Mercado Livre não enviam os ganhos por API. Abra o painel de afiliados de cada uma, copie os números do mês
+      <p class="sub">Shein e Mercado Livre não enviam os ganhos por API. Use o botão abaixo (um clique em cada loja) ou digite os números
         e clique em Salvar. Os valores entram na aba Comissões junto com as outras redes.</p>
-      <section class="painel pedido-claude">
-        <h2>Pedido para o Claude in Chrome <span class="sub">cole numa conversa nova no app do Claude, com a Shein, o ML e este painel logados no Chrome</span></h2>
-        <pre id="pedido-claude">Use o Claude in Chrome no meu navegador. 1) No Centro de Afiliados da SHEIN: em "Registro de ganhos", anote "Pendente" e a "Renda" que for de comissão de vendas (NÃO conte o "Presente de boas-vindas" nem outros bônus); no "Centro de Dados", em "Este Mês", anote o número de pedidos. 2) Em https://www.mercadolivre.com.br/afiliados → Métricas, escolha o mês atual e anote o "Ganho estimado" e o número de ordens. 3) Abra https://painel.vaiprocarrinho.com.br/#parametros com o Mês atual. Shein: aprovada = Renda de comissão, pendente = Pendente, pedidos = pedidos do mês → clique "Salvar Shein". Mercado Livre: aprovada = 0, pendente = Ganho estimado, pedidos = ordens → clique "Salvar Mercado Livre". Use vírgula nos centavos. Não mexa em saque, pagamento ou dados pessoais. No fim, me diga os valores salvos.</pre>
-        <button type="button" class="botao" id="copiar-pedido">📋 Copiar pedido</button>
-        <span class="sub" id="copiar-pedido-ok"></span>
+      <!-- Botão de favoritos (14/11/2026): copia o texto da tela de afiliados e abre este painel com ele (#captura=).
+           A leitura dos números fica em assets/painel-captura.js. Nenhuma senha é lida nem guardada. -->
+      <section class="painel enviar-painel">
+        <h2>Botão “Enviar ao painel” <span class="sub">um clique no painel de afiliados e os números vêm para cá, sem senha</span></h2>
+        <p><a class="botao favorito" id="favorito" title="Arraste para a barra de favoritos" href="javascript:(function(){var t=(document.body.innerText||'').replace(/[ \t\u00a0]+/g,' ').replace(/\s*\n\s*/g,'\n').slice(0,15000);window.open('https://painel.vaiprocarrinho.com.br/#captura='+encodeURIComponent(location.hostname+'\n'+t),'_blank')})();">📥 Enviar ao painel</a></p>
+        <ol class="sub passos">
+          <li><b>Uma vez só:</b> arraste o botão roxo acima para a barra de favoritos do Chrome (se a barra não aparece: Ctrl + Shift + B).</li>
+          <li>Abra o painel de afiliados já logado: no <b>Mercado Livre</b>, Afiliados → Métricas com o mês atual; na <b>Shein</b>, o Centro de Afiliados.</li>
+          <li>Com os valores na tela, clique no favorito <b>📥 Enviar ao painel</b>. Esta página abre, lê os números e salva sozinha.</li>
+        </ol>
+        <div id="captura-lida" hidden>
+          <p id="captura-resumo"></p>
+          <details>
+            <summary>Ver o texto que veio da tela</summary>
+            <pre id="captura-texto"></pre>
+            <button type="button" class="botao" id="copiar-captura">📋 Copiar texto</button>
+            <span class="sub" id="copiar-captura-ok"></span>
+          </details>
+        </div>
       </section>
       <div class="dupla">
         <section class="painel param-rede" id="param-shein" data-rede="shein" aria-label="Comissões da Shein">
@@ -270,10 +284,19 @@
           <p class="sub" id="mercadolivre-situacao">—</p>
         </section>
       </div>
+      <section class="painel pedido-claude">
+        <details><summary>Outra forma: pedido para o Claude in Chrome</summary>
+        <h2>Pedido para o Claude in Chrome <span class="sub">cole numa conversa nova no app do Claude, com a Shein, o ML e este painel logados no Chrome</span></h2>
+        <pre id="pedido-claude">Use o Claude in Chrome no meu navegador. 1) No Centro de Afiliados da SHEIN: em "Registro de ganhos", anote "Pendente" e a "Renda" que for de comissão de vendas (NÃO conte o "Presente de boas-vindas" nem outros bônus); no "Centro de Dados", em "Este Mês", anote o número de pedidos. 2) Em https://www.mercadolivre.com.br/afiliados → Métricas, escolha o mês atual e anote o "Ganho estimado" e o número de ordens. 3) Abra https://painel.vaiprocarrinho.com.br/#parametros com o Mês atual. Shein: aprovada = Renda de comissão, pendente = Pendente, pedidos = pedidos do mês → clique "Salvar Shein". Mercado Livre: aprovada = 0, pendente = Ganho estimado, pedidos = ordens → clique "Salvar Mercado Livre". Use vírgula nos centavos. Não mexa em saque, pagamento ou dados pessoais. No fim, me diga os valores salvos.</pre>
+        <button type="button" class="botao" id="copiar-pedido">📋 Copiar pedido</button>
+        <span class="sub" id="copiar-pedido-ok"></span>
+        </details>
+      </section>
     </div>
   </main>
 
   <div class="dica" id="dica" role="status" hidden></div>
+  <script src="assets/painel-captura.js" defer></script>
   <script src="assets/painel.js" defer></script>
 </body>
 </html>

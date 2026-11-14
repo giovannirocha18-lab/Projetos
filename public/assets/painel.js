@@ -548,11 +548,15 @@
     const manual = (rede) => (d.manuais || []).find((m) => m.rede === rede);
     function linhaManual(m) {
       const li = el("li");
-      const quando = new Date(m.atualizado).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-      const editar = el("a", "selo digitado", "✎ digitado");
+      const dias = Math.floor((Date.now() - m.atualizado) / 864e5);
+      const velho = dias >= 3; // sem atualizar há 3+ dias: aviso amarelo
+      const quando = dias < 1 ? `hoje às ${new Date(m.atualizado).toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" })}`
+        : dias === 1 ? "ontem" : `há ${dias} dias`;
+      const editar = el("a", velho ? "selo aviso" : "selo digitado", velho ? `⚠ ${quando}` : "✓ atualizado");
       editar.href = "#parametros";
+      editar.title = "Atualizar em Parâmetros (botão Enviar ao painel)";
       li.append(comCor(m.nome), el("span", "n", dinheiro(m.aprovada + m.pendente)), editar,
-        el("span", "detalhe", `${plural(m.pedidos, "pedido", "pedidos")} · aprovada ${dinheiro(m.aprovada)} · pendente ${dinheiro(m.pendente)} · em ${quando}`));
+        el("span", "detalhe", `${plural(m.pedidos, "pedido", "pedidos")} · aprovada ${dinheiro(m.aprovada)} · pendente ${dinheiro(m.pendente)} · atualizado ${quando}`));
       return li;
     }
     const linhaMercadoLivre = () => (manual("mercadolivre") ? linhaManual(manual("mercadolivre"))
@@ -796,13 +800,16 @@
   const virgula = (n) => (Number(n) || 0).toFixed(2).replace(".", ",");
   if (!$("param-mes").value) $("param-mes").value = hojeBr().slice(0, 7);
   $("param-mes").max = hojeBr().slice(0, 7);
+  let vezParam = 0; // só a última leitura preenche os campos (o botão "Enviar ao painel" lê de novo antes de salvar)
   async function carregarParametros() {
+    const vez = ++vezParam;
     const mes = $("param-mes").value || hojeBr().slice(0, 7);
     for (const r of REDES_PARAM) $(`${r}-situacao`).textContent = "Carregando…";
     try {
       const resp = await fetch(`/api/painel/parametros?mes=${mes}`, { cache: "no-store", credentials: "same-origin" });
       if (resp.status === 403 || resp.redirected) throw new Error("O login expirou. Recarregue a página e entre de novo.");
       const dados = await resp.json();
+      if (vez !== vezParam) return;
       for (const r of REDES_PARAM) {
         const v = (dados.valores || []).find((x) => x.rede === r);
         $(`${r}-aprovada`).value = v ? virgula(v.aprovada) : "";
@@ -813,6 +820,7 @@
           : `Nada salvo para ${nomeDoMes(mes)}.`;
       }
     } catch (e) {
+      if (vez !== vezParam) return;
       for (const r of REDES_PARAM) $(`${r}-situacao`).textContent = e.message;
     }
   }
@@ -830,9 +838,60 @@
       if (!resp.ok) throw new Error(dados.erro || `O servidor respondeu ${resp.status}.`);
       situacao.textContent = `✓ Salvo em ${new Date(dados.salvo.atualizado).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}`;
       delete comissoes.dados[mes]; // a aba Comissões busca de novo com o valor novo
+      return true;
     } catch (e) {
       situacao.textContent = `✕ ${e.message}`;
+      return false;
     }
+  }
+
+  // Botão de favoritos "Enviar ao painel" (14/11/2026): o endereço chega com #captura=<site>\n<texto da tela de afiliados>.
+  // assets/painel-captura.js acha os números; o que ele achar entra nos campos do mês atual e é salvo; o que não achar fica
+  // como estava salvo. O texto não vai para o servidor (fica depois do #) e sai do endereço na hora.
+  function pegarCaptura() {
+    const m = location.hash.match(/^#captura=([\s\S]*)$/);
+    if (!m) return null;
+    history.replaceState(null, "", "#parametros");
+    try { return decodeURIComponent(m[1]); } catch { return ""; }
+  }
+  async function aplicarCaptura(bruto) {
+    const lido = window.lerCaptura ? window.lerCaptura(bruto) : { rede: null, achados: {}, texto: "" };
+    const resumo = $("captura-resumo");
+    $("captura-lida").hidden = false;
+    $("captura-texto").textContent = lido.texto || "(a tela veio sem texto)";
+    $("captura-lida").scrollIntoView({ block: "center" });
+    if (!lido.rede) {
+      resumo.textContent = "✕ O botão foi clicado fora do painel de afiliados. Clique nele com a página de Afiliados do Mercado Livre ou da Shein aberta.";
+      return;
+    }
+    const campos = Object.keys(lido.achados);
+    if (!campos.length) {
+      resumo.textContent = `✕ ${lido.nome}: não achei os valores nessa tela. Abra a tela com os ganhos do mês e clique de novo (ou digite abaixo).`;
+      return;
+    }
+    resumo.textContent = `${lido.nome}: lendo…`;
+    $("param-mes").value = hojeBr().slice(0, 7);
+    await carregarParametros();
+    for (const c of campos) $(`${lido.rede}-${c}`).value = c === "pedidos" ? String(lido.achados[c]) : virgula(lido.achados[c]);
+    const salvou = await salvarParametros(lido.rede);
+    const nomes = { pendente: "pendente", aprovada: "aprovada", pedidos: "pedidos" };
+    const partes = campos.map((c) => `${nomes[c]} ${c === "pedidos" ? lido.achados[c] : dinheiro(lido.achados[c])}`).join(" · ");
+    const faltou = ["pendente", "pedidos"].filter((c) => !campos.includes(c)).map((c) => nomes[c]);
+    resumo.textContent = `${salvou ? "✓" : "✕ Não salvou:"} ${lido.nome}: ${partes}${salvou ? " — salvo" : ""}.`
+      + (faltou.length ? ` Não achei: ${faltou.join(", ")} (ficou o valor de antes).` : "") + " Confira com a tela da loja.";
+  }
+  $("copiar-captura").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("captura-texto").textContent); $("copiar-captura-ok").textContent = "✓ Copiado"; }
+    catch { $("copiar-captura-ok").textContent = "Selecione o texto e copie"; }
+  });
+  // Clicar no botão aqui dentro do painel não faz nada de útil: ele é para arrastar aos favoritos
+  $("favorito").addEventListener("click", (e) => {
+    e.preventDefault();
+    mostrarDicaFavorito();
+  });
+  function mostrarDicaFavorito() {
+    $("captura-lida").hidden = false;
+    $("captura-resumo").textContent = "Este botão é para ARRASTAR até a barra de favoritos (segure e solte lá em cima). Depois, clique nele na página de afiliados.";
   }
   for (const r of REDES_PARAM) $(`salvar-${r}`).addEventListener("click", () => salvarParametros(r));
   $("copiar-pedido").addEventListener("click", async () => {
@@ -856,7 +915,11 @@
     else if (vista === "metricas") graficoMetricas();
     esconderDica();
   }
-  window.addEventListener("hashchange", mostrarVista);
+  window.addEventListener("hashchange", () => {
+    const captura = pegarCaptura();
+    mostrarVista();
+    if (captura !== null) aplicarCaptura(captura);
+  });
 
   let espera;
   window.addEventListener("resize", () => {
@@ -890,6 +953,8 @@
   }
 
   $("recarregar").addEventListener("click", () => carregarTudo(true));
+  const capturaDaChegada = pegarCaptura();
   mostrarVista();
   carregarTudo();
+  if (capturaDaChegada !== null) aplicarCaptura(capturaDaChegada);
 })();

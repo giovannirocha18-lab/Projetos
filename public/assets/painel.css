@@ -257,3 +257,13 @@ main { max-width: var(--largura); margin: 0 auto; padding: 16px var(--lateral) 2
 .quadro.cor-ciano { --c: #22c3d6; }
 .selo.digitado { color: #a77bff; background: rgba(167, 123, 255, .14); }
 .bolinha { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
+
+/* Botão de favoritos "Enviar ao painel" (14/11/2026) */
+.enviar-painel .favorito { display: inline-block; background: #7c3aed; color: #fff; border-color: #7c3aed; font-weight: 700;
+  text-decoration: none; cursor: grab; padding: 10px 16px; }
+.enviar-painel .passos { margin: 6px 0 0; padding-left: 20px; line-height: 1.7; }
+#captura-lida { margin-top: 12px; padding: 12px; border: 1px solid var(--borda-forte); border-radius: 8px; background: var(--quadro); }
+#captura-resumo { margin: 0 0 8px; font-weight: 600; }
+#captura-lida summary, .pedido-claude summary { cursor: pointer; color: var(--suave, #a1a1aa); font-size: .9rem; }
+#captura-texto { white-space: pre-wrap; word-break: break-word; max-height: 260px; overflow: auto; font-size: .8rem; margin: 8px 0; }
+.enviar-painel .passos li { display: list-item; border: 0; padding: 0; margin: 0; }
