@@ -571,6 +571,14 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   fora de Games), receptor, TV stick, aparador/cristaleira com adega (→ Móveis), vela aquecedora, ventoinha de PC. Busca nova
   já sai certa; as guardadas mudam com o robô da noite: **conferir 15/11** "smart tv" sem projetor em Eletrodomésticos.
 
+- **14/11: painel, botão de favoritos "📥 Enviar ao painel"** (Giovanni queria ML/Shein automáticos com login e senha; recusado:
+  2FA/captcha, regras das lojas, senha guardada; ele escolheu o botão): favorito (bookmarklet na aba Parâmetros) copia o texto
+  da tela de afiliados e abre `painel…/#captura=<site>\n<texto>`; `public/assets/painel-captura.js` (`lerCaptura`; teste
+  `node testes/captura.mjs`) acha pendente/pedidos e o painel salva sozinho (`pegarCaptura`/`aplicarCaptura` em painel.js).
+  Rótulos são PALPITE (ML "Ganho estimado"/"Ordens"; Shein "Pendente"/"Pedidos"; a "Renda" da Shein não é lida): **falta o
+  Giovanni testar** e mandar o "texto que veio da tela" se não achar → ajustar só painel-captura.js (o favorito não muda).
+  Comissões: ML/Shein com "✓ atualizado" ou "⚠ há N dias" (3+ dias).
+
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
   2) ✅ robô guardando preços; catálogo 48 → preço até 16 com vendedor; sem vendedor re-perguntado só após 4 dias (04/11,
