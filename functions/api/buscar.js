@@ -680,6 +680,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
         // (era por isso que as categorias quase nunca eram guardadas); as outras vieram, então renova a cada noite
         guardar = !atual || Date.now() - atual.criado > (categoria ? PRONTA_DE_CATEGORIA_APOS_MS : PRONTA_SEM_SHOPEE_APOS_MS);
       }
+      // 14/11/2026: na madrugada a AliExpress e a Lomadee demoraram mais de 10 s na hora de "air fryer" e a pronta nova
+      // (323 ofertas, AliExpress 44) tomou o lugar da boa (763). Com loja em erro, não troca uma pronta de menos de 3 dias
+      // por uma com menos da metade das ofertas
+      if (guardar && !todasOk) {
+        const atual = await env.DB.prepare(`SELECT total, criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
+        if (atual && atual.total > 2 * ofertas.length && Date.now() - atual.criado < PRONTA_SEM_SHOPEE_APOS_MS) guardar = false;
+      }
       if (guardar) {
         const gravar = async () => env.DB.prepare(`INSERT OR REPLACE INTO ${TABELA_PRONTAS} (chave, resposta, total, criado, versao) VALUES (?, ?, ?, ?, ?)`)
           .bind(chave.url, await compactar(await resposta.clone().text()), ofertas.length, Date.now(), VERSAO_CACHE).run();
