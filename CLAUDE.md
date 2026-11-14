@@ -545,6 +545,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   seguem o tipo). Gift card e Game Pass = Acessórios (decisão dele). Limites: console "Kit…/USADO -…" cai em Acessórios;
   "Console + Jogo" do Switch às vezes em Jogos. **Cópia velha do Cloudflare trocada pela pronta mais nova do banco**
   (`trocarPelaPronta` em buscar.js: sem isso, com a Shopee em erro, "xbox" seguia com a lista da madrugada).
+- **Conferências de 14/11 (06h15 do Giovanni) ✅**: robô da noite terminou; xbox abre com Series (ML), xbox series com 34 do ML,
+  iphone 16, bicicleta, lego e tenis olympikus (100 da loja) certos. **Shopee instável**: à noite respondeu parte das buscas
+  (xbox/bicicleta/lego com `ok`), em outras erro 10000 (reaproveitadas 80–98); às 06h15 busca nova dava "demorou demais".
+  Comparador (pares iguais): liquidificador 42, air fryer 27, sanduicheira 32, fogão 35, furadeira 13, ps5 3; nintendo switch,
+  xbox series e xbox series s 0 (pendente: ver por quê). Custo da IA da noite não conferido (aba Robô é só do Giovanni).
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
