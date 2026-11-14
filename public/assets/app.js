@@ -2757,18 +2757,9 @@ function desenharEscolhaRapida(lista) {
   ] : []));
 }
 
-// "Corrigimos “eletrolux” · Buscar como digitei" ou "Você quis dizer: electrolux?"
+// 14/11/2026 (Giovanni, print "Corrigimos “samsumg galaxy”": "pode remover isto, o próprio texto na barra de busca se
+// auto corrigiu"): a busca é corrigida sem aviso; a caixa de busca e o título "Resultados para …" já mostram a palavra certa
 function avisoCorrecao() {
-  if (navegandoCategoria()) return null;
-  if (estado.corrigidaDe) {
-    return el("p", { class: "resumo-categoria aviso-correcao" }, el("span", { "aria-hidden": "true" }, "✏️"), `Corrigimos “${estado.corrigidaDe}”`,
-      el("button", { type: "button", onclick: () => irPara(estado.corrigidaDe, { cat: estado.cat, exato: true, loja: lojaAtual() }) },
-        "Buscar como digitei"));
-  }
-  if (estado.sugestao) {
-    return el("p", { class: "resumo-categoria aviso-correcao" }, el("span", { "aria-hidden": "true" }, "💡"), "Você quis dizer",
-      el("button", { type: "button", onclick: () => irPara(estado.sugestao, { cat: estado.cat, loja: lojaAtual() }) }, `${estado.sugestao}?`));
-  }
   return null;
 }
 
