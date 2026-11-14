@@ -550,6 +550,12 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   (xbox/bicicleta/lego com `ok`), em outras erro 10000 (reaproveitadas 80–98); às 06h15 busca nova dava "demorou demais".
   Comparador (pares iguais): liquidificador 42, air fryer 27, sanduicheira 32, fogão 35, furadeira 13, ps5 3; nintendo switch,
   xbox series e xbox series s 0 (pendente: ver por quê). Custo da IA da noite não conferido (aba Robô é só do Giovanni).
+- **14/11: consoles revisados** (pedido do Giovanni). Comparador em "xbox series" (4 cartões) e "nintendo switch" (3) JÁ
+  funcionava: `/api/casados?q=` dá 0 nessas, mas o site pergunta pelos ids (`POST`) → conferir comparador sempre pelo
+  Playwright ou pelo POST, nunca pelo `?q=`. Vazio de verdade só onde uma loja só vende (xbox series s/x com a Shopee fora,
+  ps4). Feito: quadro "Tipo" em toda busca de console (`BUSCA_DE_VIDEOGAME`: playstation 4/5, ps4 slim, switch 2, wii…),
+  "ps4" = "playstation 4" (`SINONIMOS` [2-5] em relevancia.js; `variantesDeConsole` pesquisa também "console playstation N"),
+  VR2/Portal = Acessórios, "playstation 4" em `BUSCAS_EXTRAS`. Cópia de "ps4" e "xbox series x" guardada antes: muda em horas.
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
