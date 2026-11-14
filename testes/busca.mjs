@@ -544,7 +544,11 @@ const CATEGORIAS_ESPERADAS = [
   ["Pano de Prato Felpudo Bistrô Bege", "Mesa posta"], ["Trilho de Mesa/Caminho de Mesa Karsten Veríssimo Granizo", "Mesa posta"],
   // Kabum (21/10/2026): "Caixa de Som Gamer" ia para Games, "Monitor … Mini LED" para Iluminação LED; boné caía em Óculos
   ["Caixa de Som Gamer Rise Mode Aura Sound S6, RGB", "Caixas de som"], ["Caixa de Som Portátil JBL Wind 3, para Bicicleta", "Caixas de som"],
-  ["Monitor Gamer TCL Mini LED 25\", 300Hz", "Informática"], ["Fita LED 5m RGB", "Iluminação LED"], ["Projetor LED Full HD Husky", undefined],
+  ["Monitor Gamer TCL Mini LED 25\", 300Hz", "Informática"], ["Fita LED 5m RGB", "Iluminação LED"], ["Projetor LED Full HD Husky", "Informática"],
+  // 14/11/2026 (print do Giovanni: projetor "Smart TV" em Eletrodomésticos)
+  ["Projetor Android Smart TV CWEUG 3800ANSI A10Q Full HD 1080P", "Informática"], ["Projetor de Estrelas Galáxia Astronauta LED", undefined],
+  ["Kit 2 Controle Remoto Para Tv Samsung 4k Smart Teclas Netflix", undefined], ["Antena Digital Interna Smart TV HDTV 4K", undefined],
+  ["Aparador Bar com Bandeja Adega para 16 Garrafas", "Móveis"], ["Smart TV 55\" 4K LG 55UT8050", "Eletrodomésticos"],
   ["Top sustentação feminino top academia", "Moda fitness"], ["Top com bojo removível esportivo", "Moda fitness"],
   ["Boné Trucker Aba Curva", "Bonés e chapéus"], ["Chapéu Bucket Preto", "Bonés e chapéus"], ["Boneco Funko Pop! Pokemon - Squirtle", "Brinquedos"],
 ];
