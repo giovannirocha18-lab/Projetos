@@ -556,6 +556,10 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   ps4). Feito: quadro "Tipo" em toda busca de console (`BUSCA_DE_VIDEOGAME`: playstation 4/5, ps4 slim, switch 2, wii…),
   "ps4" = "playstation 4" (`SINONIMOS` [2-5] em relevancia.js; `variantesDeConsole` pesquisa também "console playstation N"),
   VR2/Portal = Acessórios, "playstation 4" em `BUSCAS_EXTRAS`. Cópia de "ps4" e "xbox series x" guardada antes: muda em horas.
+- **14/11, print "playstation 5" com consoles PS4 no meio**: "playstation 5" vira a palavra "ps5" e a regra dos parecidos só
+  valia com 2+ palavras → em busca de console com geração (ps2–ps5), com 10+ que batem, o console de outra geração vira
+  `parecido` (lib/relevancia.js; caso em testes/busca.mjs); no quadro Tipo o parecido não entra (só o de outra marca).
+  A cópia guardada de "playstation 5" é de antes: **conferir 15/11** sem PS4 entre os PS5.
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
