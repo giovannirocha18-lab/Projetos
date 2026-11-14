@@ -335,6 +335,18 @@ for (const [q, titulos, primeiro, naoBate] of [
   }
 }
 
+// 14/11/2026 (print do Giovanni): "playstation 5" mostrava consoles PlayStation 4 no meio dos PS5; com 10+ PS5 na lista,
+// o console de outra geração vira "parecido" (vai para "Ver também")
+{
+  const ps5 = Array.from({ length: 11 }, (_, i) => `Console PlayStation 5 Slim Edição Digital 825 GB cor ${i}`);
+  const ps4 = ["Console Playstation 4 Slim 1tb Standard Sony Cor Preto", "Console Playstation 4 500gb + Controle Dualshock 4"];
+  for (const q of ["playstation 5", "ps5"]) {
+    const saida = separarAcessorios([...ps5, ...ps4].map((titulo, i) => ({ id: String(i), titulo, preco: 3000 })), q);
+    for (const t of ps4) if (!saida.find((o) => o.titulo === t)?.parecido) { console.error(`✗ "${q}": "${t}" devia ser parecido`); falhas += 1; }
+    for (const t of ps5) if (saida.find((o) => o.titulo === t)?.acessorio) { console.error(`✗ "${q}": "${t}" não devia ser acessório`); falhas += 1; }
+  }
+}
+
 // 13/11/2026 (auditoria): usado/vitrine, outro tipo do produto e console antigo recuam (variante: fora da Escolha rápida e
 // depois dos produtos comuns); jogo, HD e headset com o console no meio do nome são acessório; a busca que pede a palavra não recua
 {

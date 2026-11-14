@@ -2168,7 +2168,8 @@ function passaNosFiltros(comMarca = true) {
   const semAcessorios = escondeAcessorios();
   const tipo = estado.tipoSo;
   return (o) => secaoVisivel(o)
-    && (!tipo || tipoDe(o) === tipo)
+    // parecido = console de outra geração (PS4 na busca "playstation 5"): não entra em nenhum tipo; de outra marca, entra
+    && (!tipo || (tipoDe(o) === tipo && (!o.parecido || o.outraMarca)))
     && !(comMarca && estado.marcasSo.size && !estado.marcasSo.has(marcaDe(o)?.n))
     && !(semAcessorios && o.acessorio)
     && !(min >= 0 && o.preco < min)
