@@ -2761,12 +2761,12 @@ function desenharEscolhaRapida(lista) {
 function avisoCorrecao() {
   if (navegandoCategoria()) return null;
   if (estado.corrigidaDe) {
-    return el("p", { class: "resumo-categoria" }, `Corrigimos “${estado.corrigidaDe}” · `,
+    return el("p", { class: "resumo-categoria aviso-correcao" }, el("span", { "aria-hidden": "true" }, "✏️"), `Corrigimos “${estado.corrigidaDe}”`,
       el("button", { type: "button", onclick: () => irPara(estado.corrigidaDe, { cat: estado.cat, exato: true, loja: lojaAtual() }) },
         "Buscar como digitei"));
   }
   if (estado.sugestao) {
-    return el("p", { class: "resumo-categoria" }, "Você quis dizer: ",
+    return el("p", { class: "resumo-categoria aviso-correcao" }, el("span", { "aria-hidden": "true" }, "💡"), "Você quis dizer",
       el("button", { type: "button", onclick: () => irPara(estado.sugestao, { cat: estado.cat, loja: lojaAtual() }) }, `${estado.sugestao}?`));
   }
   return null;

@@ -459,6 +459,18 @@ body.com-comparar .rodape { padding-bottom: 96px; }
   padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35);
 }
 .resumo-categoria button:hover { background: rgba(255, 255, 255, .3); }
+/* "Você quis dizer…" e "Corrigimos…" em destaque (14/11/2026, print do Giovanni: "quase não enxerguei este aviso") */
+.resumo .aviso-correcao {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; width: fit-content; max-width: 100%;
+  margin-top: 14px; padding: 10px 16px; border-radius: 14px;
+  background: #fff4c2; color: #3d2c00; font-size: 1.05rem; font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+}
+.resumo .aviso-correcao button {
+  background: var(--roxo); color: #fff; border: 0; padding: 7px 16px; border-radius: 999px;
+  font-size: 1.05rem; font-weight: 800; cursor: pointer;
+}
+.resumo .aviso-correcao button:hover { background: var(--roxo-forte, #5b21b6); }
 .resumo .aviso-sem-produto {
   margin-top: 12px; padding: 10px 14px; border-radius: 12px; font-weight: 600; opacity: 1;
   background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35);
