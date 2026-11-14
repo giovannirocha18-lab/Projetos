@@ -2230,7 +2230,7 @@ function zerarSecoes() {
 // Quadro "Tipo" na busca só do videogame (13/11/2026, ideia do Giovanni com o print de "xbox": vinha console, controle,
 // jogo e acessório misturados): Consoles, Controles, Jogos ou Acessórios, lido do nome do anúncio. Um toque mostra só
 // aquele tipo (e aí os acessórios, que ficam escondidos na busca, entram); "Todos" volta
-const BUSCA_DE_VIDEOGAME = /^(xbox|playstation|ps ?[2-5]|nintendo|nintendo switch|switch)( series( [sx])?| one( [sx])?| 360| slim| pro| 2| oled| lite)?$/;
+const BUSCA_DE_VIDEOGAME = /^(consoles? |video ?games? )?(xbox( series( [sx])?| one( [sx])?| 360)?|(playstation|ps) ?[1-5]?( slim| pro)?|nintendo( switch( 2| oled| lite)?| wii( u)?| 3ds| 2ds| ds)?|switch( 2| oled| lite)?|wii( u)?)$/;
 const buscaDeVideogame = () => Boolean(estado.q) && !estado.cat && BUSCA_DE_VIDEOGAME.test(normalizar(estado.q).replace(/\s+/g, " ").trim());
 const TIPOS = [["Consoles", "🎮"], ["Controles", "🕹️"], ["Jogos", "💿"], ["Acessórios", "🎧"]];
 const INICIO_DE_CONSOLE = /^(?:novo |nova )?(?:(?:consoles?|video ?games?|videogames?) )?(?:microsoft |sony |nintendo )?(?:consoles? )?(?:xbox(?: series?(?: [sx])?| one(?: [sx])?| 360)?|(?:playstation|ps) ?[1-5]?|nintendo switch|switch(?: 2| oled| lite)|nintendo (?:wii|3ds|2ds|ds))\b/;
@@ -2245,7 +2245,9 @@ function tipoDe(o) {
   const palavras = t.split(" ");
   const dizConsole = /^(?:novo |nova )?(consoles?|video ?games?|videogames?)\b/.test(t);
   let tipo;
-  if (!dizConsole && !PECA.test(t) && E_CONTROLE.test(palavras.slice(0, 3).join(" "))) tipo = "Controles";
+  // PlayStation VR2 e PlayStation Portal começam pelo nome do console e custam como um, mas são acessórios dele (14/11/2026)
+  if (/\b(vr ?2?|portal|oculos|headset)\b/.test(palavras.slice(0, 5).join(" "))) tipo = "Acessórios";
+  else if (!dizConsole && !PECA.test(t) && E_CONTROLE.test(palavras.slice(0, 3).join(" "))) tipo = "Controles";
   else if (PECA.test(t)) tipo = "Acessórios";
   else if (dizConsole && o.preco >= 500) tipo = "Consoles";
   else if (INICIO_DE_CONSOLE.test(t) && o.preco >= 600 && !PARA_O_CONSOLE.test(palavras.slice(0, 5).join(" "))
