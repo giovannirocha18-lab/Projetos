@@ -563,7 +563,8 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   produto que bate. No ar: "playstation 5" 0 PS4 ✅. Cópias guardadas de "playstation 5 slim"/"xbox series s": **conferir 15/11**.
 - **14/11: marca digitada errada é corrigida sozinha** (print "playsation 5"; Giovanni: "a correção automática é melhor e
   passa mais segurança"): buscar.js usa `corrigirBusca(...).sugestao` como a busca (sai o "Você quis dizer"; `sugestao`
-  sempre null) e o aviso "✏️ Corrigimos … · Buscar como digitei" ficou em quadro amarelo com botão roxo (`.aviso-correcao`).
+  sempre null). O aviso "Corrigimos … · Buscar como digitei" foi REMOVIDO a pedido dele no mesmo dia (`avisoCorrecao` devolve
+  null): a caixa de busca e o título já mostram a palavra corrigida.
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
