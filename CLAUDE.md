@@ -561,6 +561,9 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   `parecido` (lib/relevancia.js; caso em testes/busca.mjs); no quadro Tipo o parecido não entra (só o de outra marca).
   Também sem a regra das 10: PS de outra geração (`geracaoPedida`) e Xbox Series S x X (`seriePedida`) viram parecido com 1+
   produto que bate. No ar: "playstation 5" 0 PS4 ✅. Cópias guardadas de "playstation 5 slim"/"xbox series s": **conferir 15/11**.
+- **14/11: marca digitada errada é corrigida sozinha** (print "playsation 5"; Giovanni: "a correção automática é melhor e
+  passa mais segurança"): buscar.js usa `corrigirBusca(...).sugestao` como a busca (sai o "Você quis dizer"; `sugestao`
+  sempre null) e o aviso "✏️ Corrigimos … · Buscar como digitei" ficou em quadro amarelo com botão roxo (`.aviso-correcao`).
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
