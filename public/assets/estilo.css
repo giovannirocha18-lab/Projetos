@@ -1326,3 +1326,28 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
   .resumo-busca .resumo-lojas-nota { display: none !important; }
   .resumo-busca > h1 { font-size: 1.05rem; }
 }
+
+/* ===== Abertura do app (15/11/2026, pedido do Giovanni: animação com o nome do site ao abrir pelo celular) =====
+   Só no app instalado (ícone na tela inicial): a tela roxa do Android com o ícone continua aqui, o ícone "pula",
+   o nome aparece e tudo some sozinho. Sem JavaScript; a página carrega por baixo enquanto isso. */
+.abertura { display: none; }
+@media (display-mode: standalone) {
+  .abertura {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    position: fixed; inset: 0; z-index: 9999; background: #6d28d9; color: #fff; pointer-events: none;
+    animation: abertura-some .45s ease 1.25s forwards;
+  }
+  .abertura-icone { width: 150px; height: 150px; border-radius: 26%; box-shadow: 0 18px 40px rgba(26, 21, 48, .35);
+    animation: abertura-pula .7s cubic-bezier(.3, 1.5, .5, 1) both; }
+  .abertura-nome { margin: 18px 0 0; font-size: 1.9rem; font-weight: 500; letter-spacing: -.02em;
+    animation: abertura-sobe .45s ease .3s both; }
+  .abertura-nome strong { font-weight: 800; color: #fde047; }
+  .abertura-frase { margin: 0; font-size: .95rem; color: #e9ddff; animation: abertura-sobe .45s ease .5s both; }
+  @keyframes abertura-pula { 0% { transform: scale(.82); } 55% { transform: scale(1.06) translateY(-10px); } 100% { transform: none; } }
+  @keyframes abertura-sobe { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes abertura-some { to { opacity: 0; visibility: hidden; } }
+  @media (prefers-reduced-motion: reduce) {
+    .abertura-icone, .abertura-nome, .abertura-frase { animation: none; }
+    .abertura { animation: abertura-some .2s linear .9s forwards; }
+  }
+}
