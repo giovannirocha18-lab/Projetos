@@ -8,7 +8,7 @@
 import { appendFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { paraPainel } from "./painel.mjs";
-import { modeloBase, CALCADO_ROUPA } from "../lib/variacoes.js";
+import { modeloBase, CALCADO_ROUPA, soMudaACor } from "../lib/variacoes.js";
 import { normalizar } from "../lib/texto.js";
 
 const MINIMO_NO_GRUPO = 3; // 2 iguais podem ser coincidência; 3+ com só o fim diferente quase sempre é tamanho/cor
@@ -33,8 +33,9 @@ export function auditarVariacoes(linhas) {
     const distintos = [...new Set(titulos)];
     if (distintos.length < MINIMO_NO_GRUPO) continue;
     const loja = daLoja(chave.split("|")[0]);
-    const modelos = new Set(distintos.map(modeloBase));
-    if (modelos.size === 1) {
+    const modelos = [...new Set(distintos.map(modeloBase))];
+    // O site também junta as cores do mesmo produto (app.js, soMudaACor): grupo em que os modelos só mudam a cor está junto
+    if (modelos.length === 1 || modelos.every((m) => m === modelos[0] || soMudaACor(m, modelos[0]))) {
       loja.juntados += distintos.length;
       loja.gruposJuntados++;
     } else {
