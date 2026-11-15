@@ -8,6 +8,7 @@ import { onRequestGet as prepararBuscas, listaDasProntas } from "./preparar-busc
 import { onRequestGet as coletarPrecos } from "./coletar-precos.js";
 import { onRequestGet as conferirLojas } from "./conferir-lojas.js";
 import { onRequestGet as buscar, VERSAO_CACHE } from "./buscar.js";
+import { proximaPouca, marcarRevista, diagnosticar, poucasSemSolucao } from "../../lib/poucas.js";
 import { passoDeCasar, BUSCAS_EXTRAS, chaveDaBusca, buscasDaCategoria, CATEGORIA_DA_VEZ } from "../../lib/casar.js";
 import { TRILHAS, noiteAtual, estadoInicial, passo, gravarNoPainel, criarTabela, rodadaManual } from "../../lib/roboNoite.js";
 
@@ -22,7 +23,10 @@ async function abrirCategoria({ request, env, waitUntil }) {
   // às 12h UTC). Agora confere o banco (medir=1 só lê a pronta): sem pronta, ou com mais de 20 h, refaz nas lojas e guarda
   const noBanco = await buscar({ request: new Request(new URL(`${endereco}&medir=1`, request.url)), env, waitUntil }).catch(() => null);
   const criado = noBanco?.status === 200 ? Number(noBanco.headers.get("X-Criado")) || 0 : 0;
-  const pronta = !noBanco || noBanco.status !== 200 ? "faltava" : criado && Date.now() - criado > PRONTA_VELHA_MS ? "velha" : "ok";
+  const total = noBanco?.status === 200 ? Number(noBanco.headers.get("X-Total-Ofertas")) || 0 : 0;
+  // …e categoria com menos de 100 ofertas também é refeita (15/11: Games tinha 37; lib/poucas.js)
+  const pronta = !noBanco || noBanco.status !== 200 ? "faltava" : criado && Date.now() - criado > PRONTA_VELHA_MS ? "velha"
+    : total && total < CATEGORIA_POUCAS ? "poucas" : "ok";
   let refeitaMs = 0;
   if (pronta !== "ok") {
     const antes = Date.now();
@@ -36,6 +40,24 @@ async function abrirCategoria({ request, env, waitUntil }) {
     ...(refeitaMs ? { refeitaMs } : {}), ...(criado ? { idadeH: Math.round((Date.now() - criado) / 36e5) } : {}) });
 }
 const PRONTA_VELHA_MS = 20 * 60 * 60 * 1000;
+const CATEGORIA_POUCAS = 100;
+
+// Busca com poucos resultados (lib/poucas.js): refaz a próxima da lista como o robô das prontas (mais tempo por loja e
+// guarda como pronta) e anota o diagnóstico. Resposta: termo, antes, depois e o diagnóstico (fim = lista vazia)
+async function reverPoucas({ request, env, waitUntil }) {
+  const pouca = await proximaPouca(env);
+  if (!pouca) return Response.json({ fim: true, semSolucao: (await poucasSemSolucao(env, 10)).map((p) => `${p.termo} (${p.depois})`) });
+  const url = new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(pouca.termo)}&atalho=1`, request.url);
+  let dados = null;
+  try {
+    const resposta = await buscar({ request: new Request(url), env: { ...env, __PREPARAR: true }, waitUntil });
+    dados = resposta.ok ? await resposta.json() : null;
+  } catch { /* conta como 0 */ }
+  const depois = dados?.ofertas?.length || 0;
+  const diagnostico = dados ? diagnosticar(dados) : "a busca deu erro";
+  await marcarRevista(env, pouca.termo, depois, diagnostico);
+  return Response.json({ termo: pouca.termo, antes: pouca.total, depois, diagnostico });
+}
 
 // Robô de casar produtos (lib/casar.js): uma busca pronta por chamada. As ofertas vêm da própria busca do site (guardada),
 // sem ir às lojas à toa
@@ -65,13 +87,16 @@ async function casar({ request, env, waitUntil }) {
   return Response.json({ ...r, parte, partes: lista.length, fim: !r.resta && parte + 1 >= lista.length, categoria });
 }
 
-const ROTAS = { "abrir-categoria": abrirCategoria, casar, "preparar-ml": prepararML, "preparar-buscas": prepararBuscas, "coletar-precos": coletarPrecos, "conferir-lojas": conferirLojas };
+const ROTAS = { "abrir-categoria": abrirCategoria, casar, "rever-poucas": reverPoucas, "preparar-ml": prepararML, "preparar-buscas": prepararBuscas, "coletar-precos": coletarPrecos, "conferir-lojas": conferirLojas };
 // Trava de cada passo: se o pedido cair no meio (limite do Cloudflare), a trilha fica parada até a trava vencer
 const TRAVA_MS = { ml: 150e3, lojas: 6 * 60e3 }; // um passo da Lomadee pode levar até 5 min; os do ML, até ~90 s
 const semCache = { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } };
 
 // Como foram as categorias abertas (só nomes de categoria e tempos: nada reservado), para conferir uma rodada de fora do painel
 const categoriasDe = (e) => ({
+  // Buscas com poucos resultados (lib/poucas.js): para a conferência da madrugada ler de fora do painel
+  ...(e?.c?.poucasRevistas || e?.c?.poucasSemSolucao ? { poucas: { revistas: e.c.poucasRevistas || 0, resolvidas: e.c.poucasResolvidas || 0,
+    melhoraram: e.c.poucasMelhoraram || [], continuam: e.c.poucasContinuam || [], semSolucao: e.c.poucasSemSolucao || [] } } : {}),
   ...(e?.c?.catAbertas ? { categorias: { abertas: e.c.catAbertas, total: e.c.catTotal, lentas: e.c.catLentas || [] } } : {}),
   // Robô de casar produtos: só os totais
   ...(e?.c?.casarPartes !== undefined || e?.c?.casarErro ? { casar: { busca: e.parte || 0, buscas: e.c.casarPartes || 0, comGrupos: e.c.casarBuscas || 0,

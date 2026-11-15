@@ -32,6 +32,11 @@ async function chamar(rota, p) {
     if (p.cat === "Pets") return { ms: 500, ofertas: 0, status: 200 };
     return { ms: 500, ofertas: 200, status: 200 };
   }
+  if (rota === "rever-poucas") {
+    cont.poucas = (cont.poucas || 0) + 1;
+    if (cont.poucas > 2) return { fim: true, semSolucao: [] };
+    return { termo: `termo ${cont.poucas}`, antes: 5, depois: 40, diagnostico: "ok" };
+  }
   if (rota === "casar") {
     cont.casar = (cont.casar || 0) + 1;
     if (p.parte >= 3) return { partes: 3, fim: true };
@@ -63,7 +68,7 @@ ok(estados.lojas.tempos.prontas.de >= estados.ml.tempos.maisvendidos.de, "as pro
 ok(estados.ml.c.fila === 4, "fila do ML anotada");
 
 const partes = partesDoPainel(estados.ml, estados.lojas);
-ok(partes.map((p) => p.chave).join() === "shopee,ml,mv,prontas,lomadee,casar,categorias", `partes: ${partes.map((p) => p.chave)}`);
+ok(partes.map((p) => p.chave).join() === "shopee,ml,mv,prontas,lomadee,poucas,casar,categorias", `partes: ${partes.map((p) => p.chave)}`);
 ok(partes.find((p) => p.chave === "prontas").linhas[0] === "19 de 20 buscas guardadas", "linha das prontas no formato do painel");
 ok(partes.filter((p) => !["categorias", "casar"].includes(p.chave)).every((p) => p.situacao === "ok"), "partes sem aviso");
 ok(partes.every((p) => ["ok", "aviso"].includes(p.situacao) && Array.isArray(p.linhas) && Array.isArray(p.avisos)), "situação das partes");
@@ -115,7 +120,7 @@ ok(lento.fase === "fim" && /limite de tempo/.test(lento.c.casarParou), "casar ma
 
 // Junta com o que o GitHub gravou (awin, ia, auditoria): na ordem do painel, sem repetir
 const juntas = juntarNaExecucao([{ chave: "awin" }, { chave: "ia" }, { chave: "prontas", velha: true }], partes);
-ok(juntas.map((p) => p.chave).join() === "awin,shopee,ml,mv,prontas,lomadee,casar,categorias,ia" && !juntas.some((p) => p.velha), `juntas: ${juntas.map((p) => p.chave)}`);
+ok(juntas.map((p) => p.chave).join() === "awin,shopee,ml,mv,prontas,lomadee,poucas,casar,categorias,ia" && !juntas.some((p) => p.velha), `juntas: ${juntas.map((p) => p.chave)}`);
 
 // Janela da madrugada
 ok(noiteAtual(Date.parse("2026-11-10T04:44:00Z")) === null, "antes da janela");

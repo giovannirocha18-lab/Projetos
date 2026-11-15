@@ -19,6 +19,7 @@ import { aliexpress } from "../../lib/fontes/aliexpress.js";
 import { lomadee } from "../../lib/fontes/lomadee.js";
 import { mercadolivre } from "../../lib/fontes/mercadolivre.js";
 import { registrarBusca, tendenciaAceitavel, semProdutoAVenda, anotarSemProduto } from "../../lib/buscas.js";
+import { POUCAS_MIN, anotarPoucas, tirarDasPoucas } from "../../lib/poucas.js";
 import { naoContar } from "../../lib/naoContar.js";
 import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
 import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js";
@@ -626,6 +627,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
     && Object.values(lojas).filter((l) => !l.ok).length <= 1) {
     waitUntil(anotarSemProduto(env, q).catch(() => {}));
   }
+  // Poucas ofertas numa busca comum (15/11/2026, Giovanni: "busca com pouco resultado tem que ser investigada e corrigida
+  // automaticamente"): anota para o robô da noite refazer e diagnosticar (lib/poucas.js). O robô (preparar) tira da lista
+  // quando volta a vir bastante. Termos fora do filtro das tendências (impróprios, inventados) não entram
+  if (q && pagina === 1 && desde === 1 && !soLoja && !rapido && !categoria && !atualizar && env.DB && reais.length && tendenciaAceitavel(q)) {
+    const tarefa = ofertas.length < POUCAS_MIN ? anotarPoucas(env, q, ofertas, lojas) : preparar ? tirarDasPoucas(env, q) : null;
+    if (tarefa) { if (preparar) await tarefa.catch(() => {}); else waitUntil(tarefa.catch(() => {})); }
+  }
   const resposta = responder({
     q,
     sugestao,
@@ -683,10 +691,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
       await criarTabelaProntas(env.DB);
       let guardar = prontaOk;
       if (!guardar && ofertas.length >= 24) {
-        const atual = await env.DB.prepare(`SELECT criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
+        const atual = await env.DB.prepare(`SELECT criado, total FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
         // Categoria: são várias buscas na Shopee de uma vez e basta uma ser recusada para a Shopee contar como "falhou"
         // (era por isso que as categorias quase nunca eram guardadas); as outras vieram, então renova a cada noite
-        guardar = !atual || Date.now() - atual.criado > (categoria ? PRONTA_DE_CATEGORIA_APOS_MS : PRONTA_SEM_SHOPEE_APOS_MS);
+        guardar = !atual || Date.now() - atual.criado > (categoria ? PRONTA_DE_CATEGORIA_APOS_MS : PRONTA_SEM_SHOPEE_APOS_MS)
+          // 15/11/2026: veio o dobro (ou mais) da guardada: troca mesmo sem a Shopee (Games tinha 37; lib/poucas.js)
+          || ofertas.length >= 2 * (Number(atual.total) || 0);
       }
       // 14/11/2026: na madrugada a AliExpress e a Lomadee demoraram mais de 10 s na hora de "air fryer" e a pronta nova
       // (323 ofertas, AliExpress 44) tomou o lugar da boa (763). Com loja em erro, não troca uma pronta de menos de 3 dias
