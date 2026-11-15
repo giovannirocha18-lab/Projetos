@@ -772,6 +772,10 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
 .historico-numeros strong { font-size: .9rem; white-space: nowrap; }
 /* Com o "De costume": 4 quadros (2 x 2 no celular), o de costume em destaque */
 .historico-numeros.com-costume { grid-template-columns: repeat(4, 1fr); }
+/* "Hoje" na cor do ponto "hoje" do gráfico (15/11/2026, pedido do Giovanni: destacar para ler melhor o histórico) */
+.historico-numeros .numero-hoje { background: var(--roxo); }
+.historico-numeros .numero-hoje small { color: #e9ddff; }
+.historico-numeros .numero-hoje strong { color: #fff; }
 .historico-numeros .numero-costume { background: var(--roxo-claro); }
 .historico-numeros .numero-costume strong { color: var(--roxo-forte); }
 @media (max-width: 480px) { .historico-numeros.com-costume { grid-template-columns: repeat(2, 1fr); } }

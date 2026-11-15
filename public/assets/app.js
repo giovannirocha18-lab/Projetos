@@ -1927,7 +1927,7 @@ async function abrirHistorico(o) {
     // "De costume" num quadro próprio, ao lado de Hoje/Menor/Maior (11/11/2026, print do Giovanni: "6% abaixo do preço de
     // costume" ao lado de "Maior R$ 49,90" parecia conta errada; o maior tinha sido um pico de 1 dia)
     el("div", { class: `historico-numeros${costume ? " com-costume" : ""}` },
-      el("div", {}, el("small", {}, "Hoje"), el("strong", {}, `R$ ${brl(o.preco)}`)),
+      el("div", { class: "numero-hoje" }, el("small", {}, "Hoje"), el("strong", {}, `R$ ${brl(o.preco)}`)),
       costume && el("div", { class: "numero-costume" }, el("small", {}, "De costume"), el("strong", {}, `R$ ${brl(costume)}`)),
       el("div", {}, el("small", {}, "Menor"), el("strong", {}, `R$ ${brl(Math.min(...precos))}`)),
       el("div", {}, el("small", {}, "Maior"), el("strong", {}, `R$ ${brl(maior)}`))),
