@@ -1929,7 +1929,7 @@ async function abrirHistorico(o) {
     el("div", { class: `historico-numeros${costume ? " com-costume" : ""}` },
       el("div", { class: "numero-hoje" }, el("small", {}, "Hoje"), el("strong", {}, `R$ ${brl(o.preco)}`)),
       costume && el("div", { class: "numero-costume" }, el("small", {}, "De costume"), el("strong", {}, `R$ ${brl(costume)}`)),
-      el("div", {}, el("small", {}, "Menor"), el("strong", {}, `R$ ${brl(Math.min(...precos))}`)),
+      el("div", { class: "numero-menor" }, el("small", {}, "Menor"), el("strong", {}, `R$ ${brl(Math.min(...precos))}`)),
       el("div", {}, el("small", {}, "Maior"), el("strong", {}, `R$ ${brl(maior)}`))),
     graficoHistorico(pontos, o.preco, costume),
     costume ? el("p", { class: "historico-nota" }, "“De costume” é o preço que valeu por mais dias nos últimos 30 dias. ",

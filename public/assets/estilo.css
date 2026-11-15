@@ -776,6 +776,9 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
 .historico-numeros .numero-hoje { background: var(--roxo); }
 .historico-numeros .numero-hoje small { color: #e9ddff; }
 .historico-numeros .numero-hoje strong { color: #fff; }
+/* "Menor" em verde, como o ponto "menor" do gráfico */
+.historico-numeros .numero-menor { background: var(--verde-fundo); }
+.historico-numeros .numero-menor small, .historico-numeros .numero-menor strong { color: var(--verde); }
 .historico-numeros .numero-costume { background: var(--roxo-claro); }
 .historico-numeros .numero-costume strong { color: var(--roxo-forte); }
 @media (max-width: 480px) { .historico-numeros.com-costume { grid-template-columns: repeat(2, 1fr); } }
