@@ -351,7 +351,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
         if (!medir) refazerPorTras(criado);
         // Pronta da última noite (o robô já a gravou sem fotos quebradas nem reprovados): sai na hora, como veio do banco,
         // e a limpeza fica para trás (é o caminho do 1º visitante do dia em cada cidade)
-        if (criado && cache && !medir) {
+        // 15/11/2026 (Giovanni: "dá erro nas primeiras buscas só"): a pronta com mais de 30 h também sai na hora; antes
+        // passava pela limpeza no banco antes de responder (1–3 s a mais, do Brasil, na 1ª visita de cada cidade)
+        if (cache && !medir) {
           waitUntil(limpar(resposta.clone()).then((l) => guardarLimpa(l, criado)).catch(() => {}));
           return contar(comTempos(resposta));
         }
@@ -691,7 +693,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
       // por uma com menos da metade das ofertas
       if (guardar && !todasOk) {
         const atual = await env.DB.prepare(`SELECT total, criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
-        if (atual && atual.total > 2 * ofertas.length && Date.now() - atual.criado < PRONTA_SEM_SHOPEE_APOS_MS) guardar = false;
+        // 15/11: só segura por 30 h (antes 3 dias): com a Shopee instável, "smart tv" e outras ficavam com a lista de
+        // ontem, vencida, e a 1ª visita de cada cidade demorava
+        if (atual && atual.total > 2 * ofertas.length && Date.now() - atual.criado < VALIDADE_PRONTA_MS) guardar = false;
       }
       if (guardar) {
         const gravar = async () => env.DB.prepare(`INSERT OR REPLACE INTO ${TABELA_PRONTAS} (chave, resposta, total, criado, versao) VALUES (?, ?, ?, ?, ?)`)
