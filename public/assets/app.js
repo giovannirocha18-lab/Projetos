@@ -2040,13 +2040,22 @@ const enderecoBusca = (q, cat, extra = "") => {
   return `/api/buscar?v=${VERSAO_BUSCA}&q=${encodeURIComponent(q)}${loja ? `&loja=${encodeURIComponent(loja)}`
     : q && cat ? `&cat=${encodeURIComponent(cat)}` : ""}${extra}`;
 };
+const medidasAdiantadas = new WeakMap();
 function adiantarBusca(q, cat) {
   q = (q || "").trim();
   const chave = chaveAdiantada(q, cat);
   if (q.length < 3 || adiantadas.has(chave) || totalAdiantadas >= MAX_ADIANTADAS) return;
   totalAdiantadas++;
+  const inicio = performance.now();
   const pedido = fetch(enderecoBusca(q, cat, "&atalho=1"), { priority: "low" })
-    .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    .then(async (r) => {
+      if (!r.ok) return null;
+      const chegou = performance.now();
+      const dados = await r.json();
+      // Para o medidor de tempos (/?tempos=1): sem isso, busca adiantada enquanto a pessoa digitava não mostrava o quadro
+      if (dados) medidasAdiantadas.set(dados, { inicio, chegou, lido: performance.now(), servidor: r.headers.get("Server-Timing") || "", url: r.url });
+      return dados;
+    }).catch(() => null);
   adiantadas.set(chave, pedido);
   pedido.then((dados) => { if (!dados) adiantadas.delete(chave); });
 }
@@ -2060,8 +2069,13 @@ async function consultarApi(q, mais = "") {
     const chave = chaveAdiantada(q, estado.cat);
     const adiantada = adiantadas.get(chave);
     adiantadas.delete(chave);
+    const pediu = performance.now();
     const dados = adiantada && (await adiantada);
     if (dados) {
+      const m = medidasAdiantadas.get(dados);
+      // espera = só o que faltou depois do Enter (o resto já veio enquanto a pessoa digitava)
+      if (m) estado.tempos = { espera: Math.max(0, m.chegou - pediu), baixar: Math.max(0, m.lido - Math.max(m.chegou, pediu)),
+        fim: performance.now(), servidor: m.servidor, url: m.url, adiantada: m.chegou - m.inicio };
       if (!atalho) fetch(enderecoBusca(q, estado.cat, "&contar=1")).catch(() => {});
       return dados;
     }
@@ -2102,7 +2116,8 @@ function mostrarTempos() {
     }
     caixa.textContent = `${estado.cat || estado.q}: total ${s(t.espera + t.baixar + montar + pintar)}\n` +
       `esperar ${s(t.espera)} | baixar ${s(t.baixar)} (${kb}) | montar ${s(montar)} | pintar ${s(pintar)}\n` +
-      `servidor: ${t.servidor.replace(/;dur=/g, " ").replace(/cidade;desc=/, "") || "-"}`;
+      `servidor: ${t.servidor.replace(/;dur=/g, " ").replace(/cidade;desc=/, "") || "-"}` +
+      (t.adiantada !== undefined ? `\nadiantada enquanto digitava (servidor levou ${s(t.adiantada)})` : "");
   }));
 }
 
