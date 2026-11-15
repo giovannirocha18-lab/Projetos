@@ -15,12 +15,27 @@ import { TRILHAS, noiteAtual, estadoInicial, passo, gravarNoPainel, criarTabela,
 // não existir, a busca vai às lojas e guarda a pronta (buscar.js). Devolve o tempo e quantas ofertas vieram
 async function abrirCategoria({ request, env, waitUntil }) {
   const de = new URL(request.url).searchParams;
-  const url = new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(de.get("q") || "")}&cat=${encodeURIComponent(de.get("cat") || "")}&atalho=1`, request.url);
+  const endereco = `/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(de.get("q") || "")}&cat=${encodeURIComponent(de.get("cat") || "")}&atalho=1`;
+  const url = new URL(endereco, request.url);
+  // 15/11/2026 (Giovanni: categoria lenta no celular com o robô dizendo "0 lentas"): o tempo medido aqui vinha da cópia do
+  // Cloudflare deste ponto, que existia mesmo sem lista pronta no banco (Moda feminina e Informática foram montadas na hora
+  // às 12h UTC). Agora confere o banco (medir=1 só lê a pronta): sem pronta, ou com mais de 20 h, refaz nas lojas e guarda
+  const noBanco = await buscar({ request: new Request(new URL(`${endereco}&medir=1`, request.url)), env, waitUntil }).catch(() => null);
+  const criado = noBanco?.status === 200 ? Number(noBanco.headers.get("X-Criado")) || 0 : 0;
+  const pronta = !noBanco || noBanco.status !== 200 ? "faltava" : criado && Date.now() - criado > PRONTA_VELHA_MS ? "velha" : "ok";
+  let refeitaMs = 0;
+  if (pronta !== "ok") {
+    const antes = Date.now();
+    await buscar({ request: new Request(url), env: { ...env, __ATUALIZAR: true }, waitUntil }).catch(() => null);
+    refeitaMs = Date.now() - antes;
+  }
   const inicio = Date.now();
   const resposta = await buscar({ request: new Request(url), env, waitUntil });
   const dados = resposta.ok ? await resposta.json() : null;
-  return Response.json({ ms: Date.now() - inicio, ofertas: dados?.ofertas?.length || 0, status: resposta.status });
+  return Response.json({ ms: Date.now() - inicio, ofertas: dados?.ofertas?.length || 0, status: resposta.status, pronta,
+    ...(refeitaMs ? { refeitaMs } : {}), ...(criado ? { idadeH: Math.round((Date.now() - criado) / 36e5) } : {}) });
 }
+const PRONTA_VELHA_MS = 20 * 60 * 60 * 1000;
 
 // Robô de casar produtos (lib/casar.js): uma busca pronta por chamada. As ofertas vêm da própria busca do site (guardada),
 // sem ir às lojas à toa

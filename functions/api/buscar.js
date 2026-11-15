@@ -343,6 +343,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         etapa("abrir");
         resposta.headers.set("X-Total-Ofertas", String(pronta.total));
         resposta.headers.set("X-Pronta", "1");
+        resposta.headers.set("X-Criado", String(pronta.criado)); // a abertura das categorias pelo robô confere a idade
         if (soContar) { contar(resposta); return new Response(null, { status: 204 }); }
         // Mais velha que 30 h (o robô não rodou): vai para o cache como vencida, então já é refeita por trás
         const criado = Date.now() - pronta.criado < VALIDADE_PRONTA_MS ? pronta.criado : 0;
