@@ -659,8 +659,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Só uma loja menor falhou (a Lomadee trava bastante) e a Shopee respondeu: guarda 1 hora, marcada como velha (o
   // próximo visitante recebe na hora e ela é refeita por trás). Antes não guardava e cada visitante ia de novo às lojas
   else if (cache && lojas.shopee?.ok && ofertas.length) await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60)]);
-  // Não guardou a resposta nova: a limpa antiga sai junto, senão ficaria sem origem
-  else if (cache) waitUntil(cache.delete(chaveLimpa).catch(() => {}));
+  // Não guardou a resposta nova: a limpa antiga só sai se a cópia de origem também não existe mais.
+  // 15/11/2026 (Giovanni: categoria demorando a abrir no celular): com a Shopee em erro TODA atualização por trás caía aqui e
+  // apagava a cópia limpa, mesmo com a de origem ainda guardada; a visita seguinte refazia a limpeza no banco antes de
+  // responder (1–3 s medidos em Bebês, Decoração, Limpeza…) e disparava outra atualização, que apagava de novo
+  else if (cache) waitUntil(cache.match(chave).then((origem) => (origem ? null : cache.delete(chaveLimpa))).catch(() => {}));
   const chaveReserva = new Request(`${chave.url}&reserva=1`);
   if (cache && todasOk && ofertas.length) {
     const reserva = new Response(resposta.clone().body, resposta);
