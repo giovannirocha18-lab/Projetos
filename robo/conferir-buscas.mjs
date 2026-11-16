@@ -210,7 +210,8 @@ async function perguntar(q, ofertas) {
   for (let i = 0; i < ofertas.length; i += POR_PEDIDO) partes.push(ofertas.slice(i, i + POR_PEDIDO));
   const lidas = [];
   for (let i = 0; i < partes.length; i += PEDIDOS_JUNTOS) {
-    const feitas = await Promise.all(partes.slice(i, i + PEDIDOS_JUNTOS).map((parte) => perguntarParte(q, parte).catch((erro) => {
+    // A resposta às vezes vem com o JSON quebrado (4 em ~65 perguntas nos testes de 16/11/2026): pergunta de novo uma vez
+    const feitas = await Promise.all(partes.slice(i, i + PEDIDOS_JUNTOS).map((parte) => perguntarParte(q, parte).catch(() => perguntarParte(q, parte)).catch((erro) => {
       falhas++;
       console.log(`Erro na IA (${q}): ${String(erro.message || erro).slice(0, 200)}`);
       return [];
