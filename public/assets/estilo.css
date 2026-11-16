@@ -1361,7 +1361,11 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
   color: #fff; font-size: .78rem; font-weight: 600; line-height: 1.2; pointer-events: none; }
 .foto-ampliada { position: fixed; inset: 0; z-index: 50; background: #0c081a; display: flex; flex-direction: column; }
 .foto-ampliada-area { flex: 1; min-height: 0; overflow: auto; display: grid; place-items: center; padding: 12px; overscroll-behavior: contain; }
+<<<<<<< HEAD
 .foto-ampliada-area img { max-width: 100%; max-height: 100%; object-fit: contain; background: #fff; border-radius: 10px; cursor: zoom-in; }
+=======
+.foto-ampliada-area img { max-width: 100%; max-height: calc(100vh - 84px); max-height: calc(100dvh - 84px); object-fit: contain; background: #fff; border-radius: 10px; cursor: zoom-in; }
+>>>>>>> claude/inspiring-hamilton-wafagr
 .foto-ampliada.grande .foto-ampliada-area { display: block; padding: 0; }
 .foto-ampliada.grande .foto-ampliada-area img { max-width: none; max-height: none; width: max(250vw, 1600px); border-radius: 0; cursor: zoom-out; }
 @media (min-width: 861px) { .foto-ampliada.grande .foto-ampliada-area img { width: max(180vw, 2200px); } }

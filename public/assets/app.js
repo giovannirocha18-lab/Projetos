@@ -1829,16 +1829,40 @@ const temDetalhes = (o) => Boolean(o.titulo);
 // Foto da janela "Ver detalhes" em tela cheia (pedido do Giovanni, 16/11/2026: ler as letras pequenas da foto, como o
 // "Conteúdo da caixa"). 1º toque abre a foto inteira; toque na foto amplia no ponto tocado (arrasta/rola para andar);
 // outro toque volta; ✕, Esc ou toque fora fecham. Fica dentro do <dialog> para aparecer por cima dele
+<<<<<<< HEAD
 function ampliarFoto(src, titulo) {
   const janela = $("#janela-detalhes");
   if (!src || !janela || janela.querySelector(".foto-ampliada")) return;
   const img = el("img", { src, alt: titulo || "" });
   const fechar = () => { caixa.remove(); janela.removeEventListener("cancel", aoCancelar); };
+=======
+// Setas ← → do teclado passam para as outras fotos sem fechar, mantendo a ampliação (pedido dele no mesmo dia)
+function ampliarFoto(src, titulo, fotos = [], aoTrocar = null) {
+  const janela = $("#janela-detalhes");
+  if (!src || !janela || janela.querySelector(".foto-ampliada")) return;
+  const img = el("img", { src, alt: titulo || "" });
+  let atual = Math.max(0, fotos.indexOf(src));
+  const dicaDe = () => `${fotos.length > 1 ? `Foto ${atual + 1} de ${fotos.length} · setas ← → trocam a foto · ` : ""}Toque na foto para ampliar · toque de novo para voltar`;
+  const aoTeclar = (e) => {
+    if (fotos.length < 2 || (e.key !== "ArrowRight" && e.key !== "ArrowLeft")) return;
+    e.preventDefault();
+    atual = (atual + (e.key === "ArrowRight" ? 1 : -1) + fotos.length) % fotos.length;
+    // Mesma ampliação e mesmo ponto da foto anterior (as fotos de um anúncio costumam ter o mesmo formato)
+    img.src = fotos[atual];
+    caixa.querySelector(".foto-ampliada-dica").textContent = dicaDe();
+    if (aoTrocar) aoTrocar(atual);
+  };
+  const fechar = () => { caixa.remove(); janela.removeEventListener("cancel", aoCancelar); janela.removeEventListener("keydown", aoTeclar); };
+>>>>>>> claude/inspiring-hamilton-wafagr
   const aoCancelar = (e) => { e.preventDefault(); fechar(); }; // Esc fecha só a foto, não a janela
   const caixa = el("div", { class: "foto-ampliada", onclick: (e) => { if (e.target !== img) fechar(); } },
     el("button", { type: "button", class: "foto-ampliada-fechar", "aria-label": "Fechar a foto", onclick: fechar }, "✕"),
     el("div", { class: "foto-ampliada-area" }, img),
+<<<<<<< HEAD
     el("p", { class: "foto-ampliada-dica" }, "Toque na foto para ampliar · toque de novo para voltar"));
+=======
+    el("p", { class: "foto-ampliada-dica" }, dicaDe()));
+>>>>>>> claude/inspiring-hamilton-wafagr
   const area = caixa.querySelector(".foto-ampliada-area");
   img.addEventListener("click", (e) => {
     const r = img.getBoundingClientRect();
@@ -1858,6 +1882,10 @@ function ampliarFoto(src, titulo) {
     area.scrollTop = ((e.clientY - r.top) / r.height) * (area.scrollHeight - area.clientHeight);
   });
   janela.addEventListener("cancel", aoCancelar);
+<<<<<<< HEAD
+=======
+  janela.addEventListener("keydown", aoTeclar);
+>>>>>>> claude/inspiring-hamilton-wafagr
   janela.append(caixa);
 }
 
@@ -1870,10 +1898,20 @@ function abrirDetalhes(o, { doLink = false } = {}) {
     ? el("img", { src: fotos[0], alt: o.titulo, onload: (e) => { e.target.style.visibility = ""; },
       onerror: (e) => { e.target.style.visibility = "hidden"; } }) // foto quebrada: some, sem travar a galeria
     : el("span", { class: "foto-emoji" }, o.emoji || "🛍️");
+  // Troca a foto grande e marca a miniatura dela (também chamado pelas setas do teclado com a foto ampliada)
+  const escolherFoto = (i) => {
+    fotoGrande.src = fotos[i];
+    galeria.querySelectorAll(".detalhes-miniaturas button").forEach((b, n) => b.classList.toggle("ativa", n === i));
+  };
   const galeria = el("div", { class: "detalhes-galeria", style: `--fundo-cat:${FUNDO_CATEGORIA[o.categoria] || "linear-gradient(135deg,#ede9fe,#fce7f3)"}` },
     el("div", { class: `detalhes-foto${fotos.length ? " amplia" : ""}`, ...(fotos.length && { role: "button", tabindex: "0", title: "Ampliar a foto",
+<<<<<<< HEAD
       "aria-label": "Ampliar a foto", onclick: () => ampliarFoto(fotoGrande.src, o.titulo),
       onkeydown: (e) => { if (e.key === "Enter") ampliarFoto(fotoGrande.src, o.titulo); } }) }, fotoGrande,
+=======
+      "aria-label": "Ampliar a foto", onclick: () => ampliarFoto(fotoGrande.src, o.titulo, fotos, escolherFoto),
+      onkeydown: (e) => { if (e.key === "Enter") ampliarFoto(fotoGrande.src, o.titulo, fotos, escolherFoto); } }) }, fotoGrande,
+>>>>>>> claude/inspiring-hamilton-wafagr
     fotos.length ? el("span", { class: "detalhes-lupa", "aria-hidden": "true" }, "🔍 Toque para ampliar") : ""),
     fotos.length > 1 && el("div", { class: "detalhes-miniaturas" }, ...fotos.map((f, i) =>
       el("button", { type: "button", class: i === 0 ? "ativa" : null, "aria-label": `Foto ${i + 1}`, onclick: (e) => {
