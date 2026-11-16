@@ -47,7 +47,12 @@ const NAVEGADOR_SEGUNDOS = 10 * 60;
 // Busca sem nenhuma oferta de verdade (03/11/2026, print "lisinha": 0 ofertas para o Giovanni, 143 para outra pessoa):
 // a Shopee às vezes responde vazio sem dar erro, e esse "nada" ficava 1 dia no cache do Cloudflare daquela cidade e
 // 10 min no navegador. Agora fica só 5 min no Cloudflare e nada no navegador
-const VAZIA_SEGUNDOS = 5 * 60;
+// 16/11/2026 (Giovanni: "veja o porquê das buscas vazias"): a busca sem resultado esperava as lojas de novo a cada visita
+// (3–6 s; com loja em erro nem era guardada). Agora fica 1 h no Cloudflare, sai na hora e é REFEITA POR TRÁS depois de
+// 5 min (1 min se alguma loja estava em erro); se a refeita achar ofertas, troca a guardada. O navegador segue sem guardar
+const VAZIA_SEGUNDOS = 60 * 60;
+const VAZIA_FRESCA_MS = 5 * 60 * 1000;
+const VAZIA_COM_ERRO_FRESCA_MS = 60 * 1000;
 const vazia = (resposta) => resposta.headers.get("X-Total-Ofertas") === "0";
 // Busca pronta do robô mais velha que 30 h ainda é mostrada (e refeita por trás) por até 7 dias
 const VELHA_DEMAIS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -74,6 +79,9 @@ const LIMITE_LOJA_MS = 8000;
 // Lomadee: quando demora, segura a busca inteira até 8 s (air fryer, fone bluetooth e smart tv levavam ~9 s por causa dela;
 // conferido em 26/10/2026) e quase sempre traz poucos produtos. Na busca ao vivo espera no máximo 5 s
 const LIMITE_LOJA_LENTA_MS = { lomadee: 5000 };
+// Com o visitante esperando, 2,5 s (como o Mercado Livre): a Lomadee que não responde segurava a busca vazia em 6 s.
+// A busca refeita por trás e o robô seguem com o prazo maior
+const LIMITE_LOJA_LENTA_VISITANTE_MS = { lomadee: 2500 };
 // Para o robô que prepara as buscas populares ninguém está esperando: as lojas têm mais tempo
 const LIMITE_LOJA_ROBO_MS = 10000;
 // Buscas populares preparadas pelo robô da madrugada (/api/preparar-buscas) valem por até 30 horas
@@ -203,7 +211,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const preparar = Boolean(env.__PREPARAR);
   // Atualização por trás de uma busca guardada que passou de FRESCO_MS: busca nas lojas e regrava o cache
   const atualizar = Boolean(env.__ATUALIZAR);
-  const limiteDe = (fonte) => (preparar ? LIMITE_LOJA_ROBO_MS : LIMITE_LOJA_LENTA_MS[fonte.nome] || LIMITE_LOJA_MS);
+  const limiteDe = (fonte) => (preparar ? LIMITE_LOJA_ROBO_MS
+    : (!atualizar && LIMITE_LOJA_LENTA_VISITANTE_MS[fonte.nome]) || LIMITE_LOJA_LENTA_MS[fonte.nome] || LIMITE_LOJA_MS);
   const inicio = Date.now();
   const params = new URL(request.url).searchParams;
   // Erros comuns de digitação são trocados antes de buscar ("eletrolux" -> "electrolux"); a resposta traz o q
@@ -245,11 +254,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   const chave = rapido ? new Request(`${chaveCheia.url}&rapido=1`) : chaveCheia;
   // Refaz a busca nas lojas em segundo plano (sem contar como busca)
-  const refazerPorTras = (criado) => {
+  const refazerPorTras = (criado, semOfertas = false) => {
     // Busca só do console ("xbox series", "ps5"…): a guardada antes de 13/11/2026 17h05 UTC não tem os consoles do Mercado
     // Livre (print do Giovanni: comparador vazio em "xbox series"); refaz já, sem esperar as 6 horas
     const semConsoles = Boolean(q) && criado < CONSOLES_DESDE && buscaSoDeConsole(q);
-    if (preparar || atualizar || (Date.now() - criado < FRESCO_MS && !semConsoles)) return;
+    if (preparar || atualizar || (Date.now() - criado < (semOfertas ? VAZIA_FRESCA_MS : FRESCO_MS) && !semConsoles)) return;
     if (Date.now() - (atualizando.get(chave.url) || 0) < PAUSA_ENTRE_ATUALIZACOES_MS) return;
     if (atualizando.size > 5000) atualizando.clear();
     atualizando.set(chave.url, Date.now());
@@ -319,7 +328,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   etapa("limpa");
   if (limpa) {
     if (soContar) { contar(limpa); return new Response(null, { status: 204 }); }
-    refazerPorTras(Number(limpa.headers.get("X-Criado")) || 0);
+    refazerPorTras(Number(limpa.headers.get("X-Criado")) || 0, vazia(limpa));
     if (Date.now() - (Number(limpa.headers.get("X-Limpa")) || 0) > LIMPA_FRESCA_MS) waitUntil(refazerLimpa().catch(() => {}));
     return contar(comTempos(paraNavegador(limpa)));
   }
@@ -328,7 +337,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (guardada) {
     if (soContar) { contar(guardada); return new Response(null, { status: 204 }); }
     const criado = Number(guardada.headers.get("X-Criado")) || 0;
-    refazerPorTras(criado);
+    refazerPorTras(criado, vazia(guardada));
     const pronta = await limpar(guardada);
     waitUntil(guardarLimpa(pronta.clone(), criado));
     return contar(comTempos(paraNavegador(pronta)));
@@ -661,7 +670,14 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (cache && todasOk) await Promise.all([cache.put(chave, paraGuardar(resposta.clone())), guardarLimpa(resposta.clone())]);
   // Só uma loja menor falhou (a Lomadee trava bastante) e a Shopee respondeu: guarda 1 hora, marcada como velha (o
   // próximo visitante recebe na hora e ela é refeita por trás). Antes não guardava e cada visitante ia de novo às lojas
-  else if (cache && lojas.shopee?.ok && ofertas.length) await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60)]);
+  // Sem ofertas e com loja em erro: guarda também (não era guardada), já quase vencida, para ser refeita por trás em 1 min
+  else if (cache && !ofertas.length && !rapido) {
+    const criadoVazia = Date.now() - (VAZIA_FRESCA_MS - VAZIA_COM_ERRO_FRESCA_MS);
+    await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), criadoVazia)), guardarLimpa(resposta.clone(), criadoVazia)]);
+  // A refeita achou ofertas e a guardada era a vazia: troca mesmo com loja em erro (senão o "não achamos" ficava 1 h)
+  } else if (cache && ofertas.length && !lojas.shopee?.ok && vazia((await cache.match(chave).catch(() => null)) || new Response(null))) {
+    await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60)]);
+  } else if (cache && lojas.shopee?.ok && ofertas.length) await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60)]);
   // Não guardou a resposta nova: a limpa antiga só sai se a cópia de origem também não existe mais.
   // 15/11/2026 (Giovanni: categoria demorando a abrir no celular): com a Shopee em erro TODA atualização por trás caía aqui e
   // apagava a cópia limpa, mesmo com a de origem ainda guardada; a visita seguinte refazia a limpeza no banco antes de
