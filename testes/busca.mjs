@@ -347,6 +347,18 @@ for (const [q, titulos, primeiro, naoBate] of [
   }
 }
 
+// 16/11/2026 (print do Giovanni, "ps5"): PS1, PS3 e cabo de PS1/PS2/PS3 (já acessórios/kits) também são de outra geração
+// = parecido; acessório que cita o PS5 junto com outros ("para PS5 / PS4") continua acessório dele
+{
+  const ps5 = Array.from({ length: 11 }, (_, i) => `Console PlayStation 5 Slim Edição Digital 825 GB cor ${i}`);
+  const outros = ["Console PlayStation 1 PSOne baby + 5 jogos em CDs", "499- Console PS3 Playstation 3 Super Slim GTA 5",
+    "Cabo Av Audio Video Rca Para Playstation 1 Ps2 E Ps3 1,5 Metros", "Disco Bd-j ps4 kit com 5 unidades"];
+  const dele = ["Suporte de Controle para PS5 / PS4", "Capa Protetora para PS5 Slim"];
+  const saida = separarAcessorios([...ps5, ...outros, ...dele].map((titulo, i) => ({ id: String(i), titulo, preco: 500 })), "ps5");
+  for (const t of outros) if (!saida.find((o) => o.titulo === t)?.parecido) { console.error(`✗ "ps5": "${t}" devia ser parecido`); falhas += 1; }
+  for (const t of dele) if (saida.find((o) => o.titulo === t)?.parecido) { console.error(`✗ "ps5": "${t}" não devia ser parecido`); falhas += 1; }
+}
+
 // 14/11/2026: "playstation 5 slim" com poucos PS5 e PS4 Slim no meio
 {
   const saida = separarAcessorios(["Console PlayStation 5 Slim Digital 825GB", "Console Sony PS5 Slim 1TB", "Console Playstation 4 Slim 1tb Standard Sony Cor Preto"]

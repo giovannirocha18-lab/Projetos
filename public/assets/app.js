@@ -2264,6 +2264,17 @@ function precoTipico(lista) {
   return precos.length >= 5 ? precos[Math.floor(precos.length / 2)] : 0;
 }
 
+// "Parecido" = o servidor viu que NÃO é o que foi buscado (PS4 na busca "ps5", TV de 50" em "smart tv 55", sandália em
+// "tênis nike"). 16/11/2026 (print do Giovanni: consoles PS4, PS3 e PS1 no fim da busca "ps5"; "produtos que não têm dizeres
+// nenhum do PS5"): com 10 ou mais produtos de verdade na busca, o parecido não aparece em lugar nenhum (nem no fim da lista,
+// nem em "Ver também"). Com menos que isso ele fica (busca de produto que não está à venda: aviso + parecidos)
+const MINIMO_PARA_ESCONDER_PARECIDOS = 10;
+function escondeParecidos() {
+  if (!estado.q) return () => false;
+  const produtos = estado.ofertas.reduce((n, o) => n + (o.acessorio ? 0 : 1), 0);
+  return produtos >= MINIMO_PARA_ESCONDER_PARECIDOS ? (o) => Boolean(o.parecido) && !o.rebaixado : () => false;
+}
+
 // Todos os filtros menos o de lojas: a contagem de cada loja (botões do card e da barra lateral) usa o mesmo, para
 // bater com o que aparece na tela (contava também o que outros filtros escondiam; print do Giovanni, 23/10/2026)
 function passaNosFiltros(comMarca = true) {
@@ -2274,7 +2285,8 @@ function passaNosFiltros(comMarca = true) {
   const envio = $("input[name=envio]:checked")?.value || "todos";
   const semAcessorios = escondeAcessorios();
   const tipo = estado.tipoSo;
-  return (o) => secaoVisivel(o)
+  const parecidoFora = escondeParecidos();
+  return (o) => secaoVisivel(o) && !parecidoFora(o)
     // parecido = console de outra geração (PS4 na busca "playstation 5"): não entra em nenhum tipo; de outra marca, entra
     && (!tipo || (tipoDe(o) === tipo && (!o.parecido || o.outraMarca)))
     && !(comMarca && estado.marcasSo.size && !estado.marcasSo.has(marcaDe(o)?.n))
@@ -3177,12 +3189,13 @@ function desenharResultados() {
   const nenhumaLoja = !estado.ofertas.some(lojaLigada);
   // …e, na loja, com só marcas que o servidor já mandou inteiras (marcasMarcadasInteiras)
   $("#mais-resultados").hidden = !estado.temMaisBusca || nenhumaLoja || marcasMarcadasInteiras() || secaoMarcadaInteira();
-  const acessorios = estado.ofertas.filter((o) => o.acessorio && lojaLigada(o)).length;
+  const parecidoFora = escondeParecidos();
+  const acessorios = estado.ofertas.filter((o) => o.acessorio && lojaLigada(o) && !parecidoFora(o)).length;
   const botao = $("#ver-acessorios");
   botao.hidden = !acessorios || $("#com-acessorios").checked || acessorios === estado.ofertas.length;
   // "parecido" = não tem todas as palavras de uma busca de 2+ palavras (o servidor junta com os acessórios)
   const soParecidos = estado.ofertas.every((o) => !o.acessorio || o.parecido);
-  const temParecidos = estado.ofertas.some((o) => o.parecido);
+  const temParecidos = estado.ofertas.some((o) => o.parecido && !parecidoFora(o));
   const nome = soParecidos ? (acessorios === 1 ? "produto parecido" : "produtos parecidos")
     : temParecidos ? "acessórios e produtos parecidos" : (acessorios === 1 ? "acessório ou peça" : "acessórios e peças");
   botao.textContent = `Ver também ${acessorios} ${nome} para “${estado.q}”`;
