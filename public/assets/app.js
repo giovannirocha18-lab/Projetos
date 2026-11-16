@@ -1835,11 +1835,15 @@ function ampliarFoto(src, titulo, fotos = [], aoTrocar = null) {
   if (!src || !janela || janela.querySelector(".foto-ampliada")) return;
   const img = el("img", { src, alt: titulo || "" });
   let atual = Math.max(0, fotos.indexOf(src));
-  const dicaDe = () => `${fotos.length > 1 ? `Foto ${atual + 1} de ${fotos.length} · setas ← → trocam a foto · ` : ""}Toque na foto para ampliar · toque de novo para voltar`;
+  const dicaDe = () => `${fotos.length > 1 ? `Foto ${atual + 1} de ${fotos.length} · use as setas para trocar · ` : ""}Toque na foto para ampliar · toque de novo para voltar`;
   const aoTeclar = (e) => {
     if (fotos.length < 2 || (e.key !== "ArrowRight" && e.key !== "ArrowLeft")) return;
     e.preventDefault();
-    atual = (atual + (e.key === "ArrowRight" ? 1 : -1) + fotos.length) % fotos.length;
+    trocar(e.key === "ArrowRight" ? 1 : -1);
+  };
+  // Também pelas setas ‹ › na tela (celular não tem teclado)
+  const trocar = (passo) => {
+    atual = (atual + passo + fotos.length) % fotos.length;
     // Mesma ampliação e mesmo ponto da foto anterior (as fotos de um anúncio costumam ter o mesmo formato)
     img.src = fotos[atual];
     caixa.querySelector(".foto-ampliada-dica").textContent = dicaDe();
@@ -1850,6 +1854,8 @@ function ampliarFoto(src, titulo, fotos = [], aoTrocar = null) {
   const caixa = el("div", { class: "foto-ampliada", onclick: (e) => { if (e.target !== img) fechar(); } },
     el("button", { type: "button", class: "foto-ampliada-fechar", "aria-label": "Fechar a foto", onclick: fechar }, "✕"),
     el("div", { class: "foto-ampliada-area" }, img),
+    fotos.length > 1 ? el("button", { type: "button", class: "foto-ampliada-seta anterior", "aria-label": "Foto anterior", onclick: (e) => { e.stopPropagation(); trocar(-1); } }, "‹") : "",
+    fotos.length > 1 ? el("button", { type: "button", class: "foto-ampliada-seta seguinte", "aria-label": "Próxima foto", onclick: (e) => { e.stopPropagation(); trocar(1); } }, "›") : "",
     el("p", { class: "foto-ampliada-dica" }, dicaDe()));
   const area = caixa.querySelector(".foto-ampliada-area");
   img.addEventListener("click", (e) => {
