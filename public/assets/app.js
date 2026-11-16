@@ -2346,6 +2346,7 @@ const E_CONTROLE = /\b(controles?|joystick|gamepad|manete|controller|joy ?con|jo
 const E_JOGO = /\b(jogos?|games?|midia fisica|midia digital|edicao (?:standard|deluxe|gold|ultimate)|cartucho)\b/;
 const E_ACESSORIO = /\b(headset|fone|cabo|fonte|carregador|base|dock|suporte|capa|case|bolsa|skin|adesivo|pelicula|cooler|bateria|pilha|hd externo|ssd|cartao de memoria|memoria|adaptador|grip|protetor|kit|pasta termica|gift ?card|cartao presente|assinatura|game ?pass|plus|live gold|teclado|mouse|tv|monitor|camera|microfone|oculos|vr2?|portal|receptor|estojo|tampa|carcaca|placa|leitor|ventilador|limpeza|mochila|camiseta|caneca|chaveiro|boneco|luminaria|quadro|poster|posteres|volante|pedais|cambio|controle remoto|substituicao|reposicao|reparo)\b/;
 const PECA = /^(?:\S+ ){0,2}(hd|analogico 3d|bateria|pilha|capa|case|suporte|carregador|base|dock|cabo|protetor|protetores|grip|botoes|botao|kit|adaptador|receptor|analogico|modulo|sensor|pelicula|skin|adesivo|bolsa|estojo|par|conjuntos?|\d+ (?:unidades?|conjuntos?|pecas?|pares?))\b|\b(controle remoto|substituicao|reposicao|reparo)\b/;
+const SO_ACESSORIO = /\b(suportes?|racks?|tampas?|capas?|cases?|organizador(?:es)?|cabides?|botao|botoes|teclas|acessorios?|dustproof|poeira|gameshark|montagem|montado|armazenamento|carregador(?:es)?|cabos?|peliculas?|adesivos?|skins?|controlador(?:es)?|gamepads?|caixa vazia|kontrol|freek|tablet|slot|emulador|simulador|escudo|protetor(?:es)?|porta cartuchos?|divisor|combinador|figuras?|action figure|bonecos?|pelucia|doca|punho|aperto)\b/;
 const PARA_O_CONSOLE = /\b(para|p|compativel|compativeis|compatible|for)\b/;
 function tipoDe(o) {
   if (o.tipoLido) return o.tipoLido;
@@ -2361,6 +2362,9 @@ function tipoDe(o) {
   else if (INICIO_DE_CONSOLE.test(t) && o.preco >= 600 && !PARA_O_CONSOLE.test(palavras.slice(0, 5).join(" "))
     && (/\b\d+ ?(gb|tb)\b|\b(consoles?|video ?games?|desbloqueado|destravado|lite|oled)\b/.test(t) || !E_JOGO.test(palavras.slice(0, 6).join(" ")))) tipo = "Consoles";
   else if (E_ACESSORIO.test(palavras.slice(0, 4).join(" "))) tipo = "Acessórios";
+  // Suporte, tampa, capa, organizador… em qualquer lugar do nome não é jogo, mesmo com "jogo"/"game" no texto (print do
+  // Giovanni, 16/11/2026: "Rack… suporte controlador jogo", "Tampas do Console", "Capa Poeira, Acessórios do Jogo")
+  else if (!/^jogo /.test(t) && SO_ACESSORIO.test(t)) tipo = "Acessórios";
   else if (E_JOGO.test(t.split(PARA_O_CONSOLE)[0])) tipo = "Jogos";
   else if (E_ACESSORIO.test(t) || E_CONTROLE.test(t)) tipo = "Acessórios";
   else tipo = o.secao === "Games" && o.preco < 700 && !PARA_O_CONSOLE.test(t) ? "Jogos" : "Acessórios";
