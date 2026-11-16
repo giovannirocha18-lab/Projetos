@@ -594,6 +594,12 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   contagem na mesma linha (`.resumo-busca`), fila das lojas sem "Lojas com ofertas:" e sem a nota, "✕ Limpar filtros" no fim
   da fila (`.so-na-fila`), botões "Filtros" (era "Filtros e ordem") / Frete grátis / Comparador numa linha, contagem repetida
   fora (bloco no fim de estilo.css). Card 198 → 91 px (categoria), 243 → 112 px (busca). Computador igual. No ar ✅.
+- **16/11, print da loja Olympikus (kit repetido por numeração)**: `partes`/`modeloBase` (lib/variacoes.js) leem também "Kit N
+  Tênis Olympikus … 46 Multicolorido" e roupa com o tamanho antes da cor ("… Olympikus GG Azul"); `tamanhoDoTitulo`/
+  `ordenarTamanhos` novos. **Cartão mostra as numerações** ("Numerações: 34 ao 46", "Tamanhos: P, M, G, GG"; `o.tamanhos` vem do
+  servidor: página da loja (`ordemDaLoja`, /api/lojas VERSAO 47) e busca da Awin (todos os candidatos); app.js
+  `textoDosTamanhos`/`somarTamanhos`, cópia em `semTamanho`; `.oferta-tamanhos`). Vale para toda loja da Awin que manda
+  um anúncio por tamanho. Buscas guardadas ganham a linha conforme se renovam. Caso em testes/busca.mjs. No ar ✅.
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);

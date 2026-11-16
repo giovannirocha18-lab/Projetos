@@ -2008,11 +2008,16 @@ function somarTamanhos(a, b) {
 // "Numerações: 34 ao 46" (seguidas), "Numerações: 34, 36, 38" ou "Tamanhos: P, M, G, GG"
 function textoDosTamanhos(tamanhos) {
   if (!tamanhos || tamanhos.length < 2) return "";
-  const numeros = tamanhos.every((t) => /^\d+$/.test(t));
-  if (!numeros) return `${tamanhos.every((t) => /^\d/.test(t)) ? "Numerações" : "Tamanhos"}: ${tamanhos.slice(0, 10).join(", ")}${tamanhos.length > 10 ? "…" : ""}`;
+  // Faixas ("33-34", "35-36"…): do primeiro número ao último
+  if (tamanhos.every((t) => /^\d+-\d+$/.test(t))) return `Numerações: ${tamanhos[0].split("-")[0]} ao ${tamanhos[tamanhos.length - 1].split("-")[1]}`;
+  if (!tamanhos.every((t) => /^\d+$/.test(t))) {
+    return `${tamanhos.every((t) => /^\d/.test(t)) ? "Numerações" : "Tamanhos"}: ${tamanhos.slice(0, 8).join(", ")}${tamanhos.length > 8 ? "…" : ""}`;
+  }
   const n = tamanhos.map(Number);
-  const seguidos = n.length > 2 && n.every((x, i) => i === 0 || x - n[i - 1] === 1);
-  return seguidos ? `Numerações: ${n[0]} ao ${n[n.length - 1]}` : `Numerações: ${n.slice(0, 12).join(", ")}${n.length > 12 ? "…" : ""}`;
+  const seguidos = n.every((x, i) => i === 0 || x - n[i - 1] === 1);
+  if (seguidos && n.length > 2) return `Numerações: ${n[0]} ao ${n[n.length - 1]}`;
+  // Lista comprida com numeração faltando no meio: cabe numa linha
+  return n.length > 6 ? `Numerações: ${n[0]} ao ${n[n.length - 1]} (algumas em falta)` : `Numerações: ${n.join(", ")}`;
 }
 function semRepetidos(lista) {
   const posicao = new Map();
