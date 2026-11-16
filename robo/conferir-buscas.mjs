@@ -144,9 +144,9 @@ async function abrirBusca(q) {
 const INSTRUCOES = `Você confere os resultados da busca de um site brasileiro comparador de preços.
 Recebe o que a pessoa buscou e uma lista numerada de títulos de anúncios (muitos traduzidos automaticamente, com palavras soltas).
 Classifique cada título:
-- P (produto): é o próprio produto buscado, de qualquer marca, cor ou versão (busca "jogo de ferramentas", título "Kit Maleta 46 Peças Chaves Soquete").
+- P (produto): é o próprio produto buscado, de qualquer marca, cor, estampa, capacidade ou versão, novo ou usado (busca "jogo de ferramentas", título "Kit Maleta 46 Peças Chaves Soquete"; busca "air fryer", título "Fritadeira Air Fryer Mickey 3L"). As versões do modelo buscado também são P: busca "iphone 16" aceita iPhone 16, 16 Plus, 16 Pro, 16 Pro Max e 16e (novo, usado ou de vitrine); busca "ps5" aceita PS5 Slim, Pro, Digital e pacotes com jogo; busca "galaxy s24" aceita S24 Ultra e S24 FE.
 - A (acessório): peça, acessório, capa, cabo, suporte, jogo ou complemento feito PARA o produto buscado ou compatível com ele (busca "ps5", título "Capa para controle PS5"; busca "geladeira", título "Filtro para geladeira Consul").
-- N (não tem a ver): outro produto que só cita as palavras em outro sentido, brinquedo/miniatura/fantasia dele, ou algo de OUTRO modelo. Se a busca diz modelo, geração, tamanho ou capacidade (ps5, iphone 16, 55 polegadas, 5 litros, 12 kg), anúncio de outro modelo, geração ou tamanho é N, inclusive o acessório que só serve em outro modelo (busca "ps5": "Console PlayStation 4 Slim" é N, "Cabo para PS2 e PS3" é N, "Controle para PS4 e PS5" é A). Se a busca não diz modelo nem tamanho, qualquer um vale.
+- N (não tem a ver): outro produto que só cita as palavras em outro sentido, brinquedo/miniatura/fantasia dele, ou algo de OUTRO modelo. Se a busca diz o número do modelo ou da geração, o tamanho ou a capacidade (ps5, iphone 16, 55 polegadas, 5 litros, 12 kg), anúncio de OUTRO número, geração ou tamanho é N (iPhone 15 na busca "iphone 16"; TV de 50 na busca "smart tv 55"), inclusive o acessório que só serve em outro modelo (busca "ps5": "Console PlayStation 4 Slim" é N, "Cabo para PS2 e PS3" é N, "Controle para PS4 e PS5" é A). Se a busca não diz modelo nem tamanho, qualquer um vale.
 - D (dúvida): só pelo nome não dá para saber.
 Responda só com os números de cada grupo A, N e D; todo título que não aparecer em nenhum grupo conta como P. Na dúvida entre P e A, tanto faz; só use N quando tiver certeza.`;
 
@@ -244,8 +244,16 @@ try {
   for (const { texto: t } of buscadas) if (t && !ja.has(termoIa(t))) { termos.push(t); ja.add(termoIa(t)); }
 } catch {}
 
-// Teste: IA_BUSCAS_SO="ps5|geladeira" confere só essas buscas (input ia_so do workflow)
-if (process.env.IA_BUSCAS_SO) termos = process.env.IA_BUSCAS_SO.split("|").map((t) => t.trim()).filter(Boolean);
+// Teste: IA_BUSCAS_SO="ps5|geladeira" confere só essas buscas (input ia_so do workflow), DO ZERO: esquece o que a IA já
+// tinha respondido para elas (serve para refazer uma busca depois de mudar as instruções)
+if (process.env.IA_BUSCAS_SO) {
+  termos = process.env.IA_BUSCAS_SO.split("|").map((t) => t.trim()).filter(Boolean);
+  for (const t of termos) {
+    const termo = termoIa(t);
+    await d1("DELETE FROM ia_busca WHERE termo = ?", [termo]);
+    for (const k of [...vistos.keys()]) if (k.startsWith(`${termo}|`)) vistos.delete(k);
+  }
+}
 
 const naoSao = []; // { q, titulo, secao, loja }
 const categoriaDuvidosa = []; // { q, titulo, secao, cats }
