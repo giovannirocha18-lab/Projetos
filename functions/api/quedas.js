@@ -4,6 +4,7 @@
 import { listarQuedas, nivelBlackFriday } from "../../lib/blackfriday.js";
 import { ofertaDeLojaRemovida } from "../../lib/lojasRemovidas.js";
 import { semDescontoFalso } from "../../lib/ofertas.js";
+import { comSecaoCerta } from "../../lib/categorias.js";
 
 const POR_PAGINA = 48;
 const MAX_PAGINA = 40;
@@ -14,12 +15,12 @@ export async function onRequestGet({ request, env }) {
   if (!env.DB) return Response.json(vazio);
   const pagina = Math.min(Math.max(parseInt(new URL(request.url).searchParams.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/quedas?v=3&pagina=${pagina}`, request.url));
+  const chave = new Request(new URL(`/api/quedas?v=4&pagina=${pagina}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
   const dados = await listarQuedas(env.DB, pagina, POR_PAGINA);
   // Lojas tiradas do site e regras novas valem na hora; preço riscado = o de costume (como na Black Friday)
-  dados.ofertas = dados.ofertas.filter((o) => !ofertaDeLojaRemovida(o) && nivelBlackFriday(o)?.nivel <= 2).map(semDescontoFalso);
+  dados.ofertas = dados.ofertas.filter((o) => !ofertaDeLojaRemovida(o) && nivelBlackFriday(o)?.nivel <= 2).map(semDescontoFalso).map(comSecaoCerta);
   const semNada = !dados.ofertas.length;
   const resposta = Response.json({ ...dados, temMais: dados.temMais && pagina < MAX_PAGINA }, {
     headers: { "Cache-Control": semNada ? "no-store" : `public, max-age=${CACHE_SEGUNDOS}`, "X-Robots-Tag": "noindex" },
