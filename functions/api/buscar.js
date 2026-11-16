@@ -41,7 +41,7 @@ const FONTES_REAIS = [mercadolivre, curadoria, shopee, awin, aliexpress, lomadee
 // e o próximo já recebe a nova. O navegador guarda só NAVEGADOR_SEGUNDOS (para ver a atualização logo).
 // Era 1 hora; 6 horas desde 03/11/2026 (limite da Shopee: cada busca refeita gasta o limite)
 const FRESCO_MS = 6 * 60 * 60 * 1000;
-const CONSOLES_DESDE = Date.UTC(2026, 10, 13, 17, 5);
+const CONSOLES_DESDE = Date.UTC(2026, 10, 16, 20, 35); // 16/11: regra da outra geração também nos acessórios (print "ps5")
 const GUARDAR_SEGUNDOS = 24 * 60 * 60;
 const LIMPA_FRESCA_MS = 10 * 60 * 1000; // de quanto em quanto tempo a cópia limpa é conferida de novo com o banco
 const NAVEGADOR_SEGUNDOS = 10 * 60;
