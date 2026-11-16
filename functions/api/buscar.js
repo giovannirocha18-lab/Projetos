@@ -24,7 +24,7 @@ import { naoContar } from "../../lib/naoContar.js";
 import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
 import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js";
 import { normalizar } from "../../lib/texto.js";
-import { anotarNaFilaML, POUCOS_ML } from "../../lib/mlFila.js";
+import { anotarNaFilaML } from "../../lib/mlFila.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
 import { criarFila } from "../../lib/fila.js";
@@ -627,12 +627,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   ofertas = ofertas.map(({ catLojaNome, ...o }) => o);
 
-  // Mercado Livre incompleto nesta busca (recusou ou veio pouco): vai para a fila do robô da madrugada (lib/mlFila.js)
+  // Toda busca de visitante vai para a fila do robô do Mercado Livre da madrugada (lib/mlFila.js). 16/11/2026 (print
+  // "starlink" com 18 do ML; Giovanni: "seria bom fazer pra outros produtos também"): antes só entrava a que trazia menos
+  // de 8 do ML ou com o ML em erro; o robô lê o dobro do catálogo e pede o preço de mais fichas do que dá na hora
   // Só busca que trouxe produtos e passa no filtro das tendências (10/11/2026, revisão: termos inventados enchiam a fila e o
   // robô gastava a madrugada do ML neles)
   if (q && pagina === 1 && desde === 1 && !preparar && !atualizar && !soLoja && !rapido && env.DB && lojas.mercadolivre && reais.length
-    && ofertas.length >= 5 && tendenciaAceitavel(q)
-    && (!lojas.mercadolivre.ok || ofertas.filter((o) => o.loja === "mercadolivre").length < POUCOS_ML)) {
+    && ofertas.length >= 5 && tendenciaAceitavel(q)) {
     waitUntil(anotarNaFilaML(env.DB, q).catch(() => {}));
   }
   // Trouxe ofertas, mas nenhuma é o produto (só acessórios e parecidos): o termo sai das sugestões de tendência por 3 dias
