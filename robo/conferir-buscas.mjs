@@ -85,7 +85,7 @@ async function gravar(linhas) {
     tamanho = 0;
   };
   for (const [termo, chave, ok] of linhas) {
-    const valor = `(${texto(termo)},${texto(chave)},${ok ? 1 : 0},${agora})`;
+    const valor = `(${texto(termo)},${texto(chave)},${Number(ok) || 0},${agora})`;
     if (tamanho + valor.length > 90000) await enviar();
     lote.push(valor);
     tamanho += valor.length + 1;
@@ -118,15 +118,18 @@ async function abrir(endereco) {
   }
   return null;
 }
-// 1ª resposta + o lote que o site pede sozinho logo depois (o "Automotivo 1" de "jogo de ferramentas" vinha dele)
+// A lista inteira, como quem rola a página até o fim: 1ª resposta + os lotes seguintes (até LOTES)
+const LOTES = 8;
 async function abrirBusca(q) {
   const d = await abrir(`q=${encodeURIComponent(q)}`);
   if (!d?.ofertas) return null;
   const ofertas = [...d.ofertas];
-  if (d.mais) {
-    const seguinte = await abrir(`q=${encodeURIComponent(q)}&${d.mais}`);
-    const vistos = new Set(ofertas.map((o) => o.id));
-    for (const o of seguinte?.ofertas || []) if (!vistos.has(o.id)) ofertas.push(o);
+  const vistos = new Set(ofertas.map((o) => o.id));
+  let mais = d.mais;
+  for (let lote = 1; mais && lote < LOTES; lote++) {
+    const seguinte = await abrir(`q=${encodeURIComponent(q)}&${mais}`);
+    for (const o of seguinte?.ofertas || []) if (!vistos.has(o.id)) { vistos.add(o.id); ofertas.push(o); }
+    mais = seguinte?.mais;
   }
   return { q: d.q || q, ofertas };
 }
@@ -134,53 +137,93 @@ async function abrirBusca(q) {
 // ---------------------------------------------------------------------
 // Pergunta à IA
 // ---------------------------------------------------------------------
+// 16/11/2026 (pedido do Giovanni: "solução definitiva, não consigo olhar item a item"; o topo vinha certo e os erros
+// apareciam descendo a lista): a IA confere a lista INTEIRA de cada busca (produtos e acessórios, todos os lotes), pelo
+// nome; onde fica em dúvida, olha a FOTO. Cada título é perguntado uma vez por busca; depois, só os novos de cada noite.
+// Veredito (tabela ia_busca.ok): 1 = é o produto; 2 = peça/acessório dele; 0 = não tem a ver (o site esconde)
 const INSTRUCOES = `Você confere os resultados da busca de um site brasileiro comparador de preços.
-Recebe o que a pessoa buscou e uma lista numerada de títulos de produtos (muitos traduzidos automaticamente, com palavras soltas).
-Para cada título, diga se o produto É o que a pessoa procura:
-- sim: é o próprio produto buscado, de qualquer marca, modelo, tamanho, cor ou versão (ex.: busca "jogo de ferramentas" e título "Kit Maleta 46 Peças Chaves Soquete").
-- não: é outro produto que só cita as palavras da busca em outro sentido, uma peça ou acessório dele, um brinquedo/miniatura dele, ou algo para outro uso (ex.: busca "jogo de ferramentas" e título "Jogo de Chá Matcha … ferramentas de cozinha" ou "Conjunto de Jogos de Tabuleiro … Ferramenta").
-Na dúvida, responda sim. Responda com uma linha por título, usando o número dele.`;
+Recebe o que a pessoa buscou e uma lista numerada de títulos de anúncios (muitos traduzidos automaticamente, com palavras soltas).
+Classifique cada título:
+- P (produto): é o próprio produto buscado, de qualquer marca, cor ou versão (busca "jogo de ferramentas", título "Kit Maleta 46 Peças Chaves Soquete").
+- A (acessório): peça, acessório, capa, cabo, suporte, jogo ou complemento feito PARA o produto buscado ou compatível com ele (busca "ps5", título "Capa para controle PS5"; busca "geladeira", título "Filtro para geladeira Consul").
+- N (não tem a ver): outro produto que só cita as palavras em outro sentido, brinquedo/miniatura/fantasia dele, ou algo de OUTRO modelo. Se a busca diz modelo, geração, tamanho ou capacidade (ps5, iphone 16, 55 polegadas, 5 litros, 12 kg), anúncio de outro modelo, geração ou tamanho é N, inclusive o acessório que só serve em outro modelo (busca "ps5": "Console PlayStation 4 Slim" é N, "Cabo para PS2 e PS3" é N, "Controle para PS4 e PS5" é A). Se a busca não diz modelo nem tamanho, qualquer um vale.
+- D (dúvida): só pelo nome não dá para saber.
+Responda só com os números de cada grupo A, N e D; todo título que não aparecer em nenhum grupo conta como P. Na dúvida entre P e A, tanto faz; só use N quando tiver certeza.`;
 
 const ESQUEMA = {
   type: "object",
   properties: {
-    itens: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: { n: { type: "integer" }, ok: { type: "boolean" } },
-        required: ["n", "ok"],
-        additionalProperties: false,
-      },
-    },
+    a: { type: "array", items: { type: "integer" } },
+    n: { type: "array", items: { type: "integer" } },
+    d: { type: "array", items: { type: "integer" } },
   },
-  required: ["itens"],
+  required: ["a", "n", "d"],
   additionalProperties: false,
 };
+const ESQUEMA_DA_FOTO = {
+  type: "object",
+  properties: { tipo: { type: "string", enum: ["P", "A", "N"] } },
+  required: ["tipo"],
+  additionalProperties: false,
+};
+const NOTA = { P: 1, A: 2, N: 0 };
+const PEDIDOS_JUNTOS = 3; // perguntas da mesma busca ao mesmo tempo
+const FOTOS_POR_BUSCA = 20; // dúvidas de cada busca decididas pela foto (o resto fica como está)
 
-let entrada = 0, saida = 0, falhas = 0;
-async function perguntar(q, titulos) {
-  const respostas = new Map();
-  for (let i = 0; i < titulos.length; i += POR_PEDIDO) {
-    const parte = titulos.slice(i, i + POR_PEDIDO);
-    try {
-      const msg = await claude.messages.create({
-        model: MODELO,
-        max_tokens: 4000,
-        output_config: { effort: "low", format: { type: "json_schema", schema: ESQUEMA } },
-        system: INSTRUCOES,
-        messages: [{ role: "user", content: `Busca: "${q}"\n\n${parte.map((t, j) => `${j + 1}. ${t.slice(0, 200)}`).join("\n")}` }],
-      });
-      entrada += msg.usage.input_tokens;
-      saida += msg.usage.output_tokens;
-      const bloco = msg.content.find((b) => b.type === "text");
-      for (const { n, ok } of JSON.parse(bloco?.text || "{}").itens || []) {
-        if (parte[n - 1] && !respostas.has(parte[n - 1])) respostas.set(parte[n - 1], ok);
-      }
-    } catch (erro) {
+let entrada = 0, saida = 0, falhas = 0, pelaFoto = 0;
+const lerJson = (msg) => JSON.parse(msg.content.find((b) => b.type === "text")?.text || "{}");
+async function perguntarParte(q, parte) {
+  const msg = await claude.messages.create({
+    model: MODELO,
+    max_tokens: 2000,
+    output_config: { effort: "low", format: { type: "json_schema", schema: ESQUEMA } },
+    system: INSTRUCOES,
+    messages: [{ role: "user", content: `Busca: "${q}"\n\n${parte.map((o, j) => `${j + 1}. ${String(o.titulo).slice(0, 200)}`).join("\n")}` }],
+  });
+  entrada += msg.usage.input_tokens;
+  saida += msg.usage.output_tokens;
+  const r = lerJson(msg);
+  const grupo = new Map();
+  for (const [letra, lista] of [["A", r.a], ["N", r.n], ["D", r.d]]) for (const n of lista || []) if (parte[n - 1] && !grupo.has(n - 1)) grupo.set(n - 1, letra);
+  return parte.map((o, j) => [o, grupo.get(j) || "P"]);
+}
+// Dúvida pelo nome: a foto decide (uma por pergunta: com várias juntas a IA trocava de produto, 10/11/2026)
+async function perguntarPelaFoto(q, o) {
+  const msg = await claude.messages.create({
+    model: MODELO,
+    max_tokens: 200,
+    output_config: { effort: "low", format: { type: "json_schema", schema: ESQUEMA_DA_FOTO } },
+    system: `${INSTRUCOES}\nAgora é um anúncio só, com a FOTO dele: responda P, A ou N olhando a foto e o nome (sem D). Se a foto não ajudar, responda P.`,
+    messages: [{ role: "user", content: [
+      { type: "image", source: { type: "url", url: o.imagem } },
+      { type: "text", text: `Busca: "${q}"\nTítulo: ${String(o.titulo).slice(0, 200)}` },
+    ] }],
+  });
+  entrada += msg.usage.input_tokens;
+  saida += msg.usage.output_tokens;
+  pelaFoto++;
+  return lerJson(msg).tipo;
+}
+// Devolve [oferta, 1 | 2 | 0] dos que a IA respondeu (dúvida sem foto, ou além do limite de fotos, fica sem veredito)
+async function perguntar(q, ofertas) {
+  const partes = [];
+  for (let i = 0; i < ofertas.length; i += POR_PEDIDO) partes.push(ofertas.slice(i, i + POR_PEDIDO));
+  const lidas = [];
+  for (let i = 0; i < partes.length; i += PEDIDOS_JUNTOS) {
+    const feitas = await Promise.all(partes.slice(i, i + PEDIDOS_JUNTOS).map((parte) => perguntarParte(q, parte).catch((erro) => {
       falhas++;
       console.log(`Erro na IA (${q}): ${String(erro.message || erro).slice(0, 200)}`);
-    }
+      return [];
+    })));
+    lidas.push(...feitas.flat());
+  }
+  const respostas = lidas.filter(([, letra]) => letra !== "D").map(([o, letra]) => [o, NOTA[letra]]);
+  const duvidas = lidas.filter(([o, letra]) => letra === "D" && /^https:\/\//.test(o.imagem || "")).slice(0, FOTOS_POR_BUSCA);
+  for (let i = 0; i < duvidas.length; i += PEDIDOS_JUNTOS) {
+    await Promise.all(duvidas.slice(i, i + PEDIDOS_JUNTOS).map(async ([o]) => {
+      const tipo = await perguntarPelaFoto(q, o).catch(() => null); // foto que não abre: fica sem veredito
+      if (tipo in NOTA) respostas.push([o, NOTA[tipo]]);
+    }));
   }
   return respostas;
 }
@@ -201,13 +244,19 @@ try {
   for (const { texto: t } of buscadas) if (t && !ja.has(termoIa(t))) { termos.push(t); ja.add(termoIa(t)); }
 } catch {}
 
+// Teste: IA_BUSCAS_SO="ps5|geladeira" confere só essas buscas (input ia_so do workflow)
+if (process.env.IA_BUSCAS_SO) termos = process.env.IA_BUSCAS_SO.split("|").map((t) => t.trim()).filter(Boolean);
+
 const naoSao = []; // { q, titulo, secao, loja }
 const categoriaDuvidosa = []; // { q, titulo, secao, cats }
 // Categoria corrigida pela IA (03/11/2026): a IA disse que o produto É o buscado, mas ele estava em outra categoria. Só
 // quando a busca é de um produto com categoria conhecida ("smartwatch" = Smartwatches) e a busca tem só essa categoria;
 // busca de marca ("stanley": copo e ferramenta) fica de fora. Grava em ia_categorias, que o site usa acima das regras
 const correcoes = new Map(); // chave do título -> categoria
-let abertas = 0, perguntados = 0;
+let abertas = 0, perguntados = 0, viraramAcessorio = 0, parouEm = 0;
+const comecou = Date.now();
+// Tempo máximo desta etapa por noite (o resto das buscas fica para a noite seguinte; os vereditos ficam guardados)
+const MAX_MIN = Number(process.env.IA_BUSCAS_MIN) || 70;
 const novas = [];
 for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
   await Promise.all(termos.slice(i, i + AO_MESMO_TEMPO).map(async (q0) => {
@@ -218,50 +267,36 @@ for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
     const termo = termoIa(q);
     const porChave = new Map();
     const fora = new Set(foraDasCategorias(ofertas));
-    const topo = ofertas.filter((o) => !o.acessorio && o.principal).slice(0, TOPO);
     const catsDaBusca = [...(categoriasDaBusca(ofertas) || [])];
     const cats = catsDaBusca.map((c) => c || "Outros").join(" + ");
     const doProduto = categoriaDoProduto(q)?.nome;
     const corrigeCom = catsDaBusca.length === 1 && doProduto && catsDaBusca[0] === doProduto ? doProduto : null;
-    const jaNao = (o) => vistos.get(`${termo}|${chaveIa(o.titulo || "")}`) === 0;
-    for (const o of [...fora, ...topo, ...maisBaratos(ofertas, jaNao)]) {
+    // Tudo o que a busca mostra e ainda não tem veredito (o que as regras já marcaram como "parecido" o site já esconde)
+    for (const o of ofertas) {
       const chave = chaveIa(o.titulo || "");
-      if (!chave) continue;
+      if (!chave || o.parecido) continue;
       // Já respondido "é o produto" numa noite anterior e ainda fora da categoria: corrige sem perguntar de novo
       if (vistos.get(`${termo}|${chave}`) === 1 && corrigeCom && fora.has(o)) correcoes.set(chave, corrigeCom);
       if (!vistos.has(`${termo}|${chave}`) && !porChave.has(chave)) porChave.set(chave, o);
     }
-    // Pergunta a lista e anota as respostas; devolve quantos "não é o produto"
-    const conferir = async (lista) => {
-      if (!lista.length) return 0;
-      perguntados += lista.length;
-      const respostas = await perguntar(q, lista.map((o) => o.titulo));
-      let nao = 0;
-      for (const o of lista) {
-        if (!respostas.has(o.titulo)) continue;
-        const ok = respostas.get(o.titulo);
-        novas.push([termo, chaveIa(o.titulo), ok]);
-        vistos.set(`${termo}|${chaveIa(o.titulo)}`, ok ? 1 : 0);
-        const item = { q, titulo: o.titulo, secao: o.secao || "Outros", loja: o.lojaNome || o.loja, cats };
-        if (!ok) { naoSao.push(item); nao++; }
-        else if (fora.has(o)) {
-          categoriaDuvidosa.push(item);
-          if (corrigeCom) correcoes.set(chaveIa(o.titulo), corrigeCom);
-        }
+    const lista = [...porChave.values()];
+    if (!lista.length) return;
+    perguntados += lista.length;
+    for (const [o, nota] of await perguntar(q, lista)) {
+      novas.push([termo, chaveIa(o.titulo), nota]);
+      vistos.set(`${termo}|${chaveIa(o.titulo)}`, nota);
+      const item = { q, titulo: o.titulo, secao: o.secao || "Outros", loja: o.lojaNome || o.loja, cats };
+      if (nota === 0) naoSao.push(item);
+      else if (nota === 2 && !o.acessorio) viraramAcessorio++;
+      else if (nota === 1 && fora.has(o)) {
+        categoriaDuvidosa.push(item);
+        if (corrigeCom) correcoes.set(chaveIa(o.titulo), corrigeCom);
       }
-      return nao;
-    };
-    await conferir([...porChave.values()]);
-    // Os mais baratos de novo, sem os que a IA acabou de tirar, enquanto ainda aparecerem errados
-    for (let rodada = 1; rodada < RODADAS_BARATOS; rodada++) {
-      const proximos = new Map();
-      for (const o of maisBaratos(ofertas, jaNao)) {
-        const chave = chaveIa(o.titulo || "");
-        if (chave && !vistos.has(`${termo}|${chave}`) && !proximos.has(chave)) proximos.set(chave, o);
-      }
-      if (!proximos.size || (await conferir([...proximos.values()])) < 3) break;
     }
   }));
+  // Guarda aos poucos (a 1ª passada é longa: o que já foi respondido não se perde se o tempo acabar)
+  if (novas.length >= 2000) await gravar(novas.splice(0));
+  if (Date.now() - comecou > MAX_MIN * 60000) { parouEm = i + AO_MESMO_TEMPO; break; }
   await espera(PAUSA_MS);
 }
 await gravar(novas);
@@ -274,8 +309,9 @@ if (correcoes.size) {
 }
 
 const custo = (entrada * PRECO_ENTRADA + saida * PRECO_SAIDA) / 1e6;
-anotar(`- ${abertas} de ${termos.length} buscas abertas; ${perguntados} produtos perguntados à IA (fora da categoria da busca, entre os ${TOPO} primeiros ou entre os mais baratos) (${falhas} perguntas com erro)`);
-anotar(`- Não são o produto buscado (saem do meio dos resultados daquela busca): ${naoSao.length}`);
+anotar(`- ${abertas} de ${termos.length} buscas abertas (lista inteira de cada uma); ${perguntados} anúncios novos perguntados à IA, ${pelaFoto} decididos pela foto (${falhas} perguntas com erro)`);
+if (parouEm) anotar(`- ⏳ O tempo da noite acabou na busca ${parouEm} de ${termos.length}: o resto continua na próxima noite`);
+anotar(`- Não têm a ver com a busca (o site esconde): ${naoSao.length}; eram mostrados como produto e são acessório dele: ${viraramAcessorio}`);
 anotar(`- São o produto, mas em outra categoria (conferir as regras de categoria): ${categoriaDuvidosa.length}; ` +
   `categoria corrigida sozinha em ${correcoes.size} (busca de produto com uma categoria só)`);
 anotar(`- Custo: US$ ${custo.toFixed(4)} (${entrada.toLocaleString("pt-BR")} tokens de entrada, ${saida.toLocaleString("pt-BR")} de saída)`);
@@ -292,8 +328,8 @@ const listar = (titulo, itens, comCats) => {
 };
 paraPainel("ia_buscas", {
   linhas: [
-    `${abertas} de ${termos.length} buscas abertas; ${perguntados} produtos perguntados à IA`,
-    `Escondidos (não são o produto buscado): ${naoSao.length}`,
+    `${abertas} de ${termos.length} buscas abertas (lista inteira); ${perguntados} anúncios novos perguntados à IA, ${pelaFoto} pela foto${parouEm ? ` (parou na ${parouEm}: continua amanhã)` : ""}`,
+    `Escondidos (não têm a ver com a busca): ${naoSao.length}; viraram acessório: ${viraramAcessorio}`,
     `Categorias corrigidas sozinhas: ${correcoes.size}`,
     `Custo: US$ ${custo.toFixed(2)}`,
   ],
