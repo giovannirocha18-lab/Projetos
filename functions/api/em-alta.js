@@ -5,7 +5,7 @@
 // "ml" = o que mais se busca no Mercado Livre agora (/trends/MLB, guardado 24 h; faixa da página inicial, 10/11/2026)
 import { maisBuscados, tendenciaAceitavel } from "../../lib/buscas.js";
 import { tendenciasML, vitrineTendencias } from "../../lib/fontes/mercadolivre.js";
-import { categoriasEmAlta, todasCategorias } from "../../lib/categorias.js";
+import { categoriaDoProduto, categoriasEmAlta, todasCategorias } from "../../lib/categorias.js";
 import { nomesMaisVendidosShopee } from "../../lib/fontes/shopee.js";
 import { normalizar } from "../../lib/texto.js";
 
@@ -41,7 +41,7 @@ function paraNavegador(r) {
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/em-alta?v=20", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/em-alta?v=21", request.url)); // trocar o v= para descartar o guardado
   // ?depurar=termo: como a vitrine do ML escolhe foto e preço desse termo (sem guardar)
   const depurar = new URL(request.url).searchParams.get("depurar");
   if (depurar) return Response.json(await vitrineTendencias(env, [depurar.slice(0, 60)], true), { headers: { "Cache-Control": "no-store" } });
@@ -57,6 +57,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
   return paraNavegador(await montar(env, cache, chave));
 }
 
+// Vão para o fim da faixa: categorias do site pouco "de vitrine" e material de casa/obra/carro pelo nome
+const PARA_O_FIM = new Set(["Automotivo", "Ferramentas", "Limpeza", "Organização"]);
+const RE_PARA_O_FIM = /(^| )(portas?|janelas?|portao|pneus?|percarbonato|rastreador|telhas?|cimento|tintas?|parafusos?|torneiras?|pisos?|caixa d agua|fechaduras?|lonas?|mangueiras?|veneno|inseticida|adubo|bateria (de )?(carro|moto)|oleo (de )?motor|papel higienico|sabao|detergente|desinfetante)( |$)/;
+const vaiParaOFim = (c) => [c.termo, c.titulo || ""].some((t) => RE_PARA_O_FIM.test(normalizar(t)) || PARA_O_FIM.has(categoriaDoProduto(t)?.nome));
 async function montar(env, cache, chave) {
 
   const [doSite, maisVendidos, doML] = await Promise.all([
@@ -72,7 +76,11 @@ async function montar(env, cache, chave) {
     .filter((t, i, lista) => !lista.slice(0, i).some((o) => `${normalizar(t)} `.startsWith(`${normalizar(o)} `)
       || `${normalizar(o)} `.startsWith(`${normalizar(t)} `))).slice(0, 50);
   // Cartões com foto e preço (só os termos que têm produto do ML guardado com preço)
-  const ml = (await vitrineTendencias(env, termosML).catch(() => [])).filter((c) => c.foto).slice(0, 20);
+  // Na frente o que mais atrai (eletrônicos, eletro, suplementos…); material de construção, peça de
+  // carro e limpeza ficam para o fim da faixa (Giovanni, 16/11/2026: "porta sanfonada" entre os primeiros)
+  const ml = (await vitrineTendencias(env, termosML).catch(() => [])).filter((c) => c.foto)
+    .map((c, i) => ({ c, i, fim: vaiParaOFim(c) }))
+    .sort((a, b) => a.fim - b.fim || a.i - b.i).map(({ c: { titulo, ...c } }) => c).slice(0, 20);
   const categorias = categoriasEmAlta(maisVendidos, QUANTIDADE);
   const vistos = new Set();
   const itens = [...doSite.map((t) => VIRA_CATEGORIA[normalizar(t)] || { nome: t, busca: t }), ...categorias]
