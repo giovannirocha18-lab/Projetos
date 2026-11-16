@@ -2349,7 +2349,10 @@ function desenharFiltroSecoes() {
     "aria-pressed": String(ativa), onclick: aoClicar },
   // Sem o número de ofertas ao lado, aqui e nas marcas (11/11/2026, pedido do Giovanni: dava a impressão de pouco produto)
   el("span", { class: "secao-icone", "aria-hidden": "true" }, icone), el("span", { class: "secao-nome" }, nome));
-  const visiveis = estado.todasSecoes ? ordem : ordem.filter((secao, i) => i < SECOES_VISIVEIS || (!todas && secaoVisivel({ secao })));
+  // Entram as que têm mais ofertas, mas a lista aparece em ordem alfabética, "Outros" no fim (pedido do Giovanni, 16/11/2026;
+  // vale também para Marcas e Lojas da lateral)
+  const visiveis = (estado.todasSecoes ? ordem : ordem.filter((secao, i) => i < SECOES_VISIVEIS || (!todas && secaoVisivel({ secao }))))
+    .sort((a, b) => (!a) - (!b) || a.localeCompare(b, "pt-BR"));
   $("#filtro-secoes").replaceChildren(
     linha(todas, () => { estado.secoesSo = null; estado.secoesFora.clear(); desenharFiltroSecoes(); desenharResultados(); }, "🗂️", "Todas", total),
     ...visiveis.map((secao) => linha(!todas && secaoVisivel({ secao }), () => {
@@ -2590,7 +2593,8 @@ function desenharFiltroMarcas() {
     ordem = ordem.sort(([a], [b]) => (pos.get(a) ?? 1e9) - (pos.get(b) ?? 1e9));
   }
   ordemMarcas = ordem.map(([n]) => n);
-  const mostrar = estado.todasMarcas ? ordem : ordem.slice(0, Math.max(MARCAS_VISIVEIS, estado.marcasSo.size));
+  const mostrar = (estado.todasMarcas ? ordem : ordem.slice(0, Math.max(MARCAS_VISIVEIS, estado.marcasSo.size)))
+    .sort(([, x], [, y]) => x.nome.localeCompare(y.nome, "pt-BR"));
   $("#filtro-marcas").replaceChildren(...mostrar.map(([n, m]) => el("label", { class: "opcao",
     onpointerenter: (e) => { if (e.pointerType === "mouse") adiantarMarca(n, m.nome); }, onpointerleave: () => adiantarMarca(null) },
     el("input", { type: "checkbox", checked: estado.marcasSo.has(n), onchange: (e) => {
@@ -2682,8 +2686,8 @@ function desenharLojasDaLista() {
   el("span", { class: "secao-icone", "aria-hidden": "true" }, icone), el("span", { class: "secao-nome" }, nome));
   $("#filtro-lojas").replaceChildren(
     linha(todas, () => escolherLoja(null), "🏬", "Todas"),
-    ...Object.keys(contagem).map((id) => {
-      const loja = infoLoja(estado.ofertas.find((o) => o.loja === id));
+    ...Object.keys(contagem).map((id) => [id, infoLoja(estado.ofertas.find((o) => o.loja === id))])
+      .sort(([, x], [, y]) => String(x.nome).localeCompare(String(y.nome), "pt-BR")).map(([id, loja]) => {
       return linha(!todas && !estado.lojasDesmarcadas.has(id), () => escolherLoja(id), el("span", { class: "loja-ponto" }), loja.nome, loja.cor);
     }));
 }
