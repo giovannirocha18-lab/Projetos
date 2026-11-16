@@ -1351,3 +1351,6 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
     .abertura { animation: abertura-some .2s linear 2s forwards; }
   }
 }
+
+/* Numerações do cartão que junta os tamanhos (16/11/2026) */
+.oferta-tamanhos { margin: 2px 0 0; font-size: .78rem; font-weight: 600; color: var(--roxo); }

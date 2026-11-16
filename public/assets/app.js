@@ -1637,6 +1637,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       el("h3", { class: "oferta-titulo", title: o.titulo }, temDetalhes(o)
         ? el("button", { class: "titulo-botao", type: "button", onclick: () => abrirDetalhes(o) }, o.titulo)
         : o.titulo),
+      textoDosTamanhos(o.tamanhos) && el("p", { class: "oferta-tamanhos", title: "Escolha a numeração na página da loja" }, textoDosTamanhos(o.tamanhos)),
       (o.avaliacao || o.vendidos || rankTexto(o)) && el("div", { class: "nota" },
         o.avaliacao && el("span", { class: "estrelas", role: "img", "aria-label": `Nota ${o.avaliacao}` }, estrelas(o.avaliacao)),
         o.avaliacao && el("span", {}, String(o.avaliacao).replace(".", ",")),
@@ -1969,12 +1970,17 @@ const DIFERENCA_REPETIDO = 1.15;
 const CALCADO_ROUPA = /^(tenis|chuteiras?|sapatos?|sapatilhas?|sapatenis|botas?|botinas?|coturnos?|sandalias?|chinelos?|tamancos?|mocassins?|scarpins?|rasteiras?|papetes?|crocs|babuchas?|camisas?|camisetas?|camisolas?|regatas?|blusas?|blusoes?|blusao|jaquetas?|casacos?|moletons?|moletom|calcas?|bermudas?|shorts?|saias?|vestidos?|leggings?|tops?|meias?|cuecas?|calcinhas?|sutias?|maios?|biquinis?|body|bodies|macacoes?|macacao|agasalhos?|corta vento|coletes?|polos?|pijamas?)( |$)/;
 function semTamanho(titulo) {
   const t = String(titulo || "").trim();
-  if (!CALCADO_ROUPA.test(normalizar(t))) return t;
+  const olympikus = /\bolympikus\b/i.test(t);
+  // Kit da Olympikus ("Kit 1 Tênis Olympikus … 46 Multicolorido") também vem uma vez por numeração (16/11/2026)
+  if (!CALCADO_ROUPA.test(olympikus ? normalizar(t).replace(/^kit (\d+ )?/, "") : normalizar(t))) return t;
   const roupa = /\s+(\d?(PP|P|M|G|GG|XG|XGG|EG|EGG|EXG)|XXS|XS|S|L|XL|XXL|XXXL|2XL|3XL|G[1-4]|U|UN|[ÚU]NICO|Tam(anho)?\.? \w+)$/i;
   const numero = /\s+(N(º|o|um)?\.?\s*)?\d{1,2}(\s*[\/-]\s*\d{1,2})?( BR)?$/i;
   // Olympikus: numeração antes da cor ("… Titanium 41 Bege" -> "… Titanium Bege"); igual a lib/variacoes.js
   const antesDaCor = /\s(2\d|3\d|4[0-8])([ \/-](2\d|3\d|4[0-8]))?(?=(\s[A-Za-zÀ-ú\/-]+){1,4}$)/;
-  if (/\bolympikus\b/i.test(t) && antesDaCor.test(t)) return t.replace(antesDaCor, "").trim();
+  const letraAntesDaCor = /\s(PP|P|M|G|GG|XG|XGG|EG|EGG|EXG|U|UN)(?=(\s[A-Za-zÀ-ú\/-]+){1,4}$)/;
+  if (olympikus && antesDaCor.test(t)) return t.replace(antesDaCor, "").trim();
+  if (olympikus && !/^kit /i.test(t) && letraAntesDaCor.test(t)) return t.replace(letraAntesDaCor, "").trim();
+  if (olympikus && /^kit /i.test(t)) return t;
   return (roupa.test(t) ? t.replace(roupa, "") : t.replace(numero, "")).trim() || t;
 }
 // A mesma oferta em várias cores/lados/tecidos (auditoria de 13/11/2026: "Sofá Cama Bloom Tecido Boucle Cinza", "… Linho",
@@ -1991,6 +1997,22 @@ function soMudaACor(a, b) {
   const sa = new Set(pa), sb = new Set(pb);
   const fora = [...pa.filter((p) => !sb.has(p)), ...pb.filter((p) => !sa.has(p))];
   return fora.length > 0 && fora.length <= 6 && fora.every((p) => PALAVRA_DE_COR.has(p));
+}
+// Numerações do cartão que junta os tamanhos (16/11/2026, pedido do Giovanni: "junte num único card informando as
+// numerações"). O servidor manda o.tamanhos (lib/variacoes.js, já em ordem); ao juntar cores aqui, as listas se somam
+const ORDEM_DAS_LETRAS = ["XXS", "XS", "PP", "P", "S", "M", "G", "L", "GG", "XL", "XG", "XXL", "XGG", "EG", "EGG", "EXG", "XXXL"];
+function somarTamanhos(a, b) {
+  const peso = (x) => (/^\d/.test(x) ? parseFloat(x) : 1000 + (ORDEM_DAS_LETRAS.indexOf(x) + 1 || 99));
+  return [...new Set([...(a || []), ...(b || [])])].sort((x, y) => peso(x) - peso(y) || x.localeCompare(y));
+}
+// "Numerações: 34 ao 46" (seguidas), "Numerações: 34, 36, 38" ou "Tamanhos: P, M, G, GG"
+function textoDosTamanhos(tamanhos) {
+  if (!tamanhos || tamanhos.length < 2) return "";
+  const numeros = tamanhos.every((t) => /^\d+$/.test(t));
+  if (!numeros) return `${tamanhos.every((t) => /^\d/.test(t)) ? "Numerações" : "Tamanhos"}: ${tamanhos.slice(0, 10).join(", ")}${tamanhos.length > 10 ? "…" : ""}`;
+  const n = tamanhos.map(Number);
+  const seguidos = n.length > 2 && n.every((x, i) => i === 0 || x - n[i - 1] === 1);
+  return seguidos ? `Numerações: ${n[0]} ao ${n[n.length - 1]}` : `Numerações: ${n.slice(0, 12).join(", ")}${n.length > 12 ? "…" : ""}`;
 }
 function semRepetidos(lista) {
   const posicao = new Map();
@@ -2014,8 +2036,10 @@ function semRepetidos(lista) {
       porTitulo.set(titulo, [...(porTitulo.get(titulo) || []), i]);
       porPreco.set(preco, [...(porPreco.get(preco) || []), i]);
       saida.push(o);
-    } else if ((o.vendidos || 0) > (saida[i].vendidos || 0)) {
-      saida[i] = o;
+    } else {
+      const tamanhos = (o.tamanhos || anterior.tamanhos) ? somarTamanhos(anterior.tamanhos, o.tamanhos) : null;
+      if ((o.vendidos || 0) > (saida[i].vendidos || 0)) saida[i] = o;
+      if (tamanhos) saida[i] = { ...saida[i], tamanhos };
     }
     // Juntou numerações diferentes: o cartão fica sem o número (o tamanho se escolhe na loja)
     if (anterior && anterior.titulo !== o.titulo && semTamanho(anterior.titulo) === semTamanho(o.titulo)) {

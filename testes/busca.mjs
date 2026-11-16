@@ -12,7 +12,7 @@ import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
 import { categoriaDoProduto, categoriaPorNome, marcarSecoes, montarVitrine } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 import { semProdutoAVenda } from "../lib/buscas.js";
-import { modeloBase, semTamanho } from "../lib/variacoes.js";
+import { modeloBase, semTamanho, tamanhoDoTitulo, ordenarTamanhos } from "../lib/variacoes.js";
 
 const CASOS = {
   // 11/11/2026 (print do Giovanni, "computador" na loja Mercado Livre): balança computadora no "Mais barato"
@@ -404,6 +404,18 @@ for (const [q, titulos, primeiro, naoBate] of [
   conferir(ACESSORIOS_NOVOS, "acessório", (o) => o.acessorio);
 }
 // 13/11/2026: loja Olympikus (Awin) manda cada numeração como um anúncio, com o número ANTES da cor
+// Print do Giovanni (16/11/2026): o kit da Olympikus aparecia uma vez por numeração; roupa com o tamanho antes da cor
+{
+  const kit = (n) => `Kit 1 Tênis Olympikus Corre Grafeno 3 e 1 Boné Oly ${n} Multicolorido`;
+  const certo = modeloBase(kit(46)) === modeloBase(kit(34)) && tamanhoDoTitulo(kit(46)) === "46"
+    && semTamanho(kit(46)) === "Kit 1 Tênis Olympikus Corre Grafeno 3 e 1 Boné Oly Multicolorido"
+    && modeloBase("Kit 2 Tênis Olympikus - Corre 5 e Voa 2 44 Multicolorido") !== modeloBase("Kit 2 Tênis Olympikus - Corre 4 e Voa 2 44 Multicolorido")
+    && modeloBase("Camiseta Essential 2.0 Olympikus GG Azul") === modeloBase("Camiseta Essential 2.0 Olympikus G Azul")
+    && tamanhoDoTitulo("Camiseta Essential 2.0 Olympikus GG Azul") === "GG" && tamanhoDoTitulo("Tênis Olympikus Flow 39-40 Roxo") === "39-40"
+    && tamanhoDoTitulo("Tênis Nike Pegasus 41 Preto") === "" && modeloBase("Mochila Olympikus Braze U Preto") === "mochila olympikus braze u preto"
+    && ordenarTamanhos(["41", "GG", "34", "P", "41"]).join() === "34,41,P,GG";
+  if (!certo) { falhas++; console.log("✗ kits e roupas da Olympikus: um cartão por modelo, com as numerações"); }
+}
 if (modeloBase("Tênis Olympikus Titanium 41 Bege") !== modeloBase("Tênis Olympikus Titanium 42 Bege") || semTamanho("Tênis Olympikus Essential 3 Feminino 34 Preto") !== "Tênis Olympikus Essential 3 Feminino Preto"
   || modeloBase("Tênis Olympikus Titanium 41 Bege") === modeloBase("Tênis Olympikus Titanium 41 Preto") || semTamanho("Tênis Nike Pegasus 41 Masculino Preto") !== "Tênis Nike Pegasus 41 Masculino Preto"
   || semTamanho("Tênis Olympikus Corre Grafeno 3 Azul 40") !== "Tênis Olympikus Corre Grafeno 3 Azul") { falhas++; console.log("✗ numerações da Olympikus: juntar \"… 41 Bege\" com \"… 42 Bege\", sem mexer no Pegasus 41"); }

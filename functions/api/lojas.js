@@ -19,14 +19,14 @@ import { marcarSecoes, categoriaPorNome } from "../../lib/categorias.js";
 import { comCategoriaDaIa } from "../../lib/ia.js";
 import { MARCAS } from "../../lib/vocabulario.js";
 import { normalizar } from "../../lib/texto.js";
-import { modeloBase, grupoDaCategoria, semTamanho } from "../../lib/variacoes.js";
+import { modeloBase, grupoDaCategoria, semTamanho, tamanhoDoTitulo, ordenarTamanhos } from "../../lib/variacoes.js";
 import { filtroDeMarca, MAX_DA_MARCA } from "../../lib/marcas.js";
 
 const LISTA_SEGUNDOS = 6 * 60 * 60;
 const PRODUTOS_SEGUNDOS = 60 * 60;
 const POR_PAGINA = 48;
 const MAX_PAGINA = 80; // era 20 (05/11/2026: a loja Mercado Livre tem ~3.800 mais vendidos)
-const VERSAO = 46; // 46: Olympikus em Calçados (13/11/2026); 45: Olympikus só em Esporte e fitness (13/11/2026); 44: Olympikus, tamanhos infantis e faixas "39-40"; 43: Olympikus (13/11/2026); 42: Mercado Livre em primeiro (08/11/2026); 41: Shein sem "Internacional" (08/11/2026); 40: Shein só com "Ir para a loja" (08/11/2026); 39: Stanley (05/11/2026); 38: aparelhos antes dos acessórios nos atalhos; 37: atalhos da loja ML; 36: total da loja ML; 35: "sapateira" não é sapato (variações); 34: até 80 páginas por loja; 33: loja Mercado Livre (05/11/2026); 32: Lauri fora também pela Lomadee; 31: sem a Lauri Esporte (04/11/2026); 30: tamanhos em inglês (XS, S, L, XL); 29: tamanhos "42 BR" e "2GG"; 28: um cartão por modelo e tipos revezados na página da loja (04/11/2026); 27: sem a Elements (04/11/2026); 26: TEKA em Cama e banho (04/11/2026); 25: "marca" nas lojas que também são marca (04/11/2026); 24: Lauri Esporte só pela Awin (04/11/2026); 23: só a conta PJ da Awin (30/10/2026); 22: Moda infantil (30/10/2026); 21: categorias da IA (29/10/2026); 20: Motorola "moto g" não é moto; 19: Central Ar toda em Eletrodomésticos; 18: Central Ar, Motorola e Calvin Klein (28/10/2026); 17: categoria da loja trava a categoria (28/10/2026); 16: Pets exclusiva (28/10/2026); 15: oBoticario e Efacil (28/10/2026); 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
+const VERSAO = 47; // 47: kits e roupas da Olympikus num cartão, com as numerações (16/11/2026); 46: Olympikus em Calçados (13/11/2026); 45: Olympikus só em Esporte e fitness (13/11/2026); 44: Olympikus, tamanhos infantis e faixas "39-40"; 43: Olympikus (13/11/2026); 42: Mercado Livre em primeiro (08/11/2026); 41: Shein sem "Internacional" (08/11/2026); 40: Shein só com "Ir para a loja" (08/11/2026); 39: Stanley (05/11/2026); 38: aparelhos antes dos acessórios nos atalhos; 37: atalhos da loja ML; 36: total da loja ML; 35: "sapateira" não é sapato (variações); 34: até 80 páginas por loja; 33: loja Mercado Livre (05/11/2026); 32: Lauri fora também pela Lomadee; 31: sem a Lauri Esporte (04/11/2026); 30: tamanhos em inglês (XS, S, L, XL); 29: tamanhos "42 BR" e "2GG"; 28: um cartão por modelo e tipos revezados na página da loja (04/11/2026); 27: sem a Elements (04/11/2026); 26: TEKA em Cama e banho (04/11/2026); 25: "marca" nas lojas que também são marca (04/11/2026); 24: Lauri Esporte só pela Awin (04/11/2026); 23: só a conta PJ da Awin (30/10/2026); 22: Moda infantil (30/10/2026); 21: categorias da IA (29/10/2026); 20: Motorola "moto g" não é moto; 19: Central Ar toda em Eletrodomésticos; 18: Central Ar, Motorola e Calvin Klein (28/10/2026); 17: categoria da loja trava a categoria (28/10/2026); 16: Pets exclusiva (28/10/2026); 15: oBoticario e Efacil (28/10/2026); 14: fotos quebradas da Lomadee fora (27/10/2026); 13: Lojas Benoit fora até corrigir o feed (27/10/2026); 12: Lojas Benoit sem as fotos quebradas (27/10/2026); 11: Cobasi e Lojas Benoit (27/10/2026); 10: fotos e descrições da Lomadee; 9: fotos e descrições da Lomadee (26/10/2026); trocar para descartar o que está guardado (7: links da Lomadee assinados, 25/10/2026; 8: marcas novas da Lomadee)
 
 // O navegador guarda só 1 minuto (08/11/2026: lojas novas e mudanças só apareciam com Ctrl+F5, ele guardava 6 h);
 // o tempo longo vale no cache do Cloudflare (cache.put), que é quem responde rápido
@@ -83,11 +83,15 @@ async function ordemDaLoja(db, loja) {
     "SELECT id, titulo, categoria, desconto FROM ofertas WHERE loja = ? AND +fonte = 'awin' ORDER BY desconto DESC",
   ).bind(loja).all();
   const vistos = new Map(); // modelo -> 1º id
-  const variados = new Set(); // ids que representam mais de um tamanho
+  const tamanhos = new Map(); // 1º id -> tamanhos do modelo (16/11/2026: o cartão mostra as numerações)
+  const repetidos = new Set(); // ids que representam mais de um anúncio
   const grupos = new Map();
   for (const l of results) {
     const modelo = modeloBase(l.titulo);
-    if (vistos.has(modelo)) { variados.add(vistos.get(modelo)); continue; }
+    const primeiro = vistos.get(modelo) ?? l.id;
+    if (!tamanhos.has(primeiro)) tamanhos.set(primeiro, []);
+    tamanhos.get(primeiro).push(tamanhoDoTitulo(l.titulo));
+    if (vistos.has(modelo)) { repetidos.add(primeiro); continue; }
     vistos.set(modelo, l.id);
     const g = grupoDaCategoria(l.categoria);
     if (!grupos.has(g)) grupos.set(g, []);
@@ -99,6 +103,8 @@ async function ordemDaLoja(db, loja) {
   for (let i = 0; ids.length < MAX_PAGINA * POR_PAGINA && filas.some((f) => i < f.length); i++) {
     for (const f of filas) if (i < f.length) ids.push(f[i]);
   }
+  // ids que representam mais de um tamanho -> as numerações em ordem
+  const variados = new Map([...repetidos].map((id) => [id, ordenarTamanhos(tamanhos.get(id))]));
   if (ordens.size > 200) ordens.clear();
   ordens.set(loja, { ids, variados, em: Date.now() });
   return ids;
@@ -111,12 +117,16 @@ async function produtosDaMarcaNaLoja(env, loja, filtro) {
     "SELECT id, titulo FROM ofertas WHERE loja = ? AND +fonte = 'awin' ORDER BY desconto DESC",
   ).bind(loja).all();
   const vistos = new Map(); // modelo -> 1º id
-  const variados = new Set();
+  const variados = new Map(); // id que representa mais de um tamanho -> as numerações
+  const tamanhos = new Map();
   for (const l of results || []) {
     if (!filtro.cita(l.titulo)) continue;
     const modelo = modeloBase(l.titulo);
-    if (vistos.has(modelo)) variados.add(vistos.get(modelo)); else vistos.set(modelo, l.id);
+    const primeiro = vistos.get(modelo) ?? l.id;
+    tamanhos.set(primeiro, [...(tamanhos.get(primeiro) || []), tamanhoDoTitulo(l.titulo)]);
+    if (vistos.has(modelo)) variados.set(primeiro, []); else vistos.set(modelo, l.id);
   }
+  for (const id of variados.keys()) variados.set(id, ordenarTamanhos(tamanhos.get(id)));
   const todos = [...vistos.values()];
   const ids = todos.slice(0, MAX_DA_MARCA);
   const porId = new Map();
@@ -128,7 +138,7 @@ async function produtosDaMarcaNaLoja(env, loja, filtro) {
     for (const r of respostas) for (const l of r.results || []) porId.set(l.id, l);
   }
   const ofertas = await comHistorico(env.DB, ids.map((id) => porId.get(id)).filter(Boolean).map(linhaParaOferta)
-    .map((o) => (variados.has(o.id) ? { ...o, titulo: semTamanho(o.titulo) } : o)));
+    .map((o) => (variados.has(o.id) ? { ...o, titulo: semTamanho(o.titulo), tamanhos: variados.get(o.id) } : o)));
   return { nome: ofertas[0]?.lojaNome || loja, ofertas, temMais: false, completo: todos.length <= MAX_DA_MARCA };
 }
 
@@ -188,9 +198,9 @@ async function produtosDaLoja(env, id, pagina, waitUntil, cat = null, filtro = n
     const { results } = await env.DB.prepare(`SELECT ${COLUNAS_OFERTA} FROM ofertas WHERE id IN (${ids.map(() => "?").join(",")})`)
       .bind(...ids).all();
     const porId = new Map(results.map((l) => [l.id, l]));
-    const variados = ordens.get(chave)?.variados || new Set();
+    const variados = ordens.get(chave)?.variados || new Map();
     const ofertas = await comHistorico(env.DB, ids.map((id) => porId.get(id)).filter(Boolean).map(linhaParaOferta)
-      .map((o) => (variados.has(o.id) ? { ...o, titulo: semTamanho(o.titulo) } : o)));
+      .map((o) => (variados.has(o.id) ? { ...o, titulo: semTamanho(o.titulo), tamanhos: variados.get(o.id) } : o)));
     return { nome: ofertas[0]?.lojaNome || chave, ofertas, temMais: ordem.length > pagina * POR_PAGINA && pagina < MAX_PAGINA };
   }
   return null;
