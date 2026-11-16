@@ -41,7 +41,7 @@ function paraNavegador(r) {
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/em-alta?v=18", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/em-alta?v=19", request.url)); // trocar o v= para descartar o guardado
   // ?depurar=termo: como a vitrine do ML escolhe foto e preço desse termo (sem guardar)
   const depurar = new URL(request.url).searchParams.get("depurar");
   if (depurar) return Response.json(await vitrineTendencias(env, [depurar.slice(0, 60)], true), { headers: { "Cache-Control": "no-store" } });
@@ -70,7 +70,7 @@ async function montar(env, cache, chave) {
     .filter((t) => !vistosML.has(normalizar(t)) && vistosML.add(normalizar(t)))
     // "creatina" e "creatina growth", "moto eletrica" e "moto eletrica adulta": fica só o primeiro
     .filter((t, i, lista) => !lista.slice(0, i).some((o) => `${normalizar(t)} `.startsWith(`${normalizar(o)} `)
-      || `${normalizar(o)} `.startsWith(`${normalizar(t)} `))).slice(0, 30);
+      || `${normalizar(o)} `.startsWith(`${normalizar(t)} `))).slice(0, 50);
   // Cartões com foto e preço (só os termos que têm produto do ML guardado com preço)
   const ml = (await vitrineTendencias(env, termosML).catch(() => [])).filter((c) => c.foto).slice(0, 20);
   const categorias = categoriasEmAlta(maisVendidos, QUANTIDADE);
