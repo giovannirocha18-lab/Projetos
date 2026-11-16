@@ -283,7 +283,9 @@ for (let i = 0; i < termos.length; i += AO_MESMO_TEMPO) {
     // Tudo o que a busca mostra e ainda não tem veredito (o que as regras já marcaram como "parecido" o site já esconde)
     for (const o of ofertas) {
       const chave = chaveIa(o.titulo || "");
-      if (!chave || o.parecido) continue;
+      // naoBuscado = escondido por veredito antigo da IA ou pela regra do brinquedo: esse entra (no teste ia_so o veredito
+      // foi apagado e a cópia guardada do site ainda o trazia marcado: ficava sem pergunta e voltava a aparecer)
+      if (!chave || (o.parecido && !o.naoBuscado)) continue;
       // Já respondido "é o produto" numa noite anterior e ainda fora da categoria: corrige sem perguntar de novo
       if (vistos.get(`${termo}|${chave}`) === 1 && corrigeCom && fora.has(o)) correcoes.set(chave, corrigeCom);
       if (!vistos.has(`${termo}|${chave}`) && !porChave.has(chave)) porChave.set(chave, o);
