@@ -558,7 +558,11 @@ const CATEGORIAS_ESPERADAS = [
   ["Caixa de Som Gamer Rise Mode Aura Sound S6, RGB", "Caixas de som"], ["Caixa de Som Portátil JBL Wind 3, para Bicicleta", "Caixas de som"],
   ["Monitor Gamer TCL Mini LED 25\", 300Hz", "Informática"], ["Fita LED 5m RGB", "Iluminação LED"], ["Projetor LED Full HD Husky", "Informática"],
   // 14/11/2026 (print do Giovanni: projetor "Smart TV" em Eletrodomésticos)
-  ["Projetor Android Smart TV CWEUG 3800ANSI A10Q Full HD 1080P", "Informática"], ["Projetor de Estrelas Galáxia Astronauta LED", undefined],
+  ["Projetor Android Smart TV CWEUG 3800ANSI A10Q Full HD 1080P", "Informática"],
+  ["Capa à prova de choque para Motorola Signature, com toque fosco, leve, moldura de TPU macia", "Acessórios de celular"],
+  ["Capa para iPhone 15 silicone", "Acessórios de celular"], ["Capa de telefone magnética para Xiaomi Redmi Note 13", "Acessórios de celular"],
+  ["Película de vidro 3D para Samsung Galaxy A15", "Acessórios de celular"], ["Smartphone Motorola Moto G47 5G 128GB", "Celulares"],
+  ["Celular Samsung Galaxy A17 5G 256GB com Capa e Película", "Celulares"], ["Projetor de Estrelas Galáxia Astronauta LED", undefined],
   ["Kit 2 Controle Remoto Para Tv Samsung 4k Smart Teclas Netflix", undefined], ["Antena Digital Interna Smart TV HDTV 4K", undefined],
   ["Aparador Bar com Bandeja Adega para 16 Garrafas", "Móveis"], ["Smart TV 55\" 4K LG 55UT8050", "Eletrodomésticos"],
   ["Top sustentação feminino top academia", "Moda fitness"], ["Top com bojo removível esportivo", "Moda fitness"],
