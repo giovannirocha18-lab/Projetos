@@ -1619,7 +1619,8 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: (e) => alternarFavorito(o, e.currentTarget),
     }, ICONE_CARRINHO()),
     el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored noopener", tabindex: "-1", "aria-hidden": "true", ...marcaClique("foto", o),
-      onclick: (e) => { if (CELULAR.matches && temDetalhes(o)) { e.preventDefault(); abrirDetalhes(o); } else abrir(); } },
+      // No computador também (pedido do Giovanni, 16/11/2026): a foto abre os detalhes, como a lupa; para a loja, só o botão Comprar
+      onclick: (e) => { if (temDetalhes(o)) { e.preventDefault(); abrirDetalhes(o); } else abrir(); } },
       o.imagem
         // Foto que não carrega (link quebrado da loja) vira o desenho padrão
         ? el("img", { src: fotoPequena(o.imagem), alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(o) })
