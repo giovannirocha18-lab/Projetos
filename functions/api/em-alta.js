@@ -41,7 +41,7 @@ function paraNavegador(r) {
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/em-alta?v=21", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/em-alta?v=22", request.url)); // trocar o v= para descartar o guardado
   // ?depurar=termo: como a vitrine do ML escolhe foto e preço desse termo (sem guardar)
   const depurar = new URL(request.url).searchParams.get("depurar");
   if (depurar) return Response.json(await vitrineTendencias(env, [depurar.slice(0, 60)], true), { headers: { "Cache-Control": "no-store" } });
@@ -61,6 +61,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
 const PARA_O_FIM = new Set(["Automotivo", "Ferramentas", "Limpeza", "Organização"]);
 const RE_PARA_O_FIM = /(^| )(portas?|janelas?|portao|pneus?|percarbonato|rastreador|telhas?|cimento|tintas?|parafusos?|torneiras?|pisos?|caixa d agua|fechaduras?|lonas?|mangueiras?|veneno|inseticida|adubo|bateria (de )?(carro|moto)|oleo (de )?motor|papel higienico|sabao|detergente|desinfetante)( |$)/;
 const vaiParaOFim = (c) => [c.termo, c.titulo || ""].some((t) => RE_PARA_O_FIM.test(normalizar(t)) || PARA_O_FIM.has(categoriaDoProduto(t)?.nome));
+// Termos que o Giovanni mandou tirar da faixa "Em alta no ML" (16/11/2026: "retire só esta porta sanfonada")
+const FORA_DA_FAIXA = new Set(["porta sanfonada"]);
 async function montar(env, cache, chave) {
 
   const [doSite, maisVendidos, doML] = await Promise.all([
@@ -70,7 +72,7 @@ async function montar(env, cache, chave) {
   ]);
   // Mais buscados no ML: sem impróprios (mesmo filtro das sugestões) e sem repetidos
   const vistosML = new Set();
-  const termosML = doML.filter((t) => t.length >= 3 && t.length <= 40 && tendenciaAceitavel(t))
+  const termosML = doML.filter((t) => t.length >= 3 && t.length <= 40 && tendenciaAceitavel(t) && !FORA_DA_FAIXA.has(normalizar(t)))
     .filter((t) => !vistosML.has(normalizar(t)) && vistosML.add(normalizar(t)))
     // "creatina" e "creatina growth", "moto eletrica" e "moto eletrica adulta": fica só o primeiro
     .filter((t, i, lista) => !lista.slice(0, i).some((o) => `${normalizar(t)} `.startsWith(`${normalizar(o)} `)
