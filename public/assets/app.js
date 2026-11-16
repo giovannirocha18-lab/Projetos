@@ -3978,7 +3978,9 @@ async function mostrarNumeros() {
         el("button", { type: "button", class: "botao-cupons-inicio", title: "Mostra o mesmo produto lado a lado nas lojas",
           onclick: () => $("#atalho-comparador").click() }, "⚖️ Comparador"),
         estado.cupons.length ? el("button", { type: "button", class: "botao-cupons-inicio", onclick: () => abrirCupons() },
-          `🎟️ Ver ${estado.cupons.length} cupons de desconto`) : ""));
+          `🎟️ Ver ${estado.cupons.length} cupons de desconto`) : "",
+        // No computador o início ficou sem a barra lateral, onde estava "Ver lojas parceiras" (pergunta do Giovanni, 16/11/2026)
+        el("button", { type: "button", class: "botao-cupons-inicio", onclick: abrirLojas }, "🏬 Lojas parceiras")));
     inicio.hidden = false;
     // Filtro de lojas: deixa claro que ali só estão as lojas da lista atual, não todas as parceiras
     const nota = $("#nota-lojas");
