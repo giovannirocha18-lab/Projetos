@@ -9,7 +9,7 @@
 // Roda nos servidores do Cloudflare (Pages Functions). É aqui que ficam as
 // chaves das APIs, sem nunca chegarem ao navegador do visitante.
 import { comCategoriaDaIa } from "../../lib/ia.js";
-import { naoSaoDaBusca, semNaoBuscados, respostaSemNaoBuscados } from "../../lib/iaBusca.js";
+import { naoSaoDaBusca, semNaoBuscados, semBrinquedos, respostaSemNaoBuscados } from "../../lib/iaBusca.js";
 import { fotosErradas, semFotosErradas } from "../../lib/iaFotos.js";
 import { exemplo } from "../../lib/fontes/exemplo.js";
 import { curadoria } from "../../lib/fontes/curadoria.js";
@@ -593,7 +593,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     mais = pagina < MAX_PAGINA && fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina) ? `pagina=${pagina + 1}` : null;
   }
   // O que a IA disse não ser o produto buscado vai para "Ver também… produtos parecidos" (ver lib/iaBusca.js)
-  if (q) ofertas = semNaoBuscados(ofertas, await naoSaoDaBusca(env.DB, q));
+  if (q) ofertas = semBrinquedos(semNaoBuscados(ofertas, await naoSaoDaBusca(env.DB, q)), q);
   ofertas = semFotosErradas(ofertas, await fotosErradas(env.DB)); // foto que não é do produto (lib/iaFotos.js)
   // Lomadee: tira as fotos que já sabemos que não abrem (ver lib/fotos.js); nas buscas prontas do robô, testa antes
   ofertas = await semFotosQuebradas(env.DB, ofertas, { esperar: Boolean(preparar), waitUntil });
