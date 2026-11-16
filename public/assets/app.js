@@ -1984,7 +1984,7 @@ const PALAVRA_DE_COR = new Set(("preto preta branco branca cinza bege azul marin
   + "laranja marrom linho grafite chumbo prata prateado dourado dourada off white cru crua castanho caramelo nude vinho bordo turquesa creme "
   + "claro clara escuro escura esquerda direita esquerdo direito boucle cotele veloure suede jatoba stain natural mel terracota fendi "
   + "areia gelo champagne cobre rose gold black blue red pink green grey gray silver cafe chocolate tabaco petroleo royal bic celeste "
-  + "oliva militar mostarda salmao coral magenta violeta lavanda menta agua ceu neon fosco fosca brilho cor cores").split(" "));
+  + "oliva militar mostarda salmao coral magenta violeta lavanda menta agua ceu neon fosco fosca brilho cor cores multicolor multicolorido multicolorida colorido colorida titanium").split(" "));
 function soMudaACor(a, b) {
   const pa = normalizar(a).split(/[^a-z0-9]+/).filter(Boolean), pb = normalizar(b).split(/[^a-z0-9]+/).filter(Boolean);
   if (pa.length < 3 || pb.length < 3 || pa[0] !== pb[0] || pa[1] !== pb[1]) return false;
