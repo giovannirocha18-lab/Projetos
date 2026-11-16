@@ -600,6 +600,11 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   servidor: página da loja (`ordemDaLoja`, /api/lojas VERSAO 47) e busca da Awin (todos os candidatos); app.js
   `textoDosTamanhos`/`somarTamanhos`, cópia em `semTamanho`; `.oferta-tamanhos`). Vale para toda loja da Awin que manda
   um anúncio por tamanho. Buscas guardadas ganham a linha conforme se renovam. Caso em testes/busca.mjs. No ar ✅.
+  **Teste de remontagem (16/11, pedido dele: "igual à outra loja de esportes")**: celular simulado (CPU 4x), 8 telas rolando 10
+  vezes: cartões tirados = só os 8 de "carregando" (tenis, camiseta, chinelo, loja Olympikus 368 cartões/14 páginas, 0 título
+  repetido); 1º cartão 0,6–2,3 s. Troca grande só quando chega o 2º lote da busca (igual em "geladeira": não é das numerações).
+  Achado: a busca só vê até 400 anúncios da loja → lista de numerações incompleta → `lib/tamanhosDaLoja.js` (loja inteira, só
+  títulos, 6 h no cache do Cloudflare + memória; até 6 lojas por busca). Busca nova segue em ~3–4 s.
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
