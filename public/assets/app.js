@@ -1826,6 +1826,41 @@ function graficoHistorico(pontos, precoAtual, habitual = null) {
 // 1 foto e nenhuma descrição; a janela mostra a foto grande, o nome inteiro, nota, vendidos, loja e histórico.
 const temDetalhes = (o) => Boolean(o.titulo);
 
+// Foto da janela "Ver detalhes" em tela cheia (pedido do Giovanni, 16/11/2026: ler as letras pequenas da foto, como o
+// "Conteúdo da caixa"). 1º toque abre a foto inteira; toque na foto amplia no ponto tocado (arrasta/rola para andar);
+// outro toque volta; ✕, Esc ou toque fora fecham. Fica dentro do <dialog> para aparecer por cima dele
+function ampliarFoto(src, titulo) {
+  const janela = $("#janela-detalhes");
+  if (!src || !janela || janela.querySelector(".foto-ampliada")) return;
+  const img = el("img", { src, alt: titulo || "" });
+  const fechar = () => { caixa.remove(); janela.removeEventListener("cancel", aoCancelar); };
+  const aoCancelar = (e) => { e.preventDefault(); fechar(); }; // Esc fecha só a foto, não a janela
+  const caixa = el("div", { class: "foto-ampliada", onclick: (e) => { if (e.target !== img) fechar(); } },
+    el("button", { type: "button", class: "foto-ampliada-fechar", "aria-label": "Fechar a foto", onclick: fechar }, "✕"),
+    el("div", { class: "foto-ampliada-area" }, img),
+    el("p", { class: "foto-ampliada-dica" }, "Toque na foto para ampliar · toque de novo para voltar"));
+  const area = caixa.querySelector(".foto-ampliada-area");
+  img.addEventListener("click", (e) => {
+    const r = img.getBoundingClientRect();
+    const fx = (e.clientX - r.left) / r.width;
+    const fy = (e.clientY - r.top) / r.height;
+    const grande = caixa.classList.toggle("grande");
+    if (grande) requestAnimationFrame(() => {
+      area.scrollLeft = fx * area.scrollWidth - area.clientWidth / 2;
+      area.scrollTop = fy * area.scrollHeight - area.clientHeight / 2;
+    });
+  });
+  // No computador a foto ampliada acompanha o mouse (sem precisar rolar)
+  area.addEventListener("mousemove", (e) => {
+    if (!caixa.classList.contains("grande")) return;
+    const r = area.getBoundingClientRect();
+    area.scrollLeft = ((e.clientX - r.left) / r.width) * (area.scrollWidth - area.clientWidth);
+    area.scrollTop = ((e.clientY - r.top) / r.height) * (area.scrollHeight - area.clientHeight);
+  });
+  janela.addEventListener("cancel", aoCancelar);
+  janela.append(caixa);
+}
+
 // doLink = aberto por um link compartilhado no WhatsApp: sem o botão de enviar de novo (pedido do Giovanni, 24/10/2026)
 function abrirDetalhes(o, { doLink = false } = {}) {
   const loja = infoLoja(o);
@@ -1836,7 +1871,10 @@ function abrirDetalhes(o, { doLink = false } = {}) {
       onerror: (e) => { e.target.style.visibility = "hidden"; } }) // foto quebrada: some, sem travar a galeria
     : el("span", { class: "foto-emoji" }, o.emoji || "🛍️");
   const galeria = el("div", { class: "detalhes-galeria", style: `--fundo-cat:${FUNDO_CATEGORIA[o.categoria] || "linear-gradient(135deg,#ede9fe,#fce7f3)"}` },
-    el("div", { class: "detalhes-foto" }, fotoGrande),
+    el("div", { class: `detalhes-foto${fotos.length ? " amplia" : ""}`, ...(fotos.length && { role: "button", tabindex: "0", title: "Ampliar a foto",
+      "aria-label": "Ampliar a foto", onclick: () => ampliarFoto(fotoGrande.src, o.titulo),
+      onkeydown: (e) => { if (e.key === "Enter") ampliarFoto(fotoGrande.src, o.titulo); } }) }, fotoGrande,
+    fotos.length ? el("span", { class: "detalhes-lupa", "aria-hidden": "true" }, "🔍 Toque para ampliar") : ""),
     fotos.length > 1 && el("div", { class: "detalhes-miniaturas" }, ...fotos.map((f, i) =>
       el("button", { type: "button", class: i === 0 ? "ativa" : null, "aria-label": `Foto ${i + 1}`, onclick: (e) => {
         fotoGrande.src = f;

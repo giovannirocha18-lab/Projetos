@@ -1354,3 +1354,17 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
 
 /* Numerações do cartão que junta os tamanhos (16/11/2026) */
 .oferta-tamanhos { margin: 2px 0 0; font-size: .78rem; font-weight: 600; color: var(--roxo); }
+
+/* Foto da janela "Ver detalhes" ampliada em tela cheia (16/11/2026; app.js, ampliarFoto) */
+.detalhes-foto.amplia { position: relative; cursor: zoom-in; }
+.detalhes-lupa { position: absolute; right: 10px; bottom: 10px; padding: 5px 10px; border-radius: 999px; background: rgba(17, 12, 34, .72);
+  color: #fff; font-size: .78rem; font-weight: 600; line-height: 1.2; pointer-events: none; }
+.foto-ampliada { position: fixed; inset: 0; z-index: 50; background: #0c081a; display: flex; flex-direction: column; }
+.foto-ampliada-area { flex: 1; min-height: 0; overflow: auto; display: grid; place-items: center; padding: 12px; overscroll-behavior: contain; }
+.foto-ampliada-area img { max-width: 100%; max-height: 100%; object-fit: contain; background: #fff; border-radius: 10px; cursor: zoom-in; }
+.foto-ampliada.grande .foto-ampliada-area { display: block; padding: 0; }
+.foto-ampliada.grande .foto-ampliada-area img { max-width: none; max-height: none; width: max(250vw, 1600px); border-radius: 0; cursor: zoom-out; }
+@media (min-width: 861px) { .foto-ampliada.grande .foto-ampliada-area img { width: max(180vw, 2200px); } }
+.foto-ampliada-fechar { position: absolute; top: 12px; right: 14px; z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 0;
+  background: #fff; color: #1f1638; font-size: 1.2rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 10px rgba(0, 0, 0, .35); }
+.foto-ampliada-dica { margin: 0; padding: 8px 12px 12px; text-align: center; color: #e9e4f7; font-size: .85rem; }
