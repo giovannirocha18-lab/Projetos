@@ -27,6 +27,7 @@ import { normalizar } from "../../lib/texto.js";
 import { anotarNaFilaML, POUCOS_ML } from "../../lib/mlFila.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
+import { criarFila } from "../../lib/fila.js";
 import { corrigirBusca, acentuarBusca, buscaNasLojas, buscaSoDeConsole } from "../../lib/vocabulario.js";
 import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
@@ -396,6 +397,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Categorias das lojas que já sabemos traduzir para as nossas (ver lib/mapaCategorias.js)
   const mapa = await carregarMapa(env);
   const lojas = {};
+  // Uma fila por pedido para Shopee, AliExpress e Lomadee: sobram vagas de conexão para o Mercado Livre (lib/fila.js)
+  const fila = criarFila();
   const consultar = async (termo, opcoesDaBusca) => {
     if (soLoja) opcoesDaBusca = { ...opcoesDaBusca, soLoja: soLoja.chave };
     if (rapido) opcoesDaBusca = { ...opcoesDaBusca, soBanco: true };
@@ -430,7 +433,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
           // Prazo por página (10/11/2026, revisão): com um prazo só para o lote, a página lenta jogava fora as que já tinham
           // chegado. prazoMs = a loja pode desistir da parte lenta antes e devolver o que tem (Shopee: lista oficial do banco)
           const prazo = limiteDe(fonte);
-          const comPrazo = { ...opcoes, prazoMs: prazo - 1000, visitante: !preparar && !atualizar, espera: waitUntil };
+          const comPrazo = { ...opcoes, prazoMs: prazo - 1000, visitante: !preparar && !atualizar, espera: waitUntil, fila };
           const porPagina = await Promise.allSettled(paginas.map((p) => comLimite(fonte.buscar(termo, env, p, comPrazo), prazo)));
           // Uma página falhou: a loja conta como em erro, mas o que as outras páginas trouxeram não se perde
           const falha = porPagina.find((r) => r.status === "rejected");
