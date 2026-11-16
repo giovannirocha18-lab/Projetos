@@ -605,6 +605,7 @@ Log grande: `get_job_logs` sem return_content dá um link → baixar com curl. C
   repetido); 1º cartão 0,6–2,3 s. Troca grande só quando chega o 2º lote da busca (igual em "geladeira": não é das numerações).
   Achado: a busca só vê até 400 anúncios da loja → lista de numerações incompleta → `lib/tamanhosDaLoja.js` (loja inteira, só
   títulos, 6 h no cache do Cloudflare + memória; até 6 lojas por busca). Busca nova segue em ~3–4 s.
+  Rodada manual das prontas (16/11, ~1h45, 640 passos) ✅: "tenis olympikus" 73 ofertas com numerações, "tenis" 57, "camiseta" 23; poucas: 4 resolvidas (chinelo/tenis olympikus masculino 9–20 → 56–85).
 
 ## Pendências
 - **Mercado Livre (próximo)**: 1) ✅ cliques contam (painel de afiliados, Métricas → Período "Hoje": 3 cliques em 04/11);
