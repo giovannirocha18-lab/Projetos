@@ -262,7 +262,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const trocarPelaPronta = async (criado) => {
     if (!cache || !env.DB || desde !== 1 || !(pagina === 1 || (!q && pagina <= PAGINAS_INICIO_PRONTAS))) return false;
     const nova = await env.DB.prepare(`SELECT criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first().catch(() => null);
-    if (!nova || nova.criado <= criado + 60 * 1000 || Date.now() - nova.criado > FRESCO_MS) return false;
+    if (!nova || nova.criado <= criado + 60 * 1000) return false;
     const pronta = await env.DB.prepare(`SELECT resposta, total, criado FROM ${TABELA_PRONTAS} WHERE chave = ?`).bind(chave.url).first();
     if (!pronta) return false;
     const resposta = responder(await descompactar(pronta.resposta));
@@ -270,7 +270,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
     resposta.headers.set("X-Pronta", "1");
     await cache.put(chave, paraGuardar(resposta.clone(), pronta.criado));
     await guardarLimpa(await limpar(resposta), pronta.criado);
-    return true;
+    // 16/11/2026: a pronta mais nova entra mesmo já passada das 6 horas (Games: o ponto do Cloudflare seguia com a lista de
+    // 37 ofertas de 27 h antes, com a pronta de 354 no banco havia 16 h, porque a busca refeita sem a Shopee não troca a
+    // guardada). Sendo velha, devolve false para a busca também ser refeita nas lojas
+    return Date.now() - pronta.criado <= FRESCO_MS;
   };
   // contar=1: o site usou a busca que adiantou enquanto a pessoa digitava; só falta contar para os "em alta"
   const soContar = params.has("contar");
