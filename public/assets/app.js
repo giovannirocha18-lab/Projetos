@@ -4082,7 +4082,7 @@ async function carregarEmAlta() {
   const guardada = faixaMLGuardada();
   if (guardada) desenharBuscadosML(guardada);
   try {
-    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=19")).json();
+    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=20")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     if (categorias.length) desenharCategorias(categorias);
