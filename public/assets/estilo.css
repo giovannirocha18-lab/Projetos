@@ -700,6 +700,9 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
    tamanho (auto = o último medido), então a página não pula */
 #grade > .oferta, #destaques > .oferta { content-visibility: auto; contain-intrinsic-size: auto 420px; }
 /* Celular: sem rodapé (pedido do Giovanni, 05/11/2026, com a rolagem infinita); os links dele ficam na janela Conta */
+/* 16/11/2026 (pedido do Giovanni): o site (index) fica sem rodapé também no computador: atrapalhava as buscas com a rolagem
+   infinita. Os links Como funciona / Privacidade ficam na janela Conta (.links-legais); as páginas de texto mantêm o rodapé */
+.rodape-site { display: none; }
 @media (max-width: 640px) { .rodape { display: none; } }
 .links-legais { margin: 18px 0 0; text-align: center; font-size: .82rem; color: var(--suave); }
 .links-legais a { color: var(--suave); }
