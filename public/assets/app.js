@@ -1667,7 +1667,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
         el("div", { class: "links-oferta" },
           // Só o ícone, na mesma linha dos botões redondos (teste do Giovanni, 12/11/2026: cartões mais baixos); o nome fica
           // na dica do mouse e para leitores de tela
-          temDetalhes(o) && el("button", { class: "ver-historico", type: "button", title: "Ver detalhes", "aria-label": "Ver detalhes", onclick: () => abrirDetalhes(o) }, "🔍"),
+          // A lupa "Ver detalhes" saiu (Giovanni, 16/11/2026): a foto e o nome do cartão já abrem os detalhes
           o.historico && el("button", { class: "ver-historico", type: "button", title: "Histórico de preço", "aria-label": "Histórico de preço", onclick: () => abrirHistorico(o) }, "📈")),
         el("div", { class: "botoes-oferta" },
         el("button", { class: "whatsapp", type: "button", "aria-label": "Enviar no WhatsApp", title: "Enviar no WhatsApp",
