@@ -18,6 +18,14 @@ async function chamar(rota, p) {
       if (cont.prox === 3 && !cont.limite429) { cont.limite429 = 1; return { categoria: "MLB9", limite: true }; }
       return cont.prox < 8 ? { categoria: "MLB2", destaques: 30, faltam: 8 - cont.prox } : { categoria: "MLB2", destaques: 30, fim: true };
     }
+    if (p.fundas) {
+      // 3 buscas fundas; a 2ª precisa de 2 chamadas (continua) e a 3ª leva um limite antes
+      cont.fundas = (cont.fundas || 0) + 1;
+      if (p.parte >= 3) return { fundas: true, parte: p.parte, partes: 3, fim: true };
+      if (p.parte === 1 && !cont.fundasContinua) { cont.fundasContinua = 1; return { fundas: true, parte: 1, proxima: 1, partes: 3, busca: "b", consultas: 60, precos: 60, continua: true, fim: false }; }
+      if (p.parte === 2 && !cont.fundasLimite) { cont.fundasLimite = 1; return { fundas: true, parte: 2, proxima: 2, partes: 3, busca: "c", consultas: 5, precos: 5, limite: true, erro: "429", fim: false }; }
+      return { fundas: true, parte: p.parte, proxima: p.parte + 1, partes: 3, busca: "x", consultas: 10, precos: 10, produtos: 100, fim: p.parte + 1 >= 3 };
+    }
     cont.ml++;
     const partes = 12;
     if (p.parte >= partes) return { parte: p.parte, partes, fim: true };
@@ -64,11 +72,13 @@ for (let i = 0; i < 5000 && TRILHAS.some((t) => estados[t].fase !== "fim"); i++)
 for (const t of TRILHAS) ok(estados[t].fase === "fim", `trilha ${t} não terminou (fase ${estados[t].fase})`);
 ok(cont.limite429 === 1 && estados.ml.c.mvEsperas === 1, "espera pelo limite do ML nos mais vendidos");
 ok(estados.lojas.c.prontasGuardadas === 19 && estados.lojas.c.prontasPartes === 20, `prontas: ${estados.lojas.c.prontasGuardadas} de ${estados.lojas.c.prontasPartes}`);
+ok(estados.ml.tempos.fundas?.ate && cont.fundas === 5 && estados.ml.c.fundasFeitas === 3 && estados.ml.c.fundasProdutos === 300 && estados.ml.c.fundasPrecos === 95 && estados.ml.c.fundasEsperas === 1,
+  `buscas fundas: ${cont.fundas} chamadas, ${JSON.stringify(estados.ml.c)}`);
 ok(estados.lojas.tempos.prontas.de >= estados.ml.tempos.maisvendidos.de, "as prontas só começam depois que o ML chega nos mais vendidos");
 ok(estados.ml.c.fila === 4, "fila do ML anotada");
 
 const partes = partesDoPainel(estados.ml, estados.lojas);
-ok(partes.map((p) => p.chave).join() === "shopee,ml,mv,prontas,lomadee,poucas,casar,categorias", `partes: ${partes.map((p) => p.chave)}`);
+ok(partes.map((p) => p.chave).join() === "shopee,ml,mv,fundas,prontas,lomadee,poucas,casar,categorias", `partes: ${partes.map((p) => p.chave)}`);
 ok(partes.find((p) => p.chave === "prontas").linhas[0] === "19 de 20 buscas guardadas", "linha das prontas no formato do painel");
 ok(partes.filter((p) => !["categorias", "casar"].includes(p.chave)).every((p) => p.situacao === "ok"), "partes sem aviso");
 ok(partes.every((p) => ["ok", "aviso"].includes(p.situacao) && Array.isArray(p.linhas) && Array.isArray(p.avisos)), "situação das partes");
@@ -120,7 +130,7 @@ ok(lento.fase === "fim" && /limite de tempo/.test(lento.c.casarParou), "casar ma
 
 // Junta com o que o GitHub gravou (awin, ia, auditoria): na ordem do painel, sem repetir
 const juntas = juntarNaExecucao([{ chave: "awin" }, { chave: "ia" }, { chave: "prontas", velha: true }], partes);
-ok(juntas.map((p) => p.chave).join() === "awin,shopee,ml,mv,prontas,lomadee,poucas,casar,categorias,ia" && !juntas.some((p) => p.velha), `juntas: ${juntas.map((p) => p.chave)}`);
+ok(juntas.map((p) => p.chave).join() === "awin,shopee,ml,mv,fundas,prontas,lomadee,poucas,casar,categorias,ia" && !juntas.some((p) => p.velha), `juntas: ${juntas.map((p) => p.chave)}`);
 
 // Janela da madrugada
 ok(noiteAtual(Date.parse("2026-11-10T04:44:00Z")) === null, "antes da janela");
