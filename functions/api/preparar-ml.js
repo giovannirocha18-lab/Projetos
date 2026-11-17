@@ -8,7 +8,7 @@
 // ?arvore=1 e ?proxima=1: mais vendidos de todas as categorias do Mercado Livre (05/11/2026, ver abaixo); ?tendencias=1: o que
 // mais se busca em cada categoria. Resposta das buscas: proxima = a parte seguinte (as novas no banco são puladas juntas)
 import { listaDasProntas } from "./preparar-buscas.js";
-import { mercadolivre, amostraItensML, montarArvoreML, prepararTendenciasML, testarNotasML, tendenciasDasCategorias, tendenciasML } from "../../lib/fontes/mercadolivre.js";
+import { mercadolivre, amostraItensML, espiarCatalogoML, montarArvoreML, prepararTendenciasML, testarNotasML, tendenciasDasCategorias, tendenciasML } from "../../lib/fontes/mercadolivre.js";
 import { tendenciaAceitavel, termosBuscados } from "../../lib/buscas.js";
 import { listaDasFundas, FICHAS_FUNDAS } from "../../lib/mlFundas.js";
 import { corrigirBusca } from "../../lib/vocabulario.js";
@@ -36,6 +36,8 @@ export async function onRequestGet({ request, env }) {
   if (params.has("testarNotas")) return Response.json(await testarNotasML(env).catch((e) => ({ erro: String(e.message || e) })), semCache);
   // ?amostraItens=1: campos dos anúncios (Full, parcelas) para os selos novos (10/11/2026)
   if (params.has("amostraItens")) return Response.json(await amostraItensML(env).catch((e) => ({ erro: String(e.message || e) })), semCache);
+  // ?espiar=<busca>: o que o catálogo devolve (ficha pai/variações, vendedores) — teste de 17/11/2026
+  if (params.get("espiar")) return Response.json(await espiarCatalogoML(env, params.get("espiar")).catch((e) => ({ erro: String(e.message || e) })), semCache);
   // ?tendencias=1: o que mais se busca no Mercado Livre em cada categoria (ml_tendencias). Chamar até "faltam" ser 0
   if (params.has("tendencias")) {
     const inicio = Date.now();

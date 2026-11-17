@@ -8,6 +8,9 @@ on:
       fundo:
         description: "Busca funda: termos separados por | (ex.: smartphone samsung|celular samsung). Vazio = só a amostra"
         default: ""
+      espiar:
+        description: "Espiar o catálogo: termos separados por | (mostra fichas pai/variações e vendedores)"
+        default: ""
       fundas:
         description: "Rodar agora a lista inteira das buscas fundas da noite (escreva sim)"
         default: ""
@@ -57,8 +60,18 @@ jobs:
           echo "RESUMO: $feitas buscas, $produtos produtos do ML com preço nelas, $precos preços perguntados, $esperas esperas"
         env:
           CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }}
+      - name: Espiar o catálogo
+        if: ${{ inputs.espiar != '' }}
+        run: |
+          IFS='|' read -ra TERMOS <<< "$ESPIAR"
+          for t in "${TERMOS[@]}"; do
+            curl -sS --max-time 90 -G -H "Authorization: Bearer $CHAVE_ROBO" --data-urlencode "espiar=$t" "https://vaiprocarrinho.com.br/api/preparar-ml" | jq -c '{q, total}, .lista[], .detalhes[], .erro'
+          done
+        env:
+          CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }}
+          ESPIAR: ${{ inputs.espiar }}
       - name: Amostra dos anúncios do ML
-        if: ${{ inputs.fundo == '' && inputs.fundas != 'sim' }}
+        if: ${{ inputs.fundo == '' && inputs.fundas != 'sim' && inputs.espiar == '' }}
         run: |
           curl -sS --max-time 90 -H "Authorization: Bearer $CHAVE_ROBO" "https://vaiprocarrinho.com.br/api/preparar-ml?amostraItens=1" | jq .
         env:
