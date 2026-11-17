@@ -63,7 +63,8 @@ export async function onRequestGet({ request, env }) {
   // 60 preços por vez: proxima = a mesma parte enquanto vier "continua" (ainda há ficha sem pergunta)
   if (params.has("fundas")) {
     const inicio = Date.now();
-    const termos = listaDasFundas(await termosBuscados(env, 80).catch(() => []), (t) => corrigirBusca(t).q, tendenciaAceitavel);
+    const [buscadas, prontas] = await Promise.all([termosBuscados(env, 80).catch(() => []), listaDasProntas(env).catch(() => [])]);
+    const termos = listaDasFundas([...buscadas, ...prontas.map((b) => b.q)], (t) => corrigirBusca(t).q, tendenciaAceitavel);
     if (parte >= termos.length) return Response.json({ fundas: true, parte, partes: termos.length, fim: true }, semCache);
     const r = await mercadolivre.preparar(termos[parte], env, horas, FICHAS_FUNDAS);
     const proxima = r.continua || r.limite ? parte : parte + 1;

@@ -8,6 +8,9 @@ on:
       fundo:
         description: "Busca funda: termos separados por | (ex.: smartphone samsung|celular samsung). Vazio = só a amostra"
         default: ""
+      fundas:
+        description: "Rodar agora a lista inteira das buscas fundas da noite (escreva sim)"
+        default: ""
       fichas:
         description: "Até quantas fichas do catálogo por termo (96 a 480)"
         default: "240"
@@ -15,7 +18,7 @@ on:
 jobs:
   teste:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
     steps:
       # Busca funda (17/11/2026): repete a chamada enquanto o Mercado Livre der limite (429), esperando 1 minuto
       - name: Busca funda no catálogo do ML
@@ -34,8 +37,28 @@ jobs:
           CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }}
           FUNDO: ${{ inputs.fundo }}
           FICHAS: ${{ inputs.fichas }}
+      # A lista inteira das buscas fundas (lib/mlFundas.js), como a fase "fundas" do robô da noite
+      - name: Lista das buscas fundas
+        if: ${{ inputs.fundas == 'sim' }}
+        run: |
+          parte=0; produtos=0; precos=0; esperas=0; feitas=0
+          for volta in $(seq 1 3000); do
+            r=$(curl -sS --max-time 120 -H "Authorization: Bearer $CHAVE_ROBO" "https://vaiprocarrinho.com.br/api/preparar-ml?fundas=1&parte=$parte&horas=30" || echo '{"erro":"sem resposta","limite":true}')
+            p=$(echo "$r" | jq -r '.precos // 0' 2>/dev/null || echo 0); precos=$((precos + p))
+            if echo "$r" | jq -e '.limite == true' > /dev/null 2>&1; then esperas=$((esperas + 1)); echo "espera: $(echo "$r" | head -c 200)"; sleep 60; continue; fi
+            prox=$(echo "$r" | jq -r '.proxima // empty' 2>/dev/null || true)
+            if [ -n "$prox" ] && [ "$prox" -gt "$parte" ]; then
+              feitas=$((feitas + 1)); n=$(echo "$r" | jq -r '.produtos // 0'); produtos=$((produtos + n))
+              echo "$r" | jq -c '{parte, partes, busca, fichas, produtos, batem, erro}'
+            fi
+            if echo "$r" | jq -e '.fim == true' > /dev/null 2>&1; then break; fi
+            if [ -z "$prox" ]; then echo "sem proxima: $(echo "$r" | head -c 200)"; parte=$((parte + 1)); else parte=$prox; fi
+          done
+          echo "RESUMO: $feitas buscas, $produtos produtos do ML com preço nelas, $precos preços perguntados, $esperas esperas"
+        env:
+          CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }}
       - name: Amostra dos anúncios do ML
-        if: ${{ inputs.fundo == '' }}
+        if: ${{ inputs.fundo == '' && inputs.fundas != 'sim' }}
         run: |
           curl -sS --max-time 90 -H "Authorization: Bearer $CHAVE_ROBO" "https://vaiprocarrinho.com.br/api/preparar-ml?amostraItens=1" | jq .
         env:
