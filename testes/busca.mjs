@@ -831,5 +831,18 @@ for (const [q, buscaEsperada, itens, esperado] of [
   if (aneis !== 10) { falhas++; console.log(`✗ preço absurdo: joia cara saiu de "anel" (${aneis} de 10)`); }
   if (poucos !== 3) { falhas++; console.log("✗ preço absurdo: lista pequena não pode ser cortada"); }
 }
+// Só produto novo (17/11/2026, print: "Coxin Motor Hb20 1.6 2018" da Shopee vendido por "FERRO VELHO LEVE")
+{
+  const { semUsados } = await import("../lib/lojasRemovidas.js");
+  const itens = [["Coxin Motor Hb20 1.6 2018", "FERRO VELHO LEVE"], ["Coxim Calço Motor Hb20 1.0 Turbo", "Top Versões Peças Seminovas"],
+    ["Coxim Inferior Cambio Hb20 1.6", "Sucatao Auto Peças"], ["iPhone 13 128GB Usado Excelente", "Loja X"], ["Notebook Dell Recondicionado i5", "Loja Y"],
+    ["Coxim Motor Hb20 1.0 Original Novo", "Auto Peças Silva"], ["Tapete usado para yoga e pilates", "Casa Fit"], ["Geladeira Vitrine Expositora 400L", "Refrimate"]]
+    .map(([titulo, vendedor], i) => ({ id: String(i), titulo, vendedor, preco: 100 }));
+  const ficaram = semUsados(itens, "coxim motor hb20").map((o) => o.id).join("");
+  const buscouUsado = semUsados(itens, "iphone 13 usado").length;
+  total += 2;
+  if (ficaram !== "567") { falhas++; console.log(`✗ só produto novo: ficaram ${ficaram}, esperado 567`); }
+  if (buscouUsado !== itens.length) { falhas++; console.log("✗ só produto novo: quem busca 'usado' tem que ver os usados"); }
+}
 console.log(falhas ? `\n${falhas} problema(s) em ${total} títulos` : `\n✓ Tudo certo (${Object.keys(CASOS).length} buscas, ${total} títulos)`);
 process.exitCode = falhas ? 1 : 0;
