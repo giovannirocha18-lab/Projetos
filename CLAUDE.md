@@ -9,7 +9,7 @@
 - **Horário do Giovanni: 1 hora atrás de Brasília (UTC-4).** Dizer os horários no horário dele.
 - Giovanni não é programador. Responder **sempre em português**, **curto**, passo a passo, com os nomes dos botões como
   aparecem na tela. Ele manda prints. Pedir que nunca mande senhas/chaves no chat.
-- Conversa longa (~20% do contexto): atualizar esta memória, commit/push com `[skip ci]` e avisar "Abra uma conversa nova e
+- Conversa longa (**30% do contexto**, pedido do Giovanni 17/11; antes disso NÃO avisar; o Claude não vê a porcentagem: se ele disser o número, vale o dele): atualizar esta memória, commit/push com `[skip ci]` e avisar "Abra uma conversa nova e
   cole o comando de recomeço". Não resumir/compactar.
 - **Regra do Giovanni (09/11): mudanças vão direto para a produção**; a branch `teste` (prévia https://teste.vaiprocarrinho.pages.dev,
   /api e /ir vão para o site real) só quando ele pedir.
