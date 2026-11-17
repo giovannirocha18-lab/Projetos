@@ -633,7 +633,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Só busca que trouxe produtos e passa no filtro das tendências (10/11/2026, revisão: termos inventados enchiam a fila e o
   // robô gastava a madrugada do ML neles)
   if (q && pagina === 1 && desde === 1 && !preparar && !atualizar && !soLoja && !rapido && env.DB && lojas.mercadolivre && reais.length
-    && ofertas.length >= 5 && tendenciaAceitavel(q)) {
+    && ofertas.length >= 5 && tendenciaAceitavel(q) && !naoContar(request)) {
     waitUntil(anotarNaFilaML(env.DB, q).catch(() => {}));
   }
   // Trouxe ofertas, mas nenhuma é o produto (só acessórios e parecidos): o termo sai das sugestões de tendência por 3 dias
@@ -646,7 +646,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Poucas ofertas numa busca comum (15/11/2026, Giovanni: "busca com pouco resultado tem que ser investigada e corrigida
   // automaticamente"): anota para o robô da noite refazer e diagnosticar (lib/poucas.js). O robô (preparar) tira da lista
   // quando volta a vir bastante. Termos fora do filtro das tendências (impróprios, inventados) não entram
-  if (q && pagina === 1 && desde === 1 && !soLoja && !rapido && !categoria && !atualizar && env.DB && reais.length && tendenciaAceitavel(q)) {
+  if (q && pagina === 1 && desde === 1 && !soLoja && !rapido && !categoria && !atualizar && env.DB && reais.length && tendenciaAceitavel(q)
+    // Teste com o cookie "não contar" fica fora (17/11/2026: termos de teste como "grampo de cabelo preto 25360" enchiam a lista)
+    && (preparar || !naoContar(request))) {
     const tarefa = ofertas.length < POUCAS_MIN ? anotarPoucas(env, q, ofertas, lojas) : preparar ? tirarDasPoucas(env, q) : null;
     if (tarefa) { if (preparar) await tarefa.catch(() => {}); else waitUntil(tarefa.catch(() => {})); }
   }
