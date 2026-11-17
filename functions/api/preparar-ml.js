@@ -10,7 +10,7 @@
 import { listaDasProntas } from "./preparar-buscas.js";
 import { mercadolivre, amostraItensML, espiarCatalogoML, montarArvoreML, prepararTendenciasML, testarNotasML, tendenciasDasCategorias, tendenciasML } from "../../lib/fontes/mercadolivre.js";
 import { tendenciaAceitavel, termosBuscados } from "../../lib/buscas.js";
-import { listaDasFundas, FICHAS_FUNDAS } from "../../lib/mlFundas.js";
+import { listaDasFundas, FICHAS_FUNDAS, TOTAL_DE_FUNDAS, fundasFracas, anotarFunda } from "../../lib/mlFundas.js";
 import { corrigirBusca } from "../../lib/vocabulario.js";
 import { recusarSeNaoForRobo } from "../../lib/robo.js";
 import { filaML } from "../../lib/mlFila.js";
@@ -65,12 +65,14 @@ export async function onRequestGet({ request, env }) {
   // 60 preços por vez: proxima = a mesma parte enquanto vier "continua" (ainda há ficha sem pergunta)
   if (params.has("fundas")) {
     const inicio = Date.now();
-    const [buscadas, prontas] = await Promise.all([termosBuscados(env, 80).catch(() => []), listaDasProntas(env).catch(() => [])]);
-    const termos = listaDasFundas([...buscadas, ...prontas.map((b) => b.q)], (t) => corrigirBusca(t).q, tendenciaAceitavel);
+    const [buscadas, prontas, fracas] = await Promise.all([termosBuscados(env, 80).catch(() => []), listaDasProntas(env).catch(() => []),
+      fundasFracas(env.DB)]);
+    const termos = listaDasFundas([...buscadas, ...prontas.map((b) => b.q)], (t) => corrigirBusca(t).q, tendenciaAceitavel, TOTAL_DE_FUNDAS, fracas);
     if (parte >= termos.length) return Response.json({ fundas: true, parte, partes: termos.length, fim: true }, semCache);
     const r = await mercadolivre.preparar(termos[parte], env, horas, FICHAS_FUNDAS);
     const proxima = r.continua || r.limite ? parte : parte + 1;
-    return Response.json({ fundas: true, parte, proxima, partes: termos.length, fim: proxima >= termos.length, busca: termos[parte], ...r,
+    if (proxima > parte && !r.erro) await anotarFunda(env.DB, termos[parte], r.produtos);
+    return Response.json({ fundas: true, parte, proxima, partes: termos.length, fim: proxima >= termos.length, busca: termos[parte], puladas: fracas.size, ...r,
       segundos: (Date.now() - inicio) / 1000 }, semCache);
   }
   // Só as buscas com termo (as "Ofertas do dia" não têm Mercado Livre)
