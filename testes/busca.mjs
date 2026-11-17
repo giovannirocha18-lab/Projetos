@@ -819,5 +819,17 @@ for (const [q, buscaEsperada, itens, esperado] of [
   total++;
   if (ficaram !== "012") { falhas++; console.log(`✗ vitrine Smartwatches: ficaram ${ficaram}, esperado 012`); }
 }
+// Preço absurdo (17/11/2026, print: Galaxy A16 do ML por R$ 750.000, erro do vendedor): sai; o caro de verdade fica
+{
+  const { semPrecoAbsurdo } = await import("../lib/lojasRemovidas.js");
+  const lista = (precos) => precos.map((preco, i) => ({ id: String(i), titulo: `Produto ${i}`, preco, bate: true }));
+  const celulares = semPrecoAbsurdo(lista([899, 1200, 1500, 2100, 2500, 3200, 4800, 8974, 13599, 750000])).map((o) => o.preco);
+  const aneis = semPrecoAbsurdo(lista([19, 25, 30, 30, 35, 40, 59, 80, 2000, 9500])).length;
+  const poucos = semPrecoAbsurdo(lista([100, 200, 900000])).length;
+  total += 3;
+  if (celulares.includes(750000) || !celulares.includes(13599)) { falhas++; console.log(`✗ preço absurdo: ficaram ${celulares}`); }
+  if (aneis !== 10) { falhas++; console.log(`✗ preço absurdo: joia cara saiu de "anel" (${aneis} de 10)`); }
+  if (poucos !== 3) { falhas++; console.log("✗ preço absurdo: lista pequena não pode ser cortada"); }
+}
 console.log(falhas ? `\n${falhas} problema(s) em ${total} títulos` : `\n✓ Tudo certo (${Object.keys(CASOS).length} buscas, ${total} títulos)`);
 process.exitCode = falhas ? 1 : 0;
