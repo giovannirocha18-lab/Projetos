@@ -786,5 +786,38 @@ for (const [q, buscaEsperada, itens, esperado] of [
     if (obtido !== tipo) { falhas++; console.log(`✗ produto nas lojas "${q}": "${titulo}" deu ${obtido}, esperado ${tipo}`); }
   }
 }
+// Regra do brinquedo (Giovanni, 16/11/2026) e os laptops infantis que seguiam em "notebook" (17/11/2026)
+{
+  const { semBrinquedos } = await import("../lib/iaBusca.js");
+  const lista = (titulos, secao) => titulos.map((titulo, i) => ({ id: String(i), titulo, secao, preco: 100 }));
+  const escondidos = (q, titulos, secao) => semBrinquedos(lista(titulos, secao), q).filter((o) => o.naoBuscado).map((o) => o.titulo);
+  for (const [q, secao, titulos, somem] of [
+    ["notebook", "Informática", ["Notebook Lenovo IdeaPad 15 i5 8GB", "Laptop Minigame Notebook Infantil Bilíngue Bluey", "Laptop Infantil Educativo Candide Stitch", "Notebook Educativo Infantil 2 em 1"],
+      ["Laptop Minigame Notebook Infantil Bilíngue Bluey", "Laptop Infantil Educativo Candide Stitch", "Notebook Educativo Infantil 2 em 1"]],
+    ["geladeira", "Eletrodomésticos", ["Geladeira Brastemp Frost Free 375L", "Barbie com Geladeira e Acessórios - Mattel", "Geladeira Mini Brands Fill The Fridge", "Cozinha Infantil Grande Completa Com Geladeira"],
+      ["Barbie com Geladeira e Acessórios - Mattel", "Geladeira Mini Brands Fill The Fridge", "Cozinha Infantil Grande Completa Com Geladeira"]],
+    // Produto infantil de verdade fica
+    ["tablet", "Informática", ["Tablet Infantil 7 Polegadas 64GB Wifi", "Tablet Samsung Galaxy Tab A9"], []],
+    ["smartwatch", "Smartwatches", ["Smartwatch Infantil 4G com GPS", "Smartwatch Amazfit Bip 5"], []],
+    ["fone bluetooth", "Fones de ouvido", ["Fone de Ouvido Infantil Bluetooth JBL Junior 320BT"], []],
+    // Fora das buscas "sérias" nada some
+    ["barbie", "Brinquedos", ["Barbie com Geladeira e Acessórios - Mattel"], []],
+  ]) {
+    total++;
+    const obtido = escondidos(q, titulos, secao);
+    if (obtido.join("|") !== somem.join("|")) { falhas++; console.log(`✗ brinquedos em "${q}": escondeu [${obtido.join("; ")}], esperado [${somem.join("; ")}]`); }
+  }
+}
+
+// Vitrine de Smartwatches (17/11/2026: 92 ofertas): "pulseira" no meio do nome não tira o relógio; no começo, tira
+{
+  const cat = categoriaPorNome("Smartwatches");
+  const itens = ["SmartWatch KaBuM! smart 700, Preto, Pulseira Extra Verde Escuro", "Apple Watch Series 11 GPS, Caixa Preta de 46 mm, Pulseira esportiva Preta",
+    "Pulseira Inteligente Xiaomi Smart Band 9 Active, Preto", "Pulseira de Silicone para Smartwatch 22mm", "Película para Smartwatch Amazfit Bip"]
+    .map((titulo, i) => ({ id: String(i), titulo, preco: 300, bate: true }));
+  const ficaram = montarVitrine([itens], cat.vitrine, cat).map((o) => o.id).join("");
+  total++;
+  if (ficaram !== "012") { falhas++; console.log(`✗ vitrine Smartwatches: ficaram ${ficaram}, esperado 012`); }
+}
 console.log(falhas ? `\n${falhas} problema(s) em ${total} títulos` : `\n✓ Tudo certo (${Object.keys(CASOS).length} buscas, ${total} títulos)`);
 process.exitCode = falhas ? 1 : 0;
