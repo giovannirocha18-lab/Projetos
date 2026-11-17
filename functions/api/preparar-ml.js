@@ -50,6 +50,14 @@ export async function onRequestGet({ request, env }) {
     const inicio = Date.now();
     return Response.json({ ...(await mercadolivre.prepararProxima(env, nivel)), segundos: (Date.now() - inicio) / 1000 }, semCache);
   }
+  // ?fundo=<busca>&fichas=240: busca funda de um termo só (17/11/2026, teste "celular samsung"): mais páginas do catálogo e
+  // preço de todas as fichas. Chamar de novo enquanto vier limite (o que já foi perguntado fica guardado e é pulado)
+  if (params.get("fundo")) {
+    const inicio = Date.now();
+    const q = corrigirBusca(params.get("fundo")).q;
+    const fichas = Math.min(Math.max(parseInt(params.get("fichas"), 10) || 240, 96), 480);
+    return Response.json({ fundo: q, ...(await mercadolivre.preparar(q, env, horas, fichas)), segundos: (Date.now() - inicio) / 1000 }, semCache);
+  }
   // Só as buscas com termo (as "Ofertas do dia" não têm Mercado Livre)
   // + as tendências do Mercado Livre (o que mais se busca lá; 05/11/2026), no fim da lista: as gerais e as de cada categoria
   // (até 1.500, o 1º de cada categoria primeiro; o que não der tempo fica para a madrugada seguinte)

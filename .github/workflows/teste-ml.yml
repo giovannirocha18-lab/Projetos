@@ -4,13 +4,38 @@ name: Teste do Mercado Livre
 
 on:
   workflow_dispatch:
+    inputs:
+      fundo:
+        description: "Busca funda: termos separados por | (ex.: smartphone samsung|celular samsung). Vazio = só a amostra"
+        default: ""
+      fichas:
+        description: "Até quantas fichas do catálogo por termo (96 a 480)"
+        default: "240"
 
 jobs:
   teste:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 45
     steps:
+      # Busca funda (17/11/2026): repete a chamada enquanto o Mercado Livre der limite (429), esperando 1 minuto
+      - name: Busca funda no catálogo do ML
+        if: ${{ inputs.fundo != '' }}
+        run: |
+          IFS='|' read -ra TERMOS <<< "$FUNDO"
+          for t in "${TERMOS[@]}"; do
+            echo "== $t"
+            for volta in $(seq 1 40); do
+              r=$(curl -sS --max-time 120 -G -H "Authorization: Bearer $CHAVE_ROBO" --data-urlencode "fundo=$t" --data-urlencode "fichas=$FICHAS" --data-urlencode "horas=20" "https://vaiprocarrinho.com.br/api/preparar-ml" || echo '{"erro":"sem resposta"}')
+              echo "$r" | jq -c '{fundo, fichas, produtos, batem, consultas, precos, limite, continua, erro, segundos}' || echo "$r" | head -c 300
+              if echo "$r" | jq -e '.limite == true or (.erro // "" | test("sem resposta|1101|Too many|subrequest"))' > /dev/null 2>&1; then sleep 60; elif echo "$r" | jq -e '.continua == true' > /dev/null 2>&1; then sleep 2; else break; fi
+            done
+          done
+        env:
+          CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }}
+          FUNDO: ${{ inputs.fundo }}
+          FICHAS: ${{ inputs.fichas }}
       - name: Amostra dos anúncios do ML
+        if: ${{ inputs.fundo == '' }}
         run: |
           curl -sS --max-time 90 -H "Authorization: Bearer $CHAVE_ROBO" "https://vaiprocarrinho.com.br/api/preparar-ml?amostraItens=1" | jq .
         env:
