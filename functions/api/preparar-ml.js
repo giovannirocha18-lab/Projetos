@@ -10,7 +10,7 @@
 import { listaDasProntas } from "./preparar-buscas.js";
 import { mercadolivre, amostraItensML, espiarCatalogoML, montarArvoreML, prepararTendenciasML, testarNotasML, tendenciasDasCategorias, tendenciasML } from "../../lib/fontes/mercadolivre.js";
 import { tendenciaAceitavel, termosBuscados } from "../../lib/buscas.js";
-import { listaDasFundas, FICHAS_FUNDAS, TOTAL_DE_FUNDAS, fundasFracas, anotarFunda } from "../../lib/mlFundas.js";
+import { listaDasFundas, FICHAS_FUNDAS, proximaFunda, estadoDasFundas, anotarFunda } from "../../lib/mlFundas.js";
 import { corrigirBusca } from "../../lib/vocabulario.js";
 import { recusarSeNaoForRobo } from "../../lib/robo.js";
 import { filaML } from "../../lib/mlFila.js";
@@ -61,19 +61,21 @@ export async function onRequestGet({ request, env }) {
     const fichas = Math.min(Math.max(parseInt(params.get("fichas"), 10) || 240, 96), 480);
     return Response.json({ fundo: q, ...(await mercadolivre.preparar(q, env, horas, fichas)), segundos: (Date.now() - inicio) / 1000 }, semCache);
   }
-  // ?fundas=1&parte=N: as buscas fundas da noite (lib/mlFundas.js; fase "fundas" do robô da noite). Uma busca por chamada,
-  // 60 preços por vez: proxima = a mesma parte enquanto vier "continua" (ainda há ficha sem pergunta)
+  // ?fundas=1: a próxima busca funda (lib/mlFundas.js; fase "fundas" do robô da noite): a que está há mais tempo sem passar.
+  // Uma busca por chamada, 60 preços por vez: enquanto vier "continua" a mesma busca é escolhida de novo (só é anotada
+  // quando termina). fim = todas em dia (passaram há menos de 20 h) ou de fora por renderem pouco
   if (params.has("fundas")) {
     const inicio = Date.now();
-    const [buscadas, prontas, fracas] = await Promise.all([termosBuscados(env, 80).catch(() => []), listaDasProntas(env).catch(() => []),
-      fundasFracas(env.DB)]);
-    const termos = listaDasFundas([...buscadas, ...prontas.map((b) => b.q)], (t) => corrigirBusca(t).q, tendenciaAceitavel, TOTAL_DE_FUNDAS, fracas);
-    if (parte >= termos.length) return Response.json({ fundas: true, parte, partes: termos.length, fim: true }, semCache);
-    const r = await mercadolivre.preparar(termos[parte], env, horas, FICHAS_FUNDAS);
-    const proxima = r.continua || r.limite ? parte : parte + 1;
-    if (proxima > parte && !r.erro) await anotarFunda(env.DB, termos[parte], r.produtos);
-    return Response.json({ fundas: true, parte, proxima, partes: termos.length, fim: proxima >= termos.length, busca: termos[parte], puladas: fracas.size, ...r,
-      segundos: (Date.now() - inicio) / 1000 }, semCache);
+    const [buscadas, prontas, estado] = await Promise.all([termosBuscados(env, 80).catch(() => []), listaDasProntas(env).catch(() => []),
+      estadoDasFundas(env.DB)]);
+    const termos = listaDasFundas([...buscadas, ...prontas.map((b) => b.q)], (t) => corrigirBusca(t).q, tendenciaAceitavel);
+    const { busca, faltam, fracas } = proximaFunda(termos, estado);
+    if (!busca) return Response.json({ fundas: true, partes: termos.length, faltam: 0, fracas, fim: true }, semCache);
+    const r = await mercadolivre.preparar(busca, env, horas, FICHAS_FUNDAS);
+    const completa = !r.limite && !r.continua;
+    if (completa) await anotarFunda(env.DB, busca, r.erro ? null : r.produtos);
+    return Response.json({ fundas: true, busca, completa, partes: termos.length, faltam: faltam - (completa ? 1 : 0), fracas,
+      fim: completa && faltam <= 1, ...r, segundos: (Date.now() - inicio) / 1000 }, semCache);
   }
   // Só as buscas com termo (as "Ofertas do dia" não têm Mercado Livre)
   // + as tendências do Mercado Livre (o que mais se busca lá; 05/11/2026), no fim da lista: as gerais e as de cada categoria

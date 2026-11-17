@@ -21,7 +21,7 @@ on:
 jobs:
   teste:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 300
     steps:
       # Busca funda (17/11/2026): repete a chamada enquanto o Mercado Livre der limite (429), esperando 1 minuto
       - name: Busca funda no catálogo do ML
@@ -44,18 +44,17 @@ jobs:
       - name: Lista das buscas fundas
         if: ${{ inputs.fundas == 'sim' }}
         run: |
-          parte=0; produtos=0; precos=0; esperas=0; feitas=0
-          for volta in $(seq 1 3000); do
-            r=$(curl -sS --max-time 120 -H "Authorization: Bearer $CHAVE_ROBO" "https://vaiprocarrinho.com.br/api/preparar-ml?fundas=1&parte=$parte&horas=30" || echo '{"erro":"sem resposta","limite":true}')
+          produtos=0; precos=0; esperas=0; feitas=0
+          for volta in $(seq 1 4000); do
+            r=$(curl -sS --max-time 120 -H "Authorization: Bearer $CHAVE_ROBO" "https://vaiprocarrinho.com.br/api/preparar-ml?fundas=1&horas=30" || echo '{"erro":"sem resposta","limite":true}')
             p=$(echo "$r" | jq -r '.precos // 0' 2>/dev/null || echo 0); precos=$((precos + p))
             if echo "$r" | jq -e '.limite == true' > /dev/null 2>&1; then esperas=$((esperas + 1)); echo "espera: $(echo "$r" | head -c 200)"; sleep 60; continue; fi
-            prox=$(echo "$r" | jq -r '.proxima // empty' 2>/dev/null || true)
-            if [ -n "$prox" ] && [ "$prox" -gt "$parte" ]; then
+            if echo "$r" | jq -e '.completa == true' > /dev/null 2>&1; then
               feitas=$((feitas + 1)); n=$(echo "$r" | jq -r '.produtos // 0'); produtos=$((produtos + n))
-              echo "$r" | jq -c '{parte, partes, busca, fichas, produtos, batem, erro}'
+              echo "$r" | jq -c '{busca, faltam, partes, fracas, fichas, produtos, batem, erro}'
             fi
             if echo "$r" | jq -e '.fim == true' > /dev/null 2>&1; then break; fi
-            if [ -z "$prox" ]; then echo "sem proxima: $(echo "$r" | head -c 200)"; parte=$((parte + 1)); else parte=$prox; fi
+            if ! echo "$r" | jq -e '.fundas == true' > /dev/null 2>&1; then echo "resposta estranha: $(echo "$r" | head -c 200)"; sleep 20; fi
           done
           echo "RESUMO: $feitas buscas, $produtos produtos do ML com preço nelas, $precos preços perguntados, $esperas esperas"
         env:

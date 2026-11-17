@@ -21,10 +21,12 @@ async function chamar(rota, p) {
     if (p.fundas) {
       // 3 buscas fundas; a 2ª precisa de 2 chamadas (continua) e a 3ª leva um limite antes
       cont.fundas = (cont.fundas || 0) + 1;
-      if (p.parte >= 3) return { fundas: true, parte: p.parte, partes: 3, fim: true };
-      if (p.parte === 1 && !cont.fundasContinua) { cont.fundasContinua = 1; return { fundas: true, parte: 1, proxima: 1, partes: 3, busca: "b", consultas: 60, precos: 60, continua: true, fim: false }; }
-      if (p.parte === 2 && !cont.fundasLimite) { cont.fundasLimite = 1; return { fundas: true, parte: 2, proxima: 2, partes: 3, busca: "c", consultas: 5, precos: 5, limite: true, erro: "429", fim: false }; }
-      return { fundas: true, parte: p.parte, proxima: p.parte + 1, partes: 3, busca: "x", consultas: 10, precos: 10, produtos: 100, fim: p.parte + 1 >= 3 };
+      const feitas = cont.fundasFeitas || 0;
+      if (feitas >= 3) return { fundas: true, partes: 3, faltam: 0, fracas: 1, fim: true };
+      if (feitas === 1 && !cont.fundasContinua) { cont.fundasContinua = 1; return { fundas: true, busca: "b", completa: false, partes: 3, faltam: 2, fracas: 1, consultas: 60, precos: 60, continua: true, fim: false }; }
+      if (feitas === 2 && !cont.fundasLimite) { cont.fundasLimite = 1; return { fundas: true, busca: "c", completa: false, partes: 3, faltam: 1, fracas: 1, consultas: 5, precos: 5, limite: true, erro: "429", fim: false }; }
+      cont.fundasFeitas = feitas + 1;
+      return { fundas: true, busca: "x", completa: true, partes: 3, faltam: 2 - feitas, fracas: 1, consultas: 10, precos: 10, produtos: 100, fim: feitas + 1 >= 3 };
     }
     cont.ml++;
     const partes = 12;
