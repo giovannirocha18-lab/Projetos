@@ -14,6 +14,9 @@ on:
       fundas:
         description: "Rodar agora a lista inteira das buscas fundas da noite (escreva sim)"
         default: ""
+      horas:
+        description: "Buscas fundas: refazer as que passaram há mais de N horas (padrão 20; menor = força rodada de dia)"
+        default: "20"
       fichas:
         description: "Até quantas fichas do catálogo por termo (96 a 480)"
         default: "240"
@@ -46,7 +49,7 @@ jobs:
         run: |
           produtos=0; precos=0; esperas=0; feitas=0
           for volta in $(seq 1 4000); do
-            r=$(curl -sS --max-time 120 -H "Authorization: Bearer $CHAVE_ROBO" "https://vaiprocarrinho.com.br/api/preparar-ml?fundas=1&horas=30" || echo '{"erro":"sem resposta","limite":true}')
+            r=$(curl -sS --max-time 120 -H "Authorization: Bearer $CHAVE_ROBO" "https://vaiprocarrinho.com.br/api/preparar-ml?fundas=1&horas=$HORAS&emdia=$HORAS" || echo '{"erro":"sem resposta","limite":true}')
             p=$(echo "$r" | jq -r '.precos // 0' 2>/dev/null || echo 0); precos=$((precos + p))
             if echo "$r" | jq -e '.limite == true' > /dev/null 2>&1; then esperas=$((esperas + 1)); echo "espera: $(echo "$r" | head -c 200)"; sleep 60; continue; fi
             if echo "$r" | jq -e '.completa == true' > /dev/null 2>&1; then
@@ -58,6 +61,7 @@ jobs:
           done
           echo "RESUMO: $feitas buscas, $produtos produtos do ML com preço nelas, $precos preços perguntados, $esperas esperas"
         env:
+          HORAS: ${{ inputs.horas }}
           CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }}
       - name: Espiar o catálogo
         if: ${{ inputs.espiar != '' }}

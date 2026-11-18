@@ -69,7 +69,9 @@ export async function onRequestGet({ request, env }) {
     const [buscadas, prontas, estado] = await Promise.all([termosBuscados(env, 80).catch(() => []), listaDasProntas(env).catch(() => []),
       estadoDasFundas(env.DB)]);
     const termos = listaDasFundas([...buscadas, ...prontas.map((b) => b.q)], (t) => corrigirBusca(t).q, tendenciaAceitavel);
-    const { busca, faltam, fracas } = proximaFunda(termos, estado);
+    // &emdia=N: rodada de dia forçada (18/11/2026): conta como "em dia" só a que passou há menos de N horas (padrão 20)
+    const emDia = Math.min(Math.max(Number(params.get("emdia")) || 20, 1), 48);
+    const { busca, faltam, fracas } = proximaFunda(termos, estado, Date.now(), emDia * 3600e3);
     if (!busca) return Response.json({ fundas: true, partes: termos.length, faltam: 0, fracas, fim: true }, semCache);
     const r = await mercadolivre.preparar(busca, env, horas, FICHAS_FUNDAS);
     const completa = !r.limite && !r.continua;
