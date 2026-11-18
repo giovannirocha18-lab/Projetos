@@ -1479,7 +1479,7 @@ function completarComparacaoDaBusca() {
 // fácil acesso"): um toque mostra só os modelos daquela marca, "Todas" volta. Vale só para o quadro (a lista de baixo não
 // muda) e só nesta busca. Numa busca comum, tocar numa marca que ainda não foi pedida por trás pede "produto + marca"
 const MARCAS_NO_QUADRO = 12;
-const marcaDoComparador = { pedido: -1, n: null, todas: false };
+const marcaDoComparador = { pedido: -1, n: null, todas: false, tipo: null };
 function escolherMarcaDoComparador(n, nome) {
   marcaDoComparador.n = n;
   modelosMostrados = MODELOS_POR_VEZ;
@@ -1505,6 +1505,46 @@ function filtroDeMarcasDoComparador(grupos, escolhida) {
     ...visiveis.map(([n, m]) => chip(m.nome, n, m.nome)),
     ordem.length > visiveis.length && el("button", { type: "button", class: "chip-marca chip-marca-mais",
       onclick: () => { marcaDoComparador.todas = true; desenharComparacao(filtrar()); } }, `+ ${ordem.length - visiveis.length} marcas`));
+}
+// Tipos de produto do quadro numa CATEGORIA (pedido do Giovanni, 18/11/2026: "mostre os tipos abaixo das marcas, ex. TVs,
+// micro-ondas, geladeiras"): lido do nome do anúncio; vale a palavra que aparece primeiro ("Geladeira … Freezer" é geladeira).
+// Um toque mostra só aquele tipo, "Todos" volta; as marcas passam a ser as daquele tipo. Celulares fica sem (seria repetir as marcas)
+const TIPOS_DO_COMPARADOR = {
+  "Eletrodomésticos": [["Geladeiras", /geladeira|refrigerador/], ["Freezers", /freezer/], ["Frigobares", /frigobar/], ["Fogões", /fogao/],
+    ["Cooktops", /cooktop/], ["Micro-ondas", /micro ?-?ondas/], ["Fornos", /forno/], ["Lava-louças", /lava ?-?loucas?/],
+    ["Máquinas de lavar", /lavadora|maquina de lavar|lava e seca|lava ?-?seca|tanquinho|secadora/], ["Ar-condicionado", /ar ?-?condicionado|\bsplit\b/],
+    ["Ventiladores", /ventilador/], ["Climatizadores", /climatizador/], ["Purificadores", /purificador|bebedouro/], ["Coifas", /coifa|depurador/],
+    ["TVs", /\btvs?\b|televis/]],
+  "Eletroportáteis": [["Air fryers", /air ?fryer|fritadeira/], ["Liquidificadores", /liquidificador/], ["Batedeiras", /batedeira/], ["Cafeteiras", /cafeteira/],
+    ["Sanduicheiras e grills", /sanduicheira|\bgrill\b/], ["Mixers", /\bmixer\b/], ["Panelas elétricas", /panela/], ["Fornos elétricos", /forno/],
+    ["Aspiradores", /aspirador/], ["Ferros de passar", /ferro (de passar|a vapor|a seco)|passadeira/], ["Secadores", /secador/], ["Chapinhas", /chapinha|prancha/],
+    ["Barbeadores", /barbeador|aparador/]],
+  "Ferramentas": [["Furadeiras", /furadeira/], ["Parafusadeiras", /parafusadeira/], ["Esmerilhadeiras", /esmerilhadeira/], ["Serras", /\bserra\b/],
+    ["Lixadeiras", /lixadeira/], ["Marteletes", /martelete/], ["Lavadoras de pressão", /lavadora/], ["Compressores", /compressor/],
+    ["Soldas", /solda/], ["Roçadeiras", /rocadeira/], ["Motosserras", /motosserra/]],
+  "Informática": [["Notebooks", /notebook|macbook|laptop/], ["Tablets", /tablet|\bipad\b|kindle/], ["Monitores", /monitor/], ["Impressoras", /impressora/],
+    ["Roteadores", /roteador/], ["SSDs", /\bssd\b/], ["Placas de vídeo", /placa de video/], ["Teclados", /teclado/], ["Mouses", /\bmouse\b/],
+    ["PCs", /\bpc\b|computador|desktop/]],
+};
+function tipoDoGrupo(g, categoria) {
+  const titulo = normalizar([...g.ofertas].sort((a, b) => a.titulo.length - b.titulo.length)[0].titulo);
+  let achado = null;
+  for (const [nome, re] of TIPOS_DO_COMPARADOR[categoria] || []) {
+    const onde = titulo.search(re);
+    if (onde >= 0 && (!achado || onde < achado.onde)) achado = { nome, onde };
+  }
+  return achado?.nome || null;
+}
+function filtroDeTiposDoComparador(grupos, categoria, escolhido) {
+  const conta = new Map();
+  for (const g of grupos) if (g.tipo) conta.set(g.tipo, (conta.get(g.tipo) || 0) + 1);
+  if (conta.size < 2) return null;
+  // Na ordem da lista da categoria (geladeira, freezer, fogão…), que é a ordem em que a pessoa procura
+  const ordem = TIPOS_DO_COMPARADOR[categoria].map(([nome]) => nome).filter((nome) => conta.has(nome));
+  const chip = (texto, tipo) => el("button", { type: "button", class: "chip-marca", "aria-pressed": String(tipo === escolhido),
+    onclick: () => { marcaDoComparador.tipo = tipo; modelosMostrados = MODELOS_POR_VEZ; desenharComparacao(filtrar()); } }, texto);
+  return el("div", { class: "comparacao-marcas comparacao-tipos", role: "group", "aria-label": "Filtrar os modelos por tipo de produto" },
+    el("span", { class: "comparacao-marcas-titulo" }, "Tipos"), chip("Todos", null), ...ordem.map((nome) => chip(nome, nome)));
 }
 function desenharComparacao(lista) {
   const caixa = $("#comparacao");
@@ -1543,22 +1583,31 @@ function desenharComparacao(lista) {
           + "eletroportáteis, TVs, ferramentas, informática e celulares: experimente geladeira, micro-ondas, smart tv 55, furadeira ou iphone 16."));
     return;
   }
-  if (marcaDoComparador.pedido !== estado.pedido) Object.assign(marcaDoComparador, { pedido: estado.pedido, n: null, todas: false });
-  const escolhida = grupos.some((g) => g.modelo.n === marcaDoComparador.n) ? marcaDoComparador.n : null;
-  const daEscolhida = escolhida ? grupos.filter((g) => g.modelo.n === escolhida) : grupos;
+  if (marcaDoComparador.pedido !== estado.pedido) Object.assign(marcaDoComparador, { pedido: estado.pedido, n: null, todas: false, tipo: null });
+  // Tipos (só em categoria): o tipo escolhido vale primeiro e as marcas mostradas são as dele
+  const comTipos = Boolean(categoria && TIPOS_DO_COMPARADOR[categoria]);
+  if (comTipos) for (const g of grupos) g.tipo = tipoDoGrupo(g, categoria);
+  const tipo = comTipos && grupos.some((g) => g.tipo === marcaDoComparador.tipo) ? marcaDoComparador.tipo : null;
+  const doTipo = tipo ? grupos.filter((g) => g.tipo === tipo) : grupos;
+  const escolhida = doTipo.some((g) => g.modelo.n === marcaDoComparador.n) ? marcaDoComparador.n : null;
+  const daEscolhida = escolhida ? doTipo.filter((g) => g.modelo.n === escolhida) : doTipo;
   const mostrar = daEscolhida.slice(0, modelosMostrados);
-  const rolado = caixa.querySelector(".comparacao-marcas")?.scrollLeft || 0; // no celular a fila de marcas rola de lado
+  // no celular as filas de marcas e de tipos rolam de lado: guarda onde cada uma estava
+  const rolado = (classe) => caixa.querySelector(classe)?.scrollLeft || 0;
+  const roladas = { marcas: rolado(".comparacao-marcas:not(.comparacao-tipos)"), tipos: rolado(".comparacao-tipos") };
   // filter: sem "Ver mais modelos" sobrava um false, que aparecia escrito na tela (print do Giovanni, 12/11/2026)
   caixa.replaceChildren(...[
     el("h2", { class: "comparacao-cabeca" }, "⚖️ O mesmo produto em várias lojas ",
-      el("small", {}, `${daEscolhida.length} ${daEscolhida.length === 1 ? "modelo" : "modelos"} ${escolhida ? `da ${daEscolhida[0].modelo.marca}` : categoria ? "nesta categoria" : "nesta busca"}${procurando ? " · procurando mais…" : ""}`)),
-    filtroDeMarcasDoComparador(grupos, escolhida),
+      el("small", {}, `${daEscolhida.length} ${daEscolhida.length === 1 ? "modelo" : "modelos"} ${tipo ? `de ${tipo.toLowerCase()}` : ""}${escolhida ? ` da ${daEscolhida[0].modelo.marca}` : tipo ? "" : categoria ? "nesta categoria" : "nesta busca"}${procurando ? " · procurando mais…" : ""}`)),
+    filtroDeMarcasDoComparador(doTipo, escolhida),
+    comTipos && filtroDeTiposDoComparador(grupos, categoria, tipo),
     el("div", { class: "comparacao-lista" }, ...mostrar.map(cartaoModelo)),
     daEscolhida.length > mostrar.length && el("div", { class: "mais-ofertas" }, el("button", { type: "button", class: "botao-secundario",
       onclick: () => { modelosMostrados += MODELOS_POR_VEZ; desenharResultados(); } }, `Ver mais modelos (${daEscolhida.length - mostrar.length})`)),
     el("p", { class: "comparacao-nota" }, "Juntamos os anúncios do mesmo produto. Confira a voltagem, o tamanho e os detalhes na loja antes de comprar. ",
       "Abaixo, todas as ofertas desta busca.")].filter(Boolean));
-  if (rolado) caixa.querySelector(".comparacao-marcas")?.scrollTo(rolado, 0);
+  if (roladas.marcas) caixa.querySelector(".comparacao-marcas:not(.comparacao-tipos)")?.scrollTo(roladas.marcas, 0);
+  if (roladas.tipos) caixa.querySelector(".comparacao-tipos")?.scrollTo(roladas.tipos, 0);
 }
 // Página inicial com o modo ligado: explica o que fazer
 function desenharAvisoComparacao() {
