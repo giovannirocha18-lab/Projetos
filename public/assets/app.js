@@ -4249,8 +4249,10 @@ async function carregarEmAlta() {
   try {
     const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=22")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
-    if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
+    // As categorias primeiro (print do Giovanni, 18/11/2026: o atalho "Eletroportáteis" do topo abria a busca comum pela palavra,
+    // 17 kits, em vez da categoria): o atalho só sabe que é categoria depois que a lista das 40 chegou
     if (categorias.length) desenharCategorias(categorias);
+    if (itens.length) desenharEmAlta(itens.map((i) => ({ nome: maiuscula(i.nome), busca: i.busca })));
     // Mesma lista que já está na tela: não desenha de novo (as fotos piscariam)
     if (JSON.stringify(ml) !== JSON.stringify(guardada)) desenharBuscadosML(ml);
     try { localStorage.setItem(CHAVE_FAIXA_ML, JSON.stringify({ quando: Date.now(), ml })); } catch { /* sem espaço: segue sem guardar */ }
