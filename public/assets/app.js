@@ -1600,7 +1600,10 @@ function desenharComparacao(lista) {
       procurando = extrasDaBusca.faltam > 0;
     }
   }
-  const grupos = gruposDeModelos(lista);
+  // "Frete grátis" ligado (print do Giovanni, 18/11/2026: aparecia modelo sem nenhuma loja com frete grátis): ficam só os
+  // modelos em que alguma loja entrega grátis; as outras lojas do cartão continuam, para comparar o preço
+  const soFrete = $("#so-frete").checked;
+  const grupos = gruposDeModelos(lista).filter((g) => !soFrete || g.ofertas.some((o) => o.freteGratis));
   caixa.hidden = false;
   // Busca dentro de UMA loja (print do Giovanni, 12/11/2026, "notebook" na loja Mercado Livre): não há o que comparar, e o
   // aviso antigo dava a entender que o comparador não tinha notebook
