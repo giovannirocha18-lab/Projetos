@@ -3,6 +3,7 @@
 // LISTA DO QUE PODE ABRIR (segunda camada): qualquer outro endereço dá 404. Também põe cabeçalhos de segurança.
 // /assets/ e /marca/ não passam por aqui (public/_routes.json): saem direto do Cloudflare, mais rápido e sem gastar o
 // limite de chamadas, com os cabeçalhos de segurança do public/_headers. Só é seguro porque NADA interno fica em public/.
+import { onRequestGet as listaDeLojas } from "./api/lojas.js";
 import { produtoPorId } from "../lib/produto.js";
 import { ehPainel, quemEntrou } from "../lib/painel.js";
 import { naoContar } from "../lib/naoContar.js";
@@ -194,10 +195,19 @@ function comDadosDaPagina(resposta, url) {
 
 // robots.txt e sitemap.xml (preparo do lançamento): a API e os links de saída não são para os buscadores
 const ROBOTS = `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /ir/\n\nSitemap: ${SITE}/sitemap.xml\n`;
-function sitemap() {
+// As páginas das lojas parceiras também entram (18/11/2026): a lista é a de /api/lojas (guardada 6 h); as que só têm o botão
+// "Ir para a loja" (Shein) não têm página. Se a lista falhar, o mapa sai sem as lojas
+async function lojasDoSitemap(contexto) {
+  try {
+    const resposta = await listaDeLojas({ ...contexto, request: new Request(new URL("/api/lojas", contexto.request.url)) });
+    const { lojas = [] } = resposta.ok ? await resposta.json() : {};
+    return lojas.filter((l) => l?.id && !l.soLink).map((l) => `${SITE}/?${new URLSearchParams({ loja: l.id })}`);
+  } catch { return []; }
+}
+function sitemap(lojas = []) {
   const xml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
   const enderecos = [`${SITE}/`, `${SITE}/black-friday`, `${SITE}/quedas-de-preco`, `${SITE}/como-funciona`, `${SITE}/privacidade`,
-    ...categoriasDoSite().map((c) => `${SITE}/?${new URLSearchParams({ q: c.busca, cat: c.nome })}`)];
+    ...categoriasDoSite().map((c) => `${SITE}/?${new URLSearchParams({ q: c.busca, cat: c.nome })}`), ...lojas];
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${
     enderecos.map((e) => `  <url><loc>${xml(e)}</loc></url>`).join("\n")}\n</urlset>\n`;
 }
@@ -206,7 +216,7 @@ export async function onRequest(contexto) {
   const url = new URL(contexto.request.url);
   if (!ehPainel(contexto.request.url) && contexto.request.method === "GET") {
     if (url.pathname === "/robots.txt") return new Response(ROBOTS, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
-    if (url.pathname === "/sitemap.xml") return new Response(sitemap(), { headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
+    if (url.pathname === "/sitemap.xml") return new Response(sitemap(await lojasDoSitemap(contexto)), { headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
   }
   const daLoja = await comPreviaDoProduto(await responder(contexto), contexto.env, url);
   const resposta = ehPainel(contexto.request.url) ? daLoja : comDadosDaPagina(daLoja, url);

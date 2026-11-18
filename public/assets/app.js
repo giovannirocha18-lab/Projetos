@@ -2446,6 +2446,15 @@ const E_ACESSORIO = /\b(headset|fone|cabo|fonte|carregador|base|dock|suporte|cap
 const PECA = /^(?:\S+ ){0,2}(hd|analogico 3d|bateria|pilha|capa|case|suporte|carregador|base|dock|cabo|protetor|protetores|grip|botoes|botao|kit|adaptador|receptor|analogico|modulo|sensor|pelicula|skin|adesivo|bolsa|estojo|par|conjuntos?|\d+ (?:unidades?|conjuntos?|pecas?|pares?))\b|\b(controle remoto|substituicao|reposicao|reparo)\b/;
 const SO_ACESSORIO = /\b(suportes?|racks?|tampas?|capas?|cases?|organizador(?:es)?|cabides?|botao|botoes|teclas|acessorios?|dustproof|poeira|gameshark|montagem|montado|armazenamento|carregador(?:es)?|cabos?|peliculas?|adesivos?|skins?|controlador(?:es)?|gamepads?|caixa vazia|kontrol|freek|tablet|slot|emulador|simulador|escudo|protetor(?:es)?|porta cartuchos?|divisor|combinador|figuras?|action figure|bonecos?|pelucia|doca|punho|aperto)\b/;
 const PARA_O_CONSOLE = /\b(para|p|compativel|compativeis|compatible|for)\b/;
+const ENFEITE_DE_ANUNCIO = /^(?:(?:envio (?:imediato|rapido)|pronta entrega|nota fiscal|com nota|lancamento|bundle|kit|combo|novo|nova|original|lacrado|oferta|promocao|microsoft|sony|nintendo) )+/;
+function consoleComEnfeite(t) {
+  const limpo = t.replace(ENFEITE_DE_ANUNCIO, "");
+  const inicio = limpo.split(" ").slice(0, 6).join(" ");
+  const dizConsole = /^(?:consolas?|consoles?|video ?games?|videogames?)\b/.test(limpo);
+  if (!dizConsole && !INICIO_DE_CONSOLE.test(limpo)) return false;
+  if (PARA_O_CONSOLE.test(limpo.split(" ").slice(0, 5).join(" "))) return false;
+  return dizConsole || !E_ACESSORIO.test(inicio);
+}
 function tipoDe(o) {
   if (o.tipoLido) return o.tipoLido;
   const t = normalizar(o.titulo || "").replace(/[^a-z0-9+ ]/g, " ").replace(/\s+/g, " ").trim();
@@ -2455,6 +2464,11 @@ function tipoDe(o) {
   // PlayStation VR2 e PlayStation Portal começam pelo nome do console e custam como um, mas são acessórios dele (14/11/2026)
   if (/\b(vr ?2?|portal|oculos|headset)\b/.test(palavras.slice(0, 5).join(" "))) tipo = "Acessórios";
   else if (!dizConsole && !PECA.test(t) && E_CONTROLE.test(palavras.slice(0, 3).join(" "))) tipo = "Controles";
+  // Console com "enfeite" na frente do nome ou vendido junto com jogo (18/11/2026, medido em 2.930 anúncios de 8 buscas: "Bundle
+  // Nintendo Switch 2 + Mario Kart", "ENVIO IMEDIATO - Nintendo Switch Oled", "Kit Console Xbox Series X 2 Controles", "Nintendo,
+  // Console + Jogo, Switch OLED", "Playstation 5 + Jogo Fifa", "Consola Nintendo Switch Lite" caíam em Acessórios ou Jogos): de
+  // R$ 1.200 para cima, começando pelo console depois de tirar o enfeite, e sem ser "para o console" nem peça
+  else if (o.preco >= 1200 && consoleComEnfeite(t)) tipo = "Consoles";
   else if (PECA.test(t)) tipo = "Acessórios";
   else if (dizConsole && o.preco >= 500) tipo = "Consoles";
   else if (INICIO_DE_CONSOLE.test(t) && o.preco >= 600 && !PARA_O_CONSOLE.test(palavras.slice(0, 5).join(" "))
@@ -4312,7 +4326,11 @@ function desenharCategorias(lista = categoriasAtuais) {
     // Link aberto direto (?q=perfume&cat=Perfumes): só agora dá para saber o título da categoria
     preencherBusca();
     if (estado.buscando) desenharResumoBuscando();
-    else if (estado.ofertas.length) desenharResumo(filtrar());
+    else if (estado.ofertas.length) {
+      desenharResumo(filtrar());
+      // …e o comparador ligado antes de a lista de categorias chegar tratava a categoria como busca (sem a fila "Tipos"; 18/11/2026)
+      if (modoComparacao()) desenharComparacao(filtrar());
+    }
   }
 }
 
