@@ -1426,6 +1426,7 @@ const extrasDaCategoria = { nome: null, ofertas: [], faltam: 0 };
 function completarComparacaoDaCategoria(nome) {
   if (extrasDaCategoria.nome === nome) return;
   Object.assign(extrasDaCategoria, { nome, ofertas: [], faltam: TERMOS_DA_COMPARACAO[nome].length });
+  tiposCompletados.clear();
   const fila = [...TERMOS_DA_COMPARACAO[nome]];
   const ids = new Set();
   const trabalhar = async () => {
@@ -1526,6 +1527,39 @@ const TIPOS_DO_COMPARADOR = {
     ["Roteadores", /roteador/], ["SSDs", /\bssd\b/], ["Placas de vídeo", /placa de video/], ["Teclados", /teclado/], ["Mouses", /\bmouse\b/],
     ["PCs", /\bpc\b|computador|desktop/]],
 };
+// Tipo escolhido (print do Giovanni, 18/11/2026: "Air fryers" na categoria mostrava 9 modelos e a busca "air fryer", 35): a
+// categoria só tinha pedido a busca do produto; a busca comum pede também "produto + marca" das marcas que mais aparecem.
+// Ao tocar num tipo o quadro faz o mesmo (até 6 marcas por busca do tipo, 3 por vez, uma vez por tipo) e junta o que vier
+const BUSCAS_DO_TIPO = {"Geladeiras": ["geladeira"], "Freezers": ["freezer"], "Frigobares": ["frigobar"], "Fogões": ["fogão"], "Cooktops": ["cooktop"], "Micro-ondas": ["micro-ondas"], "Fornos": ["forno de embutir"], "Lava-louças": ["lava-louças"], "Máquinas de lavar": ["máquina de lavar", "lava e seca"], "Ar-condicionado": ["ar condicionado"], "Ventiladores": ["ventilador"], "Climatizadores": ["climatizador"], "Purificadores": ["purificador de água"], "Coifas": ["coifa"], "TVs": ["smart tv"], "Air fryers": ["air fryer"], "Liquidificadores": ["liquidificador"], "Batedeiras": ["batedeira"], "Cafeteiras": ["cafeteira"], "Sanduicheiras e grills": ["sanduicheira"], "Mixers": ["mixer"], "Panelas elétricas": ["panela elétrica"], "Fornos elétricos": ["forno elétrico"], "Aspiradores": ["aspirador de pó", "robô aspirador"], "Ferros de passar": ["ferro de passar"], "Secadores": ["secador de cabelo"], "Chapinhas": ["chapinha"], "Barbeadores": ["barbeador elétrico"], "Furadeiras": ["furadeira"], "Parafusadeiras": ["parafusadeira"], "Esmerilhadeiras": ["esmerilhadeira"], "Serras": ["serra circular", "serra tico-tico"], "Lixadeiras": ["lixadeira"], "Marteletes": ["martelete"], "Lavadoras de pressão": ["lavadora de alta pressão"], "Compressores": ["compressor de ar"], "Soldas": ["inversora de solda"], "Roçadeiras": ["roçadeira"], "Motosserras": ["motosserra"], "Notebooks": ["notebook"], "Tablets": ["tablet"], "Monitores": ["monitor"], "Impressoras": ["impressora"], "Roteadores": ["roteador wifi"], "SSDs": ["ssd"], "Placas de vídeo": ["placa de vídeo"], "Teclados": ["teclado mecânico"], "Mouses": ["mouse gamer"], "PCs": ["pc gamer"]};
+const tiposCompletados = new Set();
+function completarTipoDoComparador(categoria, tipo) {
+  const chave = `${categoria}|${tipo}`;
+  const re = (TIPOS_DO_COMPARADOR[categoria] || []).find(([nome]) => nome === tipo)?.[1];
+  if (!re || !BUSCAS_DO_TIPO[tipo] || tiposCompletados.has(chave) || extrasDaCategoria.nome !== categoria) return;
+  tiposCompletados.add(chave);
+  const conta = new Map();
+  for (const o of [...estado.ofertas, ...extrasDaCategoria.ofertas]) {
+    const m = re.test(normalizar(String(o.titulo || ""))) && (marcaDe(o) || marcaSoDoComparador(o));
+    if (m) conta.set(m.n, { nome: m.nome, qtd: (conta.get(m.n)?.qtd || 0) + 1 });
+  }
+  const marcas = [...conta.values()].sort((a, b) => b.qtd - a.qtd).slice(0, MARCAS_DA_COMPARACAO);
+  const fila = BUSCAS_DO_TIPO[tipo].flatMap((termo) => marcas.map((m) => `${termo} ${m.nome}`));
+  if (!fila.length) return;
+  extrasDaCategoria.faltam += fila.length;
+  const ids = new Set(extrasDaCategoria.ofertas.map((o) => o.id));
+  const trabalhar = async () => {
+    for (let termo = fila.shift(); termo; termo = fila.shift()) {
+      const dados = await fetch(enderecoBusca(termo, null, "&atalho=1"), { priority: "low" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      if (extrasDaCategoria.nome !== categoria) return;
+      extrasDaCategoria.faltam--;
+      const novas = (dados?.ofertas || []).filter((o) => o?.id && (o.secao === categoria || secaoDoComparador(o) === categoria) && !ids.has(o.id) && ids.add(o.id));
+      if (!novas.length && extrasDaCategoria.faltam) continue;
+      extrasDaCategoria.ofertas.push(...novas);
+      if (modoComparacao() && !estado.buscando && navegandoCategoria()?.nome === categoria) desenharComparacao(filtrar());
+    }
+  };
+  for (let i = 0; i < 3; i++) trabalhar();
+}
 function tipoDoGrupo(g, categoria) {
   const titulo = normalizar([...g.ofertas].sort((a, b) => a.titulo.length - b.titulo.length)[0].titulo);
   let achado = null;
@@ -1542,7 +1576,7 @@ function filtroDeTiposDoComparador(grupos, categoria, escolhido) {
   // Na ordem da lista da categoria (geladeira, freezer, fogão…), que é a ordem em que a pessoa procura
   const ordem = TIPOS_DO_COMPARADOR[categoria].map(([nome]) => nome).filter((nome) => conta.has(nome));
   const chip = (texto, tipo) => el("button", { type: "button", class: "chip-marca", "aria-pressed": String(tipo === escolhido),
-    onclick: () => { marcaDoComparador.tipo = tipo; modelosMostrados = MODELOS_POR_VEZ; desenharComparacao(filtrar()); } }, texto);
+    onclick: () => { marcaDoComparador.tipo = tipo; modelosMostrados = MODELOS_POR_VEZ; if (tipo) completarTipoDoComparador(categoria, tipo); desenharComparacao(filtrar()); } }, texto);
   return el("div", { class: "comparacao-marcas comparacao-tipos", role: "group", "aria-label": "Filtrar os modelos por tipo de produto" },
     el("span", { class: "comparacao-marcas-titulo" }, "Tipos"), chip("Todos", null), ...ordem.map((nome) => chip(nome, nome)));
 }
