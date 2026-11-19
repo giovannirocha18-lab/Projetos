@@ -35,6 +35,10 @@ Feito no site no ar, com o cookie `vpc_nao_contar` (não entra em visitas, pouca
    "ventilador de teto com controle" abre com controles remotos, não ventiladores.
 
 ### Médios (qualidade do topo da lista)
+**Corrigidos em 19/11 (no ar):** itens 7 a 12 (regras em lib/relevancia.js, casos em testes/busca.mjs). O 13 não é defeito: a ordem
+"Maior desconto" põe primeiro o desconto conferido pelo histórico, de propósito. Sobra do 7: "mochila" (almofada de bebê) e
+"playstation 5 pro" ("Hyper-5" de R$ 400); do 8: "tv lg oled 65" (as lojas não trouxeram nenhuma OLED).
+
 7. Brinquedo/peça/acessório como produto no topo: "geladeira" 4º = Geladeira Cookeez (brinquedo, R$ 499);
    "lavadora electrolux 13kg" com peça de R$ 78 e selo mecânico; "moto g85" 2º e 3º = gaveta de chip;
    "placa de vídeo rtx 4060" 4º = ventoinha; "câmera canon" 1 câmera e depois bolsas/controles;
