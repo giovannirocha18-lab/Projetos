@@ -460,9 +460,12 @@ async function conferirFotos(ofertas) {
 // até o feed voltar a apontar para páginas que existem (a conferência é refeita toda madrugada).
 // ---------------------------------------------------------------------
 const LINKS_POR_LOJA = 8;
-// Loja pequena com algum link quebrado na amostra: testa todos os produtos dela e tira só os quebrados
-// (25/10/2026: na Arno, 6 de 8 davam 404 e o resto abria). Loja grande: só a regra da loja inteira
-const TESTAR_TODOS_ATE = 3000;
+// Loja com algum link quebrado na amostra: testa todos os produtos dela e tira só os quebrados
+// (25/10/2026: na Arno, 6 de 8 davam 404 e o resto abria). Loja muito grande: só a regra da loja inteira.
+// 19/11/2026 (Giovanni: "produtos que não abrem pode remover até que voltem ao normal"): basta 1 quebrado na
+// amostra e vale até 12 mil produtos (Monte Carlo Jóias, 8 mil, tinha 5 de 8 sem abrir e seguia inteira no site).
+// O teste é refeito toda madrugada: o produto volta sozinho quando a página voltar
+const TESTAR_TODOS_ATE = 12000;
 
 async function conferirLinks(ofertas) {
   const porLoja = new Map();
@@ -476,8 +479,8 @@ async function conferirLinks(ofertas) {
   const linhas = [];
   for (const [loja, urls] of porLoja) {
     const r = await lojaComLinksQuebrados(sortear(urls, LINKS_POR_LOJA), { minimo: 5 });
-    if (r.quebrados >= 2 && urls.length <= TESTAR_TODOS_ATE) {
-      const ruins = await linksQuebrados(urls);
+    if (r.quebrados >= 1 && urls.length <= TESTAR_TODOS_ATE) {
+      const ruins = await linksQuebrados(urls, { aoMesmoTempo: 12 });
       for (const u of ruins) urlsRuins.add(u);
       linhas.push(`${ruins.size ? "⚠️ " : ""}${loja}: todos os ${urls.length} produtos testados; ${ruins.size} dão "página não encontrada" na loja` +
         (ruins.size ? " e ficam fora do site hoje" : ""));
