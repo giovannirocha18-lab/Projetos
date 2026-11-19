@@ -44,7 +44,7 @@ const FONTES_REAIS = [mercadolivre, curadoria, shopee, awin, aliexpress, lomadee
 const FRESCO_MS = 6 * 60 * 60 * 1000;
 // Vitrine de categoria mudada (19/11/2026, "tênis olympikus" em Calçados; Giovanni: a marca não aparecia): a lista guardada
 // antes disto é refeita na 1ª visita, sem esperar as 6 horas. Ao mudar a vitrine de uma categoria, pôr aqui a data e o nome
-const VITRINES_DESDE = { "Calçados": Date.UTC(2026, 10, 19, 0, 50) };
+const VITRINES_DESDE = { "Calçados": Date.UTC(2026, 10, 19, 1, 5) };
 const CONSOLES_DESDE = Date.UTC(2026, 10, 16, 20, 35); // 16/11: regra da outra geração também nos acessórios (print "ps5")
 const GUARDAR_SEGUNDOS = 24 * 60 * 60;
 const LIMPA_FRESCA_MS = 10 * 60 * 1000; // de quanto em quanto tempo a cópia limpa é conferida de novo com o banco
@@ -545,6 +545,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Abriu uma categoria: vitrine com os produtos em alta (várias buscas, mais vendidos primeiro)
   const vitrine = vitrineDaCategoria(q, categoria);
+  const vitrineDesde = categoria ? VITRINES_DESDE[categoria.nome] || 0 : 0;
   // O que foi buscado é claramente de outra categoria ("air fryer mondial" com Cabelo aberta mostrava só secadores
   // Mondial; print do Giovanni, 19/10/2026): busca em todas e o site avisa
   const daBusca = categoria && !vitrine ? categoriaDoProduto(q) : null;
@@ -689,6 +690,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // A refeita achou ofertas e a guardada era a vazia: troca mesmo com loja em erro (senão o "não achamos" ficava 1 h)
   } else if (cache && ofertas.length && !lojas.shopee?.ok && vazia((await cache.match(chave).catch(() => null)) || new Response(null))) {
     await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60)]);
+  // Vitrine da categoria mudada (VITRINES_DESDE): a cópia de antes da mudança é trocada mesmo com loja em erro (a vitrine faz
+  // várias buscas na Shopee e basta uma ser recusada; sem isto "tênis olympikus" só entraria em Calçados dias depois)
+  } else if (cache && ofertas.length && vitrine && vitrineDesde && (Number((await cache.match(chave).catch(() => null))?.headers.get("X-Criado")) || 0) < vitrineDesde) {
+    await Promise.all([cache.put(chave, paraGuardar(resposta.clone())), guardarLimpa(resposta.clone())]);
   } else if (cache && lojas.shopee?.ok && ofertas.length) await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60)]);
   // Não guardou a resposta nova: a limpa antiga só sai se a cópia de origem também não existe mais.
   // 15/11/2026 (Giovanni: categoria demorando a abrir no celular): com a Shopee em erro TODA atualização por trás caía aqui e
@@ -730,7 +735,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
         // (era por isso que as categorias quase nunca eram guardadas); as outras vieram, então renova a cada noite
         guardar = !atual || Date.now() - atual.criado > (categoria ? PRONTA_DE_CATEGORIA_APOS_MS : PRONTA_SEM_SHOPEE_APOS_MS)
           // 15/11/2026: veio o dobro (ou mais) da guardada: troca mesmo sem a Shopee (Games tinha 37; lib/poucas.js)
-          || ofertas.length >= 2 * (Number(atual.total) || 0);
+          || ofertas.length >= 2 * (Number(atual.total) || 0)
+          // vitrine da categoria mudada depois da pronta guardada (VITRINES_DESDE)
+          || Boolean(vitrine && vitrineDesde && atual.criado < vitrineDesde);
       }
       // 14/11/2026: na madrugada a AliExpress e a Lomadee demoraram mais de 10 s na hora de "air fryer" e a pronta nova
       // (323 ofertas, AliExpress 44) tomou o lugar da boa (763). Com loja em erro, não troca uma pronta de menos de 3 dias
