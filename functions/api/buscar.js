@@ -42,6 +42,9 @@ const FONTES_REAIS = [mercadolivre, curadoria, shopee, awin, aliexpress, lomadee
 // e o próximo já recebe a nova. O navegador guarda só NAVEGADOR_SEGUNDOS (para ver a atualização logo).
 // Era 1 hora; 6 horas desde 03/11/2026 (limite da Shopee: cada busca refeita gasta o limite)
 const FRESCO_MS = 6 * 60 * 60 * 1000;
+// Vitrine de categoria mudada (19/11/2026, "tênis olympikus" em Calçados; Giovanni: a marca não aparecia): a lista guardada
+// antes disto é refeita na 1ª visita, sem esperar as 6 horas. Ao mudar a vitrine de uma categoria, pôr aqui a data e o nome
+const VITRINES_DESDE = { "Calçados": Date.UTC(2026, 10, 19, 0, 50) };
 const CONSOLES_DESDE = Date.UTC(2026, 10, 16, 20, 35); // 16/11: regra da outra geração também nos acessórios (print "ps5")
 const GUARDAR_SEGUNDOS = 24 * 60 * 60;
 const LIMPA_FRESCA_MS = 10 * 60 * 1000; // de quanto em quanto tempo a cópia limpa é conferida de novo com o banco
@@ -259,7 +262,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const refazerPorTras = (criado, semOfertas = false) => {
     // Busca só do console ("xbox series", "ps5"…): a guardada antes de 13/11/2026 17h05 UTC não tem os consoles do Mercado
     // Livre (print do Giovanni: comparador vazio em "xbox series"); refaz já, sem esperar as 6 horas
-    const semConsoles = Boolean(q) && criado < CONSOLES_DESDE && buscaSoDeConsole(q);
+    const semConsoles = (Boolean(q) && criado < CONSOLES_DESDE && buscaSoDeConsole(q))
+      || Boolean(categoria && criado < (VITRINES_DESDE[categoria.nome] || 0) && vitrineDaCategoria(q, categoria));
     if (preparar || atualizar || (Date.now() - criado < (semOfertas ? VAZIA_FRESCA_MS : FRESCO_MS) && !semConsoles)) return;
     if (Date.now() - (atualizando.get(chave.url) || 0) < PAUSA_ENTRE_ATUALIZACOES_MS) return;
     if (atualizando.size > 5000) atualizando.clear();
