@@ -8,7 +8,6 @@
 // certa tem que ser palavra de busca conhecida (ou marca), a errada não pode ser, mesma inicial e no máximo 1 letra de
 // diferença (2 em palavra de 9+ letras).
 import { dentroDoLimite, ipDe } from "../../lib/conta.js";
-import { naoContar } from "../../lib/naoContar.js";
 import { normalizar } from "../../lib/texto.js";
 import { ERROS, MARCAS, distancia, termosParaSugestoes } from "../../lib/vocabulario.js";
 import { tendenciaAceitavel } from "../../lib/buscas.js";
@@ -85,7 +84,9 @@ export async function onRequestPost({ request, env }) {
     mesmaOrigem = new URL(request.headers.get("Origin") || "").host === new URL(request.url).host;
   } catch { /* Origin ausente ou "null" */ }
   if (!mesmaOrigem) return vazio(403);
-  if (!env.DB || naoContar(request)) return vazio();
+  // Vale também para o aparelho com "não contar minhas visitas" (19/11/2026: o Giovanni buscou "parafuzadeira" e o site não
+  // aprendeu por causa disso): aprender um erro não é contar visita
+  if (!env.DB) return vazio();
   let dados;
   try {
     dados = JSON.parse((await request.text()).slice(0, 1000));
