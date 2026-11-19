@@ -3444,6 +3444,7 @@ async function buscar(q) {
     desenharResultados();
     mostrarTempos();
     completarSozinho(pedido);
+    if (dados.parcial) completarLojasAtrasadas(pedido);
   } catch (erro) {
     if (pedido !== estado.pedido) return;
     estado.buscando = false;
@@ -4047,6 +4048,34 @@ async function trazerMaisOfertas() {
 // e o site pede as próximas sozinho, até ter uns 100 produtos (sem contar acessórios)
 const PRODUTOS_DESEJADOS = 200; // 26/10/2026: era 100 (categorias abriam com ~110 produtos)
 const PEDIDOS_AUTOMATICOS = 3;
+// 1ª resposta parcial (19/11/2026: a 1ª tela de uma busca nova sai em ~3 s com as lojas que já responderam; o servidor
+// refaz a busca por trás com as lentas): pede o complemento algumas vezes e junta o que faltava. Quem já está na tela
+// não muda de lugar; os novos entram depois dos produtos (ou na frente, se a tela ainda não tinha o produto buscado:
+// "moto g85" abria só com acessórios enquanto o Mercado Livre não respondia)
+const ESPERAS_DO_COMPLEMENTO_MS = [3500, 3500, 5000, 8000];
+async function completarLojasAtrasadas(pedido) {
+  const q = estado.q;
+  for (const espera of ESPERAS_DO_COMPLEMENTO_MS) {
+    await new Promise((feito) => setTimeout(feito, espera));
+    if (pedido !== estado.pedido || estado.q !== q) return;
+    const resp = await fetch(enderecoBusca(q, estado.cat, "&completo=1")).catch(() => null);
+    if (!resp || resp.status !== 200) continue;
+    const dados = await resp.json().catch(() => null);
+    if (!dados || pedido !== estado.pedido || estado.q !== q) return;
+    const ja = new Set(estado.ofertas.map((o) => o.id));
+    const novas = semRepetidos(dados.ofertas || []).filter((o) => !ja.has(o.id));
+    if (!novas.length) return;
+    const produtos = estado.ofertas.filter((o) => !o.acessorio);
+    const novos = [...novas.filter((o) => o.principal && !o.acessorio), ...novas.filter((o) => !o.principal && !o.acessorio)];
+    const temOProduto = produtos.some((o) => o.principal);
+    estado.ofertas = semRepetidos([...(temOProduto ? [...produtos, ...novos] : [...novos, ...produtos]),
+      ...estado.ofertas.filter((o) => o.acessorio), ...novas.filter((o) => o.acessorio)]);
+    desenharFiltroLojas();
+    desenharResultados();
+    return;
+  }
+}
+
 async function completarSozinho(pedido) {
   // A "Escolha rápida" espera os lotes automáticos chegarem (senão o "mais barato" trocava sozinho segundos depois;
   // print do Giovanni, 26/10/2026)

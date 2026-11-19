@@ -87,6 +87,15 @@ const LIMITE_LOJA_LENTA_MS = { lomadee: 5000 };
 // Com o visitante esperando, 2,5 s (como o Mercado Livre): a Lomadee que não responde segurava a busca vazia em 6 s.
 // A busca refeita por trás e o robô seguem com o prazo maior
 const LIMITE_LOJA_LENTA_VISITANTE_MS = { lomadee: 2500 };
+// PRIMEIRA TELA EM ~3 s (19/11/2026, auditoria antes do lançamento: busca nova levava 4–8 s, quase tudo esperando a
+// AliExpress, 3,5–5,5 s, e a Shopee, que em pane segura 2,5 s e sem pane chega a 5–7 s). Na 1ª resposta de uma busca
+// nova do visitante, essas duas têm 3 s: o que não chegou fica de fora dessa resposta (parcial: true), a busca é refeita
+// por trás na mesma hora com os prazos normais e o site pede o complemento sozinho (&completo=1, completarLojasAtrasadas
+// em app.js). A resposta parcial também fica guardada: antes, com a Shopee em erro, NADA era guardado e cada visitante
+// refazia a busca inteira (93 de 99 buscas novas seguiam lentas na 2ª visita)
+const PRAZO_DA_PRIMEIRA_TELA_MS = { aliexpress: 3000, shopee: 3000 };
+// Refeita por trás e ainda sem a Shopee: vale meia hora antes de tentar de novo (senão cada visita mandaria refazer)
+const INCOMPLETA_FRESCA_MS = 30 * 60 * 1000;
 // Para o robô que prepara as buscas populares ninguém está esperando: as lojas têm mais tempo
 const LIMITE_LOJA_ROBO_MS = 10000;
 // Buscas populares preparadas pelo robô da madrugada (/api/preparar-buscas) valem por até 30 horas
@@ -177,7 +186,8 @@ function paraGuardar(resposta, criado = Date.now(), segundos = GUARDAR_SEGUNDOS)
 // Resposta guardada indo para o navegador: ele guarda pouco tempo
 function paraNavegador(resposta) {
   const copia = new Response(resposta.body, resposta);
-  copia.headers.set("Cache-Control", `public, max-age=${vazia(resposta) ? 0 : NAVEGADOR_SEGUNDOS}`);
+  // Cópia sem alguma loja (X-Incompleta): o navegador guarda só 1 minuto, para logo receber a completa
+  copia.headers.set("Cache-Control", `public, max-age=${vazia(resposta) ? 0 : resposta.headers.get("X-Incompleta") ? 60 : NAVEGADOR_SEGUNDOS}`);
   return copia;
 }
 
@@ -216,8 +226,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const preparar = Boolean(env.__PREPARAR);
   // Atualização por trás de uma busca guardada que passou de FRESCO_MS: busca nas lojas e regrava o cache
   const atualizar = Boolean(env.__ATUALIZAR);
+  let prazoCurto = false; // 1ª resposta de uma busca nova do visitante (ver PRAZO_DA_PRIMEIRA_TELA_MS)
   const limiteDe = (fonte) => (preparar ? LIMITE_LOJA_ROBO_MS
-    : (!atualizar && LIMITE_LOJA_LENTA_VISITANTE_MS[fonte.nome]) || LIMITE_LOJA_LENTA_MS[fonte.nome] || LIMITE_LOJA_MS);
+    : (prazoCurto && PRAZO_DA_PRIMEIRA_TELA_MS[fonte.nome]) || (!atualizar && LIMITE_LOJA_LENTA_VISITANTE_MS[fonte.nome]) || LIMITE_LOJA_LENTA_MS[fonte.nome] || LIMITE_LOJA_MS);
   const inicio = Date.now();
   const params = new URL(request.url).searchParams;
   // Erros comuns de digitação são trocados antes de buscar ("eletrolux" -> "electrolux"); a resposta traz o q
@@ -329,6 +340,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
     if (!crua) return cache.delete(chaveLimpa); // a cópia de origem venceu: a próxima visita monta tudo de novo
     await guardarLimpa(await limpar(crua.clone()), Number(crua.headers.get("X-Criado")) || 0);
   };
+  // completo=1: o site pede o que faltou na 1ª resposta (parcial). Só lê a cópia guardada; enquanto a busca refeita por
+  // trás não terminou responde 204 (o site tenta de novo em alguns segundos). Nunca vai às lojas
+  if (params.has("completo") && !preparar && !atualizar) {
+    const pronta = cache && (await cache.match(chave).catch(() => null));
+    if (!pronta || pronta.headers.get("X-Parcial")) return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
+    return paraNavegador(await limpar(pronta));
+  }
   const usarGuardadas = !preparar && !atualizar && !medir && cache;
   const limpa = usarGuardadas && (await cache.match(chaveLimpa));
   etapa("limpa");
@@ -587,6 +605,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Na busca, acessórios ("tapete para air fryer") vão para o fim e o site os esconde
     // "tv" pesquisa "smart tv" nas lojas; "bateria carro", várias buscas com marca/amperagem (ver buscaNasLojas)
     const { buscas, termo, precoMin } = buscaNasLojas(q);
+    prazoCurto = !preparar && !atualizar && pagina === 1 && desde === 1 && !rapido && !soLoja && Boolean(cache);
     const separar = (lista) => separarAcessorios(lista, termo, { precoMin });
     const { juntas, proxima } = await buscarAteEncher(buscas, (novas) => separar(novas).filter((o) => !o.acessorio).length,
       buscas.length > 2 ? 1 : undefined);
@@ -640,6 +659,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   ofertas = ofertas.map(({ catLojaNome, ...o }) => o);
 
+  // Alguma loja ficou de fora por causa do prazo curto da 1ª tela (ou o Mercado Livre segue por trás): o site pede o resto
+  const parcial = prazoCurto && ofertas.length > 0 && Object.values(lojas).some((l) => !l.ok);
   // Toda busca de visitante vai para a fila do robô do Mercado Livre da madrugada (lib/mlFila.js). 16/11/2026 (print
   // "starlink" com 18 do ML; Giovanni: "seria bom fazer pra outros produtos também"): antes só entrava a que trazia menos
   // de 8 do ML ou com o ML em erro; o robô lê o dobro do catálogo e pede o preço de mais fichas do que dá na hora
@@ -651,7 +672,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   // Trouxe ofertas, mas nenhuma é o produto (só acessórios e parecidos): o termo sai das sugestões de tendência por 3 dias
   // (lib/buscas.js). Vale também para o robô das prontas; só a busca comum, na 1ª página, no site todo
-  if (q && pagina === 1 && desde === 1 && !soLoja && !rapido && !categoria && env.DB && semProdutoAVenda(ofertas)
+  if (q && pagina === 1 && desde === 1 && !soLoja && !rapido && !categoria && env.DB && !parcial && semProdutoAVenda(ofertas)
     // …e só se as lojas responderam: com 2+ lojas em erro o produto pode estar justamente nelas (auditoria de 13/11/2026)
     && Object.values(lojas).filter((l) => !l.ok).length <= 1) {
     waitUntil(anotarSemProduto(env, q).catch(() => {}));
@@ -659,7 +680,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Poucas ofertas numa busca comum (15/11/2026, Giovanni: "busca com pouco resultado tem que ser investigada e corrigida
   // automaticamente"): anota para o robô da noite refazer e diagnosticar (lib/poucas.js). O robô (preparar) tira da lista
   // quando volta a vir bastante. Termos fora do filtro das tendências (impróprios, inventados) não entram
-  if (q && pagina === 1 && desde === 1 && !soLoja && !rapido && !categoria && !atualizar && env.DB && reais.length && tendenciaAceitavel(q)
+  if (q && pagina === 1 && desde === 1 && !soLoja && !rapido && !categoria && !atualizar && !parcial && env.DB && reais.length && tendenciaAceitavel(q)
     // Teste com o cookie "não contar" fica fora (17/11/2026: termos de teste como "grampo de cabelo preto 25360" enchiam a lista)
     && (preparar || !naoContar(request))) {
     const tarefa = ofertas.length < POUCAS_MIN ? anotarPoucas(env, q, ofertas, lojas) : preparar ? tirarDasPoucas(env, q) : null;
@@ -667,6 +688,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   const resposta = responder({
     q,
+    ...(parcial && { parcial: true }),
     sugestao,
     categoria: categoria && !foraDaCategoria ? categoria.nome : null,
     loja: soLoja?.id || null,
@@ -685,6 +707,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   etapa("resto");
   resposta.headers.set("Server-Timing", [...etapas, `cidade;desc=${request.cf?.colo || "?"}`].join(", "));
   const todasOk = Object.values(lojas).every((l) => l.ok);
+  if (!todasOk) resposta.headers.set("X-Incompleta", "1");
+  if (parcial) resposta.headers.set("X-Parcial", "1");
   // Sem nenhuma oferta: o navegador não guarda. Com loja em erro (03/11/2026: Shopee "Rate limit exceeded" enquanto o
   // robô prepara as buscas prontas), guarda só 1 minuto, para a próxima tentativa já trazer a loja de volta
   if (!ofertas.length) resposta.headers.set("Cache-Control", "public, max-age=0");
@@ -704,11 +728,26 @@ export async function onRequestGet({ request, env, waitUntil }) {
   } else if (cache && ofertas.length && vitrine && vitrineDesde && (Number((await cache.match(chave).catch(() => null))?.headers.get("X-Criado")) || 0) < vitrineDesde) {
     await Promise.all([cache.put(chave, paraGuardar(resposta.clone())), guardarLimpa(resposta.clone())]);
   } else if (cache && lojas.shopee?.ok && ofertas.length) await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60)]);
+  // Sem a Shopee (19/11/2026): não era guardada e cada visitante refazia a busca inteira. Agora guarda 1 hora, desde que não
+  // haja uma cópia COMPLETA no lugar (essa fica). A parcial da 1ª tela entra já vencida (é refeita por trás agora mesmo); a
+  // refeita por trás que continua sem a Shopee vale meia hora
+  else if (cache && ofertas.length && !rapido && !preparar) {
+    const atual = await cache.match(chave).catch(() => null);
+    if (!atual || atual.headers.get("X-Incompleta") || vazia(atual)) {
+      const criadoIncompleta = parcial ? 0 : Date.now() - (FRESCO_MS - INCOMPLETA_FRESCA_MS);
+      await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), criadoIncompleta, 60 * 60)), guardarLimpa(resposta.clone(), criadoIncompleta, 60 * 60)]);
+    }
+  }
   // Não guardou a resposta nova: a limpa antiga só sai se a cópia de origem também não existe mais.
   // 15/11/2026 (Giovanni: categoria demorando a abrir no celular): com a Shopee em erro TODA atualização por trás caía aqui e
   // apagava a cópia limpa, mesmo com a de origem ainda guardada; a visita seguinte refazia a limpeza no banco antes de
   // responder (1–3 s medidos em Bebês, Decoração, Limpeza…) e disparava outra atualização, que apagava de novo
   else if (cache) waitUntil(cache.match(chave).then((origem) => (origem ? null : cache.delete(chaveLimpa))).catch(() => {}));
+  // Resposta parcial: refaz já, por trás, com os prazos normais (o site pede o complemento em alguns segundos)
+  if (parcial && cache && Date.now() - (atualizando.get(chave.url) || 0) > PAUSA_ENTRE_ATUALIZACOES_MS) {
+    atualizando.set(chave.url, Date.now());
+    waitUntil(onRequestGet({ request, env: { ...env, __ATUALIZAR: true }, waitUntil }).catch(() => {}));
+  }
   const chaveReserva = new Request(`${chave.url}&reserva=1`);
   if (cache && todasOk && ofertas.length) {
     const reserva = new Response(resposta.clone().body, resposta);
