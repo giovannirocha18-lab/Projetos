@@ -89,11 +89,11 @@ const LIMITE_LOJA_LENTA_MS = { lomadee: 5000 };
 const LIMITE_LOJA_LENTA_VISITANTE_MS = { lomadee: 2500 };
 // PRIMEIRA TELA EM ~3 s (19/11/2026, auditoria antes do lançamento: busca nova levava 4–8 s, quase tudo esperando a
 // AliExpress, 3,5–5,5 s, e a Shopee, que em pane segura 2,5 s e sem pane chega a 5–7 s). Na 1ª resposta de uma busca
-// nova do visitante, essas duas têm 3 s: o que não chegou fica de fora dessa resposta (parcial: true), a busca é refeita
+// nova do visitante, essas duas têm 2,5 s (como o Mercado Livre e a Lomadee): o que não chegou fica de fora dessa resposta (parcial: true), a busca é refeita
 // por trás na mesma hora com os prazos normais e o site pede o complemento sozinho (&completo=1, completarLojasAtrasadas
 // em app.js). A resposta parcial também fica guardada: antes, com a Shopee em erro, NADA era guardado e cada visitante
 // refazia a busca inteira (93 de 99 buscas novas seguiam lentas na 2ª visita)
-const PRAZO_DA_PRIMEIRA_TELA_MS = { aliexpress: 3000, shopee: 3000 };
+const PRAZO_DA_PRIMEIRA_TELA_MS = { aliexpress: 2500, shopee: 2500 };
 // Refeita por trás e ainda sem a Shopee: vale meia hora antes de tentar de novo (senão cada visita mandaria refazer)
 const INCOMPLETA_FRESCA_MS = 30 * 60 * 1000;
 // Para o robô que prepara as buscas populares ninguém está esperando: as lojas têm mais tempo
@@ -419,6 +419,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
     && (!rapido || FONTES_DO_BANCO.has(f.nome)));
 
   // Categorias das lojas que já sabemos traduzir para as nossas (ver lib/mapaCategorias.js)
+  // O que não depende das lojas começa junto com elas (19/11/2026: do ponto do Cloudflare ao banco, cada consulta custa
+  // 100–400 ms, e estas vinham uma atrás da outra depois das lojas)
+  const iaAntes = q ? naoSaoDaBusca(env.DB, q).catch(() => null) : null;
+  const fotosAntes = fotosErradas(env.DB).catch(() => null);
   const mapa = await carregarMapa(env);
   etapa("mapa");
   const lojas = {};
@@ -621,9 +625,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   etapa("lojas");
   // O que a IA disse não ser o produto buscado vai para "Ver também… produtos parecidos" (ver lib/iaBusca.js)
-  if (q) ofertas = semBrinquedos(semNaoBuscados(ofertas, await naoSaoDaBusca(env.DB, q)), q);
+  if (q) ofertas = semBrinquedos(semNaoBuscados(ofertas, await iaAntes), q);
   ofertas = semUsados(semPrecoAbsurdo(ofertas), q); // preço errado do vendedor e produto usado/ferro-velho (lib/lojasRemovidas.js)
-  ofertas = semFotosErradas(ofertas, await fotosErradas(env.DB)); // foto que não é do produto (lib/iaFotos.js)
+  ofertas = semFotosErradas(ofertas, await fotosAntes); // foto que não é do produto (lib/iaFotos.js)
   // Lomadee: tira as fotos que já sabemos que não abrem (ver lib/fotos.js); nas buscas prontas do robô, testa antes
   etapa("ia");
   ofertas = await semFotosQuebradas(env.DB, ofertas, { esperar: Boolean(preparar), waitUntil });
@@ -706,6 +710,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Quanto levou cada parte da busca feita na hora (19/11/2026, auditoria: a resposta levava 1,5–2 s a mais que a loja mais lenta)
   etapa("resto");
   resposta.headers.set("Server-Timing", [...etapas, `cidade;desc=${request.cf?.colo || "?"}`].join(", "));
+  // O visitante não espera a gravação no cache (o robô e a atualização por trás esperam: a gravação é o trabalho deles)
+  const guardarNoCache = (...gravacoes) => {
+    const tudo = Promise.all(gravacoes);
+    if (preparar || atualizar) return tudo;
+    waitUntil(tudo.catch(() => {}));
+    return null;
+  };
   const todasOk = Object.values(lojas).every((l) => l.ok);
   if (!todasOk) resposta.headers.set("X-Incompleta", "1");
   if (parcial) resposta.headers.set("X-Parcial", "1");
@@ -713,21 +724,21 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // robô prepara as buscas prontas), guarda só 1 minuto, para a próxima tentativa já trazer a loja de volta
   if (!ofertas.length) resposta.headers.set("Cache-Control", "public, max-age=0");
   else if (!todasOk) resposta.headers.set("Cache-Control", "public, max-age=60");
-  if (cache && todasOk) await Promise.all([cache.put(chave, paraGuardar(resposta.clone())), guardarLimpa(resposta.clone())]);
+  if (cache && todasOk) await guardarNoCache(cache.put(chave, paraGuardar(resposta.clone())), guardarLimpa(resposta.clone()));
   // Só uma loja menor falhou (a Lomadee trava bastante) e a Shopee respondeu: guarda 1 hora, marcada como velha (o
   // próximo visitante recebe na hora e ela é refeita por trás). Antes não guardava e cada visitante ia de novo às lojas
   // Sem ofertas e com loja em erro: guarda também (não era guardada), já quase vencida, para ser refeita por trás em 1 min
   else if (cache && !ofertas.length && !rapido) {
     const criadoVazia = Date.now() - (VAZIA_FRESCA_MS - VAZIA_COM_ERRO_FRESCA_MS);
-    await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), criadoVazia)), guardarLimpa(resposta.clone(), criadoVazia)]);
+    await guardarNoCache(cache.put(chave, paraGuardar(resposta.clone(), criadoVazia)), guardarLimpa(resposta.clone(), criadoVazia));
   // A refeita achou ofertas e a guardada era a vazia: troca mesmo com loja em erro (senão o "não achamos" ficava 1 h)
   } else if (cache && ofertas.length && !lojas.shopee?.ok && vazia((await cache.match(chave).catch(() => null)) || new Response(null))) {
-    await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60)]);
+    await guardarNoCache(cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60));
   // Vitrine da categoria mudada (VITRINES_DESDE): a cópia de antes da mudança é trocada mesmo com loja em erro (a vitrine faz
   // várias buscas na Shopee e basta uma ser recusada; sem isto "tênis olympikus" só entraria em Calçados dias depois)
   } else if (cache && ofertas.length && vitrine && vitrineDesde && (Number((await cache.match(chave).catch(() => null))?.headers.get("X-Criado")) || 0) < vitrineDesde) {
-    await Promise.all([cache.put(chave, paraGuardar(resposta.clone())), guardarLimpa(resposta.clone())]);
-  } else if (cache && lojas.shopee?.ok && ofertas.length) await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60)]);
+    await guardarNoCache(cache.put(chave, paraGuardar(resposta.clone())), guardarLimpa(resposta.clone()));
+  } else if (cache && lojas.shopee?.ok && ofertas.length) await guardarNoCache(cache.put(chave, paraGuardar(resposta.clone(), 0, 60 * 60)), guardarLimpa(resposta.clone(), 0, 60 * 60));
   // Sem a Shopee (19/11/2026): não era guardada e cada visitante refazia a busca inteira. Agora guarda 1 hora, desde que não
   // haja uma cópia COMPLETA no lugar (essa fica). A parcial da 1ª tela entra já vencida (é refeita por trás agora mesmo); a
   // refeita por trás que continua sem a Shopee vale meia hora
@@ -735,7 +746,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const atual = await cache.match(chave).catch(() => null);
     if (!atual || atual.headers.get("X-Incompleta") || vazia(atual)) {
       const criadoIncompleta = parcial ? 0 : Date.now() - (FRESCO_MS - INCOMPLETA_FRESCA_MS);
-      await Promise.all([cache.put(chave, paraGuardar(resposta.clone(), criadoIncompleta, 60 * 60)), guardarLimpa(resposta.clone(), criadoIncompleta, 60 * 60)]);
+      await guardarNoCache(cache.put(chave, paraGuardar(resposta.clone(), criadoIncompleta, 60 * 60)), guardarLimpa(resposta.clone(), criadoIncompleta, 60 * 60));
     }
   }
   // Não guardou a resposta nova: a limpa antiga só sai se a cópia de origem também não existe mais.
