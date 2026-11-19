@@ -415,6 +415,46 @@ for (const [q, titulos, primeiro, naoBate] of [
   conferir(COMUNS, "produto comum", (o) => o.bate && !o.variante && !o.acessorio);
   conferir(ACESSORIOS_NOVOS, "acessório", (o) => o.acessorio);
 }
+// 19/11/2026 (auditoria antes do lançamento, "problemas médios" do topo da lista)
+{
+  const marcar = (q, itens) => separarAcessorios(itens.map((x, i) => (Array.isArray(x) ? { id: String(i), titulo: x[0], preco: x[1] } : { id: String(i), titulo: x, preco: 1000 })), q);
+  const confere = (q, itens, nome, certo) => { for (const o of marcar(q, itens)) if (!certo(o)) { falhas++; console.log(`✗ "${q}": devia ser ${nome}: ${o.titulo}`); } };
+  // Anúncio de vários modelos/tamanhos num só, modelo velho e outro tipo do produto: recuam (variante)
+  const VARIANTES = {
+    "iphone 15": ["Apple iPhone 15/15 Pro/ 15 Pro Max 128/256GB 100% Original Com Garantia", "Celular APPLE IPHONE 15 E IPHONE PRO MAX 256gb 5g LACRADO Original",
+      "Celular iPhone 15 e 15 Plus (128GB) (256GB) 100% Original Apple Novo Lacrado"],
+    "iphone 16": ["Iphone 16/ 16 Pro e Pro Max (256GB) e (128GB) 5G e Dual E-Sim Câmera e 48MP", "iPhone 16 ou 16 Plus 128GB / 256GB Lacrado com 1 Ano de Garantia Apple"],
+    "ssd 1tb": ["KingSpec SSD M2 256GB NVME SSD 1TB 128GB 512GB ssd M.2 2242 PCIe Disco rígido", "SSD WALRAM 2.5 SATA 3 de 240GB, 256GB, SSD 1TB Unidade de Estado Sólido"],
+    "redmi note 14": ["Xiaomi Redmi Note 14 Pro 5G NFC 256GB | 512GB Versão Global"],
+    "celular": ["Smartphone Samsung Galaxy S21+ 128GB Prata 5G 8GB RAM", "Celular IPhone 11 128GB 100% Original - Celular IPhone Apple"],
+    "notebook": ["Notebook Dell Latitude 3470 - Processador i5 6ª Geração -8GB RAM SSD 240GB", "Notebook Lenovo L440 Core I3 4ªg 8gb Hd 500gb"],
+    "cueca boxer": ["Cueca Boxer Avulso Absorvente Geriátrica Algodão Urina Chu P"],
+    "furadeira": ["Furadeira À Gasolina Para Mourão 25,4cc Vf500 Vulcan"], "monitor": ["Monitor De Áudio R1000t4 24w Rms Edifier Cor Marrom", "Monitor de Pressão Digital G-Tech BSP11"],
+    "home theater": ["Home Theater Ripado LED TVs 65 Polegadas 1 Porta 4 Nichos Freijó"],
+  };
+  const COMUNS = {
+    "iphone 15": ["Apple iPhone 15 (128 GB) - Azul", "iPhone 15 PRO MAX 256GB Premium"], "iphone 11": ["Celular IPhone 11 128GB 100% Original"],
+    "ssd 1tb": ["Ssd 1tb Western Digital Green Sn350 Nvme, Gen3, M.2 2280 Azul", "SSD 1TB SanDisk Optimus GX PRO 8100, M.2 2280, PCIe 5.0 x4, NVMe"],
+    "redmi note 14": ["Redmi Note 14 4G, 256GB/8GB RAM, Processador Helio G99-Ultra, Câmera 108MP"],
+    "celular": ["Celular Samsung Galaxy A17 Com Ia, 256gb, 8gb Ram", "Smartphone Samsung Galaxy S25 Ultra 5G, 512GB, 12GB RAM"],
+    "notebook": ["Notebook Acer Aspire Go 15 com Processador Intel Core i3 13ª Geração 8GB", "Notebook 15,6 HD N156 Intel Celeron 12GB RAM 512GB SSD Windows 10 5G LTE Wi-Fi"],
+    "tablet": ["Tablet VAIO TL10 4GB RAM 128GB Octa-Core, Tela 10.4 2K, 4G WiFi Dual Band", "Tablet Pad7 Pro 16GB+512GB 11.6 Dual SIM Android 15 WIFI 5G"],
+    "monitor": ["Monitor AOC 22 120Hz 1ms Gaming HDMI 22B35HM23 Preto"], "monitor de audio": ["Monitor De Áudio R1000t4 24w Rms Edifier"],
+    "fone jbl tune 520": ["Fone Jbl Tune 520bt Bluetooth On-ear Preto 57h Bateria"], "apple watch se": ["Apple Watch SE 3 GPS, Caixa estelar de Alumínio de 40 mm"],
+  };
+  for (const [q, l] of Object.entries(VARIANTES)) confere(q, l, "variante (recua)", (o) => o.variante && !o.acessorio);
+  for (const [q, l] of Object.entries(COMUNS)) confere(q, l, "produto comum", (o) => o.bate && !o.variante && !o.acessorio);
+  // "apple watch se" lia "se" dentro de "SEries" e abria com o Series 11
+  confere("apple watch se", ["Apple Watch Series 11 GPS - Caixa cor de ouro rosa de alumínio – 46 mm", "Apple Watch Series 3"], "outro modelo (não bate)", (o) => !o.bate);
+  // Busca de modelo com poucos produtos: peça barata não é o produto (o mais caro que começa pelo produto é a referência)
+  const pecas = (q, itens, saem) => { for (const o of marcar(q, itens)) if (saem.includes(o.titulo) !== Boolean(o.acessorio)) { falhas++; console.log(`✗ "${q}": ${o.acessorio ? "virou acessório" : "devia ser acessório"}: ${o.titulo}`); } };
+  pecas("moto g85", [["Motorola Moto G85 5G 256 GB Cinza 8 GB RAM", 2118], ["Gaveta Bandeja Chip Sim Card Motorola Moto G85 5g Cor Azul", 23]],
+    ["Gaveta Bandeja Chip Sim Card Motorola Moto G85 5g Cor Azul"]);
+  pecas("lavadora electrolux 13kg", [["Máquina de Lavar Electrolux 13kg Cesto Inox LDA13 Branco", 1730], ["Lavadora de Roupas Electrolux LDA13 Efficient 13kg", 2100],
+    ["Lavadora Electrolux Ltd13 13kg - 220v -", 79], ["Selo Mecanico Lavadora Electrolux Le08 Top8", 55]], ["Lavadora Electrolux Ltd13 13kg - 220v -", "Selo Mecanico Lavadora Electrolux Le08 Top8"]);
+  // Produto barato: a diferença de preço não prova nada (nada vira acessório)
+  pecas("creatina growth", [["Creatina Growth Supplements Monohidratada 250g", 80], ["Creatina Growth 1kg", 180], ["Creatina Growth Sachê 3g", 4]], []);
+}
 // 13/11/2026: loja Olympikus (Awin) manda cada numeração como um anúncio, com o número ANTES da cor
 // Print do Giovanni (16/11/2026): o kit da Olympikus aparecia uma vez por numeração; roupa com o tamanho antes da cor
 {
