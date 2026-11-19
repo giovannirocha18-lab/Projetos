@@ -3098,6 +3098,19 @@ function buscaCorrigidaPeloVocabulario(q) {
   });
   return mudou ? saida.join(" ") : null;
 }
+// Ideia do Giovanni (19/11/2026): corrigir já na hora de buscar, sem esperar a busca vazia. Corrigir às cegas erraria em
+// palavra certa que o site não conhece ("lanterna de cabeça" viraria "caneca"), então a busca corrigida é pedida AO MESMO
+// TEMPO que a digitada (adiantarBusca); se a digitada vier vazia, a corrigida já está pronta ou quase
+function adiantarCorrecao(q, pedido) {
+  if (lojaAtual() || estado.cat || new URLSearchParams(location.search).has("exato")) return;
+  const pedir = () => {
+    if (pedido !== estado.pedido) return;
+    const certa = buscaCorrigidaPeloVocabulario(q);
+    if (certa && limpo(certa) !== limpo(q)) adiantarBusca(certa, null);
+  };
+  if (vocab.chegou) pedir();
+  else { vocab.aoChegar.push(pedir); carregarVocabulario(); }
+}
 function avisoParecidas() {
   if (estado.ofertas.length || estado.buscando || navegandoCategoria() || estado.sugestao) return null;
   const lista = parecidasCom(estado.q);
@@ -3430,6 +3443,7 @@ async function buscar(q) {
   desenharBotaoFrete();
 
   try {
+    adiantarCorrecao(q, pedido);
     const dados = await consultarApi(q);
     if (pedido !== estado.pedido) return; // chegou resposta de uma busca antiga
     estado.buscando = false;
