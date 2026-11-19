@@ -24,6 +24,10 @@ Feito no site no ar, com o cookie `vpc_nao_contar` (não entra em visitas, pouca
 ## Problemas, por gravidade
 
 ### Graves (pesam na decisão de liberar)
+**Corrigidos em 19/11 (no ar): 1, 2, 4, 5 e 6.** Busca nova: 1ª tela em 2,6–3,8 s (era 4–8), 2ª visita em 0,15–0,6 s (era 3–7),
+o que faltou entra sozinho em ~8 s. O 3 mudou de figura: a Shopee responde, mas em 3–6 s (fora do prazo da 1ª tela); entra pelo
+complemento. Detalhe no CLAUDE.md (19/11, noite).
+
 1. **Busca nova lenta: 4–8 s.** Vale para toda busca que ninguém fez antes (maioria, com público novo).
 2. **Busca nova não fica guardada enquanto uma loja falha** (hoje a Shopee falha em quase todas): a 2ª, 3ª… visita
    refaz tudo (3–7 s de novo) e cada uma gasta consultas na Shopee/AliExpress/ML. Com público, isso multiplica a carga.
