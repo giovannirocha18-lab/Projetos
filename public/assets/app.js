@@ -3161,6 +3161,17 @@ function buscaCorrigidaPeloVocabulario(q) {
 // Ideia do Giovanni (19/11/2026): corrigir já na hora de buscar, sem esperar a busca vazia. Corrigir às cegas erraria em
 // palavra certa que o site não conhece ("lanterna de cabeça" viraria "caneca"), então a busca corrigida é pedida AO MESMO
 // TEMPO que a digitada (adiantarBusca); se a digitada vier vazia, a corrigida já está pronta ou quase
+// APRENDER (pedido do Giovanni, 19/11/2026: "cada erro novo, ela armazena e corrige"): a busca digitada veio vazia, a
+// corrigida trouxe produtos → cada palavra trocada vira um erro conhecido, neste aparelho na hora e, pelo servidor
+// (functions/api/erros.js, que confere o par antes de guardar), para todos os visitantes
+function aprenderErros(de, para) {
+  const [antes, depois] = [limpo(de).split(" "), limpo(para).split(" ")];
+  if (antes.length !== depois.length) return;
+  const pares = antes.map((p, i) => [p, depois[i]]).filter(([errada, certa]) => errada !== certa && /^[a-z]{4,25}$/.test(errada) && /^[a-z]{4,25}$/.test(certa));
+  if (!pares.length) return;
+  for (const [errada, certa] of pares) vocab.erros[errada] = certa;
+  fetch("/api/erros", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pares }), keepalive: true }).catch(() => {});
+}
 function adiantarCorrecao(q, pedido) {
   if (lojaAtual() || estado.cat || new URLSearchParams(location.search).has("exato")) return;
   const pedir = () => {
@@ -3535,6 +3546,12 @@ async function buscar(q) {
     estado.maisBusca = dados.mais;
     estado.temMaisBusca = Boolean(dados.mais);
     estado.completando = estado.temMaisBusca; // a "Escolha rápida" só aparece depois dos lotes automáticos
+    // A busca corrigida sozinha trouxe o produto: o erro fica aprendido (a caixa de busca passa a corrigir ao dar espaço)
+    if (estado.aprender) {
+      const { de, para } = estado.aprender;
+      estado.aprender = null;
+      if (limpo(para) === limpo(estado.q) && estado.ofertas.filter((o) => o.bate && !o.acessorio).length >= 3) aprenderErros(de, para);
+    }
     // Nenhuma oferta e alguma palavra parece erro de digitação de uma busca conhecida: refaz com a palavra certa
     if (!estado.ofertas.length && !lojaAtual() && !estado.cat && !new URLSearchParams(location.search).has("exato")) {
       if (!vocab.chegou) {
@@ -3544,6 +3561,7 @@ async function buscar(q) {
       }
       const certa = buscaCorrigidaPeloVocabulario(estado.q);
       if (certa && limpo(certa) !== limpo(estado.q)) {
+        estado.aprender = { de: estado.q, para: certa }; // se a corrigida trouxer produtos, o site aprende o erro (aprenderErros)
         history.replaceState(null, "", `/?q=${encodeURIComponent(certa)}`);
         mostrar();
         return;
@@ -4670,9 +4688,15 @@ prepararVocabulario();
 function carregarVocabulario() {
   if (vocab.pedido) return;
   vocab.pedido = true;
+  // Erros de digitação que o site aprendeu sozinho (functions/api/erros.js)
+  fetch("/api/erros").then((r) => (r.ok ? r.json() : null)).then((d) => {
+    if (!d?.erros) return;
+    vocab.aprendidos = d.erros;
+    Object.assign(vocab.erros, d.erros);
+  }).catch(() => {});
   fetch("/api/vocabulario?v=15").then((r) => (r.ok ? r.json() : null)).then((d) => {
     if (!d?.termos?.length) return;
-    Object.assign(vocab, { termos: d.termos, marcas: d.marcas || [], erros: d.erros || {}, chegou: true });
+    Object.assign(vocab, { termos: d.termos, marcas: d.marcas || [], erros: { ...(d.erros || {}), ...(vocab.aprendidos || {}) }, chegou: true });
     prepararVocabulario();
     vocab.aoChegar.forEach((f) => f());
   }).catch(() => {});
