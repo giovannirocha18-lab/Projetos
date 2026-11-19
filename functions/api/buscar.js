@@ -392,6 +392,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Nada guardado para contar: não vale buscar de novo nas lojas só para isso
   if (soContar) return new Response(null, { status: 204 });
 
+  etapa("guardadas");
   const ligadas = await Promise.all(FONTES_REAIS.map((f) => f.ativa(env)));
   const reais = FONTES_REAIS.filter((_, i) => ligadas[i]);
   // Enquanto nenhuma API estiver ligada, usa os produtos de exemplo
@@ -401,6 +402,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Categorias das lojas que já sabemos traduzir para as nossas (ver lib/mapaCategorias.js)
   const mapa = await carregarMapa(env);
+  etapa("mapa");
   const lojas = {};
   // Uma fila por pedido para Shopee, AliExpress e Lomadee: sobram vagas de conexão para o Mercado Livre (lib/fila.js)
   const fila = criarFila();
@@ -598,12 +600,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (!q) {
     mais = pagina < MAX_PAGINA && fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina) ? `pagina=${pagina + 1}` : null;
   }
+  etapa("lojas");
   // O que a IA disse não ser o produto buscado vai para "Ver também… produtos parecidos" (ver lib/iaBusca.js)
   if (q) ofertas = semBrinquedos(semNaoBuscados(ofertas, await naoSaoDaBusca(env.DB, q)), q);
   ofertas = semUsados(semPrecoAbsurdo(ofertas), q); // preço errado do vendedor e produto usado/ferro-velho (lib/lojasRemovidas.js)
   ofertas = semFotosErradas(ofertas, await fotosErradas(env.DB)); // foto que não é do produto (lib/iaFotos.js)
   // Lomadee: tira as fotos que já sabemos que não abrem (ver lib/fotos.js); nas buscas prontas do robô, testa antes
+  etapa("ia");
   ofertas = await semFotosQuebradas(env.DB, ofertas, { esperar: Boolean(preparar), waitUntil });
+  etapa("fotos");
   // Shopee e AliExpress: junta o histórico de preço e guarda o preço de hoje (sem atrasar a resposta).
   // É o que permite o selo "Desconto real" (ex.: na Black Friday). Banco fora do ar não derruba a busca.
   if (env.DB && ofertas.some(ehAoVivo)) {
@@ -617,6 +622,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       // tabela precos ainda não existe (o robô cria) ou D1 indisponível
     }
   }
+  etapa("historico");
   // "Ofertas do dia" só com oferta de verdade (ver ehOfertaDeVerdade em lib/ofertas.js): desconto confirmado pelo nosso
   // histórico primeiro, depois o desconto da loja entre 5% e 75%. Os mais vendidos sem desconto ficam de fora
   if (!q && reais.length) {
@@ -675,6 +681,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
   });
   // Produtos de exemplo não contam como busca em alta
   resposta.headers.set("X-Total-Ofertas", reais.length ? String(ofertas.length) : "0");
+  // Quanto levou cada parte da busca feita na hora (19/11/2026, auditoria: a resposta levava 1,5–2 s a mais que a loja mais lenta)
+  etapa("resto");
+  resposta.headers.set("Server-Timing", [...etapas, `cidade;desc=${request.cf?.colo || "?"}`].join(", "));
   const todasOk = Object.values(lojas).every((l) => l.ok);
   // Sem nenhuma oferta: o navegador não guarda. Com loja em erro (03/11/2026: Shopee "Rate limit exceeded" enquanto o
   // robô prepara as buscas prontas), guarda só 1 minuto, para a próxima tentativa já trazer a loja de volta
