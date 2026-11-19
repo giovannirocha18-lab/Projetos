@@ -3169,7 +3169,8 @@ function aprenderErros(de, para) {
   if (antes.length !== depois.length) return;
   const pares = antes.map((p, i) => [p, depois[i]]).filter(([errada, certa]) => errada !== certa && /^[a-z]{4,25}$/.test(errada) && /^[a-z]{4,25}$/.test(certa));
   if (!pares.length) return;
-  for (const [errada, certa] of pares) vocab.erros[errada] = certa;
+  // Neste aparelho já vale, menos a letra trocada por outra (o servidor também espera a 2ª vez nesse caso)
+  for (const [errada, certa] of pares) if (errada.length !== certa.length || [...errada].sort().join("") === [...certa].sort().join("")) vocab.erros[errada] = certa;
   fetch("/api/erros", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pares }), keepalive: true }).catch(() => {});
 }
 function adiantarCorrecao(q, pedido) {
