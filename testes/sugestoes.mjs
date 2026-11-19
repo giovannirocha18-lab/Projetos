@@ -12,6 +12,9 @@ for (const [termo, aceita] of [["videos paola oliveira nua", false], ["filhote d
   ["chumbo 5 5", false], ["equipamentos de tiro esportivo", false], ["aparelho de choque defesa pessoal", false], ["skol beats pink lemonade", false],
   ["mansao maromba", false], ["absolut", false], ["pomada tktx", false], ["caneta de insulina", false], ["peixe beta", false], ["curso conserto tv lcd", false],
   ["ebooks pdf", false], ["compro cilindro gas gnv usado", false], ["loja apple", false], ["pc gamer usado", false], ["vila cv11 full clash of clans", false], ["manual do proprietario ford f 250", false], ["conta free fire", false], ["rastreador bloqueador veicular", false],
+  // 19/11/2026 (auditoria antes do lançamento)
+  ["shorts feminino que mostra a poupa", false], ["o filme lançamentos em 2026", false], ["remedio masterfitone", false], ["farmadox 50", false], ["volkswagen polo 2026", false],
+  ["porta remedio", true], ["papel filme", true], ["filme instax", true], ["figurinha copa 2026", true], ["mini calendario 2027", true],
   ["geladeira frost free", true], ["absoluta", true], ["fone bluetooth", true], ["chuveiro eletrico", true], ["luminaria de mesa", true], ["rosa do deserto", true],
   ["celular motorola", true], ["piano digital", true], ["gaiola para calopsita", true], ["vivo y29", true], ["caneta laser", true]]) {
   if (tendenciaAceitavel(termo) !== aceita) { console.log(`✗ tendência "${termo}": ${aceita ? "devia aceitar" : "devia bloquear"}`); process.exitCode = 1; }

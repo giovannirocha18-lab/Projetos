@@ -12,7 +12,8 @@ import { destinoShopee, CAMINHO_IR_SHOPEE } from "../lib/fontes/shopee.js";
 import { destinoAli, CAMINHO_IR_ALI } from "../lib/fontes/aliexpress.js";
 import { concluirAutorizacao } from "../lib/mlConta.js";
 import { dentroDoLimite, ipDe } from "../lib/conta.js";
-import { categoriasDoSite } from "../lib/categorias.js";
+import { categoriasDoSite, categoriaPorNome } from "../lib/categorias.js";
+import { normalizar } from "../lib/texto.js";
 import { VERSAO_CACHE } from "./api/buscar.js";
 
 // Links de afiliado NOVOS (ainda não guardados) que um visitante pode gerar por hora em /ir/shopee e /ir/ali (10/11/2026).
@@ -157,10 +158,15 @@ function comDadosDaPagina(resposta, url) {
   const q = (p.get("q") || "").trim().replace(/\s+/g, " ").slice(0, 60);
   const caminho = /^\/(index(\.html)?)?$/i.test(url.pathname) ? "/" : url.pathname.replace(/(\.html)?\/?$/i, "").toLowerCase();
   const filtros = new URLSearchParams();
+  // Categoria do site (?cat= com o nome de uma das 40; outro valor não entra no canônico). "aberta" = o visitante só abriu a
+  // categoria, sem buscar nada dentro dela (a busca é a chave da categoria): a página leva o NOME dela no título
+  // (19/11/2026, auditoria: saía "Utensílios de cozinha: compare preços" em vez de "Cozinha")
+  const categoria = categoriaPorNome(p.get("cat"));
+  const aberta = categoria && normalizar(q) === normalizar(categoria.busca || categoria.nome);
   if (caminho === "/") {
     if (p.get("produto")) filtros.set("produto", p.get("produto").slice(0, 80));
     else if (p.get("loja") && !q) filtros.set("loja", p.get("loja").slice(0, 80));
-    else if (q) { filtros.set("q", q.toLowerCase()); if (p.get("cat")) filtros.set("cat", p.get("cat").slice(0, 40)); }
+    else if (q) { filtros.set("q", q.toLowerCase()); if (categoria) filtros.set("cat", categoria.nome); }
   }
   const canonico = `${SITE}${caminho}${filtros.size ? `?${filtros}` : ""}`;
   // O 1º pedido de dados da página começa junto com ela, antes de o app.js chegar (11/11/2026, pedido do Giovanni: no
@@ -182,8 +188,9 @@ function comDadosDaPagina(resposta, url) {
     el.append(`<meta property="og:url" content="${canonico.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}">`, { html: true });
   } });
   if (caminho === "/" && q && !p.get("produto")) {
-    const titulo = `${q.charAt(0).toUpperCase()}${q.slice(1)}: compare preços`;
-    const descricao = `Compare os preços de ${q} na Shopee, Mercado Livre, AliExpress e outras lojas num só lugar.`;
+    const titulo = aberta ? `${categoria.nome}: ofertas e comparação de preços` : `${q.charAt(0).toUpperCase()}${q.slice(1)}: compare preços`;
+    const descricao = aberta ? `As melhores ofertas de ${categoria.nome} na Shopee, Mercado Livre, AliExpress e outras lojas, lado a lado.`
+      : `Compare os preços de ${q} na Shopee, Mercado Livre, AliExpress e outras lojas num só lugar.`;
     const meta = (valor) => ({ element(el) { el.setAttribute("content", valor); } });
     rewriter = rewriter.on("title", { element(el) { el.setInnerContent(`${titulo} · Vai pro Carrinho`); } })
       .on('meta[property="og:title"]', meta(titulo))
@@ -225,7 +232,56 @@ export async function onRequest(contexto) {
   return pronta;
 }
 
-const naoEncontrada = () => new Response("Página não encontrada", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+// Endereço que não existe (19/11/2026, auditoria: era só o texto cru "Página não encontrada"): quem pede uma PÁGINA recebe uma
+// página do site com o caminho de volta; API, arquivos e robôs seguem com o texto curto
+const PAGINA_404 = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página não encontrada — Vai pro Carrinho</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#6d28d9">
+  <link rel="icon" href="/marca/vaiprocarrinho-icone.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/estilo.css">
+  <style>
+    body { min-height: 100vh; }
+    .nao-achou { max-width: 560px; padding-top: 56px; padding-bottom: 64px; text-align: center; }
+    .nao-achou h1 { font-size: 1.7rem; margin-bottom: 8px; }
+    .nao-achou p { color: var(--suave); line-height: 1.6; }
+    .nao-achou form { display: flex; gap: 8px; margin: 24px 0 16px; }
+    .nao-achou input { flex: 1; min-width: 0; padding: 12px 14px; border: 1px solid #d4d4d8; border-radius: 12px; font: inherit; }
+    .nao-achou button, .nao-achou .voltar { padding: 12px 18px; border: 0; border-radius: 12px; background: #6d28d9; color: #fff; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+    .nao-achou .voltar { display: inline-block; background: #fff; color: #6d28d9; border: 1px solid #6d28d9; }
+  </style>
+</head>
+<body>
+  <header class="topo">
+    <div class="container topo-linha">
+      <a href="/" class="logo">
+        <img class="logo-icone" src="/marca/vaiprocarrinho-icone.svg" alt="" width="40" height="40">
+        <span class="logo-texto">Vai pro <strong>Carrinho</strong></span>
+      </a>
+    </div>
+  </header>
+  <main class="container nao-achou">
+    <h1>Esta página não existe</h1>
+    <p>O endereço pode ter sido digitado errado ou a página saiu do ar. Busque o produto que você procura:</p>
+    <form action="/" method="get" role="search">
+      <input type="search" name="q" placeholder="Ex.: air fryer, tênis, celular" aria-label="Buscar produto" required>
+      <button type="submit">Buscar</button>
+    </form>
+    <a class="voltar" href="/">Ir para a página inicial</a>
+  </main>
+</body>
+</html>`;
+const naoEncontrada = (request) => {
+  const pedePagina = request && request.method === "GET" && (request.headers.get("Accept") || "").includes("text/html")
+    && !/^\/(api|ir|assets|marca)\//i.test(new URL(request.url).pathname) && !/\.\w{2,5}$/.test(new URL(request.url).pathname);
+  return pedePagina
+    ? new Response(PAGINA_404, { status: 404, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } })
+    : new Response("Página não encontrada", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+};
 
 // painel.vaiprocarrinho.com.br: só a página do painel e os números dela, e só com o login do Cloudflare Access
 // (lib/painel.js). Nada da loja abre nesse endereço. /assets/ não passa por aqui, mas o Access protege o endereço todo.
@@ -329,8 +385,17 @@ async function responder(contexto) {
   try { cru = decodeURIComponent(cru); } catch { /* % quebrado: confere como veio */ }
   // Endereço "torto" nunca passa: ".." (mesmo escrito %2e%2e), barra dupla ou barra invertida (%5c)
   const torto = /(^|\/)\.\.(\/|$)/.test(caminho) || /\/\/|\\/.test(cru);
+  // O navegador e alguns buscadores pedem /favicon.ico mesmo com o ícone declarado na página (19/11/2026: dava 404)
+  if (caminho === "/favicon.ico") return Response.redirect(`${url.origin}/marca/vaiprocarrinho-icone.svg`, 301);
   if (torto || !PUBLICOS.test(caminho)) {
-    return naoEncontrada();
+    return naoEncontrada(request);
+  }
+  // Categoria pedida sem a busca dela (/?cat=Cozinha ou /?q=&cat=Cozinha) abria a página inicial: vai para o endereço da
+  // categoria, o mesmo dos links do site e do sitemap (19/11/2026, auditoria)
+  if (request.method === "GET" && /^\/(index(\.html)?)?$/i.test(caminho) && url.searchParams.get("cat") && !(url.searchParams.get("q") || "").trim()
+    && !url.searchParams.get("loja") && !url.searchParams.get("produto")) {
+    const c = categoriaPorNome(url.searchParams.get("cat"));
+    if (c) return Response.redirect(`${url.origin}/?${new URLSearchParams({ q: c.busca || c.nome, cat: c.nome })}`, 301);
   }
   return next();
 }

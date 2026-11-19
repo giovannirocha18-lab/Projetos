@@ -17,7 +17,7 @@ const TABELA = `CREATE TABLE IF NOT EXISTS erros_aprendidos (errada TEXT PRIMARY
 const PARES_POR_DIA = 20; // por visitante
 const MAXIMO_GUARDADO = 5000;
 const CACHE_SEGUNDOS = 10 * 60;
-const CHAVE_DO_VOCABULARIO = "/api/vocabulario?v=15"; // a mesma de functions/api/vocabulario.js
+const CHAVE_DO_VOCABULARIO = "/api/vocabulario?v=16"; // a mesma de functions/api/vocabulario.js
 
 // Aprendeu errado? Pôr a palavra aqui: ela é apagada do banco e não é mais aprendida
 // ("cabeca" entrou num teste de 19/11/2026 como "caneca")

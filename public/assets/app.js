@@ -4695,7 +4695,7 @@ function carregarVocabulario() {
     vocab.aprendidos = d.erros;
     Object.assign(vocab.erros, d.erros);
   }).catch(() => {});
-  fetch("/api/vocabulario?v=15").then((r) => (r.ok ? r.json() : null)).then((d) => {
+  fetch("/api/vocabulario?v=16").then((r) => (r.ok ? r.json() : null)).then((d) => {
     if (!d?.termos?.length) return;
     Object.assign(vocab, { termos: d.termos, marcas: d.marcas || [], erros: { ...(d.erros || {}), ...(vocab.aprendidos || {}) }, chegou: true });
     prepararVocabulario();
