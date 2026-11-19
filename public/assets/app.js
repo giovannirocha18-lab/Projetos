@@ -3070,15 +3070,75 @@ function parecidasCom(q) {
 // busca vir vazia: cada palavra que o site não conhece é trocada pela palavra mais parecida das buscas que ele conhece
 // (1 letra de diferença; 2 em palavra de 9+ letras; mesma inicial; letra faltando ganha de letra trocada: "cadera" é cadeira, não câmera), e a busca é refeita sozinha. Palavra conhecida, com
 // número ou curta não muda, então a busca corrigida não é corrigida de novo
+// Palavras das buscas que o site conhece (quantas vezes cada uma aparece) e como se escrevem com acento
+function palavrasConhecidas() {
+  if (!vocab.palavras) {
+    vocab.palavras = new Map();
+    vocab.formas = new Map();
+    for (const item of vocab.itens) {
+      const escritas = String(item.t).toLowerCase().split(/\s+/);
+      item.p.forEach((p, i) => {
+        if (p.length < 4) return;
+        vocab.palavras.set(p, (vocab.palavras.get(p) || 0) + 1);
+        if (escritas.length === item.p.length && limpo(escritas[i]) === p && !vocab.formas.has(p)) vocab.formas.set(p, escritas[i]);
+      });
+    }
+    for (const m of vocab.marcasN || []) for (const p of m.n.split(" ")) if (p.length >= 4) vocab.palavras.set(p, (vocab.palavras.get(p) || 0) + 1);
+  }
+  return vocab.palavras;
+}
+// CORREÇÃO ENQUANTO DIGITA (pedido do Giovanni, 19/11/2026: "no momento que eu digitar Furadera e der espaço ela
+// auto-corrige"). Só o erro que não deixa dúvida, para não trocar palavra certa que o site não conhece: erro da lista
+// (vocab.erros), marca quase igual (corrigirPalavra) e palavra de 6+ letras com UMA letra faltando, sobrando ou trocada de
+// lugar com a vizinha em relação a uma palavra conhecida de mesma inicial que aparece em 2+ buscas ("furadera", "impresora",
+// "ventialdor"). Letra TROCADA por outra não entra ("cabeça" viraria "caneca"). Marca curta com uma letra faltando só
+// depois de outra palavra ("furadeira boch" → bosch; "cano" sozinho não vira Canon). Devolve a palavra certa ou null
+const umaLetraAMais = (maior, menor) => {
+  if (maior.length !== menor.length + 1) return false;
+  let i = 0;
+  while (i < menor.length && maior[i] === menor[i]) i++;
+  return maior.slice(i + 1) === menor.slice(i);
+};
+const letraDobrada = (maior, menor) => {
+  let i = 0;
+  while (i < menor.length && maior[i] === menor[i]) i++;
+  return i > 0 && maior[i] === maior[i - 1];
+};
+const vizinhasTrocadas = (a, b) => {
+  if (a.length !== b.length) return false;
+  let i = 0;
+  while (i < a.length && a[i] === b[i]) i++;
+  return i < a.length - 1 && a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2);
+};
+function palavraCertaAoDigitar(digitada, temOutraAntes) {
+  const p = limpo(digitada);
+  if (!p || p.includes(" ") || /\d/.test(p) || !vocab.itens?.length) return null;
+  if (vocab.erros[p]) return vocab.erros[p];
+  const conhecidas = palavrasConhecidas();
+  const marcas = vocab.marcasN || [];
+  if (conhecidas.has(p) || conhecidas.has(`${p}s`) || (p.endsWith("s") && conhecidas.has(p.slice(0, -1))) || marcas.some((m) => m.n === p)) return null;
+  const marca = corrigirPalavra(p);
+  if (marca) return marca;
+  if (p.length >= 6) {
+    let melhor = null;
+    for (const [c, vezes] of conhecidas) {
+      if (c[0] !== p[0] || vezes < 2 || c.length < 6) continue;
+      // Letra sobrando só quando é letra dobrada ("motorolla"): "banqueta" virava "baqueta"
+      if ((umaLetraAMais(c, p) || (umaLetraAMais(p, c) && letraDobrada(p, c)) || vizinhasTrocadas(p, c)) && (!melhor || vezes > melhor.vezes)) melhor = { c, vezes };
+    }
+    if (melhor) return vocab.formas.get(melhor.c) || melhor.c;
+  }
+  if (temOutraAntes && p.length >= 4) {
+    // …e a letra que falta não é a última ("cano" não vira Canon: pode ser a palavra inteira)
+    const achadas = marcas.filter((m) => !m.n.includes(" ") && m.n[0] === p[0] && umaLetraAMais(m.n, p) && !m.n.startsWith(p));
+    if (achadas.length === 1) return achadas[0].n;
+  }
+  return null;
+}
 function buscaCorrigidaPeloVocabulario(q) {
   const palavras = limpo(q).split(" ").filter(Boolean);
   if (!palavras.length || palavras.length > 5 || !vocab.itens?.length) return null;
-  if (!vocab.palavras) {
-    vocab.palavras = new Map();
-    for (const item of vocab.itens) for (const p of item.p) if (p.length >= 4) vocab.palavras.set(p, (vocab.palavras.get(p) || 0) + 1);
-    for (const m of vocab.marcasN || []) for (const p of m.n.split(" ")) if (p.length >= 4) vocab.palavras.set(p, (vocab.palavras.get(p) || 0) + 1);
-  }
-  const conhecidas = vocab.palavras;
+  const conhecidas = palavrasConhecidas();
   let mudou = false;
   const saida = palavras.map((p) => {
     if (p.length < 5 || /\d/.test(p) || VAZIAS_SUGESTAO.has(p) || conhecidas.has(p) || conhecidas.has(`${p}s`) || (p.endsWith("s") && conhecidas.has(p.slice(0, -1)))) return p;
@@ -4764,8 +4824,41 @@ function prepararBusca(form) {
   }
 
   // Parou de digitar: adianta a 1ª sugestão (se for o que está escrito, melhor ainda)
+  // Correção enquanto digita: ao dar espaço, a palavra que acabou de ser escrita é trocada pela certa. Apagar logo em seguida
+  // desfaz (volta o que a pessoa digitou) e essa palavra não é mais corrigida nesta visita
+  let valorAnterior = input.value;
+  let ultimaCorrecao = null;
+  const naoCorrigir = new Set();
+  const comMaiuscula = (original, certa) => (/^[A-ZÀ-Ý]/.test(original) ? certa[0].toUpperCase() + certa.slice(1) : certa);
+  const corrigirUltimaPalavra = (texto) => {
+    const m = texto.match(/^(.*?)(\S+)(\s*)$/s);
+    if (!m || naoCorrigir.has(limpo(m[2]))) return null;
+    const certa = palavraCertaAoDigitar(m[2], Boolean(m[1].trim()));
+    if (!certa || limpo(certa) === limpo(m[2])) return null;
+    return { texto: `${m[1]}${comMaiuscula(m[2], certa)}${m[3]}`, original: m[2] };
+  };
+  input.addEventListener("beforeinput", (e) => {
+    if (e.inputType !== "deleteContentBackward" || !ultimaCorrecao || input.value !== ultimaCorrecao.depois) return;
+    e.preventDefault();
+    naoCorrigir.add(limpo(ultimaCorrecao.original));
+    input.value = ultimaCorrecao.antes;
+    valorAnterior = input.value;
+    ultimaCorrecao = null;
+    desenhar();
+  });
   let timerAdiantar;
   input.addEventListener("input", () => {
+    const v = input.value;
+    const deuEspaco = v.length === valorAnterior.length + 1 && v.endsWith(" ") && !valorAnterior.endsWith(" ") && input.selectionStart === v.length;
+    ultimaCorrecao = null;
+    if (deuEspaco) {
+      const certa = corrigirUltimaPalavra(v);
+      if (certa) {
+        ultimaCorrecao = { antes: v, depois: certa.texto, original: certa.original };
+        input.value = certa.texto;
+      }
+    }
+    valorAnterior = input.value;
     desenhar();
     clearTimeout(timerAdiantar);
     const primeira = itens.find((i) => typeof i === "string");
@@ -4792,6 +4885,10 @@ function prepararBusca(form) {
     input.blur();
     // Busca vazia: volta para as "Ofertas do dia" (como clicar no logo)
     if (!input.value.trim()) return irPara("");
+    // A última palavra não teve espaço depois: corrige na hora de buscar
+    const certa = corrigirUltimaPalavra(input.value);
+    if (certa) input.value = certa.texto;
+    valorAnterior = input.value;
     irPara(input.value, { cat: categoriaAtual(), loja: lojaAtual() });
   });
 }
