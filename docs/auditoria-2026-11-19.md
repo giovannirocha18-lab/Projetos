@@ -60,6 +60,8 @@ complemento. Detalhe no CLAUDE.md (19/11, noite).
 13. "Maior desconto (%)" não segue o % mostrado no cartão (iphone 16: -6%, -35%, -16%…).
 
 ### Menores
+> **19/11 (noite): 14, 15 e 17 corrigidos e no ar.** 16: o teste daqui não serve (os pedidos saem por ~11 endereços
+> diferentes, nunca passam de 60 em 10 s por endereço); falta o Giovanni conferir a regra no painel do Cloudflare.
 14. Categoria aberta pelo endereço (`/?q=&cat=…`) sai com o título e o canônico da página inicial (ruim para o Google).
 15. Sugestões estranhas na caixa: "shorts feminino que mostra a poupa", "o filme lançamentos em 2026",
     "remedio masterfitone", "farmadox 50".
