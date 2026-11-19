@@ -3066,6 +3066,38 @@ function parecidasCom(q) {
   }
   return saida.slice(0, 4);
 }
+// Erro de digitação que a lista de erros não conhece (auditoria de 19/11/2026: "gelaeira" dava 0 ofertas). Só DEPOIS de a
+// busca vir vazia: cada palavra que o site não conhece é trocada pela palavra mais parecida das buscas que ele conhece
+// (1 letra de diferença; 2 em palavra de 9+ letras; mesma inicial; letra faltando ganha de letra trocada: "cadera" é cadeira, não câmera), e a busca é refeita sozinha. Palavra conhecida, com
+// número ou curta não muda, então a busca corrigida não é corrigida de novo
+function buscaCorrigidaPeloVocabulario(q) {
+  const palavras = limpo(q).split(" ").filter(Boolean);
+  if (!palavras.length || palavras.length > 5 || !vocab.itens?.length) return null;
+  if (!vocab.palavras) {
+    vocab.palavras = new Map();
+    for (const item of vocab.itens) for (const p of item.p) if (p.length >= 4) vocab.palavras.set(p, (vocab.palavras.get(p) || 0) + 1);
+    for (const m of vocab.marcasN || []) for (const p of m.n.split(" ")) if (p.length >= 4) vocab.palavras.set(p, (vocab.palavras.get(p) || 0) + 1);
+  }
+  const conhecidas = vocab.palavras;
+  let mudou = false;
+  const saida = palavras.map((p) => {
+    if (p.length < 5 || /\d/.test(p) || VAZIAS_SUGESTAO.has(p) || conhecidas.has(p) || conhecidas.has(`${p}s`) || (p.endsWith("s") && conhecidas.has(p.slice(0, -1)))) return p;
+    const max = p.length >= 9 ? 2 : 1;
+    const faltaLetra = (c) => { let i = 0; for (const letra of c) if (letra === p[i]) i++; return i === p.length ? 1 : 0; };
+    let melhor = null;
+    for (const [c, vezes] of conhecidas) {
+      if (c[0] !== p[0] || c.length < 5) continue;
+      const d = distancia(p, c, max);
+      if (d > max) continue;
+      const falta = faltaLetra(c);
+      if (!melhor || d < melhor.d || (d === melhor.d && (falta > melhor.falta || (falta === melhor.falta && vezes > melhor.vezes)))) melhor = { c, d, vezes, falta };
+    }
+    if (!melhor) return p;
+    mudou = true;
+    return melhor.c;
+  });
+  return mudou ? saida.join(" ") : null;
+}
 function avisoParecidas() {
   if (estado.ofertas.length || estado.buscando || navegandoCategoria() || estado.sugestao) return null;
   const lista = parecidasCom(estado.q);
@@ -3429,6 +3461,20 @@ async function buscar(q) {
     estado.maisBusca = dados.mais;
     estado.temMaisBusca = Boolean(dados.mais);
     estado.completando = estado.temMaisBusca; // a "Escolha rápida" só aparece depois dos lotes automáticos
+    // Nenhuma oferta e alguma palavra parece erro de digitação de uma busca conhecida: refaz com a palavra certa
+    if (!estado.ofertas.length && !lojaAtual() && !estado.cat && !new URLSearchParams(location.search).has("exato")) {
+      if (!vocab.chegou) {
+        carregarVocabulario();
+        await new Promise((feito) => { vocab.aoChegar.push(feito); setTimeout(feito, 2500); });
+        if (pedido !== estado.pedido) return;
+      }
+      const certa = buscaCorrigidaPeloVocabulario(estado.q);
+      if (certa && limpo(certa) !== limpo(estado.q)) {
+        history.replaceState(null, "", `/?q=${encodeURIComponent(certa)}`);
+        mostrar();
+        return;
+      }
+    }
     // Buscou o nome de uma loja e nenhum produto tem esse nome no título: abre direto os produtos da loja
     // (replaceState: o "voltar" não cai de novo na busca vazia). "kabum" trazia 15 peças "parecidas" (print 04/11/2026):
     // vale também quando nada bate de verdade
@@ -4542,6 +4588,7 @@ const limpo = (s) => normalizar(String(s || "")).replace(/[^a-z0-9]+/g, " ").tri
 const VAZIAS_SUGESTAO = new Set(["de", "do", "da", "dos", "das", "para", "com", "e", "a", "o"]);
 const vocab = { termos: SUGESTOES, marcas: [], erros: {}, pedido: false, aoChegar: [] };
 function prepararVocabulario() {
+  vocab.palavras = null;
   vocab.itens = vocab.termos.map((t) => ({ t, n: limpo(t), p: limpo(t).split(" ") }));
   vocab.marcasN = vocab.marcas.map((m) => ({ m, n: limpo(m) }));
 }
@@ -4551,7 +4598,7 @@ function carregarVocabulario() {
   vocab.pedido = true;
   fetch("/api/vocabulario?v=15").then((r) => (r.ok ? r.json() : null)).then((d) => {
     if (!d?.termos?.length) return;
-    Object.assign(vocab, { termos: d.termos, marcas: d.marcas || [], erros: d.erros || {} });
+    Object.assign(vocab, { termos: d.termos, marcas: d.marcas || [], erros: d.erros || {}, chegou: true });
     prepararVocabulario();
     vocab.aoChegar.forEach((f) => f());
   }).catch(() => {});

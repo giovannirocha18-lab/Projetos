@@ -452,6 +452,17 @@ for (const [q, titulos, primeiro, naoBate] of [
     ["Gaveta Bandeja Chip Sim Card Motorola Moto G85 5g Cor Azul"]);
   pecas("lavadora electrolux 13kg", [["Máquina de Lavar Electrolux 13kg Cesto Inox LDA13 Branco", 1730], ["Lavadora de Roupas Electrolux LDA13 Efficient 13kg", 2100],
     ["Lavadora Electrolux Ltd13 13kg - 220v -", 79], ["Selo Mecanico Lavadora Electrolux Le08 Top8", 55]], ["Lavadora Electrolux Ltd13 13kg - 220v -", "Selo Mecanico Lavadora Electrolux Le08 Top8"]);
+  // "com controle" acompanha o ventilador: a busca não é de controle remoto
+  pecas("ventilador de teto com controle", [["Ventilador De Teto C/ Controle 6 Vel. Fenix Ventisol", 299], ["Ventilador Teto Aliseu Wave Branco Com Controle Remoto", 519],
+    ["Ventilador de teto 3 pás Inverter com controle bivolt - Ventisol", 310], ["Ventilador Teto Aliseu Smart Branco Controle Remoto", 799],
+    ["Ventilador De Teto Aliseu Retrátil Tulipa - Bivolt - Com Controle Remoto", 800], ["Controle Remoto Ventilador De Teto Universal", 66], ["Controle Ventilador Teto LS com Tomada 10A Bivolt", 40]],
+    ["Controle Remoto Ventilador De Teto Universal", "Controle Ventilador Teto LS com Tomada 10A Bivolt"]);
+  // Palavras que não são produto saem da busca ("celular barato" trazia pingente e antena com "barato" no nome)
+  for (const [digitado, certo] of [["celular barato", "celular"], ["geladeira em promoção", "geladeira"], ["tênis nike mais barato", "tênis nike"], ["onde comprar ps5", "ps5"],
+    ["barato", "barato"], ["oferta do dia", "oferta do dia"], ["air fryer", "air fryer"]]) {
+    const saiu = corrigirBusca(digitado).q;
+    if (saiu !== certo) { falhas++; console.log(`✗ busca "${digitado}" devia virar "${certo}", virou "${saiu}"`); }
+  }
   // Produto barato: a diferença de preço não prova nada (nada vira acessório)
   pecas("creatina growth", [["Creatina Growth Supplements Monohidratada 250g", 80], ["Creatina Growth 1kg", 180], ["Creatina Growth Sachê 3g", 4]], []);
 }
