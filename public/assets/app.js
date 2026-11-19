@@ -1681,6 +1681,7 @@ $("#modo-comparacao").addEventListener("change", () => {
   if (!ligado) $("#comparacao").hidden = true;
   desenharAvisoComparacao();
   if (ligado && !estado.q) toast("Modo comparação ligado: busque um produto para comparar as lojas ⚖️", 4000);
+  desenharFiltroMarcas(); // a fila de marcas do celular some com o comparador ligado (o quadro dele tem a própria)
   desenharResultados();
 });
 desenharAvisoComparacao();
@@ -2749,6 +2750,39 @@ let ordemMarcas = [];
 let marcasParadas = false;
 $("#caixa-marcas").addEventListener("pointerenter", () => { marcasParadas = true; });
 $("#caixa-marcas").addEventListener("pointerleave", () => { marcasParadas = false; });
+// Celular: as marcas da busca numa fila de pílulas na tela principal, como no quadro do comparador (pedido do Giovanni,
+// 19/11/2026: "assim não precisamos buscar nos filtros"). Um toque mostra só aquela marca (e pede "produto + marca", como a
+// caixinha dos Filtros), outro toque ou "Todas" volta. As que têm mais ofertas primeiro; a fila rola de lado. Com o
+// comparador ligado some: o quadro dele já tem a fila de marcas. Só em busca e categoria (na página de loja ficam os Filtros)
+const MARCAS_RAPIDAS = 14;
+function desenharMarcasRapidas(ordem) {
+  const caixa = $("#marcas-rapidas");
+  if (!caixa) return; // página antiga ainda aberta (o HTML chega antes do app.js novo)
+  const lista = estado.q && !estado.loja && !modoComparacao() ? ordem : [];
+  caixa.hidden = lista.length < 2;
+  if (caixa.hidden) { caixa.replaceChildren(); return; }
+  const porQtd = [...lista].sort(([a, x], [b, y]) => estado.marcasSo.has(b) - estado.marcasSo.has(a) || y.qtd - x.qtd || x.nome.localeCompare(y.nome, "pt-BR"));
+  // A ordem fica parada enquanto a pessoa mexe na fila (os lotes que chegam mudam as quantidades): só entra marca nova no fim
+  const antes = [...caixa.querySelectorAll("[data-marca]")].map((b) => b.dataset.marca);
+  const pos = new Map(antes.map((n, i) => [n, i]));
+  const visiveis = porQtd.slice(0, MARCAS_RAPIDAS).sort(([a], [b]) => (pos.get(a) ?? 1e9) - (pos.get(b) ?? 1e9));
+  const rolado = caixa.scrollLeft;
+  const escolher = (n, nome) => {
+    const ja = estado.marcasSo.has(n) && estado.marcasSo.size === 1;
+    estado.marcasSo.clear();
+    if (n && !ja) estado.marcasSo.add(n);
+    desenharFiltroMarcas();
+    desenharFiltroLojas();
+    desenharResultados();
+    if (n && !ja) completarMarca(n, nome);
+  };
+  caixa.replaceChildren(
+    el("span", { class: "marcas-rapidas-titulo" }, "Marcas"),
+    el("button", { type: "button", class: "chip-marca", "aria-pressed": String(!estado.marcasSo.size), onclick: () => escolher(null) }, "Todas"),
+    ...visiveis.map(([n, m]) => el("button", { type: "button", class: "chip-marca", "data-marca": n, "aria-pressed": String(estado.marcasSo.has(n)),
+      onclick: () => escolher(n, m.nome) }, m.nome)));
+  if (rolado) caixa.scrollTo(rolado, 0);
+}
 function desenharFiltroMarcas() {
   const passa = passaNosFiltros(false);
   const contagem = new Map();
@@ -2763,7 +2797,7 @@ function desenharFiltroMarcas() {
   // Nas "Ofertas do dia" quase tudo é produto sem marca no nome (calça cargo, suporte de celular…): o filtro só vale
   // na busca, na categoria e na página de uma loja (print do Giovanni, 24/10/2026: só 3 marcas na página inicial)
   caixa.hidden = contagem.size < 2 || (!estado.q && !estado.loja);
-  if (caixa.hidden) return;
+  if (caixa.hidden) { desenharMarcasRapidas([]); return; }
   let ordem = [...contagem].sort(([a, x], [b, y]) => estado.marcasSo.has(b) - estado.marcasSo.has(a) || y.qtd - x.qtd || x.nome.localeCompare(y.nome, "pt-BR"));
   // Com o mouse (ou o dedo) em cima da lista, a ordem não muda: os lotes que chegam sozinhos mudavam as quantidades e a
   // marca embaixo do clique trocava (print "smart tv lg" com Samsung marcada, 31/10/2026). Só as quantidades se atualizam
@@ -2772,6 +2806,7 @@ function desenharFiltroMarcas() {
     ordem = ordem.sort(([a], [b]) => (pos.get(a) ?? 1e9) - (pos.get(b) ?? 1e9));
   }
   ordemMarcas = ordem.map(([n]) => n);
+  desenharMarcasRapidas(ordem);
   const mostrar = (estado.todasMarcas ? ordem : ordem.slice(0, Math.max(MARCAS_VISIVEIS, estado.marcasSo.size)))
     .sort(([, x], [, y]) => x.nome.localeCompare(y.nome, "pt-BR"));
   $("#filtro-marcas").replaceChildren(...mostrar.map(([n, m]) => el("label", { class: "opcao",
@@ -3234,7 +3269,10 @@ function desenharFiltrosLigados() {
       pilula(ordem.closest("label").textContent.trim(), () => { const r = $("input[name=ordem][value=relevancia]"); r.checked = true; mudar(r); });
     }
     if (estado.tipoSo) pilula(estado.tipoSo, () => { estado.tipoSo = null; desenharFiltroLojas(); desenharResultados(); });
+    // Marca que já aparece marcada na fila de marcas do celular não ganha pílula repetida (19/11/2026)
+    const naFila = new Set($("#marcas-rapidas")?.hidden === false ? [...document.querySelectorAll("#marcas-rapidas [data-marca]")].map((x) => x.dataset.marca) : []);
     for (const n of estado.marcasSo) {
+      if (naFila.has(n)) continue;
       pilula(marcasDoTitulo?.find((m) => m.n === n)?.nome || n, () => { estado.marcasSo.delete(n); desenharFiltroMarcas(); desenharResultados(); });
     }
     if (estado.lojaSo && !estado.loja) pilula(nomeDaLoja(estado.lojaSo), () => escolherLoja(null));

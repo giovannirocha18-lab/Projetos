@@ -1381,3 +1381,15 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
    (sem o cinza, que deixava fraco), carrinho roxo. Sino ligado = fundo âmbar cheio */
 .acoes-oferta .alertar { filter: none; opacity: 1; border-color: #d97706; }
 .acoes-oferta .alertar[aria-pressed="true"] { background: #fde68a; border-color: #b45309; }
+
+/* Celular: marcas da busca numa fila de pílulas na tela principal (19/11/2026; app.js, desenharMarcasRapidas). No computador
+   as marcas já ficam à vista na barra lateral */
+.marcas-rapidas { display: none; }
+@media (max-width: 860px) {
+  .marcas-rapidas:not([hidden]) { display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none;
+    margin: 0 -12px 12px; padding: 3px 12px 5px; }
+  .marcas-rapidas::-webkit-scrollbar { display: none; }
+  .marcas-rapidas-titulo { flex: none; font-size: .74rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--roxo); }
+  .marcas-rapidas .chip-marca { flex: none; padding: 6px 12px; font-size: .84rem; border-color: #ddd6fe; color: #4c1d95; }
+  .marcas-rapidas .chip-marca[aria-pressed="true"] { border-color: transparent; color: #fff; }
+}
