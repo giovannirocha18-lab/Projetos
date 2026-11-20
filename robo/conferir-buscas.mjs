@@ -12,6 +12,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { chaveIa, VERSAO_IA, TABELAS_IA } from "../lib/ia.js";
 import { categoriaDoProduto } from "../lib/categorias.js";
 import { TABELA_IA_BUSCA, termoIa, foraDasCategorias, categoriasDaBusca } from "../lib/iaBusca.js";
+import { tendenciaAceitavel } from "../lib/buscas.js";
 
 const MODELO = "claude-haiku-5-5";
 // Preço normal (sem lote) do Claude Haiku 5.5, em US$ por milhão de tokens
@@ -24,6 +25,7 @@ const POR_PEDIDO = 80; // títulos por pergunta à IA
 const TOPO = 24;
 // Buscas reais dos visitantes nos últimos 30 dias (as mais buscadas), além das sugestões da caixa de busca (03/11/2026)
 const BUSCADAS = 150;
+const DO_DIA = Number(process.env.IA_BUSCAS_DO_DIA) || 150; // buscas de visitantes de ontem e hoje, na frente da fila
 // Também os mais baratos de cada busca (11/11/2026, print do Giovanni: "computador" com "Balança Computadora" no
 // "💰 Mais barato" da Escolha rápida; produto errado quase sempre custa menos que o certo e a IA só via os primeiros da
 // lista): os 10 de menor preço da busca e os 3 de menor preço de cada loja (quem escolhe uma loja vê o mais barato dela)
@@ -246,6 +248,24 @@ try {
   for (const { texto: t } of buscadas) if (t && !ja.has(termoIa(t))) { termos.push(t); ja.add(termoIa(t)); }
 } catch {}
 
+// Buscas que os visitantes fizeram ontem e hoje (20/11/2026, pedido do Giovanni: "o site vai se autoaprendendo?"): vão para a
+// FRENTE da fila, para a IA conferir a lista delas na mesma noite, e não só as 300 sugestões + 150 mais buscadas do mês.
+// Só termo que passa no filtro das tendências (sem termo impróprio/inventado) e até DO_DIA por noite
+let doDia = 0;
+try {
+  const desde = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
+  const recentes = await d1(
+    "SELECT MAX(texto) AS texto FROM buscas WHERE dia >= ? GROUP BY termo ORDER BY MAX(dia) DESC, SUM(total) DESC LIMIT ?", [desde, DO_DIA * 2]);
+  const ja = new Set(termos.map((t) => termoIa(t)));
+  const novasDoDia = [];
+  for (const { texto: t } of recentes) {
+    if (novasDoDia.length >= DO_DIA) break;
+    if (t && !ja.has(termoIa(t)) && tendenciaAceitavel(t)) { novasDoDia.push(t); ja.add(termoIa(t)); }
+  }
+  doDia = novasDoDia.length;
+  termos = [...novasDoDia, ...termos];
+} catch {}
+
 // Teste: IA_BUSCAS_SO="ps5|geladeira" confere só essas buscas (input ia_so do workflow), DO ZERO: esquece o que a IA já
 // tinha respondido para elas (serve para refazer uma busca depois de mudar as instruções)
 if (process.env.IA_BUSCAS_SO) {
@@ -321,6 +341,7 @@ if (correcoes.size) {
 }
 
 const custo = (entrada * PRECO_ENTRADA + saida * PRECO_SAIDA) / 1e6;
+if (doDia) anotar(`- ${doDia} buscas feitas por visitantes ontem e hoje entraram na frente da fila`);
 anotar(`- ${abertas} de ${termos.length} buscas abertas (lista inteira de cada uma); ${perguntados} anúncios novos perguntados à IA, ${pelaFoto} decididos pela foto (${falhas} perguntas com erro)`);
 if (parouEm) anotar(`- ⏳ O tempo da noite acabou na busca ${parouEm} de ${termos.length}: o resto continua na próxima noite`);
 anotar(`- Não têm a ver com a busca (o site esconde): ${naoSao.length}; eram mostrados como produto e são acessório dele: ${viraramAcessorio}`);
