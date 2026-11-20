@@ -449,6 +449,24 @@ for (const [q, titulos, primeiro, naoBate] of [
   COMUNS["porta copos"] = ["Porta Copos de Silicone Kit 6 Peças", "Porta-copos de cortiça redondo"];
   confere("porta deslizante", ["Kit Motor Portão Deslizante Completo Rossi 1/4 Dz Nano", "Kit Motor Portão Completo Deslizante Kdz Fit Classic", "Motor Portao Eletronico Garen 1/4hp 400kg Rapid Deslizante"],
     "outro produto (não bate)", (o) => !o.bate);
+  // 20/11/2026 (print "porta de correr" com guarda-roupas): em busca de 2+ palavras, quem traz a busca só no meio do nome
+  // (parte de outro produto) é marcado noMeio; quem começa por ela, ou só tem marca/descrição antes, não
+  {
+    const portas = Array.from({ length: 12 }, (_, i) => `Porta de Correr de Madeira com Kit Alumínio ${60 + i * 5}cm x 2,10m`);
+    const meio = ["Guarda-Roupa Casal 3 Portas de Correr com Espelho Branco Nobre Madesa", "Buffet Aparador Industrial Retrô 2 Portas de Correr Madeira/Aço 188cm",
+      "Guarda Roupa Casal Fortaleza II com 2 Portas de Correr e 4 Gavetas Bartira", "Fechadura de Porta de Correr Bico de Papagaio Cromada"];
+    const comeco = ["Kit Porta de Correr Completo Trilho 2m Roldanas", "Linda Porta de Correr Celeiro Rústica 210x90"];
+    const saida = marcar("porta de correr", [...portas, ...meio, ...comeco]);
+    for (const o of saida) {
+      const esperado = meio.includes(o.titulo);
+      if (Boolean(o.noMeio && o.parecido) !== esperado) { falhas++; console.log(`✗ "porta de correr": ${esperado ? "devia sair (busca no meio do nome)" : "não devia sair"}: ${o.titulo}`); }
+    }
+    for (const [q, itens] of [["echo dot", ["Caixa de som inteligente Amazon Echo Dot Max", "Alto Falante Inteligente Amazon Echo Dot 4ª Geração"]],
+      ["cueca boxer", ["Kit com 8 unidades de cuecas boxer em microfibra", "HHR Benming Year Cueca boxer masculina de algodão respirável"]],
+      ["home theater", ["Sistema de Home Theater Dolby 5.1 com Amplificador", "Sistema de Som Surround Bobtot 5.1 Home Theater 110V Preto"]],
+      ["hot wheels", ["Pista Stunt Tracks Power Launch Em Escala 1:64 Hot Wheels"]]]) confere(q, itens, "produto (a busca não está no meio de outro produto)", (o) => !o.noMeio);
+    confere("ssd 1tb", ["PC Gamer Forge, AMD Ryzen 7 5700G, 16GB DDR4, SSD 1TB, Fonte 400W 80 Plus"], "busca no meio (lista de características)", (o) => o.noMeio);
+  }
   for (const [q, l] of Object.entries(VARIANTES)) confere(q, l, "variante (recua)", (o) => o.variante && !o.acessorio);
   for (const [q, l] of Object.entries(COMUNS)) confere(q, l, "produto comum", (o) => o.bate && !o.variante && !o.acessorio);
   // "apple watch se" lia "se" dentro de "SEries" e abria com o Series 11

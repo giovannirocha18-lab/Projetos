@@ -2370,7 +2370,12 @@ const MINIMO_PARA_ESCONDER_PARECIDOS = 10;
 function escondeParecidos() {
   if (!estado.q) return () => false;
   const produtos = estado.ofertas.reduce((n, o) => n + (o.acessorio ? 0 : 1), 0);
-  return produtos >= MINIMO_PARA_ESCONDER_PARECIDOS ? (o) => Boolean(o.parecido) && !o.rebaixado : () => false;
+  // noMeio (20/11/2026, pedido do Giovanni): a busca de 2+ palavras aparece só no meio do nome ("Guarda-Roupa 3 Portas de
+  // Correr" em "porta de correr"). O servidor já tira quando o lote tem 10+ que começam pela busca; aqui vale para a lista
+  // inteira (os lotes seguintes chegam separados e com menos produtos)
+  const principais = estado.ofertas.reduce((n, o) => n + (!o.acessorio && o.principal ? 1 : 0), 0);
+  return produtos >= MINIMO_PARA_ESCONDER_PARECIDOS
+    ? (o) => (Boolean(o.parecido) && !o.rebaixado) || (Boolean(o.noMeio) && principais >= MINIMO_PARA_ESCONDER_PARECIDOS) : () => false;
 }
 
 // Todos os filtros menos o de lojas: a contagem de cada loja (botões do card e da barra lateral) usa o mesmo, para
