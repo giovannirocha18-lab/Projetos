@@ -442,6 +442,13 @@ for (const [q, titulos, primeiro, naoBate] of [
     "monitor": ["Monitor AOC 22 120Hz 1ms Gaming HDMI 22B35HM23 Preto"], "monitor de audio": ["Monitor De Áudio R1000t4 24w Rms Edifier"],
     "fone jbl tune 520": ["Fone Jbl Tune 520bt Bluetooth On-ear Preto 57h Bateria"], "apple watch se": ["Apple Watch SE 3 GPS, Caixa estelar de Alumínio de 40 mm"],
   };
+  // 20/11/2026 (print do Giovanni, "porta deslizante"): porta-cartões/porta-ovos recuam; motor de portão não é porta
+  VARIANTES["porta deslizante"] = ["3 Porta-Cartões de Identificação Deslizantes de Alta Resistência, Plástico ABS", "Porta-ovos deslizante com rolo automático duplo para porta lateral de geladeira",
+    "5 Porta-Crachás Deslizantes, Porta-Crachá de Identificação Deslizante com Janela Transparente"];
+  COMUNS["porta deslizante"] = ["Porta deslizante de vidro temperado 8mm com trilho e roldanas", "Porta De Correr Deslizante Madeira Maciça 210x80 Com Kit Trilho"];
+  COMUNS["porta copos"] = ["Porta Copos de Silicone Kit 6 Peças", "Porta-copos de cortiça redondo"];
+  confere("porta deslizante", ["Kit Motor Portão Deslizante Completo Rossi 1/4 Dz Nano", "Kit Motor Portão Completo Deslizante Kdz Fit Classic", "Motor Portao Eletronico Garen 1/4hp 400kg Rapid Deslizante"],
+    "outro produto (não bate)", (o) => !o.bate);
   for (const [q, l] of Object.entries(VARIANTES)) confere(q, l, "variante (recua)", (o) => o.variante && !o.acessorio);
   for (const [q, l] of Object.entries(COMUNS)) confere(q, l, "produto comum", (o) => o.bate && !o.variante && !o.acessorio);
   // "apple watch se" lia "se" dentro de "SEries" e abria com o Series 11
