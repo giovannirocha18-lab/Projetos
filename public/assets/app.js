@@ -1946,11 +1946,22 @@ function ampliarFoto(src, titulo, fotos = [], aoTrocar = null) {
     fotos.length > 1 ? el("button", { type: "button", class: "foto-ampliada-seta seguinte", "aria-label": "Próxima foto", onclick: (e) => { e.stopPropagation(); trocar(1); } }, "›") : "",
     el("p", { class: "foto-ampliada-dica" }, dicaDe()));
   const area = caixa.querySelector(".foto-ampliada-area");
+  // A ampliação não passa do dobro do tamanho REAL da foto (20/11/2026, print do Giovanni: foto de 500 px do Mercado Livre
+  // esticada para 2.200 px ficava cheia de quadradinhos; a loja não tem essa foto maior). Foto grande segue como antes
+  const ajustarAmpliacao = () => {
+    if (!caixa.classList.contains("grande") || !img.naturalWidth) { img.style.width = ""; return; }
+    const largo = matchMedia("(min-width: 861px)").matches;
+    const alvo = Math.max(innerWidth * (largo ? 1.8 : 2.5), largo ? 2200 : 1600);
+    img.style.width = `${Math.round(Math.min(alvo, Math.max(img.naturalWidth * 2, (Number(img.dataset.antes) || 0) * 1.3)))}px`;
+  };
+  img.addEventListener("load", ajustarAmpliacao);
   img.addEventListener("click", (e) => {
     const r = img.getBoundingClientRect();
     const fx = (e.clientX - r.left) / r.width;
     const fy = (e.clientY - r.top) / r.height;
+    if (!caixa.classList.contains("grande")) img.dataset.antes = r.width; // largura na tela antes de ampliar: o clique sempre aumenta
     const grande = caixa.classList.toggle("grande");
+    ajustarAmpliacao();
     if (grande) requestAnimationFrame(() => {
       area.scrollLeft = fx * area.scrollWidth - area.clientWidth / 2;
       area.scrollTop = fy * area.scrollHeight - area.clientHeight / 2;
