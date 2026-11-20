@@ -103,6 +103,13 @@ const categoriasDe = (e) => ({
     pares: e.c.casarPares || 0, iguais: e.c.casarIguais || 0, diferentes: e.c.casarDiferentes || 0, custoUS: e.c.casarCusto || 0,
     erros: e.c.casarErros || 0, erro: e.c.casarErro || e.c.casarUltimoErro || null, parou: e.c.casarParou || null,
       categoria: e.c.casarCategoria || null, buscasDaCategoria: e.c.casarDaCategoria || 0 } } : {}),
+  // Mercado Livre (trilha ml): só os totais da noite, para a conferência da madrugada ler de fora do painel (20/11/2026)
+  ...(e?.c?.partes !== undefined || e?.c?.fundasPartes !== undefined ? { ml: { buscas: e.c.partes || 0, precos: e.c.precos || 0, esperas: e.c.esperas || 0,
+    fila: e.c.fila ?? null, parou: e.c.parou || null, maisVendidos: e.c.mvTotal || 0, mvCategorias: e.c.mvCategorias || 0, mvEsperas: e.c.mvEsperas || 0,
+    mvParou: e.c.mvParou || null },
+    fundas: { feitas: e.c.fundasFeitas || 0, lista: e.c.fundasPartes || 0, faltam: e.c.fundasFaltam || 0, produtos: e.c.fundasProdutos || 0,
+      precos: e.c.fundasPrecos || 0, esperas: e.c.fundasEsperas || 0, fracas: e.c.fundasFracas || 0, erros: e.c.fundasErros || 0,
+      parou: e.c.fundasParou || null } } : {}),
 });
 const lerEstado = (texto) => { try { return JSON.parse(texto); } catch { return null; } };
 
