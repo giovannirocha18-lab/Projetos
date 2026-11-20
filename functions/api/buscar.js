@@ -624,6 +624,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
     mais = pagina < MAX_PAGINA && fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina) ? `pagina=${pagina + 1}` : null;
   }
   etapa("lojas");
+  // 20/11/2026 (medição depois da auditoria: "tênis nike air max" veio com 0 ofertas e ficou guardada vazia): quando a
+  // AliExpress e a Shopee passam do prazo curto e as outras lojas não têm o produto, a 1ª tela sairia VAZIA, e tela vazia
+  // não pede complemento. Nesse caso a busca é refeita aqui mesmo com os prazos normais: o visitante espera mais, mas vê
+  // os produtos em vez de "nada encontrado"
+  if (prazoCurto && !ofertas.length && Object.keys(PRAZO_DA_PRIMEIRA_TELA_MS).some((nome) => lojas[nome] && !lojas[nome].ok)) {
+    return onRequestGet({ request, env: { ...env, __ATUALIZAR: true }, waitUntil });
+  }
   // O que a IA disse não ser o produto buscado vai para "Ver também… produtos parecidos" (ver lib/iaBusca.js)
   if (q) ofertas = semBrinquedos(semNaoBuscados(ofertas, await iaAntes), q);
   ofertas = semUsados(semPrecoAbsurdo(ofertas), q); // preço errado do vendedor e produto usado/ferro-velho (lib/lojasRemovidas.js)
