@@ -1497,7 +1497,9 @@ function filtroDeMarcasDoComparador(grupos, escolhida) {
   if (marcas.size < 2) return null;
   // Quem tem mais modelos primeiro; a escolhida nunca fica escondida atrás do "+ marcas"
   const ordem = [...marcas].sort((a, b) => b[1].qtd - a[1].qtd || a[1].nome.localeCompare(b[1].nome, "pt-BR"));
-  const visiveis = marcaDoComparador.todas ? ordem : ordem.filter(([n], i) => i < MARCAS_NO_QUADRO || n === escolhida);
+  // 21/11/2026 (pedido do Giovanni): entram as com mais modelos, mostradas de A a Z (como as listas da lateral)
+  const visiveis = (marcaDoComparador.todas ? ordem : ordem.filter(([n], i) => i < MARCAS_NO_QUADRO || n === escolhida))
+    .sort((a, b) => a[1].nome.localeCompare(b[1].nome, "pt-BR"));
   const chip = (texto, n, nome) => el("button", { type: "button", class: "chip-marca", "aria-pressed": String(n === escolhida),
     onclick: () => escolherMarcaDoComparador(n, nome) }, texto);
   return el("div", { class: "comparacao-marcas", role: "group", "aria-label": "Filtrar os modelos por marca" },
@@ -1573,8 +1575,8 @@ function filtroDeTiposDoComparador(grupos, categoria, escolhido) {
   const conta = new Map();
   for (const g of grupos) if (g.tipo) conta.set(g.tipo, (conta.get(g.tipo) || 0) + 1);
   if (conta.size < 2) return null;
-  // Na ordem da lista da categoria (geladeira, freezer, fogão…), que é a ordem em que a pessoa procura
-  const ordem = TIPOS_DO_COMPARADOR[categoria].map(([nome]) => nome).filter((nome) => conta.has(nome));
+  // De A a Z (pedido do Giovanni, 21/11/2026; antes na ordem da lista da categoria)
+  const ordem = TIPOS_DO_COMPARADOR[categoria].map(([nome]) => nome).filter((nome) => conta.has(nome)).sort((a, b) => a.localeCompare(b, "pt-BR"));
   const chip = (texto, tipo) => el("button", { type: "button", class: "chip-marca", "aria-pressed": String(tipo === escolhido),
     onclick: () => { marcaDoComparador.tipo = tipo; modelosMostrados = MODELOS_POR_VEZ; if (tipo) completarTipoDoComparador(categoria, tipo); desenharComparacao(filtrar()); } }, texto);
   return el("div", { class: "comparacao-marcas comparacao-tipos", role: "group", "aria-label": "Filtrar os modelos por tipo de produto" },
