@@ -465,6 +465,17 @@ for (const [q, titulos, primeiro, naoBate] of [
       ["cueca boxer", ["Kit com 8 unidades de cuecas boxer em microfibra", "HHR Benming Year Cueca boxer masculina de algodão respirável"]],
       ["home theater", ["Sistema de Home Theater Dolby 5.1 com Amplificador", "Sistema de Som Surround Bobtot 5.1 Home Theater 110V Preto"]],
       ["hot wheels", ["Pista Stunt Tracks Power Launch Em Escala 1:64 Hot Wheels"]]]) confere(q, itens, "produto (a busca não está no meio de outro produto)", (o) => !o.noMeio);
+    // 21/11/2026 (regra do Giovanni): peça feita para um carro só vem quando a busca fala de carro
+    {
+      const carro = ["Porta deslizante elétrica traseira lado direito maçaneta interna para nissan urvan e25 cinza", "Dobradiça de porta deslizante para CITROEN BERLINGO (b9) PEUGEOT Partner"];
+      const casa = Array.from({ length: 12 }, (_, i) => `Porta Deslizante de Vidro Temperado ${60 + i * 5}cm com Trilho`);
+      const semCarro = marcar("porta deslizante", [...carro, ...casa]);
+      for (const o of semCarro) if (Boolean(o.foraDoTipo && o.parecido) !== carro.includes(o.titulo)) { falhas++; console.log(`✗ "porta deslizante": peça de carro devia sair e porta de casa ficar: ${o.titulo}`); }
+      for (const q of ["porta deslizante nissan", "porta deslizante gol"]) confere(q, carro.slice(0, 1), "peça de carro pedida fica", (o) => !o.foraDoTipo);
+      confere("hot wheels", ["Hot Wheels Premium Chevrolet K5 Blazer Stranger Things 1:64"], "brinquedo com nome de carro não é peça", (o) => !o.foraDoTipo);
+      confere("lego technic", ["LEGO Technic Garagem Ford Mustang GT"], "brinquedo com nome de carro não é peça", (o) => !o.noMeio);
+      confere("farol de led", ["Novo farol led tubo farol drl para lexus ct200 2016"], "busca de peça de carro não esconde", (o) => !o.noMeio);
+    }
     confere("ssd 1tb", ["PC Gamer Forge, AMD Ryzen 7 5700G, 16GB DDR4, SSD 1TB, Fonte 400W 80 Plus"], "busca no meio (lista de características)", (o) => o.noMeio);
   }
   for (const [q, l] of Object.entries(VARIANTES)) confere(q, l, "variante (recua)", (o) => o.variante && !o.acessorio);
