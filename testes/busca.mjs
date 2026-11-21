@@ -9,7 +9,7 @@
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
 import { separarAcessorios, produtoBuscado, temTodasAsPalavras, citaAlgumaPalavra } from "../lib/relevancia.js";
 import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
-import { categoriaDoProduto, categoriaPorNome, marcarSecoes, montarVitrine } from "../lib/categorias.js";
+import { categoriaDoProduto, categoriaPorNome, marcarSecoes, montarVitrine, comSecaoCerta } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 import { semProdutoAVenda } from "../lib/buscas.js";
 import { modeloBase, semTamanho, tamanhoDoTitulo, ordenarTamanhos } from "../lib/variacoes.js";
@@ -938,6 +938,12 @@ for (const [q, buscaEsperada, itens, esperado] of [
   total += 2;
   if (ficaram !== "567") { falhas++; console.log(`✗ só produto novo: ficaram ${ficaram}, esperado 567`); }
   if (buscouUsado !== itens.length) { falhas++; console.log("✗ só produto novo: quem busca 'usado' tem que ver os usados"); }
+  // 21/11/2026 (print: Black Friday > Games com controle remoto de TV): controle de TV guardado como Games sai de Games
+  for (const [titulo, fica] of [["Controle Remoto Para Smart Tv LG Lcd Led 3d", false], ["Controle Smart Magic Compativel LG AN-MR19BA", false],
+    ["Capa protetora de silicone para lg 3d smart tv AN-MR600", false], ["Notebuc Controle Xbox 360 Controle Gamer USB", true],
+    ["Controle Sem Fio DualSense PS5 Branco", true], ["Volante Logitech G29 Driving Force", true]]) {
+    if ((comSecaoCerta({ titulo, secao: "Games" }).secao === "Games") !== fica) { falhas++; console.log(`✗ seção Games da Black Friday: ${fica ? "devia ficar" : "devia sair"}: ${titulo}`); }
+  }
 }
 console.log(falhas ? `\n${falhas} problema(s) em ${total} títulos` : `\n✓ Tudo certo (${Object.keys(CASOS).length} buscas, ${total} títulos)`);
 process.exitCode = falhas ? 1 : 0;
