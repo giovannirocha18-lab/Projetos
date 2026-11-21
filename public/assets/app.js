@@ -2933,8 +2933,10 @@ function avisoLoja() {
 // "invictus" buscado dentro de Perfumes: mostra a categoria e um jeito de buscar em tudo
 function avisoCategoria() {
   const sair = () => irPara(estado.q);
-  if (estado.foraDaCategoria) {
-    return el("p", { class: "resumo-categoria" }, `Nada encontrado em ${estado.foraDaCategoria}; mostrando todas as categorias.`);
+  if (estado.semNaCategoria) {
+    return el("p", { class: "resumo-categoria resumo-parecidas" }, estado.semNaCategoria.length ? "Esse produto pode estar em: " : "",
+      ...estado.semNaCategoria.map((nome) => el("button", { type: "button", onclick: () => irPara(estado.q, { cat: nome }) }, `${categoriaPeloNome(nome)?.emoji || ""} ${nome}`)),
+      el("button", { type: "button", onclick: sair }, "Buscar em todas as categorias"));
   }
   if (!estado.cat) return null;
   const c = categoriaPeloNome(estado.cat);
@@ -3200,7 +3202,7 @@ function adiantarCorrecao(q, pedido) {
   else { vocab.aoChegar.push(pedir); carregarVocabulario(); }
 }
 function avisoParecidas() {
-  if (estado.ofertas.length || estado.buscando || navegandoCategoria() || estado.sugestao) return null;
+  if (estado.ofertas.length || estado.buscando || navegandoCategoria() || estado.sugestao || estado.semNaCategoria) return null;
   const lista = parecidasCom(estado.q);
   if (!lista.length) return null;
   return el("p", { class: "resumo-categoria resumo-parecidas" }, "Tente: ",
@@ -3217,6 +3219,7 @@ function desenharResumo(lista) {
       ? `${quantasOfertas(lista.length)} em ${qtdLojas} ${qtdLojas === 1 ? "loja" : "lojas"}`
       : estado.ofertas.length ? "Nenhuma oferta com esses filtros"
         // Busca sem nenhum resultado (print "geladeira bravecto", 31/10/2026): não fala de filtros que ninguém escolheu
+        : estado.semNaCategoria ? "Nenhum produto encontrado nesta categoria."
         : "Não achamos ofertas com essas palavras nas lojas parceiras. Confira a escrita ou tente uma palavra mais simples."),
     avisoCorrecao(),
     avisoParecidas(),
@@ -3454,7 +3457,7 @@ function desenharResultados() {
   desenharComparacao(lista);
   desenharEscolhaRapida(lista);
   sheinNaBusca();
-  $("#vazio").hidden = lista.length > 0;
+  $("#vazio").hidden = lista.length > 0 || Boolean(estado.semNaCategoria); // nada na categoria: o card de cima já explica
   // Botões de baixo seguem as lojas marcadas no card: com todas desligadas não há o que "ver mais"
   const lojaLigada = (o) => !estado.lojasDesmarcadas.has(o.loja);
   const nenhumaLoja = !estado.ofertas.some(lojaLigada);
@@ -3509,6 +3512,7 @@ async function buscar(q) {
   modelosMostrados = MODELOS_POR_VEZ;
   mostrarLojaNaBusca(q, pedido);
   estado.foraDaCategoria = null;
+  estado.semNaCategoria = null;
   estado.lojasDesmarcadas.clear();
   zerarSecoes();
   $("#com-acessorios").checked = false;
@@ -3550,7 +3554,16 @@ async function buscar(q) {
       preencherBusca();
     }
     // Nada na categoria: o servidor buscou em tudo, e as próximas páginas também são de tudo
-    if (dados.foraDaCategoria) { estado.foraDaCategoria = estado.cat; estado.cat = null; }
+    // 21/11/2026 (pedido do Giovanni): nada na categoria aberta → não mostra produto de outras; avisa e sugere as categorias
+    // em que o produto apareceu (um toque refaz a busca dentro dela)
+    if (dados.foraDaCategoria) {
+      const conta = new Map();
+      for (const o of estado.ofertas) if (o.bate && !o.acessorio && !o.parecido && o.secao && o.secao !== estado.cat) conta.set(o.secao, (conta.get(o.secao) || 0) + 1);
+      estado.semNaCategoria = [...conta].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([nome]) => nome).filter((nome) => categoriaPeloNome(nome));
+      estado.ofertas = [];
+      dados.mais = null;
+      dados.parcial = false;
+    }
     // Buscou dentro de uma categoria: começa mostrando só ela (as outras ficam para marcar).
     // Só se a categoria tiver boa parte dos produtos buscados: "batedeira" em Automotivo mostrava 2 itens sem
     // relação, e "batedeira de bolo" em Bebês, 1 de 111 (o resto estava em Eletroportáteis)
