@@ -989,7 +989,12 @@ for (const [q, buscaEsperada, itens, esperado] of [
   }
   // 21/11/2026 (auditoria): busca de uma palavra no plural usa o singular ("geladeiras" trazia 1 oferta)
   {
-    const { pluralDeUmaPalavra, limparBusca } = await import("../lib/vocabulario.js");
+    const { pluralDeUmaPalavra, limparBusca, variantesDaBuscaComprida } = await import("../lib/vocabulario.js");
+    // 21/11/2026: busca comprida pesquisa também o começo da frase ("tênis nike air force feminino branco" trazia 0)
+    for (const [q, esperado] of [["tênis nike air force feminino branco", "tenis nike air force"], ["air fryer mondial 5 litros preta digital", "air fryer mondial"],
+      ["panela de pressão elétrica philco 6 litros inox", "panela de pressao eletrica philco"], ["iphone 15 pro max 256gb", "iphone 15 pro max"], ["capa de chuva para moto", undefined], ["geladeira brastemp frost free", undefined], ["iphone 15 pro max", undefined]]) {
+      if (variantesDaBuscaComprida(q)[0] !== esperado) { falhas++; console.log(`✗ busca comprida: "${q}" pesquisaria também "${variantesDaBuscaComprida(q)[0]}", esperado "${esperado}"`); }
+    }
     for (const [q, esperado] of [["GELADEIRA!!!", "GELADEIRA"], ["geladeira.", "geladeira"], ["😀", ""], ["tv 50\"", "tv 50\""], ["1,5 litros", "1,5 litros"], ["micro-ondas", "micro-ondas"], ["iphone 15 (128gb)", "iphone 15 128gb"]]) {
       if (limparBusca(q) !== esperado) { falhas++; console.log(`✗ limpar a busca: "${q}" virou "${limparBusca(q)}", esperado "${esperado}"`); }
     }
