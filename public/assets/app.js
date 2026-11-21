@@ -2,6 +2,21 @@
 // Vai pro Carrinho — comparador de preços
 // =====================================================================
 
+// Monitor (21/11/2026, pedido do Giovanni): erro de tela é avisado ao servidor (POST /api/sinais; só a mensagem e a página,
+// nada da pessoa; no máximo 3 por visita) para a conferência da madrugada ver e corrigir
+let errosAvisados = 0;
+function avisarErroDeTela(msg, arquivo, linha) {
+  if (errosAvisados >= 3 || !navigator.sendBeacon) return;
+  const texto = String(msg || "").slice(0, 160);
+  if (!texto || /^Script error\.?$/i.test(texto)) return; // erro de extensão do navegador ou de outro site: sem informação
+  errosAvisados++;
+  const onde = `${location.pathname}${location.search ? "?" + [...new URLSearchParams(location.search).keys()].join("&") : ""}`
+    + (arquivo ? ` ${String(arquivo).split("/").pop().split("?")[0]}:${linha || 0}` : "");
+  try { navigator.sendBeacon("/api/sinais", JSON.stringify({ msg: texto, onde: onde.slice(0, 80) })); } catch { /* sem aviso */ }
+}
+window.addEventListener("error", (e) => avisarErroDeTela(e.message, e.filename, e.lineno));
+window.addEventListener("unhandledrejection", (e) => avisarErroDeTela(`Promessa: ${e.reason?.message || e.reason}`, "", 0));
+
 // "Ofertas do dia" pedidas antes de todo o resto (29/10/2026, Giovanni: na 1ª abertura ficava "Buscando…" sem
 // nenhum produto): na página inicial o pedido sai já na 1ª linha; carregarDestaques usa esta resposta
 const VERSAO_BUSCA = 108;

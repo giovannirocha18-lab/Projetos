@@ -21,6 +21,7 @@ import { lomadee } from "../../lib/fontes/lomadee.js";
 import { mercadolivre } from "../../lib/fontes/mercadolivre.js";
 import { registrarBusca, tendenciaAceitavel, semProdutoAVenda, anotarSemProduto } from "../../lib/buscas.js";
 import { POUCAS_MIN, anotarPoucas, tirarDasPoucas } from "../../lib/poucas.js";
+import { anotarSinal } from "../../lib/sinais.js";
 import { naoContar } from "../../lib/naoContar.js";
 import { historicoAoVivo, ehAoVivo, ehOfertaDeVerdade } from "../../lib/ofertas.js";
 import { semFotosQuebradas, respostaSemFotosQuebradas } from "../../lib/fotos.js";
@@ -257,7 +258,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // Conta a busca para os "em alta" da semana, sem atrasar a resposta.
   // Clique num atalho não conta: senão o atalho se manteria em alta sozinho.
   // O IP só serve para contar cada pessoa uma vez por termo por dia (ver lib/buscas.js); não é guardado.
+  // Monitor (lib/sinais.js, 21/11/2026): toda busca de visitante fica anotada por dia com o que veio, para a conferência
+  // da madrugada achar as que saíram vazias, sem o produto, com poucas ofertas ou lentas
+  const visitanteDeVerdade = q && pagina === 1 && desde === 1 && !params.has("atalho") && !params.has("completo") && !params.has("medir")
+    && !params.has("rapido") && !preparar && !atualizar && !naoContar(request);
   const contar = (resposta) => {
+    if (visitanteDeVerdade && resposta.status === 200) {
+      waitUntil(anotarSinal(env, { q, cat: params.get("cat") || (params.get("loja") ? `loja:${params.get("loja")}` : ""),
+        total: Number(resposta.headers.get("X-Total-Ofertas")) || 0, parcial: Boolean(resposta.headers.get("X-Parcial")) }).catch(() => {}));
+    }
     if (q && pagina === 1 && desde === 1 && !params.has("atalho") && !naoContar(request) && Number(resposta.headers.get("X-Total-Ofertas")) > 0) {
       waitUntil(registrarBusca(env, q, request.headers.get("CF-Connecting-IP")).catch(() => {}));
     }
@@ -707,6 +716,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
     && (preparar || !naoContar(request))) {
     const tarefa = ofertas.length < POUCAS_MIN ? anotarPoucas(env, q, ofertas, lojas) : preparar ? tirarDasPoucas(env, q) : null;
     if (tarefa) { if (preparar) await tarefa.catch(() => {}); else waitUntil(tarefa.catch(() => {})); }
+  }
+  // Monitor: os detalhes que só a busca feita na hora tem (quantos ficam à mostra, quantos são o produto, tempo)
+  if (visitanteDeVerdade && !preparar && !atualizar && env.DB) {
+    const produtos = ofertas.filter((o) => !o.acessorio && !o.parecido && !o.naoBuscado);
+    waitUntil(anotarSinal(env, { q, cat: params.get("cat") || (params.get("loja") ? `loja:${params.get("loja")}` : ""), total: ofertas.length,
+      mostra: produtos.length, bate: ofertas.filter((o) => o.bate && !o.acessorio).length, ms: Date.now() - inicio, parcial,
+      lojasErro: Object.entries(lojas).filter(([, l]) => l && !l.ok).map(([n]) => n).join(",") }, { contar: false }).catch(() => {}));
   }
   const resposta = responder({
     q,
