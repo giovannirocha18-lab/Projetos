@@ -1,8 +1,3 @@
-# Site em construção: pede aos buscadores para não indexar nenhuma página.
-# Apagar esta regra no lançamento.
-/*
-  X-Robots-Tag: noindex, nofollow
-
 # /assets/ e /marca/ saem direto do Cloudflare, sem passar pelo functions/_middleware.js (ver _routes.json):
 # os cabeçalhos de segurança deles ficam aqui. As páginas e a API recebem os seus no _middleware.js.
 /assets/*

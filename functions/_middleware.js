@@ -14,6 +14,8 @@ import { concluirAutorizacao } from "../lib/mlConta.js";
 import { dentroDoLimite, ipDe } from "../lib/conta.js";
 import { categoriasDoSite, categoriaPorNome } from "../lib/categorias.js";
 import { normalizar } from "../lib/texto.js";
+import { buscaConhecida } from "../lib/vocabulario.js";
+import { tendenciaAceitavel } from "../lib/buscas.js";
 import { VERSAO_CACHE } from "./api/buscar.js";
 
 // Links de afiliado NOVOS (ainda não guardados) que um visitante pode gerar por hora em /ir/shopee e /ir/ali (10/11/2026).
@@ -219,6 +221,19 @@ function sitemap(lojas = []) {
     enderecos.map((e) => `  <url><loc>${xml(e)}</loc></url>`).join("\n")}\n</urlset>\n`;
 }
 
+// LANÇAMENTO (21/11/2026, Giovanni: "pode lançar"): o site saiu do "noindex". Continuam fora dos buscadores: o painel, os
+// endereços de teste (*.pages.dev), a prévia de um produto (?produto=, muda todo dia), busca dentro de loja e busca com
+// palavra que o site não conhece ou imprópria. Entram: início, Black Friday, Quedas, páginas de texto, as 40 categorias,
+// as lojas parceiras e as buscas de produto/marca conhecidos
+function paraOsBuscadores(url, endereco) {
+  if (ehPainel(endereco) || url.hostname !== new URL(SITE).hostname) return "noindex, nofollow";
+  const p = url.searchParams;
+  const q = (p.get("q") || "").trim();
+  if (p.get("produto") || p.has("exato") || p.has("tempos") || p.has("nao-contar")) return "noindex, follow";
+  if (q && (p.get("loja") || !buscaConhecida(q) || !tendenciaAceitavel(q))) return "noindex, follow";
+  return null;
+}
+
 export async function onRequest(contexto) {
   const url = new URL(contexto.request.url);
   if (!ehPainel(contexto.request.url) && contexto.request.method === "GET") {
@@ -229,6 +244,8 @@ export async function onRequest(contexto) {
   const resposta = ehPainel(contexto.request.url) ? daLoja : comDadosDaPagina(daLoja, url);
   const pronta = comSeguranca(await comVersaoNosArquivos(resposta, contexto.env, url.origin));
   if (naoContar(contexto.request)) pronta.headers.set("Content-Security-Policy", CSP_SEM_CONTAGEM);
+  const robos = paraOsBuscadores(url, contexto.request.url);
+  if (robos && !pronta.headers.has("X-Robots-Tag")) pronta.headers.set("X-Robots-Tag", robos);
   return pronta;
 }
 
