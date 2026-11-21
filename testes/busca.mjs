@@ -989,7 +989,11 @@ for (const [q, buscaEsperada, itens, esperado] of [
   }
   // 21/11/2026 (auditoria): busca de uma palavra no plural usa o singular ("geladeiras" trazia 1 oferta)
   {
-    const { pluralDeUmaPalavra, limparBusca, variantesDaBuscaComprida } = await import("../lib/vocabulario.js");
+    const { pluralDeUmaPalavra, limparBusca, variantesDaBuscaComprida, buscaConhecida } = await import("../lib/vocabulario.js");
+    // 21/11/2026: buscas que podem ir para o Google (modelo e medida entram; propaganda no endereço não)
+    for (const [q, esperado] of [["iphone 15 pro max", true], ["porta de correr", true], ["moto g85", true], ["air fryer 5 litros", true], ["xbox series x", true], ["cassino bet xyz", false], ["melhor cassino", false], ["iphone 15 pro max barato telegram", false], ["pro max", false], ["site apostas online", false]]) {
+      if (buscaConhecida(q) !== esperado) { falhas++; console.log(`✗ busca para o Google: "${q}" deu ${buscaConhecida(q)}, esperado ${esperado}`); }
+    }
     // 21/11/2026: busca comprida pesquisa também o começo da frase ("tênis nike air force feminino branco" trazia 0)
     for (const [q, esperado] of [["tênis nike air force feminino branco", "tenis nike air force"], ["air fryer mondial 5 litros preta digital", "air fryer mondial"],
       ["panela de pressão elétrica philco 6 litros inox", "panela de pressao eletrica philco"], ["iphone 15 pro max 256gb", "iphone 15 pro max"], ["capa de chuva para moto", undefined], ["geladeira brastemp frost free", undefined], ["iphone 15 pro max", undefined]]) {
