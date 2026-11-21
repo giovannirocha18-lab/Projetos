@@ -2518,9 +2518,19 @@ const PARTE_FORA_AMBIGUA = 0.2;
 function desenharFiltroSecoes() {
   const semAcessorios = escondeAcessorios();
   const contagem = new Map();
-  for (const o of estado.ofertas) {
-    if (!(semAcessorios && o.acessorio)) contagem.set(o.secao || "", (contagem.get(o.secao || "") || 0) + 1);
-  }
+  // 21/11/2026 (print do Giovanni: "película 3d" listava Games, Brinquedos, Ferramentas… e o toque em Games dava 0 ofertas):
+  // a lista contava também o que a tela esconde (parecidos, o que a IA tirou, outros filtros). Agora só entra categoria
+  // que tem pelo menos um produto que apareceria com os filtros de agora (tirando o próprio filtro de categoria)
+  const [so, fora0] = [estado.secoesSo, estado.secoesFora];
+  estado.secoesSo = null; estado.secoesFora = new Set();
+  try {
+    const passa = passaNosFiltros();
+    for (const o of estado.ofertas) {
+      if (!(semAcessorios && o.acessorio) && !estado.lojasDesmarcadas.has(o.loja) && passa(o)) contagem.set(o.secao || "", (contagem.get(o.secao || "") || 0) + 1);
+    }
+  } finally { estado.secoesSo = so; estado.secoesFora = fora0; }
+  // a categoria escolhida continua na lista mesmo vazia (para dar como voltar)
+  if (so) for (const nome of so) if (!contagem.has(nome)) contagem.set(nome, 0);
   // Busca de um produto específico ("geladeira", "jogo de ferramentas"): a categoria já está dita na busca e a lista só
   // mostrava o que veio errado; o que ajuda é a marca, que fica no alto (pesquisas de usabilidade Baymard/NN/g; pedido do
   // Giovanni, 30/10/2026). As categorias só aparecem quando a busca se divide em 2+ categorias fortes ("toalha", "jogo")
