@@ -2418,10 +2418,13 @@ function filtrar() {
   // dessa categoria, depois os de outras. Sem busca ("Ofertas do dia"), a ordem vale para todas as ofertas
   const daBusca = categoriasDaBusca();
   const foraDaBusca = (o) => (daBusca && !o.acessorio && !daBusca.has(o.secao || "") ? 1 : 0);
-  if (!ordenar) return daBusca ? [...lista].sort((a, b) => foraDaBusca(a) - foraDaBusca(b)) : lista;
+  // Auditoria "como visitante" (21/11/2026): com uma marca marcada, o produto DA marca vem antes do que só serve nela
+  // ("Apple" na loja Mercado Livre abria com cabo, tela e bateria "para iPhone" de outras marcas: 36 dos 48 primeiros)
+  const soServe = estado.marcasSo.size ? (o) => (marcaDe(o), o._marcaCompativel ? 1 : 0) : () => 0;
+  if (!ordenar) return daBusca || estado.marcasSo.size ? [...lista].sort((a, b) => soServe(a) - soServe(b) || foraDaBusca(a) - foraDaBusca(b)) : lista;
   // Sem busca e sem categoria aberta: só a ordem escolhida, em todas as ofertas (as "Ofertas do dia" vêm de várias
   // buscas e trazem marcas de produto/acessório que não valem aqui)
-  if (!estado.q && !estado.cat) return [...lista].sort(ordenar);
+  if (!estado.q && !estado.cat) return [...lista].sort((a, b) => soServe(a) - soServe(b) || ordenar(a, b));
   // Ordenar por preço/desconto não pode trazer o "Pôster Invictus" antes do perfume buscado, nem o "Comando Ar
   // Condicionado Ford Fiesta" e o resfriador de R$ 300 antes dos splits (print do Giovanni, 17/10/2026). Primeiro o produto
   // de verdade: começa pelo que foi buscado (principal), não é versão de nicho nem de carro e custa pelo menos 30% do preço
@@ -2434,7 +2437,7 @@ function filtrar() {
     if (comPrincipal && !o.principal) return 2;
     return o.variante || o.foraDoTipo || (tipico && o.preco < tipico * PARTE_DO_TIPICO) ? 1 : 0;
   };
-  return [...lista].sort((a, b) => foraDaBusca(a) - foraDaBusca(b) || grupo(a) - grupo(b) || ordenar(a, b));
+  return [...lista].sort((a, b) => soServe(a) - soServe(b) || foraDaBusca(a) - foraDaBusca(b) || grupo(a) - grupo(b) || ordenar(a, b));
 }
 
 // Categorias nos resultados: "invictus" traz perfume, pôster e camiseta; o visitante marca as que quer ver.
@@ -2630,6 +2633,7 @@ function marcaDe(o) {
     if (!melhor || peso < melhor.peso || (peso === melhor.peso && posicao < melhor.posicao)) melhor = { n: m.n, nome: m.nome, posicao, peso };
   }
   o._marcaDe = marcasDoTitulo;
+  o._marcaCompativel = Boolean(melhor && melhor.peso >= 2); // "Cabo para iPhone": serve na marca, não é dela
   o._marca = melhor ? { n: melhor.n, nome: melhor.nome } : marcaDaLoja(o);
   return o._marca;
 }
