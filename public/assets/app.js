@@ -3556,7 +3556,7 @@ async function buscar(q) {
     // relação, e "batedeira de bolo" em Bebês, 1 de 111 (o resto estava em Eletroportáteis)
     const exatos = estado.ofertas.filter((o) => o.bate && !o.acessorio);
     const naCategoria = exatos.filter((o) => o.secao === estado.cat).length;
-    if (estado.cat && !navegandoCategoria() && naCategoria && naCategoria >= exatos.length * 0.3) estado.secoesSo = new Set([estado.cat]);
+    if (estado.cat && !navegandoCategoria() && naCategoria) estado.secoesSo = new Set([estado.cat]); // 21/11/2026: dentro da categoria, só ela (sem a regra dos 30%)
     // Busca normal: começa só com as categorias do que foi buscado ("placa de video" = Informática); as outras ficam
     // desmarcadas em "Categorias nos resultados" (pedido do Giovanni, 19/10/2026)
     else if (!estado.cat) estado.secoesSo = categoriasDaBusca();

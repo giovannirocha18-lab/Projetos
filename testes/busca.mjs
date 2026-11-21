@@ -9,7 +9,7 @@
 // 2025 (Google), balanço 2025 e Mapa Shopee 2026 (Shopee), Black Friday 2025 (Google).
 import { separarAcessorios, produtoBuscado, temTodasAsPalavras, citaAlgumaPalavra } from "../lib/relevancia.js";
 import { tituloDaBusca } from "../lib/fontes/aliexpress.js";
-import { categoriaDoProduto, categoriaPorNome, marcarSecoes, montarVitrine, comSecaoCerta } from "../lib/categorias.js";
+import { categoriaDoProduto, categoriaPorNome, marcarSecoes, montarVitrine, comSecaoCerta, soDaCategoria, ordenarNaCategoria } from "../lib/categorias.js";
 import { corrigirBusca, termoNasLojas, buscaNasLojas } from "../lib/vocabulario.js";
 import { semProdutoAVenda } from "../lib/buscas.js";
 import { modeloBase, semTamanho, tamanhoDoTitulo, ordenarTamanhos } from "../lib/variacoes.js";
@@ -938,6 +938,17 @@ for (const [q, buscaEsperada, itens, esperado] of [
   total += 2;
   if (ficaram !== "567") { falhas++; console.log(`✗ só produto novo: ficaram ${ficaram}, esperado 567`); }
   if (buscouUsado !== itens.length) { falhas++; console.log("✗ só produto novo: quem busca 'usado' tem que ver os usados"); }
+  // 21/11/2026 (regra do Giovanni, print "porta deslizante" dentro de Automotivo): busca dentro da categoria só traz a categoria
+  {
+    const auto = categoriaPorNome("Automotivo");
+    const carro = ["Cabo Guia de Reparo para Porta Deslizante A4477603300 para Mercedes Vito W639", "Trava traseira para porta deslizante de van para kia besta",
+      "Dobradiça de porta deslizante para CITROEN BERLINGO (b9) PEUGEOT Partner"];
+    const casa = ["Fechadura de porta deslizante de vidro, 10-12mm, com 3 chaves", "Porta-cartões da série anime Betty Boop, capa deslizante",
+      "Guarda-Roupa Casal 3 Portas Deslizantes com Espelho", "Porta deslizante para chuveiro, trilho deslizante, banheira"];
+    const saida = soDaCategoria(ordenarNaCategoria(separarAcessorios([...casa, ...carro].map((titulo, i) => ({ id: `c${i}`, titulo, preco: 50 })), "porta deslizante"), auto), auto);
+    for (const t of casa) if (saida.some((o) => o.titulo === t)) { falhas++; console.log(`✗ busca em Automotivo: não é da categoria e veio: ${t}`); }
+    for (const t of carro) if (!saida.some((o) => o.titulo === t && !o.acessorio && !o.parecido)) { falhas++; console.log(`✗ busca em Automotivo: peça de carro devia vir como produto: ${t}`); }
+  }
   // 21/11/2026 (print: Black Friday > Games com controle remoto de TV): controle de TV guardado como Games sai de Games
   for (const [titulo, fica] of [["Controle Remoto Para Smart Tv LG Lcd Led 3d", false], ["Controle Smart Magic Compativel LG AN-MR19BA", false],
     ["Capa protetora de silicone para lg 3d smart tv AN-MR600", false], ["Notebuc Controle Xbox 360 Controle Gamer USB", true],

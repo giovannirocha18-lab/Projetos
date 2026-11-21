@@ -30,7 +30,7 @@ import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../..
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
 import { criarFila } from "../../lib/fila.js";
 import { corrigirBusca, acentuarBusca, buscaNasLojas, buscaSoDeConsole } from "../../lib/vocabulario.js";
-import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
+import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCategoria, soDaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
 // Mercado Livre desde 04/11/2026 (catálogo + preço de cada produto; ver lib/fontes/mercadolivre.js). Vem primeiro
@@ -258,7 +258,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Guarda as respostas (ver FRESCO_MS) para responder na hora e não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chaveCheia = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${soLoja ? `&loja=${encodeURIComponent(soLoja.id)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
+  const chaveCheia = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${categoria && q && !vitrineDaCategoria(q, categoria) ? "&so=1" : ""}${soLoja ? `&loja=${encodeURIComponent(soLoja.id)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
   // rapido=1 (10/11/2026, ideia do Giovanni: "a Shopee já tem uma lista baixada, ela não serve?"): responde só com o que
   // está no nosso banco (lista oficial da Shopee, lojas da Awin e mais vendidos/catálogo do Mercado Livre), sem consultar
   // nenhuma loja: sai em menos de 1 s e não gasta o limite da Shopee. O site usa ao marcar uma marca (completarMarca em
@@ -593,14 +593,17 @@ export async function onRequestGet({ request, env, waitUntil }) {
     } while (!acabou && pag - desde < PAGINAS_VITRINE && ofertas.length < MINIMO_PRODUTOS);
     ofertas = marcarSecoes(ofertas, categoria);
     mais = acabou || pag > MAX_DESDE ? null : `desde=${pag}`;
-  } else if (categoria && !outraCategoria) {
+  } else if (categoria) {
     // Dentro de uma categoria: o que foi digitado + (se a categoria tem chave) "invictus perfume";
     // fica só o que não é de outra categoria, o que é dela primeiro. Se nada sobrar, busca em tudo (e o site avisa).
     const extra = termoNaCategoria(q, categoria);
     const { juntas, proxima } = await buscarAteEncher(extra ? [extra, q] : [q],
       (novas) => contarNaCategoria(separarAcessorios(novas, q), categoria));
-    ofertas = ordenarNaCategoria(separarAcessorios(juntas, q), categoria);
-    if (!ofertas.some((o) => o.naCategoria) && desde === 1) {
+    // 21/11/2026 (regra do Giovanni, print "porta deslizante" dentro de Automotivo misturada com fechadura de casa e
+    // porta-cartões): busca dentro da categoria devolve SÓ o que é dela (ver soDaCategoria em lib/categorias.js)
+    ofertas = soDaCategoria(ordenarNaCategoria(separarAcessorios(juntas, q), categoria), categoria);
+    // Nada da categoria com as palavras da busca ("air fryer mondial" com Cabelo aberta): busca em tudo e o site avisa
+    if (!ofertas.some((o) => o.bate) && desde === 1) {
       ofertas = marcarSecoes(separarAcessorios(juntas, q), null, categoriaDoProduto(q), produtoBuscado(q));
       foraDaCategoria = ofertas.length > 0;
     }
