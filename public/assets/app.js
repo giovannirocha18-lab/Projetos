@@ -295,7 +295,7 @@ function desenharFavoritos() {
       el("div", { class: "fav-foto", style: `--fundo-cat:${FUNDO_CATEGORIA[f.categoria] || "var(--bg)"}` },
         f.imagem ? el("img", { src: f.imagem, alt: "" }) : f.emoji || "🛍️"),
       el("div", {},
-        el("a", { href: f.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("carrinho", f) }, f.titulo),
+        el("a", { href: f.link, target: "_blank", rel: "sponsored nofollow noopener", ...marcaClique("carrinho", f) }, f.titulo),
         el("strong", {}, `R$ ${brl(f.preco)}`, f.precoAntigo > f.preco && el("s", { class: "fav-antigo" }, `R$ ${brl(f.precoAntigo)}`)),
         el("span", { class: `loja-tag ${loja.tag || ""}`, style: `--cor-loja:${loja.cor}` }, el("span", { class: "loja-ponto" }), loja.nome)),
       el("button", { class: "fechar", type: "button", "aria-label": "Remover", onclick: () => alternarFavorito(f) }, "✕"));
@@ -606,7 +606,7 @@ function meusAlertas(erro) {
     lista.length > 0 && el("ul", { class: "lista-alertas" }, ...lista.map((a) => el("li", {},
       a.imagem && el("img", { src: a.imagem, alt: "", loading: "lazy" }),
       el("div", {},
-        el("a", { href: a.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("alerta", { ...a, loja: a.lojaNome }) }, a.titulo),
+        el("a", { href: a.link, target: "_blank", rel: "sponsored nofollow noopener", ...marcaClique("alerta", { ...a, loja: a.lojaNome }) }, a.titulo),
         el("span", {}, `${a.alvo ? `Avisar em R$ ${brl(a.alvo)}` : "Avisar quando baixar"} · era R$ ${brl(a.precoInicial)}`
           + `${a.ultimoPreco && a.ultimoPreco !== a.precoInicial ? ` · hoje R$ ${brl(a.ultimoPreco)}` : ""}`)),
       el("button", { class: "botao-link perigo", type: "button", onclick: () => pararAlerta(a.id) }, "Parar")))),
@@ -734,7 +734,7 @@ function abrirComparacao() {
       linha("Vendidos", (o) => (o.vendidos ? el("span", { class: o.vendidos === maisVendido ? "comparar-melhor" : null }, vendidosTexto(o.vendidos)) : "—")),
       linha("Envio", (o) => (o.envioNacional ? "🇧🇷 Do Brasil" : o.internacional ? "🌎 Internacional" : o.freteGratis ? `🚚 Frete grátis${o.full ? " · ⚡ Full" : ""}` : o.full ? "⚡ Full" : "Nacional")),
       el("tr", {}, el("th", {}, ""), ...lista.map((o) => el("td", {},
-        el("a", { class: classeBotao(infoLoja(o)), href: o.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("comparar", o) }, ...textoComprar(infoLoja(o))),
+        el("a", { class: classeBotao(infoLoja(o)), href: o.link, target: "_blank", rel: "sponsored nofollow noopener", ...marcaClique("comparar", o) }, ...textoComprar(infoLoja(o))),
         el("button", { class: "botao-link", type: "button", onclick: () => { alternarComparar(o); comparando.size >= 2 ? abrirComparacao() : $("#janela-comparar").close(); } }, "Tirar"))))));
   $("#comparar-conteudo").replaceChildren(
     el("h2", { id: "comparar-titulo" }, "⚖️ Comparar produtos"),
@@ -1414,7 +1414,7 @@ function cartaoModelo(g) {
           o.freteGratis && el("span", { class: "modelo-nota" }, "🚚 Frete grátis"),
           botaoCupom(o.loja)),
         el("span", { class: "modelo-preco" }, `R$ ${brl(o.preco)}`),
-        el("a", { class: "modelo-comprar", href: o.link, target: "_blank", rel: "sponsored noopener", title: o.titulo,
+        el("a", { class: "modelo-comprar", href: o.link, target: "_blank", rel: "sponsored nofollow noopener", title: o.titulo,
           onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`), ...marcaClique("comparacao", o) }, i === 0 ? "Comprar →" : "Ver →"));
     })),
     g.economia >= 1 && el("p", { class: "modelo-economia" }, `💰 Você economiza R$ ${brl(g.economia)} escolhendo a mais barata`));
@@ -1722,7 +1722,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       class: "favoritar favoritar-foto", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
       "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: (e) => alternarFavorito(o, e.currentTarget),
     }, ICONE_CARRINHO()),
-    el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored noopener", tabindex: "-1", "aria-hidden": "true", ...marcaClique("foto", o),
+    el("a", { class: "oferta-foto", href: o.link, target: "_blank", rel: "sponsored nofollow noopener", tabindex: "-1", "aria-hidden": "true", ...marcaClique("foto", o),
       // No computador também (pedido do Giovanni, 16/11/2026): a foto abre os detalhes, como a lupa; para a loja, só o botão Comprar
       onclick: (e) => { if (temDetalhes(o)) { e.preventDefault(); abrirDetalhes(o); } else abrir(); } },
       o.imagem
@@ -1784,7 +1784,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
           class: "favoritar", type: "button", "data-id": o.id, "aria-pressed": ehFavorito(o.id),
           "aria-label": "Guardar no carrinho", title: "Guardar no Meu carrinho", onclick: (e) => alternarFavorito(o, e.currentTarget),
         }, ICONE_CARRINHO()))),
-      el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", onclick: abrir, ...marcaClique("oferta", o) },
+      el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored nofollow noopener", onclick: abrir, ...marcaClique("oferta", o) },
         ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→"))));
 }
 
@@ -2057,7 +2057,7 @@ function abrirDetalhes(o, { doLink = false } = {}) {
       el("button", { class: "ver-historico", type: "button", onclick: () => { alternarComparar(o); $("#janela-detalhes").close(); } },
         comparando.has(o.id) ? "⚖️ Tirar da comparação" : "⚖️ Comparar")),
     !doLink && el("button", { class: "botao-whatsapp", type: "button", onclick: () => compartilharWhatsApp(o) }, ICONE_WHATSAPP(), "Enviar no WhatsApp"),
-    el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("detalhes", o),
+    el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored nofollow noopener", ...marcaClique("detalhes", o),
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}`, onclick: () => toast(`Abrindo a oferta ${loja.em} ${loja.nome}… 🛒`) },
       `Comprar ${loja.em} ${loja.nome.length <= 16 ? loja.nome : "loja"}`, el("span", { class: "flecha", "aria-hidden": "true" }, "→")),
     el("p", { class: "detalhes-nota" }, o.descricao
@@ -2118,7 +2118,7 @@ async function abrirHistorico(o) {
       : `Preço acompanhado há ${diasAcompanhando} dias.${o.moeda ? ` Valores convertidos de ${o.moeda} para reais.` : ""}`),
     el("button", { class: "botao-secundario botao-alerta", type: "button", onclick: () => { janela.close(); abrirAlerta(o); } },
       temAlerta(o.id) ? "🔔 Ver meu alerta" : "🔔 Me avise quando baixar"),
-    el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("historico", o),
+    el("a", { class: classeBotao(loja), href: o.link, target: "_blank", rel: "sponsored nofollow noopener", ...marcaClique("historico", o),
       style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto}` },
       ...textoComprar(loja), el("span", { class: "flecha", "aria-hidden": "true" }, "→")));
 }
@@ -3731,7 +3731,7 @@ function itemCupom(c) {
     try { await navigator.clipboard.writeText(c.codigoInteiro); avisar("✓ Código copiado. Cole no carrinho da loja."); }
     catch { avisar("Selecione o código e copie: ele está destacado acima."); }
   } }, "📋 Copiar");
-  const pegar = el("a", { class: "botao-oferta cupom-ir", href: c.link, target: "_blank", rel: "sponsored noopener", ...marcaClique("cupom", { ...c, id: "", titulo: "" }),
+  const pegar = el("a", { class: "botao-oferta cupom-ir", href: c.link, target: "_blank", rel: "sponsored nofollow noopener", ...marcaClique("cupom", { ...c, id: "", titulo: "" }),
     onclick: () => {
       if (!c.codigoMascara) return;
       const promessa = pedirCodigo();
@@ -3815,7 +3815,7 @@ function desenharListaLojas() {
       // Loja só com link (Shein, lib/shein.js): sem produtos no site, só o "Ir para a loja"
       l.soLink ? null : linkInterno(`/?loja=${encodeURIComponent(l.id)}`, { class: "botao-secundario" }, () => { $("#janela-lojas").close(); irParaLoja(l.id); }, "Ver produtos"),
       // Site da loja pelo link com comissão (/api/ir-loja): vale qualquer compra feita lá dentro do prazo do cookie
-      el("a", { class: "botao-oferta lp-ir", href: `/api/ir-loja?id=${encodeURIComponent(l.id)}`, target: "_blank", rel: "sponsored noopener",
+      el("a", { class: "botao-oferta lp-ir", href: `/api/ir-loja?id=${encodeURIComponent(l.id)}`, target: "_blank", rel: "sponsored nofollow noopener",
         ...marcaClique("loja-parceira", { lojaNome: l.nome }) },
         "Ir para a loja →")));
   const grandes = lista.filter((l) => l.rede === "marketplace");
@@ -3888,7 +3888,7 @@ async function mostrarLojaNaBusca(q, pedido) {
       el("small", {}, loja.soLink ? "Loja parceira: compre direto no site dela" : "Loja parceira do Vai pro Carrinho")),
     el("div", { class: "lnb-botoes" },
       loja.soLink ? null : linkInterno(`/?loja=${encodeURIComponent(loja.id)}`, { class: "botao-secundario" }, () => irParaLoja(loja.id), "Ver produtos da loja"),
-      el("a", { class: "lnb-ir", href: `/api/ir-loja?id=${encodeURIComponent(loja.id)}`, target: "_blank", rel: "sponsored noopener",
+      el("a", { class: "lnb-ir", href: `/api/ir-loja?id=${encodeURIComponent(loja.id)}`, target: "_blank", rel: "sponsored nofollow noopener",
         ...marcaClique("loja-parceira", { lojaNome: loja.nome }) }, "Ir para a loja →")));
   caixa.hidden = false;
 }
@@ -3913,7 +3913,7 @@ async function desenharCampanhasShein(id, mostrar) {
   caixa.replaceChildren(
     el("h3", {}, el("span", { class: "selo-shein" }, "SHEIN"), "Ofertas da Shein"),
     el("div", { class: "campanhas-lista" }, ...lista.map((c) => el("a", {
-      class: "campanha", href: c.link, target: "_blank", rel: "sponsored noopener",
+      class: "campanha", href: c.link, target: "_blank", rel: "sponsored nofollow noopener",
       ...marcaClique("campanha-shein", { loja: "shein", titulo: c.titulo }) },
     el("span", { class: "ce", "aria-hidden": "true" }, c.emoji || "🛍️"),
     el("span", { class: "ct" }, el("strong", {}, c.titulo), c.detalhe ? el("small", {}, c.detalhe) : null,
