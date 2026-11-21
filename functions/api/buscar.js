@@ -44,7 +44,9 @@ const FONTES_REAIS = [mercadolivre, curadoria, shopee, awin, aliexpress, lomadee
 const FRESCO_MS = 6 * 60 * 60 * 1000;
 // Vitrine de categoria mudada (19/11/2026, "tênis olympikus" em Calçados; Giovanni: a marca não aparecia): a lista guardada
 // antes disto é refeita na 1ª visita, sem esperar as 6 horas. Ao mudar a vitrine de uma categoria, pôr aqui a data e o nome
-const VITRINES_DESDE = { "Calçados": Date.UTC(2026, 10, 19, 1, 5) };
+const AUDITORIA_2111 = Date.UTC(2026, 10, 21, 12, 5); // auditoria "como visitante": intrusos tirados destas vitrines
+const VITRINES_DESDE = { "Calçados": Date.UTC(2026, 10, 19, 1, 5), Suplementos: AUDITORIA_2111, Skincare: AUDITORIA_2111,
+  "Relógios": AUDITORIA_2111, Maquiagem: AUDITORIA_2111, Carregadores: AUDITORIA_2111 };
 const CONSOLES_DESDE = Date.UTC(2026, 10, 16, 20, 35); // 16/11: regra da outra geração também nos acessórios (print "ps5")
 const GUARDAR_SEGUNDOS = 24 * 60 * 60;
 const LIMPA_FRESCA_MS = 10 * 60 * 1000; // de quanto em quanto tempo a cópia limpa é conferida de novo com o banco

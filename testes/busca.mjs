@@ -971,6 +971,22 @@ for (const [q, buscaEsperada, itens, esperado] of [
     ["Controle Sem Fio DualSense PS5 Branco", true], ["Volante Logitech G29 Driving Force", true]]) {
     if ((comSecaoCerta({ titulo, secao: "Games" }).secao === "Games") !== fica) { falhas++; console.log(`✗ seção Games da Black Friday: ${fica ? "devia ficar" : "devia sair"}: ${titulo}`); }
   }
+  // 21/11/2026 (auditoria "como visitante"): categoria ABERTA sem o que só tem a palavra da vitrine no nome
+  for (const [cat, i, itens] of [["Suplementos", 3, [["Shampoo Pantene Colágeno 300ml", false], ["Creme Gel Regenerador Facial Gota de Colágeno Kokeshi 45g", false], ["Colágeno Hidrolisado com Ácido Hialurônico Pele Unha Cabelo 60 Comprimidos", true]]],
+    ["Relógios", 2, [["Piano Digital Casio Cdp-s110 88 Teclas", false], ["Calculadora Casio SL-300lv", false], ["Relógio Casio Masculino Calculadora Dbc-32-1Adf", true]]],
+    ["Skincare", 3, [["Livro The Principia: The Mathematical Principles", false], ["Principia Sérum Facial Vitamina C 30ml", true]]]]) {
+    const c = categoriaPorNome(cat);
+    const listas = c.vitrine.buscas.map(() => []);
+    listas[i] = itens.map(([titulo], n) => ({ id: `v${n}`, titulo, preco: 50, bate: true, principal: true }));
+    const saida = montarVitrine(listas, c.vitrine, c);
+    for (const [titulo, fica] of itens) if (saida.some((o) => o.titulo === titulo) !== fica) { falhas++; console.log(`✗ categoria aberta ${cat}: ${fica ? "devia ficar" : "devia sair"}: ${titulo}`); }
+  }
+  // Black Friday / Quedas: seção guardada errada
+  for (const [titulo, antes, depois] of [["Kit Elseve Shampoo 370ml + Condicionador 170ml Colágeno Lifter", "Suplementos", undefined], ["Bermuda Básica Feminina Ciclista Em Algodão", "Moda masculina", "Moda feminina"],
+    ["Babá Eletrônica VM483 Tela 2.8 LCD C/ Zoom - Motorola", "Celulares", "Bebês"], ["Creatina Monohidratada 300g", "Suplementos", "Suplementos"], ["Camiseta Oversized Unissex Algodão", "Moda masculina", "Moda masculina"]]) {
+    const s = comSecaoCerta({ titulo, secao: antes }).secao;
+    if (s !== depois) { falhas++; console.log(`✗ seção guardada: "${titulo}" ficou em ${s}, esperado ${depois}`); }
+  }
 }
 console.log(falhas ? `\n${falhas} problema(s) em ${total} títulos` : `\n✓ Tudo certo (${Object.keys(CASOS).length} buscas, ${total} títulos)`);
 process.exitCode = falhas ? 1 : 0;
