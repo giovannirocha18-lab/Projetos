@@ -476,6 +476,14 @@ for (const [q, titulos, primeiro, naoBate] of [
       confere("lego technic", ["LEGO Technic Garagem Ford Mustang GT"], "brinquedo com nome de carro não é peça", (o) => !o.noMeio);
       confere("farol de led", ["Novo farol led tubo farol drl para lexus ct200 2016"], "busca de peça de carro não esconde", (o) => !o.noMeio);
     }
+    // 21/11/2026: busca no plural é lida no singular ("portas de correr" = "porta de correr")
+    {
+      const portas = Array.from({ length: 12 }, (_, i) => `Porta de Correr de Madeira com Kit Alumínio ${60 + i * 5}cm x 2,10m`);
+      const movel = ["Guarda Roupa Casal 3 Portas de Correr West Carraro Branco"];
+      for (const o of marcar("portas de correr", [...portas, ...movel])) {
+        if (Boolean(o.noMeio && o.parecido) !== movel.includes(o.titulo)) { falhas++; console.log(`✗ "portas de correr": porta fica e guarda-roupa sai: ${o.titulo}`); }
+      }
+    }
     confere("ssd 1tb", ["PC Gamer Forge, AMD Ryzen 7 5700G, 16GB DDR4, SSD 1TB, Fonte 400W 80 Plus"], "busca no meio (lista de características)", (o) => o.noMeio);
   }
   for (const [q, l] of Object.entries(VARIANTES)) confere(q, l, "variante (recua)", (o) => o.variante && !o.acessorio);
