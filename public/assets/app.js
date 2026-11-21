@@ -3457,7 +3457,7 @@ function desenharResultados() {
   desenharComparacao(lista);
   desenharEscolhaRapida(lista);
   sheinNaBusca();
-  $("#vazio").hidden = lista.length > 0;
+  $("#vazio").hidden = lista.length > 0 || Boolean(estado.semNaCategoria); // nada na categoria: o card de cima já explica
   // Botões de baixo seguem as lojas marcadas no card: com todas desligadas não há o que "ver mais"
   const lojaLigada = (o) => !estado.lojasDesmarcadas.has(o.loja);
   const nenhumaLoja = !estado.ofertas.some(lojaLigada);
