@@ -2424,7 +2424,9 @@ function filtrar() {
   if (!ordenar) return daBusca || estado.marcasSo.size ? [...lista].sort((a, b) => soServe(a) - soServe(b) || foraDaBusca(a) - foraDaBusca(b)) : lista;
   // Sem busca e sem categoria aberta: só a ordem escolhida, em todas as ofertas (as "Ofertas do dia" vêm de várias
   // buscas e trazem marcas de produto/acessório que não valem aqui)
-  if (!estado.q && !estado.cat) return [...lista].sort((a, b) => soServe(a) - soServe(b) || ordenar(a, b));
+  // Categoria aberta, sem busca dentro dela (auditoria de 21/11/2026: em Pets com a marca "Furacão Pet", "Menor preço"
+  // abria com R$ 33 e depois R$ 6): tudo ali já é da categoria, os grupos de busca não valem; só a ordem escolhida
+  if ((!estado.q && !estado.cat) || navegandoCategoria()) return [...lista].sort((a, b) => soServe(a) - soServe(b) || ordenar(a, b));
   // Ordenar por preço/desconto não pode trazer o "Pôster Invictus" antes do perfume buscado, nem o "Comando Ar
   // Condicionado Ford Fiesta" e o resfriador de R$ 300 antes dos splits (print do Giovanni, 17/10/2026). Primeiro o produto
   // de verdade: começa pelo que foi buscado (principal), não é versão de nicho nem de carro e custa pelo menos 30% do preço
