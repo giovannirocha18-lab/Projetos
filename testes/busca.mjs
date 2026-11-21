@@ -956,6 +956,15 @@ for (const [q, buscaEsperada, itens, esperado] of [
     const saida = soDaCategoria(itens.map(([titulo], i) => ({ id: `b${i}`, titulo, preco: 30, bate: true, secao: bones.nome })), bones);
     for (const [titulo, fica] of itens) if (saida.some((o) => o.titulo === titulo) !== fica) { falhas++; console.log(`✗ busca em Bonés e chapéus: ${fica ? "devia ficar" : "devia sair"}: ${titulo}`); }
   }
+  // 21/11/2026 (sobras da conferência): brinquedo/eletro de casa fora de Automotivo, instrumento de dentista fora de Maquiagem
+  for (const [cat, itens] of [["Automotivo", [["Carro Elétrico Infantil 12V com Controle Remoto e Sons Laranja", false], ["Bburago 1:64, modelo de carro em metal fundido Lamborghini, veículo de brinquedo", false],
+    ["Forno Elétrico de 23L, Grande Capacidade, Multifuncional", false], ["Assento De Carro Infantil Elevação Fit Up 15-36kg Maxi Baby", true],
+    ["Panela Elétrica Portátil 2L para Carro 12V 24V para Caminhão", true], ["Monitor de teto automotivo de 15,6 polegadas com reprodutor multimídia", true]]],
+  ["Maquiagem", [["Alicate dental de aço inoxidável, fórceps ortodôntico, instrumento cirúrgico", false], ["Pinça de sobrancelha inclinada de aço inoxidável, ferramentas de maquiagem", true]]]]) {
+    const c = categoriaPorNome(cat);
+    const saida = soDaCategoria(itens.map(([titulo], i) => ({ id: `s${i}`, titulo, preco: 30, bate: true, secao: cat })), c);
+    for (const [titulo, fica] of itens) if (saida.some((o) => o.titulo === titulo) !== fica) { falhas++; console.log(`✗ busca em ${cat}: ${fica ? "devia ficar" : "devia sair"}: ${titulo}`); }
+  }
   // 21/11/2026 (print: Black Friday > Games com controle remoto de TV): controle de TV guardado como Games sai de Games
   for (const [titulo, fica] of [["Controle Remoto Para Smart Tv LG Lcd Led 3d", false], ["Controle Smart Magic Compativel LG AN-MR19BA", false],
     ["Capa protetora de silicone para lg 3d smart tv AN-MR600", false], ["Notebuc Controle Xbox 360 Controle Gamer USB", true],
