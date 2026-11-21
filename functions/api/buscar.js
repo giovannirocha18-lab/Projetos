@@ -258,7 +258,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Guarda as respostas (ver FRESCO_MS) para responder na hora e não gastar o limite das APIs
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chaveCheia = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${categoria && q && !vitrineDaCategoria(q, categoria) ? "&so=1" : ""}${soLoja ? `&loja=${encodeURIComponent(soLoja.id)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
+  const chaveCheia = new Request(new URL(`/api/buscar?v=${VERSAO_CACHE}&q=${encodeURIComponent(q.toLowerCase())}${categoria ? `&cat=${encodeURIComponent(categoria.nome)}` : ""}${categoria && q && !vitrineDaCategoria(q, categoria) ? "&so=2" : ""}${soLoja ? `&loja=${encodeURIComponent(soLoja.id)}` : ""}${pagina > 1 ? `&pagina=${pagina}` : ""}${desde > 1 ? `&desde=${desde}` : ""}`, request.url));
   // rapido=1 (10/11/2026, ideia do Giovanni: "a Shopee já tem uma lista baixada, ela não serve?"): responde só com o que
   // está no nosso banco (lista oficial da Shopee, lojas da Awin e mais vendidos/catálogo do Mercado Livre), sem consultar
   // nenhuma loja: sai em menos de 1 s e não gasta o limite da Shopee. O site usa ao marcar uma marca (completarMarca em

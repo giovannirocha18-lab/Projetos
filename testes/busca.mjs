@@ -949,6 +949,13 @@ for (const [q, buscaEsperada, itens, esperado] of [
     for (const t of casa) if (saida.some((o) => o.titulo === t)) { falhas++; console.log(`✗ busca em Automotivo: não é da categoria e veio: ${t}`); }
     for (const t of carro) if (!saida.some((o) => o.titulo === t && !o.acessorio && !o.parecido)) { falhas++; console.log(`✗ busca em Automotivo: peça de carro devia vir como produto: ${t}`); }
   }
+  // 21/11/2026 (conferência das 40 categorias): em Bonés e Smartwatches a categoria da loja não basta, o nome tem que provar
+  {
+    const bones = categoriaPorNome("Bonés e chapéus");
+    const itens = [["Kit 3 Meias Futebol Esportiva Preto", false], ["Palmilha Esportiva Preto com Amortecimento", false], ["Boné Trucker Preto Aba Curva", true], ["Chapéu Bucket Preto Liso", true]];
+    const saida = soDaCategoria(itens.map(([titulo], i) => ({ id: `b${i}`, titulo, preco: 30, bate: true, secao: bones.nome })), bones);
+    for (const [titulo, fica] of itens) if (saida.some((o) => o.titulo === titulo) !== fica) { falhas++; console.log(`✗ busca em Bonés e chapéus: ${fica ? "devia ficar" : "devia sair"}: ${titulo}`); }
+  }
   // 21/11/2026 (print: Black Friday > Games com controle remoto de TV): controle de TV guardado como Games sai de Games
   for (const [titulo, fica] of [["Controle Remoto Para Smart Tv LG Lcd Led 3d", false], ["Controle Smart Magic Compativel LG AN-MR19BA", false],
     ["Capa protetora de silicone para lg 3d smart tv AN-MR600", false], ["Notebuc Controle Xbox 360 Controle Gamer USB", true],
