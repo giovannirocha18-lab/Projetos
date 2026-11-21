@@ -20,7 +20,7 @@ export async function onRequestGet({ request, env }) {
   if (params.has("marca")) return daMarca(request, env, filtroDeMarca(params.get("marca")));
   const pagina = Math.min(Math.max(parseInt(new URL(request.url).searchParams.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/black-friday?v=12&pagina=${pagina}`, request.url));
+  const chave = new Request(new URL(`/api/black-friday?v=13&pagina=${pagina}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
   const [dados, doML] = await Promise.all([listarBlackFriday(env.DB, pagina, POR_PAGINA),
@@ -44,7 +44,7 @@ async function daMarca(request, env, filtro) {
   const cabecalhos = (segundos) => ({ "Cache-Control": segundos ? `public, max-age=${segundos}` : "no-store", "X-Robots-Tag": "noindex" });
   if (!filtro) return Response.json({ ofertas: [], marca: null, completo: false, temMais: false }, { headers: cabecalhos(0) });
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/black-friday?v=12&marca=${encodeURIComponent(filtro.n)}`, request.url));
+  const chave = new Request(new URL(`/api/black-friday?v=13&marca=${encodeURIComponent(filtro.n)}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
   const [dados, doML] = await Promise.all([listarBlackFridayDaMarca(env.DB, filtro, MAX_DA_MARCA),
