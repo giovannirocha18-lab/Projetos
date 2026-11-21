@@ -29,7 +29,7 @@ import { anotarNaFilaML } from "../../lib/mlFila.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
 import { criarFila } from "../../lib/fila.js";
-import { corrigirBusca, acentuarBusca, buscaNasLojas, buscaSoDeConsole } from "../../lib/vocabulario.js";
+import { corrigirBusca, acentuarBusca, buscaNasLojas, buscaSoDeConsole, pluralDeUmaPalavra } from "../../lib/vocabulario.js";
 import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCategoria, soDaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
@@ -240,7 +240,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // ("playsation" -> "playstation") também é trocada sozinha; antes só aparecia o "Você quis dizer…?", que ele quase não viu.
   // O site mostra "Corrigimos … · Buscar como digitei" (exato=1 desfaz)
   const corrigida = params.has("exato") ? null : corrigirBusca(digitado);
-  const q = corrigida ? corrigida.sugestao || corrigida.q : acentuarBusca(digitado);
+  const qCorrigida = corrigida ? corrigida.sugestao || corrigida.q : acentuarBusca(digitado);
+  const q = (!params.has("exato") && pluralDeUmaPalavra(qCorrigida)) || qCorrigida;
   const sugestao = null;
   const pagina = Math.min(Math.max(parseInt(params.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const desde = Math.min(Math.max(parseInt(params.get("desde"), 10) || 1, 1), MAX_DESDE);

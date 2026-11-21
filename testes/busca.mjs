@@ -987,6 +987,13 @@ for (const [q, buscaEsperada, itens, esperado] of [
     const s = comSecaoCerta({ titulo, secao: antes }).secao;
     if (s !== depois) { falhas++; console.log(`✗ seção guardada: "${titulo}" ficou em ${s}, esperado ${depois}`); }
   }
+  // 21/11/2026 (auditoria): busca de uma palavra no plural usa o singular ("geladeiras" trazia 1 oferta)
+  {
+    const { pluralDeUmaPalavra } = await import("../lib/vocabulario.js");
+    for (const [q, esperado] of [["geladeiras", "geladeira"], ["fogões", "fogão"], ["notebooks", "notebook"], ["tênis", null], ["óculos", null], ["meias", null], ["philips", null], ["portas de correr", null]]) {
+      if (pluralDeUmaPalavra(q) !== esperado) { falhas++; console.log(`✗ plural de uma palavra: "${q}" virou ${pluralDeUmaPalavra(q)}, esperado ${esperado}`); }
+    }
+  }
 }
 console.log(falhas ? `\n${falhas} problema(s) em ${total} títulos` : `\n✓ Tudo certo (${Object.keys(CASOS).length} buscas, ${total} títulos)`);
 process.exitCode = falhas ? 1 : 0;
