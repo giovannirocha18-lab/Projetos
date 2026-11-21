@@ -989,7 +989,10 @@ for (const [q, buscaEsperada, itens, esperado] of [
   }
   // 21/11/2026 (auditoria): busca de uma palavra no plural usa o singular ("geladeiras" trazia 1 oferta)
   {
-    const { pluralDeUmaPalavra } = await import("../lib/vocabulario.js");
+    const { pluralDeUmaPalavra, limparBusca } = await import("../lib/vocabulario.js");
+    for (const [q, esperado] of [["GELADEIRA!!!", "GELADEIRA"], ["geladeira.", "geladeira"], ["😀", ""], ["tv 50\"", "tv 50\""], ["1,5 litros", "1,5 litros"], ["micro-ondas", "micro-ondas"], ["iphone 15 (128gb)", "iphone 15 128gb"]]) {
+      if (limparBusca(q) !== esperado) { falhas++; console.log(`✗ limpar a busca: "${q}" virou "${limparBusca(q)}", esperado "${esperado}"`); }
+    }
     for (const [q, esperado] of [["geladeiras", "geladeira"], ["fogões", "fogão"], ["notebooks", "notebook"], ["tênis", null], ["óculos", null], ["meias", null], ["philips", null], ["portas de correr", null]]) {
       if (pluralDeUmaPalavra(q) !== esperado) { falhas++; console.log(`✗ plural de uma palavra: "${q}" virou ${pluralDeUmaPalavra(q)}, esperado ${esperado}`); }
     }

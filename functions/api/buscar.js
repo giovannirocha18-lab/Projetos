@@ -29,7 +29,7 @@ import { anotarNaFilaML } from "../../lib/mlFila.js";
 import { carregarMapa, aplicarMapa, aprenderCategorias, catsDaLoja } from "../../lib/mapaCategorias.js";
 import { separarAcessorios, produtoBuscado } from "../../lib/relevancia.js";
 import { criarFila } from "../../lib/fila.js";
-import { corrigirBusca, acentuarBusca, buscaNasLojas, buscaSoDeConsole, pluralDeUmaPalavra } from "../../lib/vocabulario.js";
+import { corrigirBusca, acentuarBusca, buscaNasLojas, buscaSoDeConsole, pluralDeUmaPalavra, limparBusca } from "../../lib/vocabulario.js";
 import { categoriaPorNome, categoriaDoProduto, termoNaCategoria, ordenarNaCategoria, soDaCategoria, marcarSecoes, contarNaCategoria, vitrineDaCategoria, montarVitrine } from "../../lib/categorias.js";
 
 // Para ligar uma loja nova: criar lib/fontes/<loja>.js e incluir aqui.
@@ -235,7 +235,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const params = new URL(request.url).searchParams;
   // Erros comuns de digitação são trocados antes de buscar ("eletrolux" -> "electrolux"); a resposta traz o q
   // corrigido e o site avisa. exato=1 = "Buscar por eletrolux mesmo". sugestao = "Você quis dizer…?" (não troca sozinho)
-  const digitado = (params.get("q") || "").trim().slice(0, 100);
+  const comoVeio = (params.get("q") || "").trim().slice(0, 100);
+  const digitado = limparBusca(comoVeio);
+  // Busca só de símbolos ou emoji ("!!!"): nada a procurar (antes ia às lojas por 8 s ou dava erro 500)
+  if (comoVeio && !/[\p{L}\p{N}]/u.test(digitado)) {
+    return Response.json({ q: comoVeio, sugestao: null, categoria: null, loja: null, foraDaCategoria: false, exemplo: false, ofertas: [], temMais: false, mais: null, lojas: {}, tempoMs: 0 },
+      { headers: { "Cache-Control": "public, max-age=300", "X-Total-Ofertas": "0" } });
+  }
   // 14/11/2026 (Giovanni: "a opção com a correção automática é melhor e passa mais segurança"): a marca parecida
   // ("playsation" -> "playstation") também é trocada sozinha; antes só aparecia o "Você quis dizer…?", que ele quase não viu.
   // O site mostra "Corrigimos … · Buscar como digitei" (exato=1 desfaz)
