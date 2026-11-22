@@ -8,6 +8,7 @@ import { ofertaDeLojaRemovida, listaSoComNovos } from "../../lib/lojasRemovidas.
 import { semDescontoFalso } from "../../lib/ofertas.js";
 import { comSecaoCerta } from "../../lib/categorias.js";
 import { filtroDeMarca, MAX_DA_MARCA } from "../../lib/marcas.js";
+import { filtroDeBusca, MAX_DA_BUSCA } from "../../lib/buscaEspecial.js";
 
 const POR_PAGINA = 48;
 const ML_POR_PAGINA = 24; // mercadolivre.destaques devolve 24 por página
@@ -18,6 +19,8 @@ export async function onRequestGet({ request, env }) {
   if (!env.DB) return Response.json({ ofertas: [], temMais: false, totais: { real: 0, baixou: 0, loja: 0 } });
   const params = new URL(request.url).searchParams;
   if (params.has("marca")) return daMarca(request, env, filtroDeMarca(params.get("marca")));
+  // Busca dentro da página (22/11/2026): /api/black-friday?q=geladeira -> { ofertas, busca, completo, temMais: false }
+  if (params.has("q")) return daMarca(request, env, filtroDeBusca(params.get("q")), "q");
   const pagina = Math.min(Math.max(parseInt(new URL(request.url).searchParams.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const chave = new Request(new URL(`/api/black-friday?v=13&pagina=${pagina}`, request.url));
@@ -40,17 +43,20 @@ export async function onRequestGet({ request, env }) {
 }
 
 // Só uma marca: as ofertas conferidas (bf_ofertas) e os mais vendidos do Mercado Livre com desconto que citam a marca
-async function daMarca(request, env, filtro) {
+async function daMarca(request, env, filtro, tipo = "marca") {
+  const maximo = tipo === "q" ? MAX_DA_BUSCA : MAX_DA_MARCA;
   const cabecalhos = (segundos) => ({ "Cache-Control": segundos ? `public, max-age=${segundos}` : "no-store", "X-Robots-Tag": "noindex" });
-  if (!filtro) return Response.json({ ofertas: [], marca: null, completo: false, temMais: false }, { headers: cabecalhos(0) });
+  if (!filtro) return Response.json({ ofertas: [], marca: null, busca: null, completo: false, temMais: false }, { headers: cabecalhos(0) });
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/black-friday?v=13&marca=${encodeURIComponent(filtro.n)}`, request.url));
+  const chave = new Request(new URL(`/api/black-friday?v=13&${tipo}=${encodeURIComponent(filtro.n)}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
-  const [dados, doML] = await Promise.all([listarBlackFridayDaMarca(env.DB, filtro, MAX_DA_MARCA),
-    mercadolivre.ofertasBlackFridayDaMarca(env, filtro, MAX_DA_MARCA).catch(() => ({ ofertas: [], total: 0 }))]);
+  const [dados, doML] = await Promise.all([listarBlackFridayDaMarca(env.DB, filtro, maximo),
+    mercadolivre.ofertasBlackFridayDaMarca(env, filtro, maximo).catch(() => ({ ofertas: [], total: 0 }))]);
+  // Na busca, os do Mercado Livre também passam pela regra do produto buscado (a peneira deles é só pelas palavras)
+  if (filtro.escolher) doML.ofertas = filtro.escolher(doML.ofertas);
   const ofertas = listaSoComNovos(misturarML(dados.ofertas.filter((o) => !ofertaDeLojaRemovida(o) && nivelBlackFriday(o)).map(semDescontoFalso).map(comSecaoCerta), doML.ofertas));
-  const resposta = Response.json({ ofertas, marca: filtro.n, completo: dados.total <= MAX_DA_MARCA && doML.total <= MAX_DA_MARCA, temMais: false },
+  const resposta = Response.json({ ofertas, ...(tipo === "q" ? { busca: filtro.q } : { marca: filtro.n }), completo: dados.total <= maximo && doML.total <= maximo, temMais: false },
     { headers: cabecalhos(ofertas.length ? CACHE_SEGUNDOS : 0) });
   if (cache && ofertas.length) await cache.put(chave, resposta.clone());
   return resposta;

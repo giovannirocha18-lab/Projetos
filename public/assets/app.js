@@ -2249,6 +2249,7 @@ const enderecoBusca = (q, cat, extra = "") => {
 };
 const medidasAdiantadas = new WeakMap();
 function adiantarBusca(q, cat) {
+  if (naEspecial()) return; // na Black Friday e nas Quedas a busca é dentro da página (não adianta a do site todo)
   q = (q || "").trim();
   const chave = chaveAdiantada(q, cat);
   if (q.length < 3 || adiantadas.has(chave) || totalAdiantadas >= MAX_ADIANTADAS) return;
@@ -2701,6 +2702,8 @@ function juntarDaMarca(dados, n) {
 // marca (?marca=, lib/marcas.js; 10/11/2026: o site ia pedindo a lista geral de 48 em 48 atrás da marca)
 const lojaFiltraMarca = (id) => id === BLACK_FRIDAY || id === "mercadolivre" || String(id).startsWith("awin:");
 function pedirMarcaDaLoja(n) {
+  // Busca dentro da Black Friday/Quedas: a lista já veio inteira; a marca inteira da página traria o que não foi buscado
+  if (estado.loja?.busca) return Promise.resolve(null);
   if (marcasPedidas.pedido !== estado.pedido) { marcasPedidas.pedido = estado.pedido; marcasPedidas.mapa.clear(); }
   const chave = `loja|${n}`;
   if (!marcasPedidas.mapa.has(chave)) {
@@ -4032,6 +4035,27 @@ function irParaBlackFriday() {
   mostrar();
 }
 
+// Busca dentro da Black Friday ou das Quedas de preço (22/11/2026, Giovanni: "mostre um aviso, você está buscando em
+// Black Friday ou Queda de preços"): card com o aviso, a contagem e as duas saídas (limpar a busca / buscar no site todo)
+function desenharResumoDaBuscaNaEspecial(lista) {
+  const { id, busca, nome } = estado.loja;
+  const especial = ESPECIAIS[id];
+  const caminho = id === BLACK_FRIDAY ? "/black-friday" : "/quedas-de-preco";
+  const sair = () => { history.pushState(null, "", caminho); window.scrollTo({ top: 0, behavior: "smooth" }); mostrar(); };
+  const noSiteTodo = () => irPara(busca);
+  const tem = estado.ofertas.length > 0;
+  $("#resumo").replaceChildren(el("div", {},
+    el("h1", {}, especial.titulo),
+    el("p", { class: "aviso-busca-especial" }, "🔎 Você está buscando ", el("strong", {}, `“${busca}”`), " só em ", el("strong", {}, nome), "."),
+    el("p", {}, lista.length
+      ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}${id === QUEDAS ? " com queda de preço nos últimos 7 dias." : " com desconto que dá para conferir."}`
+      : tem ? "Nenhuma oferta com esses filtros." : `Nenhum produto com “${busca}” em ${nome} agora.`),
+    el("div", { class: "resumo-acoes" },
+      el("button", { type: "button", class: "chip-acao chip-limpar", onclick: sair }, `✕ Ver tudo de ${nome}`),
+      el("button", { type: "button", class: "chip-acao chip-limpar", onclick: noSiteTodo }, `Buscar “${busca}” no site todo`),
+      tem ? botaoLimparFiltros() : "")));
+}
+
 function contagemBlackFriday() {
   const dias = Math.ceil((DIA_BLACK_FRIDAY - Date.now()) / 864e5);
   if (dias > 1) return `Faltam ${dias} dias para a Black Friday (27/11).`;
@@ -4041,6 +4065,7 @@ function contagemBlackFriday() {
 }
 
 function desenharResumoBlackFriday(lista) {
+  if (estado.loja.busca) return desenharResumoDaBuscaNaEspecial(lista);
   const t = estado.loja.totais || {};
   // Sem filtro, conta todas as ofertas da página (07/11/2026: dizia "216 ofertas", só as já carregadas, de ~9.500)
   const total = (t.real || 0) + (t.baixou || 0) + (t.loja || 0);
@@ -4071,6 +4096,7 @@ const QUEDAS = "quedas-de-preco";
 const naQuedas = () => /^\/quedas-de-preco\/?$/i.test(location.pathname);
 // Página especial (não é loja nem busca)
 const naEspecial = () => naBlackFriday() || naQuedas();
+const caminhoDaEspecial = () => (naBlackFriday() ? "/black-friday" : naQuedas() ? "/quedas-de-preco" : null);
 const ESPECIAIS = {
   [BLACK_FRIDAY]: { nome: "Black Friday", titulo: "🖤 Black Friday de verdade", buscando: "Buscando os descontos conferidos 🛒", api: "/api/black-friday" },
   [QUEDAS]: { nome: "Quedas de preço", titulo: "📉 Quedas de preço", buscando: "Buscando o que baixou de preço 🛒", api: "/api/quedas" },
@@ -4087,6 +4113,7 @@ function quandoCaiu(dia) {
   return dias <= 0 ? "Caiu hoje" : dias === 1 ? "Caiu ontem" : `Caiu há ${dias} dias`;
 }
 function desenharResumoQuedas(lista) {
+  if (estado.loja.busca) return desenharResumoDaBuscaNaEspecial(lista);
   const t = estado.loja.totais || {};
   const semFiltro = lista.length === estado.ofertas.length;
   const qtd = semFiltro && t.semana > lista.length ? t.semana.toLocaleString("pt-BR") : lista.length;
@@ -4110,27 +4137,28 @@ function desenharResumoQuedas(lista) {
 
 async function pedirLoja(id, pagina) {
   const cat = estado.loja?.id === id && estado.loja?.cat ? `&mlcat=${encodeURIComponent(estado.loja.cat)}` : "";
-  const r = await fetch(ESPECIAIS[id] ? `${ESPECIAIS[id].api}?pagina=${pagina}` : `/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}${cat}`);
+  const busca = ESPECIAIS[id] && estado.loja?.id === id ? estado.loja.busca : "";
+  const r = await fetch(busca ? `${ESPECIAIS[id].api}?q=${encodeURIComponent(busca)}` : ESPECIAIS[id] ? `${ESPECIAIS[id].api}?pagina=${pagina}` : `/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}${cat}`);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
 
-async function mostrarLoja(id) {
+async function mostrarLoja(id, busca = "") {
   const pedido = ++estado.pedido;
   estado.q = "";
   const especial = ESPECIAIS[id];
-  estado.loja = { id, nome: especial ? especial.nome : lojasParceiras?.find((l) => l.id === id)?.nome || null };
+  estado.loja = { id, nome: especial ? especial.nome : lojasParceiras?.find((l) => l.id === id)?.nome || null, busca: especial ? busca : "" };
   estado.paginaLoja = 1;
   estado.lojasDesmarcadas.clear();
   zerarSecoes();
   estado.ofertas = [];
   estado.buscando = true;
   $("#loja-na-busca").hidden = true;
-  desenharCampanhasShein("campanhas-shein-busca", id === BLACK_FRIDAY); // Ofertas da Shein também na Black Friday
-  document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = ""; });
+  desenharCampanhasShein("campanhas-shein-busca", id === BLACK_FRIDAY && !busca); // Ofertas da Shein também na Black Friday
+  document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = estado.loja.busca || ""; });
   document.title = `${estado.loja.nome || "Loja parceira"} — Vai pro Carrinho`;
   $("#resumo").replaceChildren(especial
-    ? el("div", {}, el("h1", {}, especial.titulo), el("p", {}, especial.buscando))
+    ? el("div", {}, el("h1", {}, especial.titulo), el("p", {}, busca ? `Buscando “${busca}” em ${especial.nome} 🛒` : especial.buscando))
     : el("div", {}, el("h1", {}, `🏬 ${estado.loja.nome || "Carregando loja"}…`), el("p", {}, "Buscando os produtos desta loja 🛒")));
   $("#total").textContent = "";
   $("#caixa-secoes").hidden = true;
@@ -4149,8 +4177,13 @@ async function mostrarLoja(id) {
     if (estado.loja.nome) { nomesDeLojas[id] = estado.loja.nome; marcarCategoria(); }
     estado.loja.totais = dados.totais;
     estado.loja.hoje = dados.hoje;
+    if (estado.loja.busca && dados.busca) { // o servidor corrige a busca ("geladeiras" → "geladeira")
+      estado.loja.busca = dados.busca;
+      document.querySelectorAll("[data-busca] input").forEach((i) => { i.value = dados.busca; });
+    }
     if (dados.atalhos) { estado.loja.atalhos = dados.atalhos; estado.loja.total = dados.total; }
-    document.title = id === BLACK_FRIDAY ? "Black Friday de verdade — Vai pro Carrinho" : `${estado.loja.nome} — Vai pro Carrinho`;
+    document.title = estado.loja.busca ? `${estado.loja.busca} em ${estado.loja.nome} — Vai pro Carrinho`
+      : id === BLACK_FRIDAY ? "Black Friday de verdade — Vai pro Carrinho" : `${estado.loja.nome} — Vai pro Carrinho`;
     estado.ofertas = semRepetidos(dados.ofertas || []);
     estado.temMaisBusca = Boolean(dados.temMais);
     desenharFiltroLojas();
@@ -4719,7 +4752,7 @@ function marcarCategoria() {
     if (ativa && b.scrollIntoView && b.offsetParent) b.scrollIntoView({ block: "nearest", inline: "center" });
   });
   const padrao = telaPequena.matches ? PLACEHOLDER_CURTO : PLACEHOLDER_BUSCA;
-  const onde = loja ? nomeDaLoja(loja) : cat;
+  const onde = loja ? nomeDaLoja(loja) : naEspecial() ? ESPECIAIS[naBlackFriday() ? BLACK_FRIDAY : QUEDAS].nome : cat;
   document.querySelectorAll("[data-busca] input").forEach((i) => { i.placeholder = onde ? `Buscar em ${onde}…` : padrao; });
 }
 marcarCategoria();
@@ -4749,14 +4782,15 @@ function mostrar() {
   estado.exato = new URLSearchParams(location.search).has("exato");
   estado.loja = null;
   $("#loja-na-busca").hidden = true; // atalho da loja buscada: só na busca normal (buscar() mostra de novo)
-  const blackFriday = !q && !loja && (naBlackFriday() ? BLACK_FRIDAY : naQuedas() ? QUEDAS : null);
+  // Black Friday e Quedas de preço: com ?q= a busca é DENTRO da página (Giovanni, 22/11/2026; antes ia para o site todo)
+  const blackFriday = !loja && (naBlackFriday() ? BLACK_FRIDAY : naQuedas() ? QUEDAS : null);
   if (blackFriday || (loja && !q)) {
     document.body.classList.remove("modo-inicio");
     $("#inicio").hidden = true;
     $("#resultados").hidden = false;
     estado.cat = null;
     marcarCategoria();
-    return mostrarLoja(blackFriday || loja);
+    return mostrarLoja(blackFriday || loja, blackFriday ? q : "");
   }
   const emBusca = Boolean(q);
   document.body.classList.toggle("modo-inicio", !emBusca);
@@ -4776,11 +4810,12 @@ function mostrar() {
 // atalho = clique em "em alta" ou categoria: não conta como busca feita pelo visitante
 // cat = buscar dentro dessa categoria do menu ("invictus" em Perfumes)
 // loja = buscar só nessa loja (página da loja aberta)
-function irPara(q, { atalho = false, cat = null, exato = false, loja = null } = {}) {
+function irPara(q, { atalho = false, cat = null, exato = false, loja = null, dentro = null } = {}) {
   q = (q || "").trim();
   estado.atalho = atalho;
   const onde = loja ? `&loja=${encodeURIComponent(loja)}` : cat ? `&cat=${encodeURIComponent(cat)}` : "";
-  const url = q ? `/?q=${encodeURIComponent(q)}${onde}${exato ? "&exato=1" : ""}` : "/";
+  // Busca digitada na Black Friday ou nas Quedas de preço fica na página (dentro = o caminho dela)
+  const url = q && dentro ? `${dentro}?q=${encodeURIComponent(q)}` : q ? `/?q=${encodeURIComponent(q)}${onde}${exato ? "&exato=1" : ""}` : "/";
   history.pushState(null, "", url);
   window.scrollTo({ top: 0, behavior: "smooth" });
   mostrar();
@@ -4957,7 +4992,7 @@ function prepararBusca(form) {
       : el("li", {
         role: "option", id: `${idLista}-${n}`, "aria-selected": "false",
         onmouseenter: () => adiantarBusca(s, categoriaAtual()),
-        onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual(), loja: lojaAtual() }); },
+        onmousedown: (e) => { e.preventDefault(); input.value = s; fechar(); irPara(s, { cat: categoriaAtual(), loja: lojaAtual(), dentro: caminhoDaEspecial() }); },
       }, textoSugestao(s, input.value)))));
     ativo = -1;
     lista.hidden = false;
@@ -5031,7 +5066,7 @@ function prepararBusca(form) {
     const certa = corrigirUltimaPalavra(input.value);
     if (certa) input.value = certa.texto;
     valorAnterior = input.value;
-    irPara(input.value, { cat: categoriaAtual(), loja: lojaAtual() });
+    irPara(input.value, { cat: categoriaAtual(), loja: lojaAtual(), dentro: caminhoDaEspecial() });
   });
 }
 

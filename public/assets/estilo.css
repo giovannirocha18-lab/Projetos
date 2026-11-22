@@ -1397,3 +1397,9 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
   .marcas-rapidas .chip-marca { flex: none; padding: 6px 12px; font-size: .84rem; border-color: #ddd6fe; color: #4c1d95; }
   .marcas-rapidas .chip-marca[aria-pressed="true"] { border-color: transparent; color: #fff; }
 }
+
+/* Busca dentro da Black Friday e das Quedas de preço (22/11/2026): aviso "Você está buscando … só em …" no quadro roxo */
+.aviso-busca-especial { display: inline-block; margin: 6px 0 2px; padding: 8px 14px; border-radius: 12px; background: rgba(255, 255, 255, .18);
+  border: 1px solid rgba(255, 255, 255, .35); font-weight: 600; }
+.aviso-busca-especial strong { font-weight: 800; }
+.resumo-acoes { display: flex; flex-wrap: wrap; gap: 8px; }

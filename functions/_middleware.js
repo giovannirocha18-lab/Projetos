@@ -230,6 +230,8 @@ function paraOsBuscadores(url, endereco) {
   // 21/11/2026 (print do Giovanni: "site:vaiprocarrinho.com.br" mostrava uma pelúcia da Toymania): o Google tinha
   // guardado um link de saída nosso (/api/ir, que leva à loja) com o título da página da LOJA. Saída e API nunca entram
   if (/^\/(api|ir)\//.test(url.pathname)) return "noindex, nofollow";
+  // Busca dentro da Black Friday ou das Quedas de preço (22/11/2026): só a página inteira vai para o Google
+  if (/^\/(black-friday|quedas-de-preco)\/?$/i.test(url.pathname) && url.searchParams.has("q")) return "noindex, follow";
   const p = url.searchParams;
   const q = (p.get("q") || "").trim();
   if (p.get("produto") || p.has("exato") || p.has("tempos") || p.has("nao-contar")) return "noindex, follow";
