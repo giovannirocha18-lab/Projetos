@@ -1713,6 +1713,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
 
   return el("article", {
     class: `oferta${melhor ? " melhor" : ""}`,
+    "data-secao": o.secao || "", // lido pela ronda da madrugada (robo/ronda-categorias.mjs)
     style: `--cor-loja:${loja.cor};--texto-loja:${loja.texto};--fundo-cat:${FUNDO_CATEGORIA[o.categoria] || "linear-gradient(135deg,#ede9fe,#fce7f3)"}`,
   },
     // "Comparar" fica fora do link da foto (botão dentro de link não vale), desenhado no canto de baixo da foto
@@ -2881,6 +2882,17 @@ function tipoDaLista(o) {
 }
 // Tipo escolhido: pede por trás a busca do produto ("geladeira") e junta o que for da categoria e do tipo (a vitrine da
 // categoria traz só uma parte de cada tipo)
+// >>> trava da categoria
+// TRAVA ÚNICA (pedido do Giovanni, 22/11/2026, depois dos livros em "Vestidos"): todo produto que o NAVEGADOR junta a uma
+// categoria aberta (tipo, marca ou o que vier depois) passa por aqui. Só entra o que a loja/IA marcou na própria categoria;
+// produto sem categoria só onde o tipo pede (semCategoriaVale) e nunca livro, adulto ou bebida. Teste: testes/categoria.mjs
+const PROIBIDO_SEM_CATEGORIA = /\blivros?\b|\be-?book\b|adult|casal|namoro|erotic|sexy|sex shop|bebida|drink|cerveja|vinho|whisky|vape|cigarr/i;
+function entraNaCategoriaAberta(o, categoria, semCategoriaVale = false) {
+  if (!o || !categoria || o.usado || o.naoBuscado) return false;
+  if (o.secao === categoria) return true;
+  return Boolean(semCategoriaVale && !o.secao && !PROIBIDO_SEM_CATEGORIA.test(o.titulo || ""));
+}
+// <<< trava da categoria
 const tiposDaCategoriaPedidos = { pedido: -1, feitos: new Set() };
 async function completarTipoDaCategoria(categoria, tipo) {
   const buscas = buscasDoTipoNaCategoria(categoria, tipo);
@@ -2900,7 +2912,7 @@ async function completarTipoDaCategoria(categoria, tipo) {
     const aceitaSemCategoria = Boolean(TIPOS_DAS_CATEGORIAS[categoria]?.find(([nome]) => nome === tipo)?.[3]);
     const ja = new Set(estado.ofertas.map((o) => o.id));
     const novas = semRepetidos(respostas.flatMap((d) => d?.ofertas || [])).filter((o) => !ja.has(o.id) && o.bate && !o.acessorio && !o.parecido
-      && !o.noMeio && !o.naoBuscado && !o.usado && (o.secao === categoria || (!o.secao && aceitaSemCategoria && !/\blivros?\b|adult|casal|namoro|erotic|sexy|bebida|drink/i.test(o.titulo))) && tipoNaCategoria(o, categoria) === tipo);
+      && !o.noMeio && entraNaCategoriaAberta(o, categoria, aceitaSemCategoria) && tipoNaCategoria(o, categoria) === tipo);
     if (novas.length) {
       estado.ofertas = semRepetidos([...estado.ofertas, ...novas]);
       desenharFiltroLojas();
@@ -3114,7 +3126,8 @@ function adiantarMarca(n, nome) {
 // Junta à lista os produtos da marca que ainda não estavam nela (devolve quantos entraram)
 function juntarDaMarca(dados, n) {
   const ja = new Set(estado.ofertas.map((o) => o.id));
-  const novas = semRepetidos(dados?.ofertas || []).filter((o) => !ja.has(o.id) && marcaDe(o)?.n === n);
+  const aberta = !estado.loja && navegandoCategoria()?.nome; // categoria aberta: só o que é dela (trava única)
+  const novas = semRepetidos(dados?.ofertas || []).filter((o) => !ja.has(o.id) && marcaDe(o)?.n === n && (!aberta || entraNaCategoriaAberta(o, aberta)));
   if (!novas.length) return 0;
   const antes = estado.ofertas.length;
   estado.ofertas = semRepetidos([...estado.ofertas.filter((o) => !o.acessorio), ...novas.filter((o) => !o.acessorio),
