@@ -16,6 +16,12 @@
 - **Todo print de erro de busca vira caso novo em `testes/busca.mjs`** (de sugestão, em `testes/sugestoes.mjs`);
   `node testes/busca.mjs`, `sugestoes.mjs` e `modulos.mjs` têm que passar antes de publicar mudança na busca.
 - **Regra do Giovanni (15/11): correção que só vale depois (robô da noite, cópia guardada) → SUGERIR na mesma resposta como aplicar AGORA** (visitar a busca/categoria para refazer por trás, rodada manual `painel…/api/painel/robo-noite?comecar=prontas` etc.) e fazer o que der sem ele.
+- **PLANO DE DEFESA (Giovanni, 22/11: "se a falha é sua fica difícil confiar; não pode acontecer com produto novo")**, vale para o Claude em toda mudança:
+  (1) regra que deixa ENTRAR produto numa lista (categoria, tipo, marca, loja, Black Friday) passa pela trava `entraNaCategoriaAberta` (app.js) ou pelo filtro do servidor; nunca "aceitar sem categoria" para encher lista;
+  (2) antes de publicar: `node testes/categoria.mjs` junto com busca/sugestoes/modulos;
+  (3) **depois de publicar a ÚLTIMA versão, rodar `node robo/ronda-categorias.mjs "<categorias mexidas>"` no ar** (teste feito antes do último ajuste não vale) e só então dizer que está pronto, com o número de intrusos;
+  (4) toda madrugada, depois do Monitor dos visitantes: `node robo/ronda-categorias.mjs` (40 categorias, 2 tipos sorteados, ~15 min); "outra categoria" > 0 = corrigir na hora; suspeitos = ler e corrigir a regra/lista; pôr o resultado no resumo ao Giovanni;
+  (5) erro meu é dito como erro meu, com a causa.
 - Regras fixas: nunca raspar páginas das lojas (só APIs/feeds oficiais); nada de urgência/escassez falsa; sem aviso de
   afiliado visível (só `rel="sponsored"`); sempre tema claro.
 - **Regra do Giovanni (05/11): toda busca tem que trazer produtos ATUAIS/modernos, qualquer que seja o termo** ("celular"
