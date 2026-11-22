@@ -2454,7 +2454,9 @@ function passaNosFiltros(comMarca = true) {
   const semAcessorios = escondeAcessorios();
   const tipo = estado.tipoSo;
   const parecidoFora = escondeParecidos();
+  const faceta = estado.modeloSo ? facetaAtual() : null; // modelo/medida escolhido na lateral (FACETAS)
   return (o) => secaoVisivel(o) && !parecidoFora(o)
+    && (!faceta || valorDaFaceta(faceta, o)?.[0] === estado.modeloSo)
     // parecido = console de outra geração (PS4 na busca "playstation 5"): não entra em nenhum tipo; de outra marca, entra
     && (!tipo || (tipoDe(o) === tipo && (!o.parecido || o.outraMarca)))
     && !(comMarca && estado.marcasSo.size && !estado.marcasSo.has(marcaDe(o)?.n))
@@ -2514,6 +2516,8 @@ const secaoVisivel = (o) => (estado.secoesSo ? estado.secoesSo.has(o.secao || ""
 function zerarSecoes() {
   estado.secoesSo = null;
   estado.tipoSo = null;
+  estado.modeloSo = null;
+  estado.todosModelos = false;
   estado.secoesFora.clear();
   estado.marcasSo.clear();
   estado.todasMarcas = false;
@@ -2570,6 +2574,212 @@ function tipoDe(o) {
   o.tipoLido = tipo;
   return tipo;
 }
+// >>> facetas
+// MODELOS E MEDIDAS NA LATERAL (22/11/2026, ideia do Giovanni: "busco iPhone, o menu lateral me dá os modelos disponíveis…
+// abrange TV também, veja outros produtos principais"): conforme a busca, a lateral ganha uma lista lida do NOME dos
+// anúncios: modelo (iPhone 15 Pro, Galaxy S24, Moto G85…), polegadas (TV, monitor), litros, kg, BTUs, bocas, processador,
+// armazenamento, aro, tamanho de cama, ml. Um toque mostra só aquele e busca por trás "busca + valor" para trazer mais.
+// A regra só vale quando a busca COMEÇA pelo produto ("capa iphone 15" não abre lista de modelos). Para incluir outro
+// produto: mais uma entrada em FACETAS { id, nome, busca, de(titulo sem acento, título) → [rótulo, ordem], termo(rótulo, q) }
+const semAcentoF = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const tituloF = (s) => s.replace(/\s+/g, " ").trim().split(" ").map((p) => (/^[a-z]\d/.test(p) ? p.toUpperCase() : p.charAt(0).toUpperCase() + p.slice(1))).join(" ");
+const numeroF = (inteiro, decimal) => Number(`${inteiro}.${decimal || 0}`);
+const comVirgula = (n) => String(n).replace(".", ",");
+const POLEGADAS_TV = new Set([24, 28, 32, 39, 40, 42, 43, 48, 50, 55, 58, 60, 65, 70, 75, 77, 83, 85, 86, 98, 100]);
+const VARIANTE_IPHONE = { "": 0, e: 1, mini: 2, plus: 3, air: 4, pro: 5, "pro max": 6 };
+const ORDEM_CAMA = ["Berço", "Solteiro", "Solteirão", "Viúva", "Casal", "Queen", "King"];
+const ORDEM_CPU = ["Celeron", "Pentium", "Athlon", "Intel Core i3", "Intel Core i5", "Intel Core i7", "Intel Core i9", "Ryzen 3", "Ryzen 5", "Ryzen 7", "Ryzen 9", "Apple M1", "Apple M2", "Apple M3", "Apple M4", "Apple M5"];
+const medida = (re, rotulo, unidadeDaBusca) => ({
+  de(t) { const m = t.match(re); if (!m) return null; const n = numeroF(m[1], m[2]); return n > 0 ? [rotulo(n), n] : null; },
+  termo: (v, q) => `${q} ${unidadeDaBusca(v)}`,
+});
+const FACETAS = [
+  { id: "iphone", nome: "Modelo", busca: /^(celular |smartphone |apple )*iphone\b/,
+    de(t) {
+      const todos = [...t.matchAll(/iphone\s*(\d{1,2})(e\b)?\s*(pro\s*max|pro|plus|mini|air)?/g)];
+      // anúncio de vários modelos ("iPhone 15 e iPhone 15 Pro Max", "iPhone 13/14/15") não entra em nenhum
+      if (!todos.length || new Set(todos.map((m) => `${m[1]}${m[2] || ""}${(m[3] || "").replace(/\s+/g, "")}`)).size > 1
+        || /\biphone\s*\d{1,2}\s*(?:[/,]|e\s)\s*(?:\d{1,2}|iphone|pro)\b/.test(t)) return null;
+      const [, n, e, v] = todos[0];
+      const variante = e ? "e" : (v || "").replace(/\s+/g, " ");
+      return [`iPhone ${n}${e ? "e" : ""}${v ? ` ${tituloF(variante)}` : ""}`, Number(n) * 10 + (VARIANTE_IPHONE[variante] || 0)];
+    },
+    termo: (v) => v.toLowerCase() },
+  { id: "galaxy", nome: "Modelo", busca: /^(celular |smartphone |samsung )*galaxy\b|^(celular|smartphone) samsung\b/,
+    de(t) {
+      const m = t.match(/galaxy\s+(z\s*(?:flip|fold)\s*\d?|[samf]\s?\d{2,3}(?:\s?(?:ultra|plus|fe|edge))?|note\s?\d{1,2}(?:\s?(?:ultra|plus))?|tab\s+[sa]\s?\d{1,2}(?:\s?(?:fe|plus|ultra|lite))?)/);
+      if (!m) return null;
+      const nome = m[1].replace(/^([samf])\s(\d)/, "$1$2").replace(/(flip|fold)\s*(\d)/, "$1 $2").replace(/(\d)(ultra|plus|fe|edge|lite)/, "$1 $2");
+      const numero = Number((nome.match(/\d+/) || [0])[0]);
+      return [`Galaxy ${tituloF(nome).replace(/\bFe\b/, "FE")}`, "zsnamft".indexOf(nome[0]) * 1000 - numero];
+    },
+    termo: (v) => `samsung ${v.toLowerCase()}` },
+  { id: "motorola", nome: "Modelo", busca: /^(celular |smartphone )*(motorola|moto)\b/,
+    de(t) {
+      const m = t.match(/\bmoto\s?([ge])\s?(\d{1,3})(\s(?:power|play|plus|stylus))?|\bedge\s?(\d{2})(\s(?:neo|pro|ultra|fusion))?|\brazr\s?(\d{2})(\sultra)?/);
+      if (!m) return null;
+      if (m[1]) return [`Moto ${m[1].toUpperCase()}${m[2]}${m[3] ? tituloF(m[3]).replace(/^/, " ") : ""}`, (m[1] === "g" ? 1000 : 2000) - Number(m[2])];
+      if (m[4]) return [`Edge ${m[4]}${m[5] ? ` ${tituloF(m[5])}` : ""}`, 500 - Number(m[4])];
+      return [`Razr ${m[6]}${m[7] ? " Ultra" : ""}`, 100 - Number(m[6])];
+    },
+    termo: (v) => `motorola ${v.toLowerCase()}` },
+  { id: "xiaomi", nome: "Modelo", busca: /^(celular |smartphone )*(xiaomi|redmi|poco)\b/,
+    de(t) {
+      const m = t.match(/\b(redmi\s+note\s?\d{1,2}[a-z]?(?:\s(?:pro\s?(?:plus|max)?|plus))?|redmi\s?a?\d{1,2}[a-z]?|poco\s?[xmfc]\d{1,2}(?:\s(?:pro|gt))?|xiaomi\s?\d{2}[a-z]?(?:\s(?:pro|ultra|lite))?)/);
+      if (!m) return null;
+      const nome = m[1].replace(/(note|redmi|poco|xiaomi)\s?(?=[a-z]?\d)/g, "$1 ");
+      return [tituloF(nome), (nome.startsWith("redmi note") ? 1000 : nome.startsWith("redmi") ? 2000 : nome.startsWith("poco") ? 3000 : 0) - Number((nome.match(/\d+/) || [0])[0])];
+    },
+    termo: (v) => v.toLowerCase() },
+  { id: "tv", nome: "Tamanho da tela", busca: /^(smart )?(tv|tvs|televisao|televisor)\b/,
+    de(t, bruto) {
+      const m = String(bruto || "").toLowerCase().match(/(\d{2,3})\s?(?:"|”|″|''|’’|pol\b|polegadas?|inch\b|p\b)/)
+        || t.match(/\b(?:tv|smart|led|qled|oled|uhd|4k|hd)\s+(?:(?:tv|smart|led|qled|oled|neo|uhd|4k|hd|full|de|crystal)\s+)*(\d{2,3})\b/);
+      const n = m && Number(m[1]);
+      return n && POLEGADAS_TV.has(n) ? [`${n}"`, n] : null;
+    },
+    termo: (v, q) => `${q} ${parseInt(v, 10)} polegadas` },
+  { id: "monitor", nome: "Tamanho da tela", busca: /^monitor\b(?!.*\b(bebe|pressao|cardiaco|audio|referencia)\b)/,
+    de(t, bruto) {
+      const m = String(bruto || "").toLowerCase().match(/(\d{2})(?:[.,](\d))?\s?(?:"|”|″|''|’’|pol\b|polegadas?|inch\b)/) || t.match(/\bmonitor\s+(?:(?:gamer|led|lcd|ips|curvo|ultrawide|de)\s+)*(\d{2})\b/);
+      const n = m && Math.round(numeroF(m[1], m[2])); // 23,8" é vendido como 24"
+      return n >= 15 && n <= 57 ? [`${n}"`, n] : null;
+    },
+    termo: (v, q) => `${q} ${parseInt(v, 10)} polegadas` },
+  { id: "geladeira", nome: "Capacidade", busca: /^(geladeira|refrigerador|freezer|frigobar)\b/,
+    de(t) {
+      const m = t.match(/(\d{2,3})\s?(?:l\b|litros?\b|lts?\b)/);
+      const n = m && Number(m[1]);
+      if (!n || n < 30) return null;
+      return n < 200 ? ["Até 199 litros", 1] : n < 300 ? ["200 a 299 litros", 2] : n < 400 ? ["300 a 399 litros", 3] : n < 500 ? ["400 a 499 litros", 4] : ["500 litros ou mais", 5];
+    },
+    termo: null },
+  { id: "lavar", nome: "Capacidade", busca: /^(maquina de lavar|lavadora|lava e seca|lava seca|secadora|tanquinho|lava roupas?)\b/,
+    ...medida(/(\d{1,2})(?:[.,](\d))?\s?kg\b/, (n) => `${comVirgula(n)} kg`, (v) => v.replace(" ", "")) },
+  { id: "litros", nome: "Capacidade", busca: /^(air ?fryer|fritadeira|panela de pressao|panela eletrica|liquidificador|garrafa termica|cooler|caixa termica|purificador|bebedouro|aspirador|lixeira|mochila)\b/,
+    ...medida(/(\d{1,3})(?:[.,](\d))?\s?(?:l\b|litros?\b|lts?\b)/, (n) => `${comVirgula(n)} litros`, (v) => v) },
+  { id: "btus", nome: "Potência", busca: /^(ar condicionado|ar-condicionado|split|climatizador)\b/,
+    de(t) { const m = t.match(/(\d{1,2})[. ]?(?:000|k)\s?btus?/); const n = m && Number(m[1]) * 1000; return n >= 5000 && n <= 80000 ? [`${n.toLocaleString("pt-BR")} BTUs`, n] : null; },
+    termo: (v, q) => `${q} ${v.replace(/\D/g, "")} btus` },
+  { id: "bocas", nome: "Bocas", busca: /^(fogao|cooktop)\b/,
+    de(t) { const m = t.match(/(\d)\s?(?:bocas?|queimadores?)\b/); const n = m && Number(m[1]); return n >= 1 && n <= 6 ? [`${n} ${n === 1 ? "boca" : "bocas"}`, n] : null; },
+    termo: (v, q) => `${q} ${v}` },
+  { id: "processador", nome: "Processador", busca: /^(notebook|laptop|macbook|pc gamer|computador|desktop|mini pc)\b/,
+    de(t) {
+      const m = t.match(/\b(?:core\s)?(i[3579])\b/) || t.match(/\bryzen\s?([3579])\b/) || t.match(/\b(celeron|pentium|athlon)\b/) || (/\b(macbook|apple|imac|mac mini)\b/.test(t) && t.match(/\b(m[1-5])\b/));
+      if (!m) return null;
+      const v = /^i\d$/.test(m[1]) ? `Intel Core ${m[1]}` : /^\d$/.test(m[1]) ? `Ryzen ${m[1]}` : /^m\d$/.test(m[1]) ? `Apple ${m[1].toUpperCase()}` : tituloF(m[1]);
+      return [v, ORDEM_CPU.indexOf(v)];
+    },
+    termo: (v, q) => `${q} ${v.replace("Intel Core ", "").toLowerCase()}` },
+  { id: "capacidade", nome: "Capacidade", busca: /^(ssd|hd externo|hd|pen ?drive|cartao de memoria|micro ?sd|memoria ram|memoria)\b/,
+    de(t) { const m = t.match(/\b(\d{1,4})\s?(gb|tb)\b/); if (!m) return null; const n = Number(m[1]); return [`${n} ${m[2].toUpperCase()}`, m[2] === "tb" ? n * 1024 : n]; },
+    termo: (v, q) => `${q} ${v.replace(" ", "").toLowerCase()}` },
+  { id: "armazenamento", nome: "Armazenamento", busca: /^(celular|smartphone|tablet|ipad)\b/,
+    de(t) {
+      if (/\b[12]\s?tb\b/.test(t)) return ["1 TB", 1024];
+      const n = Math.max(0, ...[...t.matchAll(/\b(\d{2,3})\s?gb?\b/g)].map((m) => Number(m[1])).filter((x) => [32, 64, 128, 256, 512].includes(x)));
+      return n ? [`${n} GB`, n] : null;
+    },
+    termo: (v, q) => `${q} ${v.replace(" ", "").toLowerCase()}` },
+  { id: "aro", nome: "Aro", busca: /^(bicicleta|bike|pneu|roda)\b/,
+    de(t) { const m = t.match(/\baro\s?(\d{2})\b/); return m ? [`Aro ${m[1]}`, Number(m[1])] : null; },
+    termo: (v, q) => `${q} ${v.toLowerCase()}` },
+  { id: "cama", nome: "Tamanho", busca: /^(colchao|cama|jogo de lencol|jogo de cama|lencol|edredom|cobertor|cobre leito|colcha|protetor de colchao|cabeceira)\b/,
+    de(t) {
+      const m = t.match(/\b(berco|solteirao|solteiro|viuva|casal|queen|king)\b/);
+      if (!m) return null;
+      const v = { berco: "Berço", solteirao: "Solteirão", solteiro: "Solteiro", viuva: "Viúva", casal: "Casal", queen: "Queen", king: "King" }[m[1]];
+      return [v, ORDEM_CAMA.indexOf(v)];
+    },
+    termo: (v, q) => `${q} ${v.toLowerCase()}` },
+  { id: "peso", nome: "Peso", busca: /^(racao|whey|creatina|areia)\b/,
+    de(t) {
+      const kg = t.match(/(\d{1,2})(?:[.,](\d))?\s?kg\b/);
+      if (kg) { const n = numeroF(kg[1], kg[2]); return n > 0 ? [`${comVirgula(n)} kg`, n * 1000] : null; }
+      const g = t.match(/\b(\d{2,4})\s?g\b/);
+      return g && Number(g[1]) >= 50 ? [`${Number(g[1])} g`, Number(g[1])] : null;
+    },
+    termo: (v, q) => `${q} ${v.replace(" ", "")}` },
+  { id: "ml", nome: "Volume", busca: /^(perfume|colonia|body splash|eau de)\b/,
+    de(t) { const m = t.match(/\b(\d{2,4})\s?ml\b/); const n = m && Number(m[1]); return n >= 5 ? [`${n} ml`, n] : null; },
+    termo: (v, q) => `${q} ${v.replace(" ", "")}` },
+];
+const facetaDaBusca = (q) => { const n = semAcentoF(q).replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); return FACETAS.find((f) => f.busca.test(n)) || null; };
+// [rótulo, ordem] do anúncio nessa lista, ou null. Guardado no próprio anúncio (a lista é relida a cada desenho)
+function valorDaFaceta(f, o) {
+  if (o._faceta?.id !== f.id) o._faceta = { id: f.id, v: f.de(semAcentoF(o.titulo).replace(/[^a-z0-9.,/ ]+/g, " ").replace(/\s+/g, " "), o.titulo) };
+  return o._faceta.v;
+}
+// <<< facetas
+
+// Quadro da lateral com a lista de modelos/medidas da busca (ver FACETAS acima)
+const modelosPedidos = { pedido: -1, feitos: new Set() };
+const facetaAtual = () => (estado.q && !estado.loja && !navegandoCategoria() && !estado.soUsados ? facetaDaBusca(estado.q) : null);
+function valoresDaFaceta(f) {
+  const porValor = new Map();
+  for (const o of estado.ofertas) {
+    if (o.acessorio || o.parecido || o.naoBuscado || o.noMeio) continue;
+    const v = valorDaFaceta(f, o);
+    if (!v) continue;
+    const item = porValor.get(v[0]) || { rotulo: v[0], ordem: v[1], qtd: 0 };
+    item.qtd += 1;
+    porValor.set(v[0], item);
+  }
+  return [...porValor.values()].filter((v) => v.qtd >= 2 || v.rotulo === estado.modeloSo);
+}
+const MODELOS_VISIVEIS = 12;
+function desenharFiltroModelos() {
+  const caixa = $("#caixa-modelos");
+  if (!caixa) return;
+  const f = facetaAtual();
+  const valores = f ? valoresDaFaceta(f) : [];
+  if (valores.length < 2) { caixa.hidden = true; if (estado.modeloSo && !f) estado.modeloSo = null; return; }
+  caixa.hidden = false;
+  $("legend", caixa).textContent = f.nome;
+  // Entram os que têm mais ofertas; mostrados na ordem natural (modelo mais novo primeiro; medida da menor para a maior)
+  const escolhidos = (estado.todosModelos ? valores : [...valores].sort((a, b) => b.qtd - a.qtd).slice(0, MODELOS_VISIVEIS)
+    .concat(valores.filter((v) => v.rotulo === estado.modeloSo))).filter((v, i, l) => l.findIndex((x) => x.rotulo === v.rotulo) === i);
+  const decrescente = ["iphone", "galaxy", "motorola", "xiaomi"].includes(f.id);
+  escolhidos.sort((a, b) => (decrescente ? b.ordem - a.ordem : a.ordem - b.ordem));
+  const escolher = (rotulo) => {
+    estado.modeloSo = rotulo;
+    desenharFiltroLojas();
+    desenharResultados();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (rotulo) completarModelo(f, rotulo);
+  };
+  const linha = (ativa, rotulo, nome) => el("button", { type: "button", class: `secao-item${ativa ? " ativa" : ""}`,
+    "aria-pressed": String(ativa), onclick: () => escolher(rotulo) }, el("span", { class: "secao-nome" }, nome));
+  $("#filtro-modelos").replaceChildren(linha(!estado.modeloSo, null, "Todos"),
+    ...escolhidos.map((v) => linha(estado.modeloSo === v.rotulo, v.rotulo, v.rotulo)),
+    valores.length > escolhidos.length ? el("button", { type: "button", class: "botao-link",
+      onclick: () => { estado.todosModelos = true; desenharFiltroModelos(); } }, `Ver todos (${valores.length})`) : "");
+}
+// Um modelo/medida escolhido: busca por trás "busca + valor" (como a marca, completarMarca) e junta o que for dele
+async function completarModelo(f, rotulo) {
+  if (!f.termo || estado.buscando) return;
+  const pedido = estado.pedido;
+  if (modelosPedidos.pedido !== pedido) { modelosPedidos.pedido = pedido; modelosPedidos.feitos.clear(); }
+  if (modelosPedidos.feitos.has(rotulo)) return;
+  modelosPedidos.feitos.add(rotulo);
+  const espera = esqueletos(4);
+  $("#grade").append(...espera);
+  try {
+    const dados = await fetch(enderecoBusca(f.termo(rotulo, estado.q), null, "&atalho=1")).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    if (pedido !== estado.pedido) return;
+    const ja = new Set(estado.ofertas.map((o) => o.id));
+    const novas = semRepetidos(dados?.ofertas || []).filter((o) => !ja.has(o.id) && o.bate && !o.acessorio && !o.parecido && valorDaFaceta(f, o)?.[0] === rotulo);
+    if (novas.length) {
+      estado.ofertas = semRepetidos([...estado.ofertas.filter((o) => !o.acessorio), ...novas, ...estado.ofertas.filter((o) => o.acessorio)]);
+      desenharFiltroLojas();
+    }
+  } finally {
+    for (const e of espera) e.remove();
+    if (pedido === estado.pedido) desenharResultados();
+  }
+}
+
 function desenharFiltroTipos() {
   const caixa = $("#caixa-tipos");
   if (!caixa) return;
@@ -2980,6 +3190,7 @@ function lojasNoResumo() {
 
 function desenharFiltroLojas() {
   desenharFiltroTipos();
+  desenharFiltroModelos();
   desenharFiltroCondicao();
   desenharFiltroSecoes();
   desenharFiltroMarcas();
@@ -3103,7 +3314,7 @@ function escolhaRapida(lista) {
 // A escolha fica parada enquanto a lista e os filtros são os mesmos: só muda quando o visitante mexe num filtro ou
 // pede "Ver mais resultados"
 function chaveDaEscolha() {
-  return JSON.stringify([estado.pedido, estado.cargasManuais || 0, [...estado.lojasDesmarcadas], estado.secoesSo && [...estado.secoesSo], estado.tipoSo,
+  return JSON.stringify([estado.pedido, estado.cargasManuais || 0, [...estado.lojasDesmarcadas], estado.secoesSo && [...estado.secoesSo], estado.tipoSo, estado.modeloSo || "",
     [...estado.secoesFora], [...estado.marcasSo], $("#preco-min").value, $("#preco-max").value, $("#so-frete").checked,
     $("#bem-avaliados").checked, $("#com-acessorios").checked, $("input[name=envio]:checked")?.value]);
 }
