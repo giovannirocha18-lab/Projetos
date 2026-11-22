@@ -2851,6 +2851,10 @@ const TIPOS_DAS_CATEGORIAS = {
   "Limpeza": [["Robôs aspiradores", /robo/, "robô aspirador"], ["Aspiradores", /aspirador/, "aspirador de pó"], ["Mops", /\bmop\b|esfregao/, "mop giratório"], ["Vassouras e rodos", /vassoura|rodo/, "vassoura"]],
   "Brinquedos": [["Pelúcias", /pelucia/, "pelúcia"], ["Bonecas e bonecos", /boneca|boneco|reborn/, "boneca"], ["Blocos de montar", /lego|blocos|de montar/, "lego"],
     ["Carrinhos", /carrinho|\bcarro\b/, "carrinho de controle remoto"], ["Jogos", /\bjogos?\b|quebra ?-?cabeca/, "jogo de tabuleiro"]],
+  "Celulares": [["iPhone", /iphone/, "iphone"], ["Samsung Galaxy", /galaxy|samsung/, "samsung galaxy"], ["Motorola", /motorola|\bmoto [a-z]/, "motorola"],
+    ["Xiaomi", /xiaomi|redmi|\bpoco\b/, "xiaomi"], ["Realme", /realme/, "realme"]],
+  "Smartwatches": [["Apple Watch", /apple watch/, "apple watch"], ["Galaxy Watch", /galaxy watch|galaxy fit/, "galaxy watch"], ["Infantis", /infantil|kids|crianca/, "smartwatch infantil"],
+    ["Smartbands", /\bband\b|smartband|pulseira inteligente/, "smartband"], ["Smartwatches", /smart ?watch|relogio inteligente|amazfit|\bwatch\b/, "smartwatch"]],
   "Caixas de som": [["Soundbars", /sound ?bar/, "soundbar"], ["Amplificadas", /amplificada|torre|partybox/, "caixa de som amplificada"], ["Portáteis", /portatil|bluetooth/, "caixa de som bluetooth"]],
   "Automotivo": [["Centrais multimídia", /multimidia|mp5|central/, "central multimídia"], ["Capacetes", /capacete/, "capacete"], ["Câmeras", /camera/, "câmera de ré"],
     ["Som", /\bsom\b|audio|amplificador|alto ?-?falante|subwoofer|radio/, "som automotivo"], ["Tapetes", /tapete/, "tapete automotivo"]],
@@ -2900,7 +2904,15 @@ async function completarTipoDaCategoria(categoria, tipo) {
     }
   } finally {
     for (const e of espera) e.remove();
-    if (pedido === estado.pedido) desenharResultados();
+    if (pedido === estado.pedido) {
+      // Nada desse tipo, nem na lista nem na busca: volta para "Todos" com um aviso, em vez de deixar a tela vazia
+      if (estado.tipoSo === tipo && categoriaComTipos() === categoria && !estado.ofertas.some((o) => tipoDaLista(o) === tipo)) {
+        estado.tipoSo = null;
+        toast(`Sem ofertas de ${tipo} agora. Mostrando todos.`, 4000);
+        desenharFiltroLojas();
+      }
+      desenharResultados();
+    }
   }
 }
 function desenharFiltroTipos() {
@@ -2909,10 +2921,9 @@ function desenharFiltroTipos() {
   const rapidos = $("#tipos-rapidos");
   const categoria = categoriaComTipos();
   if (categoria) {
-    const conta = new Map();
-    if (!modoComparacao()) for (const o of estado.ofertas) { const t = (categoria === "Games" || !o.acessorio) && tipoDaLista(o); if (t) conta.set(t, (conta.get(t) || 0) + 1); }
-    const nomes = nomesDosTipos(categoria).filter((nome) => conta.get(nome) >= 2 || nome === estado.tipoSo)
-      .sort((a, b) => a.localeCompare(b, "pt-BR"));
+    // Todos os tipos da categoria, mesmo os que a lista aberta ainda não trouxe (Giovanni, 22/11/2026: "não limite"): o toque
+    // busca o tipo por trás (completarTipoDaCategoria)
+    const nomes = modoComparacao() || !estado.ofertas.length ? [] : [...nomesDosTipos(categoria)].sort((a, b) => a.localeCompare(b, "pt-BR"));
     if (nomes.length < 2) { caixa.hidden = true; if (rapidos) { rapidos.hidden = true; rapidos.replaceChildren(); } estado.tipoSo = null; return; }
     const escolher = (tipo) => {
       estado.tipoSo = estado.tipoSo === tipo ? null : tipo;
