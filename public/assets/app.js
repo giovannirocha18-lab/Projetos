@@ -2900,7 +2900,7 @@ async function completarTipoDaCategoria(categoria, tipo) {
     const aceitaSemCategoria = Boolean(TIPOS_DAS_CATEGORIAS[categoria]?.find(([nome]) => nome === tipo)?.[3]);
     const ja = new Set(estado.ofertas.map((o) => o.id));
     const novas = semRepetidos(respostas.flatMap((d) => d?.ofertas || [])).filter((o) => !ja.has(o.id) && o.bate && !o.acessorio && !o.parecido
-      && !o.noMeio && !o.naoBuscado && !o.usado && (o.secao === categoria || (!o.secao && aceitaSemCategoria && !/\blivros?\b/i.test(o.titulo))) && tipoNaCategoria(o, categoria) === tipo);
+      && !o.noMeio && !o.naoBuscado && !o.usado && (o.secao === categoria || (!o.secao && aceitaSemCategoria && !/\blivros?\b|adult|casal|namoro|erotic|sexy|bebida|drink/i.test(o.titulo))) && tipoNaCategoria(o, categoria) === tipo);
     if (novas.length) {
       estado.ofertas = semRepetidos([...estado.ofertas, ...novas]);
       desenharFiltroLojas();
