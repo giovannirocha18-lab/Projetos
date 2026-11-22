@@ -2197,7 +2197,54 @@ function textoDosTamanhos(tamanhos) {
   // Lista comprida com numeração faltando no meio: cabe numa linha
   return n.length > 6 ? `Numerações: ${n[0]} ao ${n[n.length - 1]} (algumas em falta)` : `Numerações: ${n.join(", ")}`;
 }
+// USADOS NUM FILTRO À PARTE (22/11/2026, Giovanni: "em vez de esconder do usuário, faça eles aparecerem num filtro à
+// parte"): o servidor manda o usado/seminovo/ferro-velho marcado (o.usado). Toda lista que entra na tela passa por
+// semRepetidos, que fica só com a condição escolhida (novos, de início) e guarda a outra; o quadro "Condição" da lateral
+// troca uma pela outra (escolherCondicao). Assim nada do resto da tela (Escolha rápida, selos, contagens) vê usado
+const condicao = { pedido: -1, usados: new Map(), novos: new Map(), telaDosNovos: null };
+function soDaCondicao(lista) {
+  if (condicao.pedido !== estado.pedido) {
+    Object.assign(condicao, { pedido: estado.pedido, usados: new Map(), novos: new Map(), telaDosNovos: null });
+    estado.soUsados = false;
+  }
+  if (!lista.some((o) => o.usado) && !estado.soUsados) return lista;
+  for (const o of lista) (o.usado ? condicao.usados : condicao.novos).set(o.id, o);
+  return lista.filter((o) => Boolean(o.usado) === Boolean(estado.soUsados));
+}
+function escolherCondicao(usados) {
+  if (Boolean(estado.soUsados) === usados) return;
+  if (usados) {
+    condicao.telaDosNovos = estado.ofertas;
+    estado.soUsados = true;
+    estado.ofertas = semRepetidos([...condicao.usados.values()]);
+  } else {
+    estado.soUsados = false;
+    const tela = condicao.telaDosNovos || [];
+    const ja = new Set(tela.map((o) => o.id));
+    estado.ofertas = semRepetidos([...tela, ...[...condicao.novos.values()].filter((o) => !ja.has(o.id))]);
+  }
+  estado.marcasSo.clear();
+  estado.tipoSo = null;
+  estado.escolha = null; // a Escolha rápida é refeita (ficava a da outra condição)
+  zerarSecoes();
+  desenharFiltroLojas();
+  desenharResultados();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function desenharFiltroCondicao() {
+  const caixa = $("#caixa-condicao");
+  if (!caixa) return;
+  const tem = condicao.pedido === estado.pedido && condicao.usados.size > 0 && Boolean(estado.q) && !naEspecial();
+  caixa.hidden = !tem;
+  if (!tem) return;
+  const linha = (ativa, usados, icone, nome) => el("button", { type: "button", class: `secao-item${ativa ? " ativa" : ""}`,
+    "aria-pressed": String(ativa), onclick: () => escolherCondicao(usados) },
+  el("span", { class: "secao-icone", "aria-hidden": "true" }, icone), el("span", { class: "secao-nome" }, nome));
+  $("#filtro-condicao").replaceChildren(linha(!estado.soUsados, false, "✨", "Novos"), linha(Boolean(estado.soUsados), true, "♻️", "Usados e seminovos"));
+}
+
 function semRepetidos(lista) {
+  lista = soDaCondicao(lista);
   const posicao = new Map();
   const porPreco = new Map(); // loja + preço -> posições na saída (cores do mesmo produto)
   const porTitulo = new Map(); // loja + título -> posições na saída
@@ -2933,6 +2980,7 @@ function lojasNoResumo() {
 
 function desenharFiltroLojas() {
   desenharFiltroTipos();
+  desenharFiltroCondicao();
   desenharFiltroSecoes();
   desenharFiltroMarcas();
   desenharLojasDaLista();
@@ -3062,7 +3110,7 @@ function chaveDaEscolha() {
 
 function desenharEscolhaRapida(lista) {
   const caixa = $("#escolha-rapida");
-  if (estado.completando) { caixa.hidden = true; return; }
+  if (estado.completando || estado.soUsados) { caixa.hidden = true; if (estado.soUsados) caixa.replaceChildren(); return; } // entre usados não há "Escolha rápida"
   const chave = chaveDaEscolha();
   if (estado.escolha?.chave !== chave) estado.escolha = { chave, escolhas: escolhaRapida(lista) };
   const { escolhas } = estado.escolha;
@@ -3285,7 +3333,7 @@ function desenharResumo(lista) {
   const qtdLojas = new Set(lista.map((o) => o.loja)).size;
   const cat = navegandoCategoria();
   const titulo = el("div", { class: "resumo-busca" },
-    cat ? el("h1", {}, `${cat.emoji || ""} ${cat.nome}`) : el("h1", {}, el("span", {}, "Resultados para "), `“${estado.q}”`),
+    cat ? el("h1", {}, `${cat.emoji || ""} ${cat.nome}`) : el("h1", {}, el("span", {}, estado.soUsados ? "Usados e seminovos de " : "Resultados para "), `“${estado.q}”`),
     el("p", {}, lista.length
       ? `${quantasOfertas(lista.length)} em ${qtdLojas} ${qtdLojas === 1 ? "loja" : "lojas"}`
       : estado.ofertas.length ? "Nenhuma oferta com esses filtros"

@@ -10,7 +10,7 @@
 // chaves das APIs, sem nunca chegarem ao navegador do visitante.
 import { comCategoriaDaIa } from "../../lib/ia.js";
 import { naoSaoDaBusca, semNaoBuscados, semBrinquedos, respostaSemNaoBuscados } from "../../lib/iaBusca.js";
-import { semPrecoAbsurdo, semUsados } from "../../lib/lojasRemovidas.js";
+import { semPrecoAbsurdo, marcarUsados } from "../../lib/lojasRemovidas.js";
 import { fotosErradas, semFotosErradas } from "../../lib/iaFotos.js";
 import { exemplo } from "../../lib/fontes/exemplo.js";
 import { curadoria } from "../../lib/fontes/curadoria.js";
@@ -656,7 +656,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   // O que a IA disse não ser o produto buscado vai para "Ver também… produtos parecidos" (ver lib/iaBusca.js)
   if (q) ofertas = semBrinquedos(semNaoBuscados(ofertas, await iaAntes), q);
-  ofertas = semUsados(semPrecoAbsurdo(ofertas), q); // preço errado do vendedor e produto usado/ferro-velho (lib/lojasRemovidas.js)
+  ofertas = marcarUsados(semPrecoAbsurdo(ofertas), q); // preço errado do vendedor sai; usado/ferro-velho vai marcado (lib/lojasRemovidas.js)
   ofertas = semFotosErradas(ofertas, await fotosAntes); // foto que não é do produto (lib/iaFotos.js)
   // Lomadee: tira as fotos que já sabemos que não abrem (ver lib/fotos.js); nas buscas prontas do robô, testa antes
   etapa("ia");
