@@ -1577,8 +1577,9 @@ function completarTipoDoComparador(categoria, tipo) {
   };
   for (let i = 0; i < 3; i++) trabalhar();
 }
-function tipoDoGrupo(g, categoria) {
-  const titulo = normalizar([...g.ofertas].sort((a, b) => a.titulo.length - b.titulo.length)[0].titulo);
+const tipoDoGrupo = (g, categoria) => tipoDoTitulo([...g.ofertas].sort((a, b) => a.titulo.length - b.titulo.length)[0].titulo, categoria);
+function tipoDoTitulo(tituloCru, categoria) {
+  const titulo = normalizar(tituloCru);
   let achado = null;
   for (const [nome, re] of TIPOS_DO_COMPARADOR[categoria] || []) {
     const onde = titulo.search(re);
@@ -1694,6 +1695,7 @@ $("#modo-comparacao").addEventListener("change", () => {
   $("#atalho-comparador").setAttribute("aria-pressed", String(ligado));
   marcarBotoesComparador();
   modelosMostrados = MODELOS_POR_VEZ;
+  desenharFiltroTipos();
   // Desligou: o quadro some na hora, mesmo com uma busca ainda carregando (print do Giovanni, 12/11/2026)
   if (!ligado) $("#comparacao").hidden = true;
   desenharAvisoComparacao();
@@ -2458,7 +2460,7 @@ function passaNosFiltros(comMarca = true) {
   return (o) => secaoVisivel(o) && !parecidoFora(o)
     && (!faceta || valorDaFaceta(faceta, o)?.[0] === estado.modeloSo)
     // parecido = console de outra geração (PS4 na busca "playstation 5"): não entra em nenhum tipo; de outra marca, entra
-    && (!tipo || (tipoDe(o) === tipo && (!o.parecido || o.outraMarca)))
+    && (!tipo || (tipoDaLista(o) === tipo && (!o.parecido || o.outraMarca)))
     && !(comMarca && estado.marcasSo.size && !estado.marcasSo.has(marcaDe(o)?.n))
     && !(semAcessorios && o.acessorio)
     && !(min >= 0 && o.preco < min)
@@ -2780,9 +2782,77 @@ async function completarModelo(f, rotulo) {
   }
 }
 
+// Tipos de produto na CATEGORIA aberta, fora do comparador (pedido do Giovanni, 22/11/2026: "exibir por tipo: TV, geladeira,
+// fogão… ao clicar na categoria"): os mesmos de TIPOS_DO_COMPARADOR, lidos do nome do anúncio. No computador é o quadro "Tipo"
+// da lateral; no celular, a fila de pílulas abaixo das Marcas. Com o comparador ligado some (o quadro dele tem a própria fila)
+const categoriaComTipos = () => { const c = !naEspecial() && !estado.loja && navegandoCategoria()?.nome; return c && TIPOS_DO_COMPARADOR[c] ? c : null; };
+function tipoDaLista(o) {
+  const c = categoriaComTipos();
+  if (!c) return tipoDe(o);
+  if (o._tipoCat?.c !== c) o._tipoCat = { c, v: tipoDoTitulo(o.titulo, c) };
+  return o._tipoCat.v;
+}
+// Tipo escolhido: pede por trás a busca do produto ("geladeira") e junta o que for da categoria e do tipo (a vitrine da
+// categoria traz só uma parte de cada tipo)
+const tiposDaCategoriaPedidos = { pedido: -1, feitos: new Set() };
+async function completarTipoDaCategoria(categoria, tipo) {
+  if (estado.buscando || !BUSCAS_DO_TIPO[tipo]) return;
+  const pedido = estado.pedido;
+  if (tiposDaCategoriaPedidos.pedido !== pedido) { tiposDaCategoriaPedidos.pedido = pedido; tiposDaCategoriaPedidos.feitos.clear(); }
+  if (tiposDaCategoriaPedidos.feitos.has(tipo)) return;
+  tiposDaCategoriaPedidos.feitos.add(tipo);
+  const espera = esqueletos(4);
+  $("#grade").append(...espera);
+  try {
+    const respostas = await Promise.all(BUSCAS_DO_TIPO[tipo].map((termo) => fetch(`/api/buscar?v=${VERSAO_BUSCA}&q=${encodeURIComponent(termo)}&atalho=1`)
+      .then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+    if (pedido !== estado.pedido || categoriaComTipos() !== categoria) return;
+    const ja = new Set(estado.ofertas.map((o) => o.id));
+    const novas = semRepetidos(respostas.flatMap((d) => d?.ofertas || [])).filter((o) => !ja.has(o.id) && o.bate && !o.acessorio && !o.parecido
+      && !o.noMeio && !o.naoBuscado && o.secao === categoria && tipoDoTitulo(o.titulo, categoria) === tipo);
+    if (novas.length) {
+      estado.ofertas = semRepetidos([...estado.ofertas, ...novas]);
+      desenharFiltroLojas();
+    }
+  } finally {
+    for (const e of espera) e.remove();
+    if (pedido === estado.pedido) desenharResultados();
+  }
+}
 function desenharFiltroTipos() {
   const caixa = $("#caixa-tipos");
   if (!caixa) return;
+  const rapidos = $("#tipos-rapidos");
+  const categoria = categoriaComTipos();
+  if (categoria) {
+    const conta = new Map();
+    if (!modoComparacao()) for (const o of estado.ofertas) { const t = !o.acessorio && tipoDaLista(o); if (t) conta.set(t, (conta.get(t) || 0) + 1); }
+    const nomes = TIPOS_DO_COMPARADOR[categoria].map(([nome]) => nome).filter((nome) => conta.get(nome) >= 2 || nome === estado.tipoSo)
+      .sort((a, b) => a.localeCompare(b, "pt-BR"));
+    if (nomes.length < 2) { caixa.hidden = true; if (rapidos) { rapidos.hidden = true; rapidos.replaceChildren(); } estado.tipoSo = null; return; }
+    const escolher = (tipo) => {
+      estado.tipoSo = estado.tipoSo === tipo ? null : tipo;
+      estado.marcasSo.clear();
+      desenharFiltroLojas();
+      desenharResultados();
+      if (estado.tipoSo) completarTipoDaCategoria(categoria, estado.tipoSo);
+    };
+    caixa.hidden = false;
+    const linha = (ativa, tipo, nome) => el("button", { type: "button", class: `secao-item${ativa ? " ativa" : ""}`,
+      "aria-pressed": String(ativa), onclick: () => { escolher(tipo); window.scrollTo({ top: 0, behavior: "smooth" }); } }, el("span", { class: "secao-nome" }, nome));
+    $("#filtro-tipos").replaceChildren(linha(!estado.tipoSo, null, "Todos"), ...nomes.map((nome) => linha(estado.tipoSo === nome, nome, nome)));
+    if (rapidos) {
+      const rolado = rapidos.scrollLeft;
+      rapidos.hidden = false;
+      rapidos.replaceChildren(el("span", { class: "marcas-rapidas-titulo" }, "Tipos"),
+        el("button", { type: "button", class: "chip-marca", "aria-pressed": String(!estado.tipoSo), onclick: () => escolher(null) }, "Todos"),
+        ...nomes.map((nome) => el("button", { type: "button", class: "chip-marca", "data-tipo": nome, "aria-pressed": String(estado.tipoSo === nome),
+          onclick: () => escolher(nome) }, nome)));
+      if (rolado) rapidos.scrollTo(rolado, 0);
+    }
+    return;
+  }
+  if (rapidos) { rapidos.hidden = true; rapidos.replaceChildren(); }
   const tem = new Set(buscaDeVideogame() && !naEspecial() ? estado.ofertas.map(tipoDe) : []);
   if (tem.size < 2) { caixa.hidden = true; if (estado.tipoSo) estado.tipoSo = null; return; }
   caixa.hidden = false;
@@ -3734,7 +3804,7 @@ function desenharFiltrosLigados() {
     if (ordem && ordem.value !== "relevancia") {
       pilula(ordem.closest("label").textContent.trim(), () => { const r = $("input[name=ordem][value=relevancia]"); r.checked = true; mudar(r); });
     }
-    if (estado.tipoSo) pilula(estado.tipoSo, () => { estado.tipoSo = null; desenharFiltroLojas(); desenharResultados(); });
+    if (estado.tipoSo && $("#tipos-rapidos")?.hidden !== false) pilula(estado.tipoSo, () => { estado.tipoSo = null; desenharFiltroLojas(); desenharResultados(); });
     // Marca que já aparece marcada na fila de marcas do celular não ganha pílula repetida (19/11/2026)
     const naFila = new Set($("#marcas-rapidas")?.hidden === false ? [...document.querySelectorAll("#marcas-rapidas [data-marca]")].map((x) => x.dataset.marca) : []);
     for (const n of estado.marcasSo) {
