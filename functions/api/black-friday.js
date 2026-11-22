@@ -48,13 +48,13 @@ async function daMarca(request, env, filtro, tipo = "marca") {
   const cabecalhos = (segundos) => ({ "Cache-Control": segundos ? `public, max-age=${segundos}` : "no-store", "X-Robots-Tag": "noindex" });
   if (!filtro) return Response.json({ ofertas: [], marca: null, busca: null, completo: false, temMais: false }, { headers: cabecalhos(0) });
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/black-friday?v=13${tipo === "q" ? "&r=3" : ""}&${tipo}=${encodeURIComponent(filtro.n)}`, request.url));
+  const chave = new Request(new URL(`/api/black-friday?v=13${tipo === "q" ? "&r=4" : ""}&${tipo}=${encodeURIComponent(filtro.n)}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
   const [dados, doML] = await Promise.all([listarBlackFridayDaMarca(env.DB, filtro, maximo),
     mercadolivre.ofertasBlackFridayDaMarca(env, filtro, maximo).catch(() => ({ ofertas: [], total: 0 }))]);
   // Na busca, os do Mercado Livre também passam pela regra do produto buscado (a peneira deles é só pelas palavras)
-  if (filtro.escolher) doML.ofertas = filtro.escolher(doML.ofertas, { soProdutos: dados.ofertas.length > 0 });
+  if (filtro.escolher) doML.ofertas = filtro.escolher(doML.ofertas, { soProdutos: dados.ofertas.length > 0, contexto: dados.ofertas });
   const ofertas = listaSoComNovos(misturarML(dados.ofertas.filter((o) => !ofertaDeLojaRemovida(o) && nivelBlackFriday(o)).map(semDescontoFalso).map(comSecaoCerta), doML.ofertas));
   const resposta = Response.json({ ofertas, ...(tipo === "q" ? { busca: filtro.q } : { marca: filtro.n }), completo: dados.total <= maximo && doML.total <= maximo, temMais: false },
     { headers: cabecalhos(ofertas.length ? CACHE_SEGUNDOS : 0) });
