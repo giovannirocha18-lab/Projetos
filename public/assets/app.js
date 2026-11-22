@@ -2850,7 +2850,7 @@ const TIPOS_DAS_CATEGORIAS = {
     ["Organizadores", /organizador/, "organizador"]],
   "Limpeza": [["Robôs aspiradores", /robo/, "robô aspirador"], ["Aspiradores", /aspirador/, "aspirador de pó"], ["Mops", /\bmop\b|esfregao/, "mop giratório"], ["Vassouras e rodos", /vassoura|rodo/, "vassoura"]],
   "Brinquedos": [["Pelúcias", /pelucia/, "pelúcia"], ["Bonecas e bonecos", /boneca|boneco|reborn/, "boneca"], ["Blocos de montar", /lego|blocos|de montar/, "lego"],
-    ["Carrinhos", /carrinho|\bcarro\b/, "carrinho de controle remoto"], ["Jogos", /\bjogos?\b|quebra ?-?cabeca/, ["jogo de tabuleiro", "quebra cabeça"]]],
+    ["Carrinhos", /carrinho|\bcarro\b/, "carrinho de controle remoto"], ["Jogos", /\bjogos?\b|quebra ?-?cabeca/, ["jogo de tabuleiro", "quebra cabeça"], true]],
   "Celulares": [["iPhone", /iphone/, "iphone"], ["Samsung Galaxy", /galaxy|samsung/, "samsung galaxy"], ["Motorola", /motorola|\bmoto [a-z]/, "motorola"],
     ["Xiaomi", /xiaomi|redmi|\bpoco\b/, "xiaomi"], ["Realme", /realme/, "realme"]],
   "Smartwatches": [["Apple Watch", /apple watch/, "apple watch"], ["Galaxy Watch", /galaxy watch|galaxy fit/, "galaxy watch"], ["Infantis", /infantil|kids|crianca/, "smartwatch infantil"],
@@ -2895,9 +2895,12 @@ async function completarTipoDaCategoria(categoria, tipo) {
     const respostas = await Promise.all(buscas.map((termo) => fetch(`/api/buscar?v=${VERSAO_BUSCA}&q=${encodeURIComponent(termo)}&atalho=1`)
       .then((r) => (r.ok ? r.json() : null)).catch(() => null)));
     if (pedido !== estado.pedido || categoriaComTipos() !== categoria) return;
+    // Só o que as lojas marcaram na própria categoria (print do Giovanni, 22/11/2026: "Vestidos" em Moda feminina trouxe livros com
+    // "vestido" no nome, vestido de bebê e fantasia: vinham sem categoria). Sem categoria só entra onde a lista do tipo pede (4º item)
+    const aceitaSemCategoria = Boolean(TIPOS_DAS_CATEGORIAS[categoria]?.find(([nome]) => nome === tipo)?.[3]);
     const ja = new Set(estado.ofertas.map((o) => o.id));
     const novas = semRepetidos(respostas.flatMap((d) => d?.ofertas || [])).filter((o) => !ja.has(o.id) && o.bate && !o.acessorio && !o.parecido
-      && !o.noMeio && !o.naoBuscado && !o.usado && (!o.secao || o.secao === categoria) && tipoNaCategoria(o, categoria) === tipo);
+      && !o.noMeio && !o.naoBuscado && !o.usado && (o.secao === categoria || (!o.secao && aceitaSemCategoria && !/\blivros?\b/i.test(o.titulo))) && tipoNaCategoria(o, categoria) === tipo);
     if (novas.length) {
       estado.ofertas = semRepetidos([...estado.ofertas, ...novas]);
       desenharFiltroLojas();
