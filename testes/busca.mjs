@@ -175,6 +175,9 @@ const CASOS = {
   "celular samsung": { E: ["Smartphone Samsung Galaxy A06 128GB 4GB RAM", "Celular Samsung Galaxy A16 5G"] },
   "tenis feminino": { E: ["Tênis Feminino Casual Branco Plataforma", "Tenis Feminino Esportivo Academia"] },
   "ventilador": { E: ["Ventilador de Mesa Mondial 40cm Turbo", "Ventilador Coluna Arno 6 Pás"], A: ["Hélice Ventilador Arno 40cm Reposição"] },
+  // Print do Giovanni (22/11/2026): Menor preço de "iphone 18 pro" era um iPhone 16 com "iOS 18" no nome
+  "iphone 18 pro": { E: ["iPhone 18 Pro Apple 256GB, Câmera Tripla Fusion de 48MP", "Apple iPhone 18 Pro Max 512GB"],
+    N: ["Smartphone IPhone 16 128GB 5G iOS 18 Tela 6,7 Preto"] },
   "iphone 15": { E: ["Apple iPhone 15 128GB Preto", "iPhone 15 Pro Max 256GB Vitrine"], A: ["Capa para iPhone 15 Magsafe", "Película iPhone 15 Vidro 3D"] },
   "geladeira": { E: ["Geladeira Frost Free Brastemp 375L", "Refrigerador Geladeira Consul 300 Litros"], A: ["Borracha Gaxeta para Geladeira Consul"] },
   "creatina": { E: ["Creatina Monohidratada 300g Growth", "Creatina Max Titanium 100% Pura 150g"] },
@@ -938,6 +941,13 @@ for (const [q, buscaEsperada, itens, esperado] of [
   total += 2;
   if (ficaram !== "567") { falhas++; console.log(`✗ só produto novo: ficaram ${ficaram}, esperado 567`); }
   if (buscouUsado !== itens.length) { falhas++; console.log("✗ só produto novo: quem busca 'usado' tem que ver os usados"); }
+  // 22/11/2026: "2 MESES USO" é usado; "3 meses de uso contínuo" (quanto o produto rende) não
+  {
+    const { ehUsado } = await import("../lib/lojasRemovidas.js");
+    total += 1;
+    if (!ehUsado({ titulo: "Celular Apple iPhone 18 Pro 256GB 2 MESES USO. Impecável" }) || ehUsado({ titulo: "Shampoo Antiqueda 3 meses de uso contínuo" })
+      || ehUsado({ titulo: "Refil Filtro Rende 6 Meses de Uso" })) { falhas++; console.log("✗ só produto novo: regra dos 'N meses de uso'"); }
+  }
   // 21/11/2026 (regra do Giovanni, print "porta deslizante" dentro de Automotivo): busca dentro da categoria só traz a categoria
   {
     const auto = categoriaPorNome("Automotivo");
