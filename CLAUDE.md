@@ -20,7 +20,7 @@
   (1) regra que deixa ENTRAR produto numa lista (categoria, tipo, marca, loja, Black Friday) passa pela trava `entraNaCategoriaAberta` (app.js) ou pelo filtro do servidor; nunca "aceitar sem categoria" para encher lista;
   (2) antes de publicar: `node testes/categoria.mjs` junto com busca/sugestoes/modulos;
   (3) **depois de publicar a ÚLTIMA versão, rodar `node robo/ronda-categorias.mjs "<categorias mexidas>"` no ar** (teste feito antes do último ajuste não vale) e só então dizer que está pronto, com o número de intrusos;
-  (4) toda madrugada, depois do Monitor dos visitantes: `node robo/ronda-categorias.mjs` (40 categorias, 2 tipos sorteados, ~15 min); "outra categoria" > 0 = corrigir na hora; suspeitos = ler e corrigir a regra/lista; pôr o resultado no resumo ao Giovanni;
+  (4) toda madrugada, depois do Monitor dos visitantes: `node robo/ronda-categorias.mjs` (40 categorias, 2 tipos sorteados, ~45 min: rodar em segundo plano; 1ª ronda 22/11: 74 tipos, 14.877 cartões, 0 de outra categoria, 0 erro de tela); "outra categoria" > 0 = corrigir na hora; suspeitos = ler e corrigir a regra/lista; pôr o resultado no resumo ao Giovanni;
   (5) erro meu é dito como erro meu, com a causa.
 - Regras fixas: nunca raspar páginas das lojas (só APIs/feeds oficiais); nada de urgência/escassez falsa; sem aviso de
   afiliado visível (só `rel="sponsored"`); sempre tema claro.

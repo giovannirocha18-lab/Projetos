@@ -2,8 +2,8 @@
 // Abre o site NO AR como visitante, entra em cada categoria, toca em tipos e lê os cartões da tela. Acusa:
 //   - cartão de OUTRA categoria (não pode existir: trava entraNaCategoriaAberta em app.js);
 //   - cartão com cara de intruso (livro, adulto, usado…) ou que não é do tipo tocado.
-// Uso: node robo/ronda-categorias.mjs            → todas as categorias, 2 tipos sorteados em cada (~15 min)
-//      node robo/ronda-categorias.mjs todos      → todos os tipos (~50 min)
+// Uso: node robo/ronda-categorias.mjs            → todas as categorias, 2 tipos sorteados em cada (~45 min)
+//      node robo/ronda-categorias.mjs todos      → todos os tipos (2 h+)
 //      node robo/ronda-categorias.mjs "Moda feminina" "Pets"   → só essas, todos os tipos
 // Sai com código 1 se achar cartão de outra categoria. Não conta visita (cookie vpc_nao_contar).
 import fs from "node:fs";
@@ -14,7 +14,8 @@ const todas = [...fonte.matchAll(/\{ nome: "([^"]+)", emoji: "[^"]+", busca: "/g
 const pedidas = process.argv.slice(2).filter((x) => x !== "todos");
 const todosOsTipos = process.argv.includes("todos") || pedidas.length > 0;
 const categorias = pedidas.length ? pedidas : todas;
-const SUSPEITO = /\blivros?\b|\be-?book\b|adulto|er[oó]tic|sex shop|\busad[oa]s?\b|seminov|recondicionad/i;
+// "adulto" sozinho não entra: ração "para cães adultos" deu 30+ alarmes falsos na 1ª ronda (22/11/2026)
+const SUSPEITO = /\blivros?\b|\be-?book\b|(jogo|brinquedo|produto)s? adult|\+ ?18\b|er[oó]tic|sex shop|\busad[oa]s?\b|seminov|recondicionad/i;
 const sortear = (lista, n) => [...lista].sort(() => Math.random() - 0.5).slice(0, n);
 
 const navegador = await chromium.launch();
@@ -63,7 +64,7 @@ await navegador.close();
 const linhas = [
   `Ronda das categorias: ${categorias.length} categorias, ${toques} tipos tocados, ${vistos} cartões lidos.`,
   `Cartões de OUTRA categoria: ${outraCategoria.length}`, ...outraCategoria.slice(0, 30).map((x) => `  ✗ ${x}`),
-  `Cartões suspeitos (livro, adulto, usado…): ${suspeitos.length}`, ...suspeitos.slice(0, 30).map((x) => `  ? ${x}`),
+  `Cartões suspeitos (livro, adulto, usado…): ${suspeitos.length}`, ...suspeitos.slice(0, 200).map((x) => `  ? ${x}`),
   `Tipos sem produto ou que não abriram: ${vazios.length}`, ...vazios.slice(0, 30).map((x) => `  - ${x}`),
   `Erros de tela: ${errosDeTela.length}`, ...[...new Set(errosDeTela)].slice(0, 5).map((x) => `  ! ${x}`),
 ];
