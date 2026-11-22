@@ -2785,18 +2785,102 @@ async function completarModelo(f, rotulo) {
 // Tipos de produto na CATEGORIA aberta, fora do comparador (pedido do Giovanni, 22/11/2026: "exibir por tipo: TV, geladeira,
 // fogão… ao clicar na categoria"): os mesmos de TIPOS_DO_COMPARADOR, lidos do nome do anúncio. No computador é o quadro "Tipo"
 // da lateral; no celular, a fila de pílulas abaixo das Marcas. Com o comparador ligado some (o quadro dele tem a própria fila)
-const categoriaComTipos = () => { const c = !naEspecial() && !estado.loja && navegandoCategoria()?.nome; return c && TIPOS_DO_COMPARADOR[c] ? c : null; };
+// Nas categorias do comparador vale TIPOS_DO_COMPARADOR (a palavra que aparece primeiro no nome); nas outras, a lista abaixo
+// (pedido do Giovanni, 22/11/2026: "por que só 4 categorias?"): [nome, palavra no nome sem acento, busca que completa a lista].
+// Aqui vale o PRIMEIRO da lista que bate (do mais específico para o mais geral). Games usa o quadro "Tipo" dos videogames
+// (tipoDe). Para incluir um tipo: mais uma linha na categoria
+const TIPOS_DAS_CATEGORIAS = {
+  "Pets": [["Arranhadores", /arranhador/, "arranhador gato"], ["Camas", /\bcamas?\b|caminha/, "cama pet"], ["Coleiras e guias", /coleira|peitoral|\bguia\b/, "coleira cachorro"],
+    ["Fontes e bebedouros", /fonte|bebedouro/, "fonte gato"], ["Comedouros", /comedouro|alimentador/, "comedouro pet"], ["Rações", /racao|racoes/, "ração"],
+    ["Petiscos", /petisco|sache/, "petisco cachorro"], ["Areia e higiene", /areia|tapete higienico|shampoo/, "areia gato"], ["Roupas", /roupa|roupinha/, "roupa cachorro"],
+    ["Brinquedos", /brinquedo|mordedor|bolinha/, "brinquedo pet"]],
+  "Bebês": [["Fraldas", /fralda/, "fralda"], ["Babás eletrônicas", /baba eletronica/, "babá eletrônica"], ["Mordedores e chocalhos", /mordedor|chocalho/, "mordedor bebê"],
+    ["Chupetas", /chupeta/, "chupeta"], ["Mamadeiras", /mamadeira/, "mamadeira"], ["Carrinhos", /carrinho/, "carrinho de bebê"],
+    ["Cadeirinhas", /cadeirinha|bebe conforto|assento/, "cadeirinha bebê"], ["Lenços", /lenco/, "lenço umedecido"], ["Roupas", /\bbod(y|ys|ies)\b|macacao|conjunto|roupa/, "body bebê"]],
+  "Perfumes": [["Kits", /\bkit\b|combo/, "kit perfume"], ["Body splash", /body splash/, "body splash"], ["Árabes", /arabe|lattafa/, "perfume árabe"],
+    ["Masculinos", /masculin/, "perfume masculino"], ["Femininos", /feminin/, "perfume feminino"]],
+  "Suplementos": [["Whey", /whey/, "whey protein"], ["Creatina", /creatina/, "creatina"], ["Pré-treino", /pre ?-?treino/, "pré-treino"], ["Colágeno", /colageno/, "colágeno"],
+    ["Vitaminas", /vitamina|multivitaminico|omega/, "vitamina"]],
+  "Maquiagem": [["Paletas e sombras", /paleta|sombra/, "paleta de sombras"], ["Bases", /\bbase\b/, "base líquida"], ["Gloss e batons", /gloss|batom|labial|\blip\b/, "batom"],
+    ["Corretivos", /corretivo/, "corretivo"], ["Cílios e delineadores", /rimel|cilios|delineador/, "rímel"], ["Pós e blush", /\bpo\b|blush|iluminador|contorno/, "blush"],
+    ["Pincéis", /pincel|pinceis|esponja/, "pincel de maquiagem"]],
+  "Skincare": [["Kits", /\bkit\b|combo/, "kit skincare"], ["Protetor solar", /protetor solar|\bsun\b|fps/, "protetor solar facial"], ["Séruns", /serum/, "sérum facial"],
+    ["Limpeza facial", /sabonete|gel de limpeza|limpeza facial|demaquilante|micelar/, "sabonete facial"], ["Máscaras", /mascara/, "máscara facial"],
+    ["Hidratantes", /hidratante|creme/, "hidratante facial"]],
+  "Cabelo": [["Chapinhas", /chapinha|prancha/, "chapinha"], ["Secadores", /secador/, "secador de cabelo"], ["Escovas", /escova/, "escova secadora"],
+    ["Modeladores", /modelador|babyliss/, "modelador de cachos"], ["Máscaras", /mascara/, "máscara capilar"], ["Shampoos", /shampoo|condicionador/, "shampoo"],
+    ["Óleos e finalizadores", /oleo|leave|finalizador|queratina/, "óleo capilar"]],
+  "Fones de ouvido": [["Headsets", /headset/, "headset"], ["Headphones", /headphone|over ?-?ear/, "headphone"], ["Com fio", /com fio|\bp2\b/, "fone de ouvido com fio"],
+    ["Sem fio", /sem fio|bluetooth|tws|buds/, "fone bluetooth"]],
+  "Carregadores": [["Power banks", /power ?bank|carregador portatil|bateria externa/, "power bank"], ["Veiculares", /veicular/, "carregador veicular"],
+    ["Sem fio", /sem fio|inducao|magsafe/, "carregador sem fio"], ["De parede", /carregador|fonte/, "carregador turbo"], ["Cabos", /\bcabos?\b/, "cabo usb c"]],
+  "Acessórios de celular": [["Películas", /pelicula/, "película celular"], ["Suportes", /suporte/, "suporte celular"], ["Capas", /capa|capinha|case/, "capinha celular"]],
+  "Relógios": [["Masculinos", /masculin/, "relógio masculino"], ["Femininos", /feminin/, "relógio feminino"], ["Infantis", /infantil/, "relógio infantil"]],
+  "Joias e bijuterias": [["Conjuntos", /conjunto|\bkit\b/, "conjunto colar e brinco"], ["Anéis", /anel|aneis|alianca/, "anel"], ["Brincos", /brinco/, "brinco"],
+    ["Colares", /colar|corrente|gargantilha|pingente/, "colar"], ["Pulseiras", /pulseira|bracelete/, "pulseira"], ["Tornozeleiras", /tornozeleira/, "tornozeleira"]],
+  "Óculos": [["Esportivos", /ciclismo|esportiv/, "óculos ciclismo"], ["De grau", /grau|armacao|luz azul|leitura/, "armação óculos de grau"], ["De sol", /\bsol\b|polarizad/, "óculos de sol"]],
+  "Bonés e chapéus": [["Buckets", /bucket/, "chapéu bucket"], ["Toucas e gorros", /touca|gorro|balaclava/, "touca"], ["Bonés", /\bbones?\b/, "boné"], ["Chapéus", /chapeu/, "chapéu"]],
+  "Calçados": [["Tênis", /tenis/, "tênis"], ["Sandálias", /sandalia|rasteir/, "sandália"], ["Chinelos", /chinelo|slide/, "chinelo"], ["Crocs", /crocs|babuche/, "crocs"],
+    ["Botas", /\bbotas?\b|coturno/, "bota"], ["Sapatos", /sapato|sapatenis|mocassim|oxford/, "sapato"]],
+  "Bolsas e mochilas": [["Mochilas", /mochila/, "mochila"], ["Necessaires", /necessaire/, "necessaire"], ["Carteiras", /carteira/, "carteira"], ["Malas", /\bmalas?\b/, "mala de viagem"],
+    ["Pochetes", /pochete/, "pochete"], ["Bolsas", /bolsa/, "bolsa feminina"]],
+  "Moda infantil": [["Vestidos", /vestido/, "vestido infantil"], ["Fantasias", /fantasia/, "fantasia infantil"], ["Pijamas", /pijama/, "pijama infantil"],
+    ["Conjuntos", /conjunto/, "conjunto infantil"], ["Camisetas e blusas", /camiseta|blusa/, "camiseta infantil"]],
+  "Moda íntima": [["Pijamas", /pijama|camisola/, "pijama"], ["Cuecas", /cueca/, "cueca boxer"], ["Conjuntos", /conjunto|lingerie/, "conjunto lingerie"], ["Sutiãs", /sutia/, "sutiã"],
+    ["Calcinhas", /calcinha/, "calcinha"], ["Meias", /\bmeias?\b/, "meia"]],
+  "Moda fitness": [["Conjuntos", /conjunto/, "conjunto fitness"], ["Leggings e calças", /legging|calca/, "legging"], ["Tops", /\btops?\b/, "top fitness"], ["Shorts", /short/, "short fitness"]],
+  "Moda masculina": [["Bermudas", /bermuda|short/, "bermuda masculina"], ["Camisas polo", /polo/, "camisa polo masculina"], ["Camisetas", /camiseta|regata/, "camiseta masculina"],
+    ["Camisas", /camisa/, "camisa masculina"], ["Calças", /calca/, "calça masculina"], ["Casacos", /jaqueta|moletom|casaco|blusa/, "jaqueta masculina"]],
+  "Moda feminina": [["Conjuntos", /conjunto/, "conjunto feminino"], ["Vestidos", /vestido/, "vestido"], ["Croppeds", /cropped/, "cropped"], ["Calças", /calca|pantalona/, "calça feminina"],
+    ["Saias e shorts", /saia|short/, "saia"], ["Casacos", /jaqueta|casaco|moletom|cardigan/, "jaqueta feminina"], ["Blusas", /blusa|regata|camisa|camiseta/, "blusa feminina"]],
+  "Mesa posta": [["Jogos americanos", /jogos? american/, "jogo americano"], ["Sousplats", /sousplat/, "sousplat"], ["Guardanapos", /guardanapo/, "guardanapo de tecido"],
+    ["Toalhas de mesa", /toalha/, "toalha de mesa"]],
+  "Móveis": [["Guarda-roupas", /guarda ?-?roupas?|roupeiro/, "guarda-roupa"], ["Escrivaninhas", /escrivaninha|mesa (de|para) escritorio/, "escrivaninha"], ["Racks e painéis", /rack|painel/, "rack para tv"],
+    ["Sofás", /sofa/, "sofá"], ["Camas", /\bcamas?\b/, "cama box"], ["Cadeiras", /cadeira|poltrona|banqueta/, "cadeira"], ["Estantes", /estante/, "estante"],
+    ["Cômodas", /comoda/, "cômoda"], ["Mesas", /\bmesas?\b/, "mesa de jantar"]],
+  "Cozinha": [["Garrafas térmicas", /garrafa/, "garrafa térmica"], ["Panelas", /panela|frigideira/, "jogo de panelas"], ["Potes", /\bpotes?\b/, "potes herméticos"],
+    ["Copos e canecas", /copo|caneca/, "copo térmico"], ["Talheres e facas", /faqueiro|talher|\bfacas?\b/, "faqueiro"]],
+  "Cama e banho": [["Toalhas", /toalha/, "toalha de banho"], ["Travesseiros", /travesseiro/, "travesseiro"], ["Edredons e colchas", /edredom|colcha|cobre ?-?leito|cobertor|manta/, "edredom"],
+    ["Jogos de cama", /jogos? (de )?cama|lencol|roupa de cama|conjuntos? de cama/, "jogo de cama"]],
+  "Esporte e fitness": [["Cordas de pular", /corda/, "corda de pular"], ["Tapetes de yoga", /tapete|\bmat\b/, "tapete de yoga"], ["Elásticos", /elastico|extensor/, "elástico extensor"],
+    ["Halteres", /halter|anilha|kettlebell/, "halter"]],
+  "Iluminação LED": [["Fitas LED", /fita/, "fita led"], ["Refletores", /refletor|holofote/, "refletor led"], ["Luminárias", /luminaria|abajur/, "luminária led"], ["Lâmpadas", /lampada/, "lâmpada led"]],
+  "Decoração": [["Espelhos", /espelho/, "espelho decorativo"], ["Luminárias", /luminaria|abajur/, "abajur"], ["Vasos", /vaso/, "vaso decorativo"], ["Quadros", /quadro/, "quadro decorativo"]],
+  "Organização": [["Sapateiras", /sapateira/, "sapateira"], ["Prateleiras", /prateleira/, "prateleira"], ["Cabides", /cabide/, "cabide"], ["Caixas organizadoras", /caixa/, "caixa organizadora"],
+    ["Organizadores", /organizador/, "organizador"]],
+  "Limpeza": [["Robôs aspiradores", /robo/, "robô aspirador"], ["Aspiradores", /aspirador/, "aspirador de pó"], ["Mops", /\bmop\b|esfregao/, "mop giratório"], ["Vassouras e rodos", /vassoura|rodo/, "vassoura"]],
+  "Brinquedos": [["Pelúcias", /pelucia/, "pelúcia"], ["Bonecas e bonecos", /boneca|boneco|reborn/, "boneca"], ["Blocos de montar", /lego|blocos|de montar/, "lego"],
+    ["Carrinhos", /carrinho|\bcarro\b/, "carrinho de controle remoto"], ["Jogos", /\bjogos?\b|quebra ?-?cabeca/, "jogo de tabuleiro"]],
+  "Caixas de som": [["Soundbars", /sound ?bar/, "soundbar"], ["Amplificadas", /amplificada|torre|partybox/, "caixa de som amplificada"], ["Portáteis", /portatil|bluetooth/, "caixa de som bluetooth"]],
+  "Automotivo": [["Centrais multimídia", /multimidia|mp5|central/, "central multimídia"], ["Capacetes", /capacete/, "capacete"], ["Câmeras", /camera/, "câmera de ré"],
+    ["Som", /\bsom\b|audio|amplificador|alto ?-?falante|subwoofer|radio/, "som automotivo"], ["Tapetes", /tapete/, "tapete automotivo"]],
+};
+const BUSCAS_DE_GAMES = { "Consoles": ["ps5", "xbox series", "nintendo switch"], "Controles": ["controle ps5", "controle xbox"], "Jogos": ["jogo ps5", "jogo nintendo switch"] };
+const categoriaComTipos = () => {
+  const c = !naEspecial() && !estado.loja && navegandoCategoria()?.nome;
+  return c && (TIPOS_DO_COMPARADOR[c] || TIPOS_DAS_CATEGORIAS[c] || c === "Games") ? c : null;
+};
+const nomesDosTipos = (c) => (c === "Games" ? TIPOS.map(([tipo]) => tipo) : (TIPOS_DO_COMPARADOR[c] || TIPOS_DAS_CATEGORIAS[c]).map(([nome]) => nome));
+const buscasDoTipoNaCategoria = (c, tipo) => (c === "Games" ? BUSCAS_DE_GAMES[tipo] : TIPOS_DO_COMPARADOR[c] ? BUSCAS_DO_TIPO[tipo]
+  : [TIPOS_DAS_CATEGORIAS[c].find(([nome]) => nome === tipo)?.[2]].filter(Boolean)) || [];
+function tipoNaCategoria(o, c) {
+  if (c === "Games") return tipoDe(o);
+  if (TIPOS_DO_COMPARADOR[c]) return tipoDoTitulo(o.titulo, c);
+  const titulo = normalizar(o.titulo);
+  return TIPOS_DAS_CATEGORIAS[c].find(([, re]) => re.test(titulo))?.[0] || null;
+}
 function tipoDaLista(o) {
   const c = categoriaComTipos();
   if (!c) return tipoDe(o);
-  if (o._tipoCat?.c !== c) o._tipoCat = { c, v: tipoDoTitulo(o.titulo, c) };
+  if (o._tipoCat?.c !== c) o._tipoCat = { c, v: tipoNaCategoria(o, c) };
   return o._tipoCat.v;
 }
 // Tipo escolhido: pede por trás a busca do produto ("geladeira") e junta o que for da categoria e do tipo (a vitrine da
 // categoria traz só uma parte de cada tipo)
 const tiposDaCategoriaPedidos = { pedido: -1, feitos: new Set() };
 async function completarTipoDaCategoria(categoria, tipo) {
-  if (estado.buscando || !BUSCAS_DO_TIPO[tipo]) return;
+  const buscas = buscasDoTipoNaCategoria(categoria, tipo);
+  if (estado.buscando || !buscas.length) return;
   const pedido = estado.pedido;
   if (tiposDaCategoriaPedidos.pedido !== pedido) { tiposDaCategoriaPedidos.pedido = pedido; tiposDaCategoriaPedidos.feitos.clear(); }
   if (tiposDaCategoriaPedidos.feitos.has(tipo)) return;
@@ -2804,12 +2888,12 @@ async function completarTipoDaCategoria(categoria, tipo) {
   const espera = esqueletos(4);
   $("#grade").append(...espera);
   try {
-    const respostas = await Promise.all(BUSCAS_DO_TIPO[tipo].map((termo) => fetch(`/api/buscar?v=${VERSAO_BUSCA}&q=${encodeURIComponent(termo)}&atalho=1`)
+    const respostas = await Promise.all(buscas.map((termo) => fetch(`/api/buscar?v=${VERSAO_BUSCA}&q=${encodeURIComponent(termo)}&atalho=1`)
       .then((r) => (r.ok ? r.json() : null)).catch(() => null)));
     if (pedido !== estado.pedido || categoriaComTipos() !== categoria) return;
     const ja = new Set(estado.ofertas.map((o) => o.id));
     const novas = semRepetidos(respostas.flatMap((d) => d?.ofertas || [])).filter((o) => !ja.has(o.id) && o.bate && !o.acessorio && !o.parecido
-      && !o.noMeio && !o.naoBuscado && o.secao === categoria && tipoDoTitulo(o.titulo, categoria) === tipo);
+      && !o.noMeio && !o.naoBuscado && !o.usado && o.secao === categoria && tipoNaCategoria(o, categoria) === tipo);
     if (novas.length) {
       estado.ofertas = semRepetidos([...estado.ofertas, ...novas]);
       desenharFiltroLojas();
@@ -2826,8 +2910,8 @@ function desenharFiltroTipos() {
   const categoria = categoriaComTipos();
   if (categoria) {
     const conta = new Map();
-    if (!modoComparacao()) for (const o of estado.ofertas) { const t = !o.acessorio && tipoDaLista(o); if (t) conta.set(t, (conta.get(t) || 0) + 1); }
-    const nomes = TIPOS_DO_COMPARADOR[categoria].map(([nome]) => nome).filter((nome) => conta.get(nome) >= 2 || nome === estado.tipoSo)
+    if (!modoComparacao()) for (const o of estado.ofertas) { const t = (categoria === "Games" || !o.acessorio) && tipoDaLista(o); if (t) conta.set(t, (conta.get(t) || 0) + 1); }
+    const nomes = nomesDosTipos(categoria).filter((nome) => conta.get(nome) >= 2 || nome === estado.tipoSo)
       .sort((a, b) => a.localeCompare(b, "pt-BR"));
     if (nomes.length < 2) { caixa.hidden = true; if (rapidos) { rapidos.hidden = true; rapidos.replaceChildren(); } estado.tipoSo = null; return; }
     const escolher = (tipo) => {
