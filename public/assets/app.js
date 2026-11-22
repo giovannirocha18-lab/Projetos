@@ -3186,6 +3186,41 @@ function palavraCertaAoDigitar(digitada, temOutraAntes) {
   }
   return null;
 }
+// Palavra com preposição grudada: "capivarade pelucia" → "capivara de pelucia", "racaopara gatos" → "racao para gatos",
+// "capa depelucia" → "capa de pelucia", "capivaradepelucia" → "capivara de pelucia". Só a 1ª palavra que der para separar;
+// quem chama confere se a busca separada traz mais produtos antes de trocar
+const coladasTentadas = new Set();
+const COLADAS = ["para", "pra", "com", "sem", "dos", "das", "de", "do", "da"];
+function separarColadas(q) {
+  const palavras = limpo(q).split(" ").filter(Boolean);
+  if (!palavras.length || palavras.length > 6) return null;
+  const conhecidas = vocab.itens?.length ? palavrasConhecidas() : new Map();
+  const conhece = (p) => conhecidas.has(p) || conhecidas.has(`${p}s`) || (p.endsWith("s") && conhecidas.has(p.slice(0, -1)));
+  for (let i = 0; i < palavras.length; i++) {
+    const p = palavras[i];
+    if (p.length < 6 || /\d/.test(p) || conhece(p)) continue;
+    let nova = null;
+    // no meio: as duas partes com 4+ letras e pelo menos uma conhecida
+    for (const prep of COLADAS) {
+      for (let k = p.indexOf(prep, 4); k !== -1 && !nova; k = p.indexOf(prep, k + 1)) {
+        const [antes, depois] = [p.slice(0, k), p.slice(k + prep.length)];
+        if (antes.length >= 4 && depois.length >= 4 && (conhece(antes) || conhece(depois))) nova = `${antes} ${prep} ${depois}`;
+      }
+      if (nova) break;
+    }
+    // no fim (tem que haver outra palavra depois) ou no começo (outra palavra antes)
+    if (!nova && i < palavras.length - 1) {
+      const prep = COLADAS.find((c) => p.endsWith(c) && p.length - c.length >= 4);
+      if (prep) nova = `${p.slice(0, -prep.length)} ${prep}`;
+    }
+    if (!nova && i > 0) {
+      const prep = COLADAS.find((c) => p.startsWith(c) && p.length - c.length >= 4 && conhece(p.slice(c.length)));
+      if (prep) nova = `${prep} ${p.slice(prep.length)}`;
+    }
+    if (nova) return [...palavras.slice(0, i), nova, ...palavras.slice(i + 1)].join(" ");
+  }
+  return null;
+}
 function buscaCorrigidaPeloVocabulario(q) {
   const palavras = limpo(q).split(" ").filter(Boolean);
   if (!palavras.length || palavras.length > 5 || !vocab.itens?.length) return null;
@@ -3614,6 +3649,26 @@ async function buscar(q) {
       const { de, para } = estado.aprender;
       estado.aprender = null;
       if (limpo(para) === limpo(estado.q) && estado.ofertas.filter((o) => o.bate && !o.acessorio).length >= 3) aprenderErros(de, para);
+    }
+    // Palavras COLADAS (22/11/2026, monitor da madrugada: "capivarade pelucia" trazia 2 produtos; Giovanni: "ajuste
+    // também para de, do, para etc."): busca com menos de 5 produtos e uma palavra que parece ter "de/do/da/para/com/sem"
+    // grudado → pede por trás a busca com a palavra separada e só troca se ela trouxer MAIS produtos (palavra de
+    // verdade que termina assim, "escada", "almofada", não é trocada: a separada traz menos)
+    const produtosDaBusca = estado.ofertas.filter((o) => o.bate && !o.acessorio).length;
+    if (produtosDaBusca < 5 && !lojaAtual() && !estado.cat && !new URLSearchParams(location.search).has("exato") && !coladasTentadas.has(limpo(estado.q))) {
+      const separada = separarColadas(estado.q);
+      coladasTentadas.add(limpo(estado.q));
+      if (separada) {
+        coladasTentadas.add(limpo(separada));
+        const outra = await fetch(enderecoBusca(separada, null, "&atalho=1")).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+        if (pedido !== estado.pedido) return;
+        const achados = (outra?.ofertas || []).filter((o) => o.bate && !o.acessorio).length;
+        if (achados >= 3 && achados > produtosDaBusca) {
+          history.replaceState(null, "", `/?q=${encodeURIComponent(separada)}`);
+          mostrar();
+          return;
+        }
+      }
     }
     // Nenhuma oferta e alguma palavra parece erro de digitação de uma busca conhecida: refaz com a palavra certa
     if (!estado.ofertas.length && !lojaAtual() && !estado.cat && !new URLSearchParams(location.search).has("exato")) {
