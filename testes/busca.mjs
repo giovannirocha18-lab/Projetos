@@ -984,6 +984,20 @@ for (const [q, buscaEsperada, itens, esperado] of [
   ["Esporte e fitness", [["Blusa HALTER TOP ASSMETRICA RIBANA ELEGÂNCIA E CONFORTO", false], ["Kit 2 Top Halter Blusinha Regata Halter Neck Frente Única Costas Nuas Cropped", false],
     ["Halter dot impresso vestidos para mulheres moda sexy streetwear sem costas sem mangas", false], ["Par Halteres 8kg + 8kg Dumbbell Sextavado Emborrachado", true],
     ["Halter Emborrachado 6kg Preto", true], ["Corda de Pular Profissional Ajustável Fitness Academia", true], ["Tapete de Yoga Antiderrapante 6mm", true]]],
+  // 23/11/2026 (varredura das 40 categorias): a palavra da categoria com outro sentido
+  ["Eletroportáteis", [["Mixer de Áudio FIFINE SC8 com Iluminação RGB e Modificador de Voz", false], ["Mesa de Som Profissional de 4 Canais com Bluetooth, Mixer de Áudio 48V USB", false],
+    ["Mixer Philips Walita Daily 400W 3 em 1 Preto", true], ["Liquidificador Mondial Turbo 550W", true]]],
+  ["Cabelo", [["Escova de Limpeza para Máquina de Lavar, Escova de Limpeza para Tubulação de Secadora", false], ["Escova Secadora Britânia Bivolt 1300w Soft Bec07r", true], ["Secador de Cabelo Taiff 2000W", true]]],
+  ["Limpeza", [["Vassoura de Bruxa Dançante Animada e Luminosa com Sons", false], ["Livro - A Vassoura Mágica", false], ["Vassoura Mágica de Silicone, Mop de Borracha", true]]],
+  ["Moda íntima", [["360 ° Cabide Giratório Durável para Cintos, Organizador de Cintos, Lenços, Sutiãs e Gravatas", false], ["Sutiã Esportivo Feminino de Alta Sustentação para Yoga", true]]],
+  ["Bonés e chapéus", [["Touca de Peruca de Malha de Nylon Ventilada, Cor Nude", false], ["Touca de banho impermeável de dupla camada", false], ["Boné Trucker Preto Aba Curva", true]]],
+  ["Games", [["Ponta de Ferro de Solda para Joystick 90W 936, Ferro de Solda Elétrico", false], ["Chave de Fenda Torx T6 T8 T10 de Segurança para Xbox One", false], ["Controle Sem Fio DualSense PS5 Branco", true]]],
+  ["Perfumes", [["Carro High-End Perfume Ambientador, Importado, Remover Odores", false], ["Perfume Masculino Malbec 100ml O Boticário", true]]],
+  ["Skincare", [["Chapéu Protetor Solar Respirável com Máscara Facial e Proteção de Pescoço", false], ["Viseira de capacete de ar r1 protetor facial lente", false], ["Protetor Solar Facial FPS 70 La Roche 40g", true]]],
+  ["Cama e banho", [["Travesseiro de encosto de cabeça de carro, espuma de memória", false], ["Travesseiro Nasa Viscoelástico 50x70", true]]],
+  ["Decoração", [["1 caixa cromo preto prego em pó metálico pigmento espelho mágico unhas", false], ["Espelho de Maquiagem de Mesa com Luz LED de 3 Cores", true]]],
+  ["Joias e bijuterias", [["Pulseira de relógio de 16mm para casio GA-110", false], ["Pulseira Feminina Prata 925 Ponto de Luz", true]]],
+  ["Automotivo", [["Capacete de soldagem movido a energia solar, escurecimento automático", false], ["Capacete de Ciclismo de Montanha DH MTB para Homens", false], ["Capacete Moto Fechado Pro Tork R8 Preto", true]]],
   ["Iluminação LED", [["Luz traseira da motocicleta retângulo refletor cauda lâmpada de freio", false], ["Refletor Led 100w Holofote Bivolt Prova D'água", true]]]]) {
     const c = categoriaPorNome(cat);
     const saida = soDaCategoria(itens.map(([titulo], i) => ({ id: `s${i}`, titulo, preco: 30, bate: true, secao: cat })), c);

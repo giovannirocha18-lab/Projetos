@@ -2896,8 +2896,19 @@ const PROIBIDO_SEM_CATEGORIA = /\blivros?\b|\be-?book\b|adult|casal|namoro|eroti
 // "Fitas LED" de Iluminação). Ficam de fora desta regra as categorias em que o produto "para carro" é o próprio produto
 const DE_VEICULO = /\b(para|de|em|do|no) carros?\b|porta-?malas|\bmotocicletas?\b|\b(para|de|da) motos?\b|automotiv|\bveicular|retrovisor|ponto cego|caminh[aã]o|caminh[oõ]es/i;
 const ACEITAM_VEICULO = new Set(["Automotivo", "Acessórios de celular", "Carregadores", "Fones de ouvido", "Brinquedos", "Bebês", "Ferramentas", "Caixas de som"]);
+// Regras "não é desta categoria" do SERVIDOR (NAO_E_DA_CATEGORIA em lib/categorias.js), que chegam com a lista de categorias
+// (/api/em-alta, campo "fora"): o que o navegador junta passa pela mesma regra da vitrine (varredura de 23/11/2026)
+const REGRAS_DO_SERVIDOR = new Map();
+function guardarRegrasDoServidor(lista) {
+  for (const c of lista || []) {
+    if (!c?.fora) continue;
+    try { REGRAS_DO_SERVIDOR.set(c.nome, new RegExp(c.fora)); } catch { /* regra ilegível: fica sem */ }
+  }
+}
+const tituloComoNoServidor = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 function entraNaCategoriaAberta(o, categoria, semCategoriaVale = false) {
   if (!o || !categoria || o.usado || o.naoBuscado) return false;
+  if (REGRAS_DO_SERVIDOR.get(categoria)?.test(tituloComoNoServidor(o.titulo))) return false;
   if (!ACEITAM_VEICULO.has(categoria) && DE_VEICULO.test(o.titulo || "")) return false;
   // "halter" em Esporte e fitness é o peso de academia: blusa/vestido "halter" (frente única) não entra (print de 23/11/2026)
   if (categoria === "Esporte e fitness" && /\b(blusas?|blusinhas?|regatas?|vestidos?|cropped|bodysuit|macac[aã]o|biqu[ií]nis?|decote|frente [uú]nica|costas nuas|sem mangas|halter neck|tops? halter)\b/i.test(o.titulo || "")) return false;
@@ -5075,7 +5086,7 @@ async function carregarEmAlta() {
   const guardada = faixaMLGuardada();
   if (guardada) desenharBuscadosML(guardada);
   try {
-    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=22")).json();
+    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=23")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     // As categorias primeiro (print do Giovanni, 18/11/2026: o atalho "Eletroportáteis" do topo abria a busca comum pela palavra,
     // 17 kits, em vez da categoria): o atalho só sabe que é categoria depois que a lista das 40 chegou
@@ -5102,6 +5113,7 @@ try { if (localStorage.getItem("ordemCategorias") === "az") ordemCategorias = "a
 const ABAS_CELULAR = 14;
 function desenharCategorias(lista = categoriasAtuais) {
   categoriasAtuais = lista;
+  guardarRegrasDoServidor(lista);
   document.querySelectorAll("[data-ordem-cat]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.ordemCat === ordemCategorias)));
   // Em A–Z vale a ordem alfabética para todas (a fixa só fica em 1º em "Mais vendidos")
   if (ordemCategorias === "az") lista = [...lista].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));

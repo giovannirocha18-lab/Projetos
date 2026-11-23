@@ -5,7 +5,10 @@ import fs from "node:fs";
 const app = fs.readFileSync(new URL("../public/assets/app.js", import.meta.url), "utf8");
 const a = app.indexOf("// >>> trava da categoria"), b = app.indexOf("// <<< trava da categoria");
 if (a < 0 || b < 0) { console.error("✗ marcadores da trava não encontrados em app.js"); process.exit(1); }
-const entra = new Function(app.slice(a, b) + "; return entraNaCategoriaAberta;")();
+const [entra, guardarRegras] = new Function(app.slice(a, b) + "; return [entraNaCategoriaAberta, guardarRegrasDoServidor];")();
+// As regras do servidor chegam ao site pela lista de categorias (/api/em-alta, campo "fora")
+const { todasCategorias } = await import("../lib/categorias.js");
+guardarRegras(todasCategorias([]));
 const casos = [
   [{ titulo: "Vestido Longo Feminino Festa", secao: "Moda feminina" }, "Moda feminina", false, true],
   [{ titulo: "Livro - Um Crocodilo De Vestido" }, "Moda feminina", false, false],
@@ -29,6 +32,11 @@ const casos = [
   [{ titulo: "Central Multimídia Automotiva Android", secao: "Automotivo" }, "Automotivo", false, true],
   [{ titulo: "Vestido Curto de Verão em Algodão com Decote Quadrado e Halter", secao: "Esporte e fitness" }, "Esporte e fitness", false, false],
   [{ titulo: "Halter Emborrachado 6kg Preto", secao: "Esporte e fitness" }, "Esporte e fitness", false, true],
+  // 23/11/2026 (varredura): a trava usa a regra do servidor
+  [{ titulo: "Mixer de Áudio FIFINE SC8 com Iluminação RGB", secao: "Eletroportáteis" }, "Eletroportáteis", false, false],
+  [{ titulo: "Mixer Philips Walita Daily 400W", secao: "Eletroportáteis" }, "Eletroportáteis", false, true],
+  [{ titulo: "Touca de banho impermeável", secao: "Bonés e chapéus" }, "Bonés e chapéus", false, false],
+  [{ titulo: "Escova de Limpeza para Tubulação de Secadora", secao: "Cabelo" }, "Cabelo", false, false],
 ];
 let erros = 0;
 for (const [o, cat, sem, esperado] of casos) {
