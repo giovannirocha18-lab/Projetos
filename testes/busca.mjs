@@ -945,6 +945,11 @@ for (const [q, buscaEsperada, itens, esperado] of [
   {
     const { ehUsado } = await import("../lib/lojasRemovidas.js");
     total += 1;
+    // 23/11/2026 (ronda das categorias): "Notebook Usado com Bateria…" é usado; "pode ser usado com bateria externa" não
+    total += 1;
+    if (!ehUsado({ titulo: "Notebook Usado com Bateria Celeron Dual Core – Testado e Funcionando" }) || ehUsado({ titulo: "Adaptador pode ser usado com bateria externa" })) {
+      falhas++; console.log("✗ usado com bateria: o notebook é usado, o adaptador não");
+    }
     if (!ehUsado({ titulo: "Celular Apple iPhone 18 Pro 256GB 2 MESES USO. Impecável" }) || ehUsado({ titulo: "Shampoo Antiqueda 3 meses de uso contínuo" })
       || ehUsado({ titulo: "Refil Filtro Rende 6 Meses de Uso" })) { falhas++; console.log("✗ só produto novo: regra dos 'N meses de uso'"); }
   }

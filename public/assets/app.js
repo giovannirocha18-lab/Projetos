@@ -1535,8 +1535,9 @@ const TIPOS_DO_COMPARADOR = {
     ["TVs", /\btvs?\b|televis/]],
   "Eletroportáteis": [["Air fryers", /air ?fryer|fritadeira/], ["Liquidificadores", /liquidificador/], ["Batedeiras", /batedeira/], ["Cafeteiras", /cafeteira/],
     ["Sanduicheiras e grills", /sanduicheira|\bgrill\b/], ["Mixers", /\bmixer\b/], ["Panelas elétricas", /panela/], ["Fornos elétricos", /forno/],
-    ["Aspiradores", /aspirador/], ["Ferros de passar", /ferro (de passar|a vapor|a seco)|passadeira/], ["Secadores", /secador/], ["Chapinhas", /chapinha|prancha/],
-    ["Barbeadores", /barbeador|aparador/]],
+    ["Aspiradores", /aspirador/], ["Ferros de passar", /ferro (de passar|a vapor|a seco)|passadeira/]],
+  // 23/11/2026 (ronda das categorias): Secadores, Chapinhas e Barbeadores saíram daqui: as lojas e a IA põem esses produtos em
+  // "Cabelo" (que tem os próprios tipos), então o botão abria vazio em Eletroportáteis
   "Ferramentas": [["Furadeiras", /furadeira/], ["Parafusadeiras", /parafusadeira/], ["Esmerilhadeiras", /esmerilhadeira/], ["Serras", /\bserra\b/],
     ["Lixadeiras", /lixadeira/], ["Marteletes", /martelete/], ["Lavadoras de pressão", /lavadora/], ["Compressores", /compressor/],
     ["Soldas", /solda/], ["Roçadeiras", /rocadeira/], ["Motosserras", /motosserra/]],
@@ -2865,7 +2866,11 @@ const categoriaComTipos = () => {
   const c = !naEspecial() && !estado.loja && navegandoCategoria()?.nome;
   return c && (TIPOS_DO_COMPARADOR[c] || TIPOS_DAS_CATEGORIAS[c] || c === "Games") ? c : null;
 };
-const nomesDosTipos = (c) => (c === "Games" ? TIPOS.map(([tipo]) => tipo) : (TIPOS_DO_COMPARADOR[c] || TIPOS_DAS_CATEGORIAS[c]).map(([nome]) => nome));
+// Tipo que só vale no comparador (23/11/2026, ronda das categorias): aspirador fica na categoria "Limpeza" (que tem o tipo
+// "Aspiradores"); o comparador conta como Eletroportáteis, mas na categoria aberta o botão abria vazio
+const TIPOS_SO_DO_COMPARADOR = { "Eletroportáteis": ["Aspiradores"] };
+const nomesDosTipos = (c) => (c === "Games" ? TIPOS.map(([tipo]) => tipo) : (TIPOS_DO_COMPARADOR[c] || TIPOS_DAS_CATEGORIAS[c]).map(([nome]) => nome)
+  .filter((nome) => !(TIPOS_SO_DO_COMPARADOR[c] || []).includes(nome)));
 const buscasDoTipoNaCategoria = (c, tipo) => (c === "Games" ? BUSCAS_DE_GAMES[tipo] : TIPOS_DO_COMPARADOR[c] ? BUSCAS_DO_TIPO[tipo]
   : [TIPOS_DAS_CATEGORIAS[c].find(([nome]) => nome === tipo)?.[2]].flat().filter(Boolean)) || [];
 function tipoNaCategoria(o, c) {
@@ -3020,11 +3025,14 @@ function desenharFiltroSecoes() {
   const visiveis = (estado.todasSecoes ? ordem : ordem.filter((secao, i) => i < SECOES_VISIVEIS || (!todas && secaoVisivel({ secao }))))
     .sort((a, b) => (!a) - (!b) || a.localeCompare(b, "pt-BR"));
   $("#filtro-secoes").replaceChildren(
-    linha(todas, () => { estado.secoesSo = null; estado.secoesFora.clear(); desenharFiltroSecoes(); desenharResultados(); }, "🗂️", "Todas", total),
+    // As Marcas seguem a categoria escolhida (print do Giovanni, 23/11/2026: nas Quedas de preço, de Ferramentas para Moda
+    // íntima o quadro seguia com Bosch/Makita/Stanley/WAP: o toque não redesenhava as marcas)
+    linha(todas, () => { estado.secoesSo = null; estado.secoesFora.clear(); desenharFiltroSecoes(); desenharFiltroMarcas(); desenharResultados(); }, "🗂️", "Todas", total),
     ...visiveis.map((secao) => linha(!todas && secaoVisivel({ secao }), () => {
       estado.secoesSo = new Set([secao]);
       estado.secoesFora.clear();
       desenharFiltroSecoes();
+      desenharFiltroMarcas();
       desenharResultados();
       completarSecao(secao);
     }, secao ? categoriaPeloNome(secao)?.emoji || "•" : "•", secao || "Outros", contagem.get(secao))),
