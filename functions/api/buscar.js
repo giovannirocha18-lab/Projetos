@@ -45,7 +45,7 @@ const FONTES_REAIS = [mercadolivre, curadoria, shopee, awin, aliexpress, lomadee
 const FRESCO_MS = 6 * 60 * 60 * 1000;
 // Vitrine de categoria mudada (19/11/2026, "tênis olympikus" em Calçados; Giovanni: a marca não aparecia): a lista guardada
 // antes disto é refeita na 1ª visita, sem esperar as 6 horas. Ao mudar a vitrine de uma categoria, pôr aqui a data e o nome
-const CARRO_2111 = Date.UTC(2026, 10, 21, 13, 20); // coisa de carro só em Automotivo: todas as vitrines refeitas
+const CARRO_2111 = Date.UTC(2026, 10, 23, 15, 43); // 23/11: espelho de moto/carro fora de Decoração (era 21/11 13:20, coisa de carro só em Automotivo): todas as vitrines refeitas
 const VITRINES_DESDE = new Proxy({}, { get: () => CARRO_2111 });
 const NUMERO_DESDE = Date.UTC(2026, 10, 22, 15, 4); // 22/11: número depois de iOS/Android/Windows não é modelo
 const CONSOLES_DESDE = Date.UTC(2026, 10, 16, 20, 35); // 16/11: regra da outra geração também nos acessórios (print "ps5")

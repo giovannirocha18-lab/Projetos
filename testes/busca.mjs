@@ -975,7 +975,12 @@ for (const [q, buscaEsperada, itens, esperado] of [
   for (const [cat, itens] of [["Automotivo", [["Carro Elétrico Infantil 12V com Controle Remoto e Sons Laranja", false], ["Bburago 1:64, modelo de carro em metal fundido Lamborghini, veículo de brinquedo", false],
     ["Forno Elétrico de 23L, Grande Capacidade, Multifuncional", false], ["Assento De Carro Infantil Elevação Fit Up 15-36kg Maxi Baby", true],
     ["Panela Elétrica Portátil 2L para Carro 12V 24V para Caminhão", true], ["Monitor de teto automotivo de 15,6 polegadas com reprodutor multimídia", true]]],
-  ["Maquiagem", [["Alicate dental de aço inoxidável, fórceps ortodôntico, instrumento cirúrgico", false], ["Pinça de sobrancelha inclinada de aço inoxidável, ferramentas de maquiagem", true]]]]) {
+  ["Maquiagem", [["Alicate dental de aço inoxidável, fórceps ortodôntico, instrumento cirúrgico", false], ["Pinça de sobrancelha inclinada de aço inoxidável, ferramentas de maquiagem", true]]],
+  // 23/11/2026 (print do Giovanni: espelho de moto e de carro no meio de Decoração)
+  ["Decoração", [["Espelho Auxiliar Convexo Moto Carro Elimina Ponto Cego", false], ["Espelhos de Motocicleta Circulares com Ângulo Amplo para Husqvarna 701", false],
+    ["Autêntico espelho de bolha capacete da motocicleta três botão tipo retro", false], ["Espelho de maquiagem universal para para-sol de carro com luz LED", false],
+    ["Espelho Decorativo Redondo 60cm Com Moldura Sala Quarto", true], ["Quadro Decorativo 3D 120cm X 50cm Carro Red 2023", true], ["Vaso Decorativo Cerâmica Para Plantas", true]]],
+  ["Iluminação LED", [["Luz traseira da motocicleta retângulo refletor cauda lâmpada de freio", false], ["Refletor Led 100w Holofote Bivolt Prova D'água", true]]]]) {
     const c = categoriaPorNome(cat);
     const saida = soDaCategoria(itens.map(([titulo], i) => ({ id: `s${i}`, titulo, preco: 30, bate: true, secao: cat })), c);
     for (const [titulo, fica] of itens) if (saida.some((o) => o.titulo === titulo) !== fica) { falhas++; console.log(`✗ busca em ${cat}: ${fica ? "devia ficar" : "devia sair"}: ${titulo}`); }
