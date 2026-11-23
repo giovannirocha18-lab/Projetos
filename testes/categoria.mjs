@@ -20,6 +20,13 @@ const casos = [
   [{ titulo: "Jogo de bebida drink" }, "Brinquedos", true, false],
   [{ titulo: "Freezer Horizontal Consul", secao: "Eletrodomésticos" }, "Eletrodomésticos", false, true],
   [{ titulo: "Freezer de brinquedo", secao: "Brinquedos" }, "Eletrodomésticos", false, false],
+  // 23/11/2026: coisa de carro/moto só em Automotivo
+  [{ titulo: "Fita de LED para Porta-Malas de Carro 4M, Luz RGB", secao: "Iluminação LED" }, "Iluminação LED", false, false],
+  [{ titulo: "Espelho Auxiliar Convexo Moto Carro Elimina Ponto Cego", secao: "Decoração" }, "Decoração", false, false],
+  [{ titulo: "Fita LED 5 Metros RGB Com Controle", secao: "Iluminação LED" }, "Iluminação LED", false, true],
+  [{ titulo: "Quadro Decorativo 3D Carro Red 2023", secao: "Decoração" }, "Decoração", false, true],
+  [{ titulo: "Carregador Veicular Turbo 3 USB", secao: "Carregadores" }, "Carregadores", false, true],
+  [{ titulo: "Central Multimídia Automotiva Android", secao: "Automotivo" }, "Automotivo", false, true],
 ];
 let erros = 0;
 for (const [o, cat, sem, esperado] of casos) {

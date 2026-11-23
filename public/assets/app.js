@@ -2892,8 +2892,13 @@ function tipoDaLista(o) {
 // categoria aberta (tipo, marca ou o que vier depois) passa por aqui. Só entra o que a loja/IA marcou na própria categoria;
 // produto sem categoria só onde o tipo pede (semCategoriaVale) e nunca livro, adulto ou bebida. Teste: testes/categoria.mjs
 const PROIBIDO_SEM_CATEGORIA = /\blivros?\b|\be-?book\b|adult|casal|namoro|erotic|sexy|sex shop|bebida|drink|cerveja|vinho|whisky|vape|cigarr/i;
+// Coisa de carro/moto só em Automotivo (regra do Giovanni, 21/11; 23/11/2026: fita de LED de porta-malas entrava no tipo
+// "Fitas LED" de Iluminação). Ficam de fora desta regra as categorias em que o produto "para carro" é o próprio produto
+const DE_VEICULO = /\b(para|de|em|do|no) carros?\b|porta-?malas|\bmotocicletas?\b|\b(para|de|da) motos?\b|automotiv|\bveicular|retrovisor|ponto cego|caminh[aã]o|caminh[oõ]es/i;
+const ACEITAM_VEICULO = new Set(["Automotivo", "Acessórios de celular", "Carregadores", "Fones de ouvido", "Brinquedos", "Bebês", "Ferramentas", "Caixas de som"]);
 function entraNaCategoriaAberta(o, categoria, semCategoriaVale = false) {
   if (!o || !categoria || o.usado || o.naoBuscado) return false;
+  if (!ACEITAM_VEICULO.has(categoria) && DE_VEICULO.test(o.titulo || "")) return false;
   if (o.secao === categoria) return true;
   return Boolean(semCategoriaVale && !o.secao && !PROIBIDO_SEM_CATEGORIA.test(o.titulo || ""));
 }
