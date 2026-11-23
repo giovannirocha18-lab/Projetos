@@ -980,6 +980,10 @@ for (const [q, buscaEsperada, itens, esperado] of [
   ["Decoração", [["Espelho Auxiliar Convexo Moto Carro Elimina Ponto Cego", false], ["Espelhos de Motocicleta Circulares com Ângulo Amplo para Husqvarna 701", false],
     ["Autêntico espelho de bolha capacete da motocicleta três botão tipo retro", false], ["Espelho de maquiagem universal para para-sol de carro com luz LED", false],
     ["Espelho Decorativo Redondo 60cm Com Moldura Sala Quarto", true], ["Quadro Decorativo 3D 120cm X 50cm Carro Red 2023", true], ["Vaso Decorativo Cerâmica Para Plantas", true]]],
+  // 23/11/2026 (print: blusa "halter" no meio dos halteres de Esporte e fitness)
+  ["Esporte e fitness", [["Blusa HALTER TOP ASSMETRICA RIBANA ELEGÂNCIA E CONFORTO", false], ["Kit 2 Top Halter Blusinha Regata Halter Neck Frente Única Costas Nuas Cropped", false],
+    ["Halter dot impresso vestidos para mulheres moda sexy streetwear sem costas sem mangas", false], ["Par Halteres 8kg + 8kg Dumbbell Sextavado Emborrachado", true],
+    ["Halter Emborrachado 6kg Preto", true], ["Corda de Pular Profissional Ajustável Fitness Academia", true], ["Tapete de Yoga Antiderrapante 6mm", true]]],
   ["Iluminação LED", [["Luz traseira da motocicleta retângulo refletor cauda lâmpada de freio", false], ["Refletor Led 100w Holofote Bivolt Prova D'água", true]]]]) {
     const c = categoriaPorNome(cat);
     const saida = soDaCategoria(itens.map(([titulo], i) => ({ id: `s${i}`, titulo, preco: 30, bate: true, secao: cat })), c);
