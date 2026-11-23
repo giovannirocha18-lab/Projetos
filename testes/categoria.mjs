@@ -37,6 +37,8 @@ const casos = [
   [{ titulo: "Mixer Philips Walita Daily 400W", secao: "Eletroportáteis" }, "Eletroportáteis", false, true],
   [{ titulo: "Touca de banho impermeável", secao: "Bonés e chapéus" }, "Bonés e chapéus", false, false],
   [{ titulo: "Escova de Limpeza para Tubulação de Secadora", secao: "Cabelo" }, "Cabelo", false, false],
+  [{ titulo: "Livro Para Colorir Infantil Água Book Chapeuzinho Vermelho", secao: "Bonés e chapéus" }, "Bonés e chapéus", false, false],
+  [{ titulo: "Livro - A Vassoura Mágica", secao: "Limpeza" }, "Limpeza", false, false],
 ];
 let erros = 0;
 for (const [o, cat, sem, esperado] of casos) {

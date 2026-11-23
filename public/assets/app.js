@@ -2809,7 +2809,7 @@ const TIPOS_DAS_CATEGORIAS = {
   "Skincare": [["Kits", /\bkit\b|combo/, "kit skincare"], ["Protetor solar", /protetor solar|\bsun\b|fps/, "protetor solar facial"], ["Séruns", /serum/, "sérum facial"],
     ["Limpeza facial", /sabonete|gel de limpeza|limpeza facial|demaquilante|micelar/, "sabonete facial"], ["Máscaras", /mascara/, "máscara facial"],
     ["Hidratantes", /hidratante|creme/, "hidratante facial"]],
-  "Cabelo": [["Chapinhas", /chapinha|prancha/, "chapinha"], ["Secadores", /secador/, "secador de cabelo"], ["Escovas", /escova/, "escova secadora"],
+  "Cabelo": [["Chapinhas", /chapinha|prancha/, "chapinha"], ["Secadores", /secador(?!a)/, "secador de cabelo"], ["Escovas", /escova/, "escova secadora"],
     ["Modeladores", /modelador|babyliss/, "modelador de cachos"], ["Máscaras", /mascara/, "máscara capilar"], ["Shampoos", /shampoo|condicionador/, "shampoo"],
     ["Óleos e finalizadores", /oleo|leave|finalizador|queratina/, "óleo capilar"]],
   "Fones de ouvido": [["Headsets", /headset/, "headset"], ["Headphones", /headphone|over ?-?ear/, "headphone"], ["Com fio", /com fio|\bp2\b/, "fone de ouvido com fio"],
@@ -5086,7 +5086,7 @@ async function carregarEmAlta() {
   const guardada = faixaMLGuardada();
   if (guardada) desenharBuscadosML(guardada);
   try {
-    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=23")).json();
+    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=24")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     // As categorias primeiro (print do Giovanni, 18/11/2026: o atalho "Eletroportáteis" do topo abria a busca comum pela palavra,
     // 17 kits, em vez da categoria): o atalho só sabe que é categoria depois que a lista das 40 chegou
