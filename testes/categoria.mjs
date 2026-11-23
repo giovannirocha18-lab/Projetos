@@ -27,6 +27,8 @@ const casos = [
   [{ titulo: "Quadro Decorativo 3D Carro Red 2023", secao: "Decoração" }, "Decoração", false, true],
   [{ titulo: "Carregador Veicular Turbo 3 USB", secao: "Carregadores" }, "Carregadores", false, true],
   [{ titulo: "Central Multimídia Automotiva Android", secao: "Automotivo" }, "Automotivo", false, true],
+  [{ titulo: "Vestido Curto de Verão em Algodão com Decote Quadrado e Halter", secao: "Esporte e fitness" }, "Esporte e fitness", false, false],
+  [{ titulo: "Halter Emborrachado 6kg Preto", secao: "Esporte e fitness" }, "Esporte e fitness", false, true],
 ];
 let erros = 0;
 for (const [o, cat, sem, esperado] of casos) {

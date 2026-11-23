@@ -2899,6 +2899,8 @@ const ACEITAM_VEICULO = new Set(["Automotivo", "Acessórios de celular", "Carreg
 function entraNaCategoriaAberta(o, categoria, semCategoriaVale = false) {
   if (!o || !categoria || o.usado || o.naoBuscado) return false;
   if (!ACEITAM_VEICULO.has(categoria) && DE_VEICULO.test(o.titulo || "")) return false;
+  // "halter" em Esporte e fitness é o peso de academia: blusa/vestido "halter" (frente única) não entra (print de 23/11/2026)
+  if (categoria === "Esporte e fitness" && /\b(blusas?|blusinhas?|regatas?|vestidos?|cropped|bodysuit|macac[aã]o|biqu[ií]nis?|decote|frente [uú]nica|costas nuas|sem mangas|halter neck|tops? halter)\b/i.test(o.titulo || "")) return false;
   if (o.secao === categoria) return true;
   return Boolean(semCategoriaVale && !o.secao && !PROIBIDO_SEM_CATEGORIA.test(o.titulo || ""));
 }
