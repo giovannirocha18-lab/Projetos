@@ -1403,3 +1403,12 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
   border: 1px solid rgba(255, 255, 255, .35); font-weight: 600; }
 .aviso-busca-especial strong { font-weight: 800; }
 .resumo-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Card exclusivo da Black Friday (pedido do Giovanni, 23/11/2026): preto com dourado, só no quadro do alto da página */
+#resumo:has(.resumo-bf) { background: radial-gradient(120% 160% at 100% 0%, #3b0764 0%, #16101f 45%, #0b0b10 100%); border: 1px solid rgba(250, 204, 21, .35); box-shadow: 0 14px 40px rgba(11, 11, 16, .35); }
+.resumo-bf h1 { color: #fff; }
+.resumo-bf h1 em { font-style: normal; background: linear-gradient(90deg, #facc15, #fb923c); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.resumo-bf .bf-selo { display: inline-block; background: linear-gradient(90deg, #facc15, #fb923c); color: #16101f; font-weight: 800; font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 3px 12px; margin-bottom: 8px; }
+.resumo-bf .bf-legenda { background: rgba(255, 255, 255, .08); border: 1px solid rgba(250, 204, 21, .28); }
+.resumo-bf .bf-legenda .qtd { background: #facc15; color: #16101f; }
+.resumo-bf .botao-link-claro { color: #facc15; }

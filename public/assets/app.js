@@ -4537,8 +4537,9 @@ function desenharResumoBlackFriday(lista) {
   const total = (t.real || 0) + (t.baixou || 0) + (t.loja || 0);
   const qtd = lista.length === estado.ofertas.length && total > lista.length ? `Mais de ${total.toLocaleString("pt-BR")}` : lista.length;
   const legenda = (texto, qtd) => el("span", { class: "bf-legenda" }, texto, qtd ? el("span", { class: "qtd" }, qtd) : "");
-  $("#resumo").replaceChildren(el("div", {},
-    el("h1", {}, "🖤 Black Friday de verdade"),
+  $("#resumo").replaceChildren(el("div", { class: "resumo-bf" },
+    el("span", { class: "bf-selo" }, "27 de novembro"),
+    el("h1", {}, "🖤 Black Friday ", el("em", {}, "de verdade")),
     el("p", {}, contagemBlackFriday(), " ", lista.length
       ? `${qtd} ${lista.length === 1 ? "oferta" : "ofertas"} com desconto que dá para conferir.`
       : estado.ofertas.length ? "Nenhuma oferta com esses filtros." : "As ofertas aparecem aqui assim que o nosso robô conferir os preços. Volte amanhã!"),
