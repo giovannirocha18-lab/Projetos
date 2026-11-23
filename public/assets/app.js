@@ -2866,7 +2866,11 @@ const categoriaComTipos = () => {
   const c = !naEspecial() && !estado.loja && navegandoCategoria()?.nome;
   return c && (TIPOS_DO_COMPARADOR[c] || TIPOS_DAS_CATEGORIAS[c] || c === "Games") ? c : null;
 };
-const nomesDosTipos = (c) => (c === "Games" ? TIPOS.map(([tipo]) => tipo) : (TIPOS_DO_COMPARADOR[c] || TIPOS_DAS_CATEGORIAS[c]).map(([nome]) => nome));
+// Tipo que só vale no comparador (23/11/2026, ronda das categorias): aspirador fica na categoria "Limpeza" (que tem o tipo
+// "Aspiradores"); o comparador conta como Eletroportáteis, mas na categoria aberta o botão abria vazio
+const TIPOS_SO_DO_COMPARADOR = { "Eletroportáteis": ["Aspiradores"] };
+const nomesDosTipos = (c) => (c === "Games" ? TIPOS.map(([tipo]) => tipo) : (TIPOS_DO_COMPARADOR[c] || TIPOS_DAS_CATEGORIAS[c]).map(([nome]) => nome)
+  .filter((nome) => !(TIPOS_SO_DO_COMPARADOR[c] || []).includes(nome)));
 const buscasDoTipoNaCategoria = (c, tipo) => (c === "Games" ? BUSCAS_DE_GAMES[tipo] : TIPOS_DO_COMPARADOR[c] ? BUSCAS_DO_TIPO[tipo]
   : [TIPOS_DAS_CATEGORIAS[c].find(([nome]) => nome === tipo)?.[2]].flat().filter(Boolean)) || [];
 function tipoNaCategoria(o, c) {
