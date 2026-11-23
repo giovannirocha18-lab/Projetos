@@ -1535,8 +1535,9 @@ const TIPOS_DO_COMPARADOR = {
     ["TVs", /\btvs?\b|televis/]],
   "Eletroportáteis": [["Air fryers", /air ?fryer|fritadeira/], ["Liquidificadores", /liquidificador/], ["Batedeiras", /batedeira/], ["Cafeteiras", /cafeteira/],
     ["Sanduicheiras e grills", /sanduicheira|\bgrill\b/], ["Mixers", /\bmixer\b/], ["Panelas elétricas", /panela/], ["Fornos elétricos", /forno/],
-    ["Aspiradores", /aspirador/], ["Ferros de passar", /ferro (de passar|a vapor|a seco)|passadeira/], ["Secadores", /secador/], ["Chapinhas", /chapinha|prancha/],
-    ["Barbeadores", /barbeador|aparador/]],
+    ["Aspiradores", /aspirador/], ["Ferros de passar", /ferro (de passar|a vapor|a seco)|passadeira/]],
+  // 23/11/2026 (ronda das categorias): Secadores, Chapinhas e Barbeadores saíram daqui: as lojas e a IA põem esses produtos em
+  // "Cabelo" (que tem os próprios tipos), então o botão abria vazio em Eletroportáteis
   "Ferramentas": [["Furadeiras", /furadeira/], ["Parafusadeiras", /parafusadeira/], ["Esmerilhadeiras", /esmerilhadeira/], ["Serras", /\bserra\b/],
     ["Lixadeiras", /lixadeira/], ["Marteletes", /martelete/], ["Lavadoras de pressão", /lavadora/], ["Compressores", /compressor/],
     ["Soldas", /solda/], ["Roçadeiras", /rocadeira/], ["Motosserras", /motosserra/]],
