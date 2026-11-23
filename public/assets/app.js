@@ -3025,11 +3025,14 @@ function desenharFiltroSecoes() {
   const visiveis = (estado.todasSecoes ? ordem : ordem.filter((secao, i) => i < SECOES_VISIVEIS || (!todas && secaoVisivel({ secao }))))
     .sort((a, b) => (!a) - (!b) || a.localeCompare(b, "pt-BR"));
   $("#filtro-secoes").replaceChildren(
-    linha(todas, () => { estado.secoesSo = null; estado.secoesFora.clear(); desenharFiltroSecoes(); desenharResultados(); }, "🗂️", "Todas", total),
+    // As Marcas seguem a categoria escolhida (print do Giovanni, 23/11/2026: nas Quedas de preço, de Ferramentas para Moda
+    // íntima o quadro seguia com Bosch/Makita/Stanley/WAP: o toque não redesenhava as marcas)
+    linha(todas, () => { estado.secoesSo = null; estado.secoesFora.clear(); desenharFiltroSecoes(); desenharFiltroMarcas(); desenharResultados(); }, "🗂️", "Todas", total),
     ...visiveis.map((secao) => linha(!todas && secaoVisivel({ secao }), () => {
       estado.secoesSo = new Set([secao]);
       estado.secoesFora.clear();
       desenharFiltroSecoes();
+      desenharFiltroMarcas();
       desenharResultados();
       completarSecao(secao);
     }, secao ? categoriaPeloNome(secao)?.emoji || "•" : "•", secao || "Outros", contagem.get(secao))),
