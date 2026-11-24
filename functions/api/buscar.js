@@ -287,7 +287,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const cheia = await cache.match(chaveCheia);
     if (cheia) return paraNavegador(await respostaSemNaoBuscados(env.DB, q, await respostaSemFotosQuebradas(env.DB, cheia, waitUntil)));
   }
-  const chave = rapido ? new Request(`${chaveCheia.url}&rapido=1`) : chaveCheia;
+  const chave = rapido ? new Request(`${chaveCheia.url}&rapido=2`) : chaveCheia; // =2 em 24/11: as rápidas guardadas antes traziam o produto sem a 1ª palavra
   // Refaz a busca nas lojas em segundo plano (sem contar como busca)
   const refazerPorTras = (criado, semOfertas = false) => {
     // Busca só do console ("xbox series", "ps5"…): a guardada antes de 13/11/2026 17h05 UTC não tem os consoles do Mercado
