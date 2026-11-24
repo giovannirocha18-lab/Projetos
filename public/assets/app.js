@@ -3985,7 +3985,8 @@ function desenharResultados() {
   }
   const idMelhor = lista.length > 1 ? melhorOferta(lista)?.id : null;
   desenharResumo(lista);
-  $("#total").textContent = estado.loja ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}` : quantasOfertas(lista.length);
+  // Black Friday sem busca: sem o número do que já carregou (24/11/2026, Giovanni: confundia com os totais do quadro)
+  $("#total").textContent = estado.loja?.id === BLACK_FRIDAY && !estado.loja.busca ? "" : estado.loja ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}` : quantasOfertas(lista.length);
   const idVendido = idMaisVendido(lista);
   // Mais produtos chegando sozinhos (completarSozinho) redesenham a lista: os cartões que já estavam na tela não refazem
   // a animação de surgir (todos piscavam e subiam de novo a cada lote: "a tela dá uma pulada", Giovanni 04/11/2026)
