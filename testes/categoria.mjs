@@ -45,7 +45,8 @@ let erros = 0;
 {
   const { categoriaTravada } = await import("../lib/categorias.js");
   for (const [titulo, esperado] of [["Charm Perfume em Prata 925", "Joias e bijuterias"], ["Charm Cachorro em Prata 925", "Joias e bijuterias"],
-    ["Charm Bicicleta Rosa em Prata 925", "Joias e bijuterias"], ["Relógio Seiko Prospex Automático SRPJ35B1", "Relógios"],
+    ["Charm Bicicleta Rosa em Prata 925", "Joias e bijuterias"], ["Charm Bolsa Vermelha em Prata 925", "Joias e bijuterias"],
+    ["Pulseira de Relógio Monte Carlo Liberty em Couro Marrom", "Relógios"], ["Relógio Seiko Prospex Automático SRPJ35B1", "Relógios"],
     ["Necessaire Média em Couro Azul Céu", "Bolsas e mochilas"]]) {
     const veio = categoriaTravada({ titulo, lojaNome: "Monte Carlo Jóias", catIa: /Seiko/.test(titulo) ? "Smartwatches" : undefined });
     if (veio !== esperado) { erros++; console.error(`✗ Monte Carlo "${titulo}": esperado ${esperado}, veio ${veio}`); }
