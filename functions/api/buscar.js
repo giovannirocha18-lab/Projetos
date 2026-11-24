@@ -48,6 +48,7 @@ const FRESCO_MS = 6 * 60 * 60 * 1000;
 const CARRO_2111 = Date.UTC(2026, 10, 24, 17, 13); // 24/11: categorias Livros e Farmácia; 23/11 18:50: livro fora de Limpeza/Bonés; 18:25: varredura das 40 categorias (palavra com outro sentido); antes: 23/11: espelho de moto/carro fora de Decoração (era 21/11 13:20, coisa de carro só em Automotivo): todas as vitrines refeitas
 const VITRINES_DESDE = new Proxy({}, { get: () => CARRO_2111 });
 const NUMERO_DESDE = Date.UTC(2026, 10, 22, 15, 4); // 22/11: número depois de iOS/Android/Windows não é modelo
+const MENOS_UMA_DESDE = Date.UTC(2026, 10, 24, 20, 15); // 24/11: no banco, a 1ª palavra da busca nunca fica de fora (print "placa maquina de lavar roupa")
 const CONSOLES_DESDE = Date.UTC(2026, 10, 16, 20, 35); // 16/11: regra da outra geração também nos acessórios (print "ps5")
 const GUARDAR_SEGUNDOS = 24 * 60 * 60;
 const LIMPA_FRESCA_MS = 10 * 60 * 1000; // de quanto em quanto tempo a cópia limpa é conferida de novo com o banco
@@ -294,6 +295,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // (e busca com número, de modelo: a guardada antes de 22/11/2026 pode ter o número da versão do sistema contando
     // como modelo, print "iphone 18" com um iPhone 16 "iOS 18" no Menor preço)
     const semConsoles = (Boolean(q) && criado < CONSOLES_DESDE && buscaSoDeConsole(q)) || (criado < NUMERO_DESDE && /\d/.test(q))
+      || (criado < MENOS_UMA_DESDE && String(q || "").trim().split(/\s+/).length >= 3)
       || Boolean(categoria && criado < (VITRINES_DESDE[categoria.nome] || 0) && vitrineDaCategoria(q, categoria));
     if (preparar || atualizar || (Date.now() - criado < (semOfertas ? VAZIA_FRESCA_MS : FRESCO_MS) && !semConsoles)) return;
     if (Date.now() - (atualizando.get(chave.url) || 0) < PAUSA_ENTRE_ATUALIZACOES_MS) return;
