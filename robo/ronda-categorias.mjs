@@ -41,7 +41,8 @@ for (const cat of categorias) {
     vistos += lista.length;
     for (const c of lista) {
       if (c.secao && c.secao !== cat) outraCategoria.push(`${onde}: [${c.secao}] ${c.titulo.slice(0, 70)}`);
-      else if (SUSPEITO.test(c.titulo)) suspeitos.push(`${onde}: ${c.titulo.slice(0, 70)}`);
+      // na categoria Livros (24/11/2026) a palavra "livro" não é suspeita
+      else if (SUSPEITO.test(onde.startsWith("Livros") ? c.titulo.replace(/\blivros?\b|\be-?book\b/gi, "") : c.titulo)) suspeitos.push(`${onde}: ${c.titulo.slice(0, 70)}`);
     }
     return lista.length;
   };
