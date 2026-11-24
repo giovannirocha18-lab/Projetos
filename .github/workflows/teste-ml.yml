@@ -68,7 +68,7 @@ jobs:
         run: |
           IFS='|' read -ra TERMOS <<< "$ESPIAR"
           for t in "${TERMOS[@]}"; do
-            curl -sS --max-time 90 -G -H "Authorization: Bearer $CHAVE_ROBO" --data-urlencode "espiar=$t" "https://vaiprocarrinho.com.br/api/preparar-ml" | jq -c '{q, total}, .lista[], .detalhes[], .erro'
+            curl -sS --max-time 90 -G -H "Authorization: Bearer $CHAVE_ROBO" --data-urlencode "espiar=$t" "https://vaiprocarrinho.com.br/api/preparar-ml" | jq -c '{q, total, tokens}, .detalhes[], .erro'
           done
         env:
           CHAVE_ROBO: ${{ secrets.CHAVE_ROBO || secrets.ROBO_CHAVE }}
