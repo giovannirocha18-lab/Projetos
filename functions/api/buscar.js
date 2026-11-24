@@ -17,7 +17,7 @@ import { curadoria } from "../../lib/fontes/curadoria.js";
 import { shopee } from "../../lib/fontes/shopee.js";
 import { awin } from "../../lib/fontes/awin.js";
 import { aliexpress } from "../../lib/fontes/aliexpress.js";
-import { lomadee } from "../../lib/fontes/lomadee.js";
+import { lomadee, produtosDasMarcasPeloNome } from "../../lib/fontes/lomadee.js";
 import { mercadolivre } from "../../lib/fontes/mercadolivre.js";
 import { registrarBusca, tendenciaAceitavel, semProdutoAVenda, anotarSemProduto } from "../../lib/buscas.js";
 import { POUCAS_MIN, anotarPoucas, tirarDasPoucas } from "../../lib/poucas.js";
@@ -45,7 +45,7 @@ const FONTES_REAIS = [mercadolivre, curadoria, shopee, awin, aliexpress, lomadee
 const FRESCO_MS = 6 * 60 * 60 * 1000;
 // Vitrine de categoria mudada (19/11/2026, "tênis olympikus" em Calçados; Giovanni: a marca não aparecia): a lista guardada
 // antes disto é refeita na 1ª visita, sem esperar as 6 horas. Ao mudar a vitrine de uma categoria, pôr aqui a data e o nome
-const CARRO_2111 = Date.UTC(2026, 10, 24, 17, 7); // 24/11: categorias Livros e Farmácia; 23/11 18:50: livro fora de Limpeza/Bonés; 18:25: varredura das 40 categorias (palavra com outro sentido); antes: 23/11: espelho de moto/carro fora de Decoração (era 21/11 13:20, coisa de carro só em Automotivo): todas as vitrines refeitas
+const CARRO_2111 = Date.UTC(2026, 10, 24, 17, 13); // 24/11: categorias Livros e Farmácia; 23/11 18:50: livro fora de Limpeza/Bonés; 18:25: varredura das 40 categorias (palavra com outro sentido); antes: 23/11: espelho de moto/carro fora de Decoração (era 21/11 13:20, coisa de carro só em Automotivo): todas as vitrines refeitas
 const VITRINES_DESDE = new Proxy({}, { get: () => CARRO_2111 });
 const NUMERO_DESDE = Date.UTC(2026, 10, 22, 15, 4); // 22/11: número depois de iOS/Android/Windows não é modelo
 const CONSOLES_DESDE = Date.UTC(2026, 10, 16, 20, 35); // 16/11: regra da outra geração também nos acessórios (print "ps5")
@@ -605,8 +605,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
     do {
       for (const l of Object.values(lojas)) l.total = 0;
       const paginas = Array.from({ length: PAGINAS_VITRINE }, (_, i) => pag + i);
-      const novas = await Promise.all(vitrine.buscas.map((termo) => consultar(termo, { maisVendidos: true, paginas })));
+      // vitrine.marcasLomadee (24/11/2026, Livros): os produtos da loja do ramo entram inteiros, numa lista a mais
+      const [novas, daLoja] = await Promise.all([Promise.all(vitrine.buscas.map((termo) => consultar(termo, { maisVendidos: true, paginas }))),
+        vitrine.marcasLomadee && lomadee.ativa(env) ? produtosDasMarcasPeloNome(env, vitrine.marcasLomadee, paginas) : []]);
       novas.forEach((lista, i) => marcadas[i].push(...separarAcessorios(lista, vitrine.buscas[i])));
+      if (daLoja.length) (marcadas[vitrine.buscas.length] ||= []).push(...daLoja.map((o) => ({ ...o, bate: true })));
       pag += PAGINAS_VITRINE;
       acabou = !fontes.some((f) => f.porPagina && lojas[f.nome]?.total >= f.porPagina);
       ofertas = montarVitrine(marcadas, vitrine, categoria);
