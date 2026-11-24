@@ -106,7 +106,7 @@ const categoriasDe = (e) => ({
   // Mercado Livre (trilha ml): só os totais da noite, para a conferência da madrugada ler de fora do painel (20/11/2026)
   ...(e?.c?.partes !== undefined || e?.c?.fundasPartes !== undefined ? { ml: { buscas: e.c.partes || 0, precos: e.c.precos || 0, esperas: e.c.esperas || 0,
     fila: e.c.fila ?? null, parou: e.c.parou || null, maisVendidos: e.c.mvTotal || 0, mvCategorias: e.c.mvCategorias || 0, mvEsperas: e.c.mvEsperas || 0,
-    mvParou: e.c.mvParou || null },
+    mvParou: e.c.mvParou || null, recusados: (e.c.recusados || 0) + (e.c.mvRecusados || 0) + (e.c.fundasRecusados || 0), recusa: e.c.recusa || null },
     fundas: { feitas: e.c.fundasFeitas || 0, lista: e.c.fundasPartes || 0, faltam: e.c.fundasFaltam || 0, produtos: e.c.fundasProdutos || 0,
       precos: e.c.fundasPrecos || 0, esperas: e.c.fundasEsperas || 0, fracas: e.c.fundasFracas || 0, erros: e.c.fundasErros || 0,
       parou: e.c.fundasParou || null } } : {}),
