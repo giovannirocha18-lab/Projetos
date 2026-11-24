@@ -4518,7 +4518,7 @@ function desenharResumoDaBuscaNaEspecial(lista) {
     el("h1", {}, especial.titulo),
     el("p", { class: "aviso-busca-especial" }, "🔎 Você está buscando ", el("strong", {}, `“${busca}”`), " só em ", el("strong", {}, nome), "."),
     el("p", {}, lista.length
-      ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}${id === QUEDAS ? " com queda de preço nos últimos 7 dias." : " com descontos conferidos."}`
+      ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}${id === QUEDAS ? " com queda de preço nos últimos 7 dias." : " com desconto."}`
       : tem ? "Nenhuma oferta com esses filtros." : `Nenhum produto com “${busca}” em ${nome} agora.`),
     el("div", { class: "resumo-acoes" },
       el("button", { type: "button", class: "chip-acao chip-limpar", onclick: sair }, `✕ Ver tudo de ${nome}`),
@@ -4537,21 +4537,32 @@ function contagemBlackFriday() {
 function desenharResumoBlackFriday(lista) {
   if (estado.loja.busca) return desenharResumoDaBuscaNaEspecial(lista);
   const t = estado.loja.totais || {};
-  // Sem filtro, conta todas as ofertas da página (07/11/2026: dizia "216 ofertas", só as já carregadas, de ~9.500)
-  const total = (t.real || 0) + (t.baixou || 0) + (t.loja || 0);
-  const qtd = lista.length === estado.ofertas.length && total > lista.length ? `Mais de ${total.toLocaleString("pt-BR")}` : lista.length;
-  const legenda = (texto, qtd) => el("span", { class: "bf-legenda" }, texto, qtd ? el("span", { class: "qtd" }, qtd) : "");
+  // 24/11/2026 (Giovanni: "nossas informações precisam ser 100% coerentes"): "conferidos" são só os dois primeiros selos
+  // (o desconto da loja ainda está em acompanhamento); números arredondados para baixo ("mais de"), porque a lista ainda
+  // tira um ou outro na hora de mostrar (usado, loja removida); e cada selo é um botão que mostra só os dele
+  const maisDe = (n) => (n >= 100 ? `Mais de ${(Math.floor(n / 100) * 100).toLocaleString("pt-BR")}` : String(n));
+  const conferidos = (t.real || 0) + (t.baixou || 0);
+  const nivel = estado.loja.nivel || 0;
+  const semFiltro = lista.length === estado.ofertas.length;
+  const DO_NIVEL = { 1: [t.real, "com desconto real, conferido no nosso histórico de preços."], 2: [t.baixou, "que baixaram de preço nos últimos dias."],
+    3: [t.loja, "com desconto informado pela loja, ainda em acompanhamento."] };
+  const frase = !lista.length ? (estado.ofertas.length ? "Nenhuma oferta com esses filtros." : nivel ? "Nenhuma oferta com esse selo agora."
+    : "As ofertas aparecem aqui assim que o nosso robô conferir os preços. Volte amanhã!")
+    : !semFiltro ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"} com esses filtros.`
+      : nivel ? `${maisDe(Math.max(DO_NIVEL[nivel][0] || 0, lista.length))} ofertas ${DO_NIVEL[nivel][1]}`
+        : `${maisDe(Math.max(conferidos, 1))} ofertas com descontos conferidos${t.loja ? ` e ${maisDe(t.loja).toLowerCase()} com desconto da loja, ainda em acompanhamento` : ""}.`;
+  const legenda = (n, texto, qtd) => el("button", { type: "button", class: "bf-legenda", "aria-pressed": String(nivel === n),
+    title: nivel === n ? "Ver todas" : "Ver só estas", onclick: () => mostrarLoja(BLACK_FRIDAY, "", nivel === n ? 0 : n) },
+  texto, qtd ? el("span", { class: "qtd" }, qtd >= 100 ? `${(Math.floor(qtd / 100) * 100).toLocaleString("pt-BR")}+` : qtd) : "");
   $("#resumo").replaceChildren(el("div", {},
     el("h1", {}, "🖤 Black Friday de verdade"),
-    el("p", {}, contagemBlackFriday(), " ", lista.length
-      ? `${qtd} ${lista.length === 1 ? "oferta" : "ofertas"} com descontos conferidos.`
-      : estado.ofertas.length ? "Nenhuma oferta com esses filtros." : "As ofertas aparecem aqui assim que o nosso robô conferir os preços. Volte amanhã!"),
-    el("p", { class: "bf-explica" }, "Aqui só entra desconto de verdade: acompanhamos o preço de cada produto todos os dias. ",
-      "Se a loja subiu o preço antes para depois dar “desconto”, o produto não aparece."),
+    el("p", {}, contagemBlackFriday(), " ", frase),
+    el("p", { class: "bf-explica" }, "Desconto real e Baixou são conferidos por nós: acompanhamos o preço de cada produto todos os dias. ",
+      "Desconto da loja é o que a loja informa e ainda estamos acompanhando. Toque num selo para ver só os dele."),
     el("div", { class: "bf-legendas" },
-      legenda("✅ Desconto real: abaixo do preço de costume dos últimos 30 dias", t.real),
-      legenda("📉 Baixou: o preço caiu nos últimos dias", t.baixou),
-      legenda("🏷️ Desconto da loja: ainda em acompanhamento", t.loja)),
+      legenda(1, "✅ Desconto real: abaixo do preço de costume dos últimos 30 dias", t.real),
+      legenda(2, "📉 Baixou: o preço caiu nos últimos dias", t.baixou),
+      legenda(3, "🏷️ Desconto da loja: ainda em acompanhamento", t.loja)),
     el("small", { class: "resumo-lojas-nota" }, "🔔 Toque no sininho de um produto e avisamos quando o preço baixar. ",
       estado.cupons.length ? el("button", { type: "button", class: "botao-link-claro", onclick: () => abrirCupons() }, `🎟️ Ver ${estado.cupons.length} cupons de desconto`) : ""),
     el("div", { class: "resumo-acoes" }, botaoLimparFiltros())));
@@ -4608,16 +4619,17 @@ function desenharResumoQuedas(lista) {
 async function pedirLoja(id, pagina) {
   const cat = estado.loja?.id === id && estado.loja?.cat ? `&mlcat=${encodeURIComponent(estado.loja.cat)}` : "";
   const busca = ESPECIAIS[id] && estado.loja?.id === id ? estado.loja.busca : "";
-  const r = await fetch(busca ? `${ESPECIAIS[id].api}?q=${encodeURIComponent(busca)}` : ESPECIAIS[id] ? `${ESPECIAIS[id].api}?pagina=${pagina}` : `/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}${cat}`);
+  const nivel = id === BLACK_FRIDAY && estado.loja?.nivel ? `&nivel=${estado.loja.nivel}` : "";
+  const r = await fetch(busca ? `${ESPECIAIS[id].api}?q=${encodeURIComponent(busca)}` : ESPECIAIS[id] ? `${ESPECIAIS[id].api}?pagina=${pagina}${nivel}` : `/api/lojas?id=${encodeURIComponent(id)}&pagina=${pagina}${cat}`);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
 
-async function mostrarLoja(id, busca = "") {
+async function mostrarLoja(id, busca = "", nivel = 0) {
   const pedido = ++estado.pedido;
   estado.q = "";
   const especial = ESPECIAIS[id];
-  estado.loja = { id, nome: especial ? especial.nome : lojasParceiras?.find((l) => l.id === id)?.nome || null, busca: especial ? busca : "" };
+  estado.loja = { id, nome: especial ? especial.nome : lojasParceiras?.find((l) => l.id === id)?.nome || null, busca: especial ? busca : "", nivel: id === BLACK_FRIDAY && !busca ? nivel : 0 };
   estado.paginaLoja = 1;
   estado.lojasDesmarcadas.clear();
   zerarSecoes();

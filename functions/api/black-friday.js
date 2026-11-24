@@ -12,7 +12,7 @@ import { filtroDeBusca, MAX_DA_BUSCA } from "../../lib/buscaEspecial.js";
 
 const POR_PAGINA = 48;
 const ML_POR_PAGINA = 24; // mercadolivre.destaques devolve 24 por página
-const MAX_PAGINA = 40;
+const MAX_PAGINA = 200; // era 40: rolando só se chegava a 1.920 das ~8.700 contadas (24/11/2026)
 const CACHE_SEGUNDOS = 15 * 60;
 
 export async function onRequestGet({ request, env }) {
@@ -23,11 +23,15 @@ export async function onRequestGet({ request, env }) {
   if (params.has("q")) return daMarca(request, env, filtroDeBusca(params.get("q")), "q");
   const pagina = Math.min(Math.max(parseInt(new URL(request.url).searchParams.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/black-friday?v=13&pagina=${pagina}`, request.url));
+  const nivel = [1, 2, 3].includes(Number(params.get("nivel"))) ? Number(params.get("nivel")) : 0;
+  const chave = new Request(new URL(`/api/black-friday?v=14&pagina=${pagina}&nivel=${nivel}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
-  const [dados, doML] = await Promise.all([listarBlackFriday(env.DB, pagina, POR_PAGINA),
-    mercadolivre.ofertasBlackFriday(env, pagina).catch(() => [])]);
+  // Os do Mercado Livre levam o selo "Desconto da loja" (nível 3): entram na lista geral e na do nível 3, e na contagem dele
+  const [dados, doML, totalML] = await Promise.all([listarBlackFriday(env.DB, pagina, POR_PAGINA, nivel),
+    !nivel || nivel === 3 ? mercadolivre.ofertasBlackFriday(env, pagina).catch(() => []) : [],
+    mercadolivre.totalBlackFriday(env).catch(() => 0)]);
+  dados.totais.loja += totalML;
   dados.ofertas = dados.ofertas.filter((o) => !ofertaDeLojaRemovida(o) && nivelBlackFriday(o)); // regra nova vale na hora
   dados.ofertas = dados.ofertas.map(semDescontoFalso).map(comSecaoCerta); // preço riscado também nos que a loja não dava "de/por" // lojas tiradas do site (lib/lojasRemovidas.js)
   // Mais vendidos do Mercado Livre com desconto, misturados (06/11/2026, ver misturarML em lib/blackfriday.js)

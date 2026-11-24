@@ -1403,3 +1403,9 @@ body.sem-comparador :is(.botao-comparador, #opcao-comparacao, #comparacao) { dis
   border: 1px solid rgba(255, 255, 255, .35); font-weight: 600; }
 .aviso-busca-especial strong { font-weight: 800; }
 .resumo-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Selos da Black Friday viraram botões (24/11/2026): o mesmo desenho; o escolhido fica branco */
+button.bf-legenda { border: 0; color: inherit; font-family: inherit; cursor: pointer; text-align: left; }
+button.bf-legenda:hover { background: rgba(255,255,255,.26); }
+button.bf-legenda[aria-pressed="true"] { background: #fff; color: #4c1d95; }
+button.bf-legenda[aria-pressed="true"] .qtd { background: rgba(76,29,149,.14); }
