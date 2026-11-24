@@ -61,6 +61,19 @@ let erros = 0;
     const veio = categoriaTravada({ titulo, lojaNome });
     if (veio !== esperado) { erros++; console.error(`✗ ${lojaNome} "${titulo}": esperado ${esperado}, veio ${veio}`); }
   }
+  // 24/11/2026: categorias Livros e Farmácia (pedido do Giovanni) e as lojas do ramo
+  const { categoriaDoProduto } = await import("../lib/categorias.js");
+  for (const [lojaNome, titulo, esperado] of [["Livrarias Curitiba", "Capitão Cueca 6", "Livros"], ["Livrarias Curitiba", "De Onde Vêm Os Bebês", "Livros"],
+    ["Drogasmil", "Mounjaro 5mg Tirzepatida", "Farmácia"], ["Drogasmil", "Fralda Huggies Máxima Proteção 24 Un M", "Bebês"],
+    ["PromoFarma", "Shampoo Elseve Liso Dos Sonhos 400ml", "Cabelo"]]) {
+    const veio = categoriaTravada({ titulo, lojaNome });
+    if (veio !== esperado) { erros++; console.error(`✗ ${lojaNome} "${titulo}": esperado ${esperado}, veio ${veio}`); }
+  }
+  for (const [titulo, esperado] of [["Estante de Livros 5 Prateleiras", "Móveis"], ["Livro Harry Potter e a Pedra Filosofal", "Livros"],
+    ["Luminária de Livro LED", "Iluminação LED"], ["Curativo Band-Aid 40 un", "Farmácia"], ["Remédio para pulgas cachorro", "Pets"]]) {
+    const veio = categoriaDoProduto(titulo)?.nome;
+    if (veio !== esperado) { erros++; console.error(`✗ "${titulo}": esperado ${esperado}, veio ${veio}`); }
+  }
   if (categoriaTravada({ titulo: "Ração para Cachorro 15kg", lojaNome: "Cobasi" }) !== "Pets") { erros++; console.error("✗ ração da Cobasi tem que seguir em Pets"); }
 }
 for (const [o, cat, sem, esperado] of casos) {

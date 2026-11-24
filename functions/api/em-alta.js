@@ -41,7 +41,7 @@ function paraNavegador(r) {
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL("/api/em-alta?v=25", request.url)); // trocar o v= para descartar o guardado
+  const chave = new Request(new URL("/api/em-alta?v=26", request.url)); // trocar o v= para descartar o guardado
   // ?depurar=termo: como a vitrine do ML escolhe foto e preço desse termo (sem guardar)
   const depurar = new URL(request.url).searchParams.get("depurar");
   if (depurar) return Response.json(await vitrineTendencias(env, [depurar.slice(0, 60)], true), { headers: { "Cache-Control": "no-store" } });
