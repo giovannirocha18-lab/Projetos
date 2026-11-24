@@ -1037,8 +1037,11 @@ function vendidosTexto(n) {
 // Selos que vêm do histórico de preço (só ofertas do robô têm histórico)
 function selosHistorico(o) {
   const h = o.historico;
-  if (!h) return [];
+  // Black Friday: o cartão do "Desconto da loja" também leva o selo da legenda (24/11/2026: antes vinha sem selo nenhum)
+  const daLoja = o.bf === 3 && naBlackFriday() && el("span", { class: "selo selo-loja", title: "Desconto informado pela loja; ainda estamos acompanhando o preço" }, "🏷️ Desconto da loja");
+  if (!h) return [daLoja];
   return [
+    !h.descontoReal && !(h.caiu >= 3) && !h.menorEm30Dias && daLoja,
     h.menorEm30Dias && el("span", { class: "selo selo-historico" }, "📉 Menor em 30 dias"),
     h.descontoReal && el("span", { class: "selo selo-real", title: "Preço abaixo do que a loja cobrou na maior parte dos últimos 30 dias (acompanhado pelo Vai pro Carrinho)" },
       `✅ Desconto real -${h.descontoReal}%`),

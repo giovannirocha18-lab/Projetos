@@ -1409,3 +1409,4 @@ button.bf-legenda { border: 0; color: inherit; font-family: inherit; cursor: poi
 button.bf-legenda:hover { background: rgba(255,255,255,.26); }
 button.bf-legenda[aria-pressed="true"] { background: #fff; color: #4c1d95; }
 button.bf-legenda[aria-pressed="true"] .qtd { background: rgba(76,29,149,.14); }
+.selo-loja { background: #6b7280; }
