@@ -1399,7 +1399,7 @@ function cartaoModelo(g) {
   return el("article", { class: "modelo" },
     el("div", { ...topo, class: `modelo-topo ${topo.class || ""}` },
       el("span", { class: "modelo-foto" }, comFoto
-        ? el("img", { src: fotoPequena(comFoto.imagem), alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(comFoto) })
+        ? fotoAdiantada(el("img", { src: fotoPequena(comFoto.imagem), alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(comFoto) }))
         : el("span", { class: "foto-emoji" }, "🛍️")),
       el("div", { class: "modelo-texto" },
         el("h3", { title: titulo }, titulo),
@@ -1709,6 +1709,20 @@ $("#modo-comparacao").addEventListener("change", () => {
 });
 desenharAvisoComparacao();
 
+// Fotos dos cartões (24/11/2026, Giovanni: "alguns itens demoram pra carregar a imagem"): continuam "lazy" (não baixam a
+// lista inteira de uma vez), mas começam a carregar ~2 telas ANTES de o cartão aparecer, e não só quando ele encosta na tela
+const vigiaDeFotos = "IntersectionObserver" in window ? new IntersectionObserver((entradas) => {
+  for (const e of entradas) {
+    if (!e.isIntersecting) continue;
+    e.target.loading = "eager";
+    vigiaDeFotos.unobserve(e.target);
+  }
+}, { rootMargin: "1800px 0px" }) : null;
+function fotoAdiantada(img) {
+  vigiaDeFotos?.observe(img);
+  return img;
+}
+
 function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
   const loja = infoLoja(o);
   const [inteiro, decimal] = brl(o.preco).split(",");
@@ -1734,7 +1748,7 @@ function cartaoOferta(o, { melhor = false, maisVendido = false } = {}) {
       onclick: (e) => { if (temDetalhes(o)) { e.preventDefault(); abrirDetalhes(o); } else abrir(); } },
       o.imagem
         // Foto que não carrega (link quebrado da loja) vira o desenho padrão
-        ? el("img", { src: fotoPequena(o.imagem), alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(o) })
+        ? fotoAdiantada(el("img", { src: fotoPequena(o.imagem), alt: "", loading: "lazy", decoding: "async", onerror: fotoQuebrada(o) }))
         : el("span", { class: "foto-emoji" }, o.emoji || "🛍️"),
       el("div", { class: "selos" },
         melhor && el("span", { class: "selo selo-melhor" }, ...longoCurto("🏆 Menor preço da busca", "🏆 Menor preço")),
