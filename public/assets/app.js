@@ -4518,7 +4518,7 @@ function desenharResumoDaBuscaNaEspecial(lista) {
     el("h1", {}, especial.titulo),
     el("p", { class: "aviso-busca-especial" }, "🔎 Você está buscando ", el("strong", {}, `“${busca}”`), " só em ", el("strong", {}, nome), "."),
     el("p", {}, lista.length
-      ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}${id === QUEDAS ? " com queda de preço nos últimos 7 dias." : " com desconto que dá para conferir."}`
+      ? `${lista.length} ${lista.length === 1 ? "oferta" : "ofertas"}${id === QUEDAS ? " com queda de preço nos últimos 7 dias." : " com descontos conferidos."}`
       : tem ? "Nenhuma oferta com esses filtros." : `Nenhum produto com “${busca}” em ${nome} agora.`),
     el("div", { class: "resumo-acoes" },
       el("button", { type: "button", class: "chip-acao chip-limpar", onclick: sair }, `✕ Ver tudo de ${nome}`),
@@ -4544,7 +4544,7 @@ function desenharResumoBlackFriday(lista) {
   $("#resumo").replaceChildren(el("div", {},
     el("h1", {}, "🖤 Black Friday de verdade"),
     el("p", {}, contagemBlackFriday(), " ", lista.length
-      ? `${qtd} ${lista.length === 1 ? "oferta" : "ofertas"} com desconto que dá para conferir.`
+      ? `${qtd} ${lista.length === 1 ? "oferta" : "ofertas"} com descontos conferidos.`
       : estado.ofertas.length ? "Nenhuma oferta com esses filtros." : "As ofertas aparecem aqui assim que o nosso robô conferir os preços. Volte amanhã!"),
     el("p", { class: "bf-explica" }, "Aqui só entra desconto de verdade: acompanhamos o preço de cada produto todos os dias. ",
       "Se a loja subiu o preço antes para depois dar “desconto”, o produto não aparece."),
