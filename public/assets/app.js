@@ -2459,7 +2459,11 @@ function passaNosFiltros(comMarca = true) {
   const tipo = estado.tipoSo;
   const parecidoFora = escondeParecidos();
   const faceta = estado.modeloSo ? facetaAtual() : null; // modelo/medida escolhido na lateral (FACETAS)
+  // Categoria aberta: a regra "não é desta categoria" do servidor vale também para a lista que veio guardada (24/11/2026:
+  // cópia antiga de um ponto do Cloudflare ainda trazia "Livro - A Vassoura Mágica" em Limpeza)
+  const regraDaAberta = REGRAS_DO_SERVIDOR.get(navegandoCategoria()?.nome);
   return (o) => secaoVisivel(o) && !parecidoFora(o)
+    && !(regraDaAberta && regraDaAberta.test(tituloComoNoServidor(o.titulo)))
     && (!faceta || valorDaFaceta(faceta, o)?.[0] === estado.modeloSo)
     // parecido = console de outra geração (PS4 na busca "playstation 5"): não entra em nenhum tipo; de outra marca, entra
     && (!tipo || (tipoDaLista(o) === tipo && (!o.parecido || o.outraMarca)))
