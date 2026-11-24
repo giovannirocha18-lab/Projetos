@@ -41,6 +41,17 @@ const casos = [
   [{ titulo: "Livro - A Vassoura Mágica", secao: "Limpeza" }, "Limpeza", false, false],
 ];
 let erros = 0;
+// 24/11/2026 (print do Giovanni): na loja Monte Carlo Jóias o pingente com nome de desenho é joia, não perfume/pet/esporte
+{
+  const { categoriaTravada } = await import("../lib/categorias.js");
+  for (const [titulo, esperado] of [["Charm Perfume em Prata 925", "Joias e bijuterias"], ["Charm Cachorro em Prata 925", "Joias e bijuterias"],
+    ["Charm Bicicleta Rosa em Prata 925", "Joias e bijuterias"], ["Relógio Seiko Prospex Automático SRPJ35B1", "Relógios"],
+    ["Necessaire Média em Couro Azul Céu", "Bolsas e mochilas"]]) {
+    const veio = categoriaTravada({ titulo, lojaNome: "Monte Carlo Jóias", catIa: /Seiko/.test(titulo) ? "Smartwatches" : undefined });
+    if (veio !== esperado) { erros++; console.error(`✗ Monte Carlo "${titulo}": esperado ${esperado}, veio ${veio}`); }
+  }
+  if (categoriaTravada({ titulo: "Ração para Cachorro 15kg", lojaNome: "Cobasi" }) !== "Pets") { erros++; console.error("✗ ração da Cobasi tem que seguir em Pets"); }
+}
 for (const [o, cat, sem, esperado] of casos) {
   const veio = entra(o, cat, sem);
   if (veio !== esperado) { erros++; console.error(`✗ "${o.titulo}" em ${cat}: esperado ${esperado}, veio ${veio}`); }
