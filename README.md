@@ -102,7 +102,7 @@ CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... npx wrangler d1 time-travel r
 ou `--timestamp=2026-10-25T06:00:00Z` no lugar de `--bookmark`. Para ver o ponto de agora: `npx wrangler d1 time-travel info vaiprocarrinho`.
 
 ## Testes automáticos
-Desde 25/11/2026 só à mão (Run workflow; os mesmos testes rodam antes de cada publicação): `.github/workflows/testes.yml` confere: todos os `.js` sem erro de escrita, todos os arquivos do
+A cada envio ao GitHub, `.github/workflows/testes.yml` confere: todos os `.js` sem erro de escrita, todos os arquivos do
 servidor abrindo (`testes/modulos.mjs`), o teste da busca (`testes/busca.mjs`) e o robô com o feed de exemplo. Se falhar,
 o GitHub manda e-mail (o Cloudflare publica do mesmo jeito).
 
