@@ -2,9 +2,11 @@
 # e o envio aparece com um X vermelho. O Cloudflare publica do mesmo jeito: o teste avisa, não segura a publicação.
 name: Testes
 
+# 25/11/2026: deixou de rodar a cada envio (eram ~20 por dia, 1 minuto cada = ~600 minutos por mês; o repositório vai
+# voltar a ser privado, com franquia de minutos). Os mesmos testes são rodados antes de cada publicação (CLAUDE.md).
+# Aqui só à mão (Run workflow).
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   testes:
