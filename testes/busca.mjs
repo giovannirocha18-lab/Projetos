@@ -1025,6 +1025,26 @@ for (const [q, buscaEsperada, itens, esperado] of [
     const s = comSecaoCerta({ titulo, secao: antes }).secao;
     if (s !== depois) { falhas++; console.log(`✗ seção guardada: "${titulo}" ficou em ${s}, esperado ${depois}`); }
   }
+  // 25/11/2026 (print do Giovanni: Quedas de preço > Calçados com cesto de golfe, raquete de tênis de mesa e máquina de
+  // pickleball; a categoria da AliExpress mistura esporte com tênis). Calçado de verdade fica, inclusive sem a palavra "tênis"
+  for (const [titulo, antes, depois] of [["Cesto de metal para bolas de golfe com alça, balde de armazenamento", "Calçados", undefined],
+    ["DHS 08X Raquete de Tênis de Mesa Chop & Attack 5 Madeira Raquete de Ping Pong", "Calçados", undefined],
+    ["12 unidades de raquetes de tênis de mesa de madeira em branco", "Calçados", undefined],
+    ["Máquina de Serviço de Pickleball, Treinador de Prática Automático, Portátil com Bolsa de Rede", "Calçados", undefined],
+    ["Máquina de lançamento de bolas de pickleball ajustável, lançador de bolas de ténis e padel", "Calçados", undefined],
+    ["Tênis de badminton ASICS COURT CONTROL FF 4 de cano baixo unissex", "Calçados", "Calçados"],
+    ["Chuteira Umbro Adamant Top Speed Society Juvenil Cinza", "Calçados", "Calçados"],
+    ["Chuteiras de Futebol Masculinas F50-TF Sem Cadarço, Cravadas", "Calçados", "Calçados"],
+    ["Chinelo Clog Feminino Urban Boaonda Ortopédica Palmilha Removível", "Calçados", "Calçados"],
+    ["Sandália Crocs Bella Clog Black", "Calçados", "Calçados"],
+    ["Secadora de Roupas Mueller 13 kg com Sensor de Umidade", "Cabelo", undefined],
+    ["Cuba Dupla Gourmet Cozinha Aço Inoxidável 78x43 cm", "Ferramentas", undefined],
+    ["Fralda Geriátrica Pants Confort Master Noturna", "Bebês", undefined],
+    ["Rastreador E Bloqueador GPS Veicular GPS303-G", "Smartwatches", undefined],
+    ["Torneira Boia Tigre 3/4 Para Caixa D'água", "Eletroportáteis", undefined]]) {
+    const s = comSecaoCerta({ titulo, secao: antes, catMapa: antes }).secao;
+    if (s !== depois) { falhas++; console.log(`✗ seção guardada (25/11): "${titulo}" ficou em ${s}, esperado ${depois}`); }
+  }
   // 21/11/2026 (auditoria): busca de uma palavra no plural usa o singular ("geladeiras" trazia 1 oferta)
   {
     const { pluralDeUmaPalavra, limparBusca, variantesDaBuscaComprida, buscaConhecida } = await import("../lib/vocabulario.js");
