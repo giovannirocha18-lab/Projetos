@@ -55,7 +55,7 @@ let erros = 0;
   for (const [lojaNome, titulo, esperado] of [["Animale", "Vestido Tule Halter Floral", "Moda feminina"], ["Animale", "Sandália De Couro Tiras Nude", "Calçados"],
     ["Cobasi", "Perfume Deo Colônia Filhote Procão - 120 ml", "Pets"], ["Karsten", "Toalha de Academia Pallas Platina", "Cama e banho"],
     ["oBoticario", "Malbec Desodorante Colônia 100ml", "Perfumes"], ["Kabum", "Fechadura Digital KABUM! smart Slim, Cinza", "Ferramentas"],
-    ["Kabum", "Memória RAM para Notebook Kingston Fury Impact", "Informática"], ["Anhanguera Ferramentas", "Relógio Comparador Analógico 20mm 0,01mm", "Ferramentas"],
+    ["Kabum", "Memória RAM para Notebook Kingston Fury Impact", "Informática"], ["Kabum", "SmartWatch KaBuM! smart 700, Preto, Pulseira Extra Cinza Claro", "Smartwatches"], ["Kabum", "Apple Watch Series 10 GPS + Cellular, Caixa Prateada de Alumínio de 42 mm", "Smartwatches"], ["Anhanguera Ferramentas", "Relógio Comparador Analógico 20mm 0,01mm", "Ferramentas"],
     ["Soulier", "Rasteira Tratorada Joana - Offwhite", "Calçados"], ["Soulier", "Meia Pata Couro Sue - Offwhite", "Calçados"],
     ["Toymania", "Bicicleta Aro 14 Unicórnio - Bandeirante", "Brinquedos"], ["Polishop", "Barbeador Elétrico Foil Shaver", "Cabelo"]]) {
     const veio = categoriaTravada({ titulo, lojaNome });
