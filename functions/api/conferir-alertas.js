@@ -16,5 +16,11 @@ export async function onRequestGet({ request, env }) {
   if (!(await banco(env))) return responder({ erro: "Banco não configurado" }, 503);
   const url = new URL(request.url);
   const parte = Math.min(Math.max(parseInt(url.searchParams.get("parte"), 10) || 0, 0), 1000);
-  return responder(await conferirAlertas(env, parte, url.origin));
+  // 25/11/2026: a parte 0 dava "error code: 1101" (exceção sem tratamento) e o robô não mostrava a causa: agora a
+  // resposta traz o erro (o laço do robô segue para a parte seguinte)
+  try {
+    return responder(await conferirAlertas(env, parte, url.origin));
+  } catch (erro) {
+    return responder({ parte, fim: false, erro: String(erro?.stack || erro?.message || erro).slice(0, 600) }, 500);
+  }
 }
