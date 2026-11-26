@@ -424,6 +424,8 @@ for (const [q, titulos, primeiro, naoBate] of [
   const confere = (q, itens, nome, certo) => { for (const o of marcar(q, itens)) if (!certo(o)) { falhas++; console.log(`✗ "${q}": devia ser ${nome}: ${o.titulo}`); } };
   // Anúncio de vários modelos/tamanhos num só, modelo velho e outro tipo do produto: recuam (variante)
   const VARIANTES = {
+    // 26/11/2026 (print "dvr"): câmera de carro recua na busca do gravador de câmeras de segurança
+    "dvr": ["DVR Automotivo 3 Câmeras Alta Definição Visão Noturna", "Dash Cam 5 Canais 1080p 4k Grande Angular Visão Noturna Carro Dvr", "Gravador de vídeo do carro DVR para Volvo 4K"],
     "iphone 15": ["Apple iPhone 15/15 Pro/ 15 Pro Max 128/256GB 100% Original Com Garantia", "Celular APPLE IPHONE 15 E IPHONE PRO MAX 256gb 5g LACRADO Original",
       "Celular iPhone 15 e 15 Plus (128GB) (256GB) 100% Original Apple Novo Lacrado"],
     "iphone 16": ["Iphone 16/ 16 Pro e Pro Max (256GB) e (128GB) 5G e Dual E-Sim Câmera e 48MP", "iPhone 16 ou 16 Plus 128GB / 256GB Lacrado com 1 Ano de Garantia Apple"],
@@ -436,6 +438,8 @@ for (const [q, titulos, primeiro, naoBate] of [
     "home theater": ["Home Theater Ripado LED TVs 65 Polegadas 1 Porta 4 Nichos Freijó"],
   };
   const COMUNS = {
+    "dvr": ["DVR Hilook DVR-104G-M1/T, 4 Canais, 1080p Lite, 1 Baia SATA", "Dvr Intelbras Full Hd Mhdx 1204-c 4 Canais 500gb", "DVR 8 Canais 5 Em 1 Para Câmeras De Segurança CFTV Davely"],
+    "dvr automotivo": ["DVR Automotivo 3 Câmeras Alta Definição Visão Noturna"],
     "iphone 15": ["Apple iPhone 15 (128 GB) - Azul", "iPhone 15 PRO MAX 256GB Premium"], "iphone 11": ["Celular IPhone 11 128GB 100% Original"],
     "ssd 1tb": ["Ssd 1tb Western Digital Green Sn350 Nvme, Gen3, M.2 2280 Azul", "SSD 1TB SanDisk Optimus GX PRO 8100, M.2 2280, PCIe 5.0 x4, NVMe"],
     "redmi note 14": ["Redmi Note 14 4G, 256GB/8GB RAM, Processador Helio G99-Ultra, Câmera 108MP"],
