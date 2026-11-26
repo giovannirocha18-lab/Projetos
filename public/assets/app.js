@@ -1606,11 +1606,15 @@ function desenharComparacao(lista) {
   const caixa = $("#comparacao");
   if (!modoComparacao() || !estado.q || estado.loja) { caixa.hidden = true; return; }
   const categoria = navegandoCategoria()?.nome;
+  // Modelo/medida escolhido na lateral (print do Giovanni, 25/11/2026: "smart tv" com 40" marcado e o quadro mostrava TVs
+  // de 50 e 55): as ofertas buscadas por trás para o comparador não passavam por esse filtro
+  const faceta = estado.modeloSo ? facetaAtual() : null;
+  const doModelo = (o) => !faceta || valorDaFaceta(faceta, o)?.[0] === estado.modeloSo;
   if (categoria && TERMOS_DA_COMPARACAO[categoria]) {
     completarComparacaoDaCategoria(categoria);
     const ja = new Set(lista.map((o) => o.id));
     const daMarca = (o) => !estado.marcasSo?.size || estado.marcasSo.has(marcaDe(o)?.n);
-    lista = [...lista, ...extrasDaCategoria.ofertas.filter((o) => !ja.has(o.id) && daMarca(o))];
+    lista = [...lista, ...extrasDaCategoria.ofertas.filter((o) => !ja.has(o.id) && daMarca(o) && doModelo(o))];
   }
   let procurando = Boolean(categoria && extrasDaCategoria.nome === categoria && extrasDaCategoria.faltam > 0);
   if (!categoria && !lojaAtual()) {
@@ -1618,7 +1622,7 @@ function desenharComparacao(lista) {
     if (extrasDaBusca.pedido === estado.pedido) {
       const ja = new Set(lista.map((o) => o.id));
       const daMarca = (o) => !estado.marcasSo?.size || estado.marcasSo.has(marcaDe(o)?.n);
-      lista = [...lista, ...extrasDaBusca.ofertas.filter((o) => !ja.has(o.id) && daMarca(o))];
+      lista = [...lista, ...extrasDaBusca.ofertas.filter((o) => !ja.has(o.id) && daMarca(o) && doModelo(o))];
       procurando = extrasDaBusca.faltam > 0;
     }
   }
