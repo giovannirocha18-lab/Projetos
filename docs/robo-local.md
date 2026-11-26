@@ -72,3 +72,20 @@ Os nomes dos menus podem ter mudado: se não achar, o Giovanni manda um print da
 Não ligar os dois ao mesmo tempo: a rodada da noite do GitHub é disparada pela tarefa agendada do Claude ("Robô da
 madrugada"). Com a máquina local rodando, essa tarefa passa a só conferir o resultado. Decidir com o Giovanni qual
 fica; para voltar ao GitHub basta apagar as duas tarefas do Agendador (`schtasks /Delete /TN "VPC robo da noite"`).
+
+## Situação em 26/11/2026
+
+Os testes de 26/11 (conferência, `so numeros caminhos`, `so awin alertas`) foram feitos numa **máquina de teste**, não
+na que fica ligada sempre. Nada foi agendado nela (e não deve ser). Falta, na máquina que fica ligada:
+
+1. Instalar Node 22+ e Git.
+2. `git clone` do projeto na branch `claude/inspiring-hamilton-wafagr` (repositório público, não pede login). Não
+   copiar a pasta com arquivos alterados à mão: o robô faz `git pull --ff-only` antes de cada rodada e arquivo
+   alterado localmente trava a atualização.
+3. Levar o `.chaves-robo` da máquina de teste por pendrive ou rede local (não vai pelo git) e apagar o de lá depois.
+   Vale levar também a pasta `.cache` (guarda o teste das fotos; sem ela a 1ª noite testa as ~79 mil de novo).
+4. `node robo/local.mjs conferir`, depois `node robo/local.mjs so numeros caminhos`.
+5. Agendar 00:15 e 05:55 (acima) e deixar o Windows sem suspender.
+6. Avisar a conversa "Robô da madrugada" do Claude: só então ela para de disparar o GitHub e desliga a "Fotos da manhã".
+
+A máquina local só LÊ o repositório: quem escreve a memória (`CLAUDE.md`) e este arquivo é a conversa do Claude na nuvem.
