@@ -1042,7 +1042,7 @@ for (const [q, buscaEsperada, itens, esperado] of [
     ["Streaming Player Amazon Fire TV Stick 4K, Wi-Fi 6, Dolby Vision", true], ["Xiaomi Mi TV Stick 4K Android Smart Controle de Voz Preto", true], ["Google Chromecast 3 Geração Full Hd Cor Carvão", true],
     ["Smart TV Box Aquário STV-3000 Plus Sistema Android TV 4K 16GB Cor Preto", true], ["Apple TV 4K HDR 64GB Modelo A1842 Novo Lacrado", true],
     ["Suporte Apple TV 4K de Parede | Organizador para Setup TV", false], ["Capa De Silicone Para Controle Apple Tv 4k 4° Geração", false], ["Controle Remoto Com Voz Amazon Fire Tv Lite Fire Stick 4k", false],
-    ["Smart TV 50 Samsung Crystal UHD 4K com Chromecast", false], ["HDMI Splitter Amplifier Switch para PS4, Apple TV, Xbox", false]]) {
+    ["Smart TV 50 Samsung Crystal UHD 4K com Chromecast", false], ["Smart TV Aoc Roku Led TV 50 UHD 4k 50u7045", false], ["Smart Tv Aoc Roku Tv 40 Full Hd 40s5166/78g", false], ["Tv Stick Wi-fi Smart Tv Android Hdmi Tv Box", true], ["HDMI Splitter Amplifier Switch para PS4, Apple TV, Xbox", false]]) {
     const s1 = marcarSecoes([{ id: "t1", titulo, preco: 300, catMapa: "Eletrodomésticos" }], null)[0].secao;
     const s2 = comSecaoCerta({ titulo, secao: "Eletrodomésticos" }).secao;
     if ((s1 === "Informática") !== vai || (s2 === "Informática") !== vai) { falhas++; console.log(`✗ streaming: "${titulo}" ficou em ${s1} / ${s2}, devia ${vai ? "" : "não "}ir para Informática`); }
