@@ -438,7 +438,7 @@ for (const [q, titulos, primeiro, naoBate] of [
     "home theater": ["Home Theater Ripado LED TVs 65 Polegadas 1 Porta 4 Nichos Freijó"],
   };
   const COMUNS = {
-    "dvr": ["DVR Hilook DVR-104G-M1/T, 4 Canais, 1080p Lite, 1 Baia SATA", "Dvr Intelbras Full Hd Mhdx 1204-c 4 Canais 500gb", "DVR 8 Canais 5 Em 1 Para Câmeras De Segurança CFTV Davely"],
+    "dvr": ["DVR Hilook DVR-104G-M1/T, 4 Canais, 1080p Lite, 1 Baia SATA", "Dvr Intelbras Full Hd Mhdx 1204-c 4 Canais 500gb", "Dvr Gravador Digital de Vídeo Intelbras MHDX 3108-C 8 Canais 5MP Lite com Detecção de Veículos", "DVR 8 Canais 5 Em 1 Para Câmeras De Segurança CFTV Davely"],
     "dvr automotivo": ["DVR Automotivo 3 Câmeras Alta Definição Visão Noturna"],
     "iphone 15": ["Apple iPhone 15 (128 GB) - Azul", "iPhone 15 PRO MAX 256GB Premium"], "iphone 11": ["Celular IPhone 11 128GB 100% Original"],
     "ssd 1tb": ["Ssd 1tb Western Digital Green Sn350 Nvme, Gen3, M.2 2280 Azul", "SSD 1TB SanDisk Optimus GX PRO 8100, M.2 2280, PCIe 5.0 x4, NVMe"],
