@@ -2,7 +2,7 @@
 // (Cloudflare Access + passe conferido). Mostra quantos produtos vieram, quanto demorou e os primeiros, já como o site
 // os recebe (preço, foto, link de afiliado). O token nunca sai daqui.
 import { ehPainel, quemEntrou } from "../../../lib/painel.js";
-import { mercadolivre } from "../../../lib/fontes/mercadolivre.js";
+import { mercadolivre, espiarCatalogoML } from "../../../lib/fontes/mercadolivre.js";
 
 export async function onRequestGet({ request, env }) {
   const cabecalhos = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" };
@@ -15,6 +15,13 @@ export async function onRequestGet({ request, env }) {
   const params = new URL(request.url).searchParams;
   const q = (params.get("q") || "air fryer").slice(0, 100);
   const t0 = Date.now();
+  // ?precos=1 (25/11/2026): "o Mercado Livre voltou a liberar os preços?" O teste rodava no GitHub (teste-ml.yml, espiar) e
+  // parou com a conta de lá bloqueada. Pede tokens novos e mostra o que o preço e a ficha respondem com o app e com a conta
+  if (params.has("precos")) {
+    const r = await espiarCatalogoML(env, q).catch((e) => ({ erro: String(e?.message || e) }));
+    if (params.get("formato") === "json") return Response.json({ q, erro: r.erro, tokens: r.tokens, vencedores: r.vencedores, tempoMs: Date.now() - t0 }, { headers: cabecalhos });
+    return paginaDosPrecos(q, r, Date.now() - t0, cabecalhos);
+  }
   try {
     const ofertas = await mercadolivre.buscar(q, env, 1);
     if (params.get("formato") !== "json") return paginaDoTeste(q, ofertas, Date.now() - t0, cabecalhos);
@@ -30,6 +37,32 @@ export async function onRequestGet({ request, env }) {
 
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const reais = (v) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+// Página do teste dos preços: uma frase grande (voltou / segue recusando) e as respostas do Mercado Livre embaixo
+function paginaDosPrecos(q, r, ms, cabecalhos) {
+  const tokens = r.tokens || {};
+  const dosPrecos = Object.entries(tokens).filter(([nome]) => nome.includes("preços"));
+  const abriu = dosPrecos.some(([, v]) => /^2\d\d /.test(String(v) + " "));
+  const comPreco = (r.vencedores || []).filter((v) => v.preco != null).length;
+  const veredito = r.erro ? ["⚠️ O teste não conseguiu rodar", "#b45309"]
+    : abriu ? ["✅ O Mercado Livre VOLTOU a liberar os preços", "#00a650"]
+    : dosPrecos.length ? ["❌ O Mercado Livre segue RECUSANDO os preços", "#c62828"]
+    : ["⚠️ Sem resposta sobre os preços (nenhum produto no catálogo para testar)", "#b45309"];
+  const linhas = Object.entries(tokens).map(([nome, v]) => `<tr><td>${esc(nome)}</td><td>${esc(v)}</td></tr>`).join("");
+  const agora = new Date(Date.now() - 4 * 3600e3).toISOString().slice(0, 16).replace("T", " ");
+  const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teste dos preços do Mercado Livre</title><style>
+body{font-family:system-ui,sans-serif;background:#f5f5f5;color:#222;margin:0;padding:16px;max-width:720px}
+h1{font-size:22px;color:${veredito[1]}}table{border-collapse:collapse;background:#fff;width:100%}
+td{border:1px solid #ddd;padding:8px;font-size:14px}p{font-size:14px}a{color:#3483fa}</style></head><body>
+<h1>${veredito[0]}</h1>
+<p>Teste feito em ${esc(agora)} (horário do Giovanni), em ${(ms / 1000).toFixed(1)} s, com a busca “${esc(q)}”.</p>
+${r.erro ? `<p>Erro: ${esc(r.erro)}</p>` : ""}
+<table><tr><td><b>Consulta</b></td><td><b>Resposta do Mercado Livre</b></td></tr>${linhas}</table>
+<p>Preço vindo pela ficha, em 10 mais vendidos: <b>${comPreco} de ${(r.vencedores || []).length}</b>.</p>
+<p>“200 ok” = respondeu. “403” = recusou. <a href="?precos=1">Testar de novo</a></p></body></html>`;
+  return new Response(html, { headers: { ...cabecalhos, "Content-Type": "text/html; charset=utf-8" } });
+}
 
 // Página simples (tema claro) com os produtos como cartões e uma caixa para testar outra busca
 function paginaDoTeste(q, ofertas, ms, cabecalhos) {
