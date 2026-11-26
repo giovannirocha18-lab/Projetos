@@ -24,7 +24,7 @@ export async function onRequestGet({ request, env }) {
   const pagina = Math.min(Math.max(parseInt(new URL(request.url).searchParams.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const nivel = [1, 2, 3].includes(Number(params.get("nivel"))) ? Number(params.get("nivel")) : 0;
-  const chave = new Request(new URL(`/api/black-friday?v=15&pagina=${pagina}&nivel=${nivel}`, request.url));
+  const chave = new Request(new URL(`/api/black-friday?v=16&pagina=${pagina}&nivel=${nivel}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
   // Os do Mercado Livre levam o selo "Desconto da loja" (nível 3): entram na lista geral e na do nível 3, e na contagem dele
@@ -52,7 +52,7 @@ async function daMarca(request, env, filtro, tipo = "marca") {
   const cabecalhos = (segundos) => ({ "Cache-Control": segundos ? `public, max-age=${segundos}` : "no-store", "X-Robots-Tag": "noindex" });
   if (!filtro) return Response.json({ ofertas: [], marca: null, busca: null, completo: false, temMais: false }, { headers: cabecalhos(0) });
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/black-friday?v=14${tipo === "q" ? "&r=4" : ""}&${tipo}=${encodeURIComponent(filtro.n)}`, request.url));
+  const chave = new Request(new URL(`/api/black-friday?v=15${tipo === "q" ? "&r=4" : ""}&${tipo}=${encodeURIComponent(filtro.n)}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
   const [dados, doML] = await Promise.all([listarBlackFridayDaMarca(env.DB, filtro, maximo),
