@@ -1036,6 +1036,17 @@ for (const [q, buscaEsperada, itens, esperado] of [
     const s = comSecaoCerta({ titulo, secao: "Relógios" }).secao;
     if (s !== depois) { falhas++; console.log(`✗ seção Relógios: "${titulo}" ficou em ${s}, esperado ${depois}`); }
   }
+  // 26/11/2026 (print "Roku Streaming"): aparelho de streaming é de Informática, na busca (acima da loja/IA) e na seção
+  // guardada; capa, suporte e controle "para Fire TV" e a Smart TV não
+  for (const [titulo, vai] of [["Roku Streaming Stick 2025, Dispositivo para TV HD/FHD, com Controle por Voz, Preto - 3840BR", true], ["Amazon Fire TV Stick 4K Plus 6ª geração 4K", true],
+    ["Streaming Player Amazon Fire TV Stick 4K, Wi-Fi 6, Dolby Vision", true], ["Xiaomi Mi TV Stick 4K Android Smart Controle de Voz Preto", true], ["Google Chromecast 3 Geração Full Hd Cor Carvão", true],
+    ["Smart TV Box Aquário STV-3000 Plus Sistema Android TV 4K 16GB Cor Preto", true], ["Apple TV 4K HDR 64GB Modelo A1842 Novo Lacrado", true],
+    ["Suporte Apple TV 4K de Parede | Organizador para Setup TV", false], ["Capa De Silicone Para Controle Apple Tv 4k 4° Geração", false], ["Controle Remoto Com Voz Amazon Fire Tv Lite Fire Stick 4k", false],
+    ["Smart TV 50 Samsung Crystal UHD 4K com Chromecast", false], ["HDMI Splitter Amplifier Switch para PS4, Apple TV, Xbox", false]]) {
+    const s1 = marcarSecoes([{ id: "t1", titulo, preco: 300, catMapa: "Eletrodomésticos" }], null)[0].secao;
+    const s2 = comSecaoCerta({ titulo, secao: "Eletrodomésticos" }).secao;
+    if ((s1 === "Informática") !== vai || (s2 === "Informática") !== vai) { falhas++; console.log(`✗ streaming: "${titulo}" ficou em ${s1} / ${s2}, devia ${vai ? "" : "não "}ir para Informática`); }
+  }
   // 25/11/2026 (print do Giovanni: Quedas de preço > Calçados com cesto de golfe, raquete de tênis de mesa e máquina de
   // pickleball; a categoria da AliExpress mistura esporte com tênis). Calçado de verdade fica, inclusive sem a palavra "tênis"
   for (const [titulo, antes, depois] of [["Cesto de metal para bolas de golfe com alça, balde de armazenamento", "Calçados", undefined],
