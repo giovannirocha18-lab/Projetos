@@ -210,35 +210,41 @@ function trancar(nome) {
 async function conferirChaves(chaves) {
   const todas = [...new Set(Object.values(PASSOS).flatMap((p) => p.precisa))];
   for (const k of todas) console.log(`${chaves[k] ? "✓" : "✗ FALTA"} ${k}`);
+  let respondeu = true;
   if (CLOUDFLARE.every((k) => chaves[k])) {
     const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${chaves.CLOUDFLARE_ACCOUNT_ID}/d1/database/${chaves.D1_DATABASE_ID}/query`, {
       method: "POST", headers: { Authorization: `Bearer ${chaves.CLOUDFLARE_API_TOKEN}`, "Content-Type": "application/json" },
       body: JSON.stringify({ sql: "SELECT 1 AS ok" }),
     }).then((x) => x.json()).catch(() => null);
     console.log(r?.success ? "✓ O banco do Cloudflare respondeu" : "✗ O banco do Cloudflare NÃO respondeu (confira as 3 chaves do Cloudflare)");
+    if (!r?.success) respondeu = false;
   }
   if (chaves.CHAVE_ROBO) {
     // parte depois do fim: o site só confere a chave e responde "fim" (não manda e-mail nem grava nada)
     const r = await fetch(`${SITE}/api/conferir-alertas?parte=100000`, { headers: { Authorization: `Bearer ${chaves.CHAVE_ROBO}` } }).catch(() => null);
     console.log(r?.ok ? "✓ O site aceitou a CHAVE_ROBO" : `✗ O site NÃO aceitou a CHAVE_ROBO (resposta ${r?.status ?? "nenhuma"})`);
+    if (!r?.ok) respondeu = false;
   }
-  return todas.every((k) => chaves[k]);
+  return respondeu && todas.every((k) => chaves[k]);
 }
 
+// Sem process.exit(): no Windows, encerrar à força com pedidos de rede ainda fechando dá "Assertion failed … async.c"
+// (visto na máquina do Giovanni, 26/11/2026). O programa termina sozinho e devolve o código por process.exitCode
 async function main() {
   const [modo = "noite", ...resto] = process.argv.slice(2);
   const chaves = lerChaves();
   if (!chaves) {
     console.log(`Não achei o arquivo das chaves: ${ARQUIVO_DAS_CHAVES}\nCopie robo/chaves-exemplo.txt para esse nome e preencha (ver docs/robo-local.md).`);
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
-  if (modo === "conferir") process.exit((await conferirChaves(chaves)) ? 0 : 1);
+  if (modo === "conferir") { process.exitCode = (await conferirChaves(chaves)) ? 0 : 1; return; }
 
   const dia = new Date().toISOString().slice(0, 10);
   pastaDoDia = join(RAIZ, ".cache", "robo-local", `${dia}-${modo}`);
   mkdirSync(pastaDoDia, { recursive: true });
   const soltar = trancar(modo === "fotos" ? "fotos" : "noite");
-  if (!soltar) { dizer("Outra rodada ainda está em andamento: esta não começou."); process.exit(0); }
+  if (!soltar) { dizer("Outra rodada ainda está em andamento: esta não começou."); return; }
   const inicio = Date.now();
   let feitos = [];
   try {
@@ -249,7 +255,7 @@ async function main() {
     if (modo === "fotos") feitos = [await rodarPasso("fotos", chaves)];
     else if (modo === "so") {
       const invalidos = resto.filter((n) => !PASSOS[n]);
-      if (!resto.length || invalidos.length) { dizer(`Passos que existem: ${Object.keys(PASSOS).join(", ")}`); soltar(); process.exit(1); }
+      if (!resto.length || invalidos.length) { dizer(`Passos que existem: ${Object.keys(PASSOS).join(", ")}`); process.exitCode = 1; return; }
       for (const nome of resto) feitos.push(await rodarPasso(nome, chaves));
       if (feitos.some((f) => !PASSOS[f.nome].semPainel)) await gravarNoPainel(feitos, chaves, inicio, `local: ${resto.join(",")}`, "local");
     } else if (modo === "noite") {
@@ -260,16 +266,16 @@ async function main() {
       dizer(`Fim da rodada (${Math.round((Date.now() - inicio) / 6e4)} min): ${situacao === "ok" ? "tudo certo" : situacao === "aviso" ? "com avisos" : "com ERRO"}. Resumo no painel, aba Robô.`);
     } else {
       dizer("Uso: node robo/local.mjs [noite | fotos | so <passos> | conferir]");
-      soltar();
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   } finally {
     soltar();
   }
-  process.exit(feitos.some((f) => f.resultado !== "success" && !PASSOS[f.nome].podeFalhar) ? 1 : 0);
+  process.exitCode = feitos.some((f) => f.resultado !== "success" && !PASSOS[f.nome].podeFalhar) ? 1 : 0;
 }
 
 main().catch((e) => {
   console.error(`ERRO: ${e.message}`);
-  process.exit(1);
+  process.exitCode = 1;
 });
