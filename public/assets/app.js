@@ -2817,6 +2817,10 @@ async function completarModelo(f, rotulo) {
 // Aqui vale o PRIMEIRO da lista que bate (do mais específico para o mais geral). Games usa o quadro "Tipo" dos videogames
 // (tipoDe). Para incluir um tipo: mais uma linha na categoria
 const TIPOS_DAS_CATEGORIAS = {
+  // Segurança (categoria nova, 26/11/2026). Vale o primeiro da lista que bate: o kit com câmeras e DVR fica em Kits
+  "Segurança": [["Kits", /^kit\b|\bkit (de )?(cftv|cameras?)/, "kit câmeras de segurança"], ["DVR e NVR", /\b(dvr|nvr|xvr|hvr)\b|gravador/, "dvr"],
+    ["Fechaduras", /fechadura|cadeado/, "fechadura digital"], ["Interfones e porteiros", /porteiro|interfone|campainha|olho magico/, "vídeo porteiro"],
+    ["Alarmes e sensores", /alarme|sensor|sirene|cerca eletrica/, "alarme residencial"], ["Câmeras", /camera/, "câmera de segurança"]],
   "Pets": [["Arranhadores", /arranhador/, "arranhador gato"], ["Camas", /\bcamas?\b|caminha/, "cama pet"], ["Coleiras e guias", /coleira|peitoral|\bguia\b/, "coleira cachorro"],
     ["Fontes e bebedouros", /fonte|bebedouro/, "fonte gato"], ["Comedouros", /comedouro|alimentador/, "comedouro pet"], ["Rações", /racao|racoes/, "ração"],
     ["Petiscos", /petisco|sache/, "petisco cachorro"], ["Areia e higiene", /areia|tapete higienico|shampoo/, "areia gato"], ["Roupas", /roupa|roupinha/, "roupa cachorro"],
@@ -5124,7 +5128,7 @@ async function carregarEmAlta() {
   const guardada = faixaMLGuardada();
   if (guardada) desenharBuscadosML(guardada);
   try {
-    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=28")).json();
+    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=29")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     // As categorias primeiro (print do Giovanni, 18/11/2026: o atalho "Eletroportáteis" do topo abria a busca comum pela palavra,
     // 17 kits, em vez da categoria): o atalho só sabe que é categoria depois que a lista das 40 chegou

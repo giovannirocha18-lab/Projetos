@@ -86,11 +86,11 @@ ok(partes.filter((p) => !["categorias", "casar"].includes(p.chave)).every((p) =>
 ok(partes.every((p) => ["ok", "aviso"].includes(p.situacao) && Array.isArray(p.linhas) && Array.isArray(p.avisos)), "situação das partes");
 ok(partes.find((p) => p.chave === "lomadee").linhas[0] === "3 marcas com produtos", "marcas da Lomadee");
 
-// Categorias da manhã: só às 09:30 UTC, as 42 abertas (Livros e Farmácia entraram em 24/11/2026), as 2 lentas abertas de novo
+// Categorias da manhã: só às 09:30 UTC, as 43 abertas (Livros e Farmácia entraram em 24/11/2026; Segurança em 26/11), as 2 lentas abertas de novo
 const cat = partes.find((p) => p.chave === "categorias");
 ok(new Date(estados.lojas.tempos.categorias.de).toISOString().slice(11, 16) === "09:30", `categorias começaram às ${new Date(estados.lojas.tempos.categorias.de).toISOString().slice(11, 16)}`);
-ok(cont.cats === 44 && estados.lojas.c.catAbertas === 42, `categorias abertas: ${cont.cats}`);
-ok(cat.linhas[0] === "42 de 42 categorias abertas; 40 já estavam prontas (até 3,0 s); 2 precisaram ser montadas", cat.linhas[0]);
+ok(cont.cats === 45 && estados.lojas.c.catAbertas === 43, `categorias abertas: ${cont.cats}`);
+ok(cat.linhas[0] === "43 de 43 categorias abertas; 41 já estavam prontas (até 3,0 s); 2 precisaram ser montadas", cat.linhas[0]);
 ok(cat.linhas.includes("Ferramentas: 9,0 s → na 2ª vez 0,6 s") && cat.linhas.includes("Pets: 0,5 s, sem ofertas → na 2ª vez 0,5 s (sem ofertas)"), `linhas: ${cat.linhas.slice(1).join(" | ")}`);
 ok(cat.situacao === "aviso" && cat.avisos[0] === "Continuam lentas ou vazias depois de abrir de novo: Pets", `aviso: ${cat.avisos}`);
 ok(esperaDasCategorias(Date.parse("2026-11-10T15:00:00Z")) === 0 && esperaDasCategorias(Date.parse("2026-11-10T09:29:30Z")) === 30, "espera das categorias");
@@ -99,7 +99,7 @@ ok(esperaDasCategorias(Date.parse("2026-11-10T15:00:00Z")) === 0 && esperaDasCat
 const soCat = { ml: estadoInicial("ml", agora, "manual-cat-x"), lojas: estadoInicial("lojas", agora, "manual-cat-x") };
 cont.cats = 0; cont.ferr = 0;
 for (let i = 0; i < 100 && soCat.lojas.fase !== "fim"; i++) await passo("lojas", soCat.lojas, chamar, agora + 15 * 3600e3 + i * 1000, soCat.ml);
-ok(soCat.ml.fase === "fim" && soCat.lojas.fase === "fim" && cont.cats === 44, `só categorias: ${soCat.lojas.fase}, ${cont.cats} aberturas`);
+ok(soCat.ml.fase === "fim" && soCat.lojas.fase === "fim" && cont.cats === 45, `só categorias: ${soCat.lojas.fase}, ${cont.cats} aberturas`);
 ok(partesDoPainel(soCat.ml, soCat.lojas).map((p) => p.chave).join() === "categorias", "só categorias: painel");
 
 // Robô de casar na madrugada: depois das prontas, antes das categorias; a busca com "resta" é repetida

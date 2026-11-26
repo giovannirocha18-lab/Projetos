@@ -70,7 +70,11 @@ let erros = 0;
     if (veio !== esperado) { erros++; console.error(`✗ ${lojaNome} "${titulo}": esperado ${esperado}, veio ${veio}`); }
   }
   for (const [titulo, esperado] of [["Estante de Livros 5 Prateleiras", "Móveis"], ["Livro Harry Potter e a Pedra Filosofal", "Livros"],
-    ["Luminária de Livro LED", "Iluminação LED"], ["Curativo Band-Aid 40 un", "Farmácia"], ["Remédio para pulgas cachorro", "Pets"]]) {
+    ["Luminária de Livro LED", "Iluminação LED"], ["Curativo Band-Aid 40 un", "Farmácia"],
+    // 26/11/2026: categoria Segurança (print "dvr"); o que é de carro, de bebê e webcam fica onde estava
+    ["DVR Hilook DVR-104G-M1/T, 4 Canais, 1080p Lite", "Segurança"], ["Câmera de Segurança Wifi Intelbras iM3 C Full HD", "Segurança"], ["Fechadura Digital Intelbras FR 101", "Segurança"],
+    ["Vídeo Porteiro Intelbras IV 4010 HS", "Segurança"], ["DVR Automotivo 3 Câmeras", "Automotivo"], ["Câmera de Ré Automotiva", "Automotivo"], ["Babá Eletrônica Com Câmera", "Bebês"],
+    ["Webcam Full HD Logitech", "Informática"], ["Remédio para pulgas cachorro", "Pets"]]) {
     const veio = categoriaDoProduto(titulo)?.nome;
     if (veio !== esperado) { erros++; console.error(`✗ "${titulo}": esperado ${esperado}, veio ${veio}`); }
   }
