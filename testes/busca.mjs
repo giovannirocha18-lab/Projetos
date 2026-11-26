@@ -1025,6 +1025,13 @@ for (const [q, buscaEsperada, itens, esperado] of [
     const s = comSecaoCerta({ titulo, secao: antes }).secao;
     if (s !== depois) { falhas++; console.log(`✗ seção guardada: "${titulo}" ficou em ${s}, esperado ${depois}`); }
   }
+  // 26/11/2026 (Giovanni: "Tchau, chupeta! vai para livraria"): anúncio que começa por "Livro - " é da categoria Livros,
+  // na busca/categoria (mesmo com a loja ou a IA dizendo Bebês) e na seção guardada; livro de banho/pano de bebê fica
+  for (const [titulo, depois] of [["Livro - Tchau, chupeta!", "Livros"], ["Livro: A Vassoura Mágica", "Livros"], ["Livro de Banho Bebê Impermeável com Apito", "Bebês"], ["Chupeta Avent Ultra Air 0-6 meses", "Bebês"]]) {
+    const s1 = marcarSecoes([{ id: "l1", titulo, preco: 30, catIa: "Bebês", catMapa: "Bebês" }], categoriaPorNome("Bebês"))[0].secao;
+    const s2 = comSecaoCerta({ titulo, secao: "Bebês" }).secao;
+    if (s1 !== depois || s2 !== depois) { falhas++; console.log(`✗ livro: "${titulo}" ficou em ${s1} / ${s2}, esperado ${depois}`); }
+  }
   // 25/11/2026 (print do Giovanni: Quedas de preço > Calçados com cesto de golfe, raquete de tênis de mesa e máquina de
   // pickleball; a categoria da AliExpress mistura esporte com tênis). Calçado de verdade fica, inclusive sem a palavra "tênis"
   for (const [titulo, antes, depois] of [["Cesto de metal para bolas de golfe com alça, balde de armazenamento", "Calçados", undefined],

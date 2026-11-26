@@ -46,7 +46,9 @@ const FRESCO_MS = 6 * 60 * 60 * 1000;
 // Vitrine de categoria mudada (19/11/2026, "tênis olympikus" em Calçados; Giovanni: a marca não aparecia): a lista guardada
 // antes disto é refeita na 1ª visita, sem esperar as 6 horas. Ao mudar a vitrine de uma categoria, pôr aqui a data e o nome
 const CARRO_2111 = Date.UTC(2026, 10, 25, 15, 40); // 25/11 15:40: esporte fora de Calçados (raquete, pickleball, golfe) e outras sobras das Quedas; 11:45: 25/11: relógios da Kabum de volta a Smartwatches; 24/11: categorias Livros e Farmácia; 23/11 18:50: livro fora de Limpeza/Bonés; 18:25: varredura das 40 categorias (palavra com outro sentido); antes: 23/11: espelho de moto/carro fora de Decoração (era 21/11 13:20, coisa de carro só em Automotivo): todas as vitrines refeitas
-const VITRINES_DESDE = new Proxy({}, { get: () => CARRO_2111 });
+// 26/11: anúncio "Livro - …" sai de Bebês e vai para Livros (só essas duas vitrines se refazem)
+const LIVRO_2611 = Date.UTC(2026, 10, 26, 12, 30);
+const VITRINES_DESDE = new Proxy({}, { get: (_, nome) => (nome === "Bebês" || nome === "Livros" ? LIVRO_2611 : CARRO_2111) });
 const NUMERO_DESDE = Date.UTC(2026, 10, 22, 15, 4); // 22/11: número depois de iOS/Android/Windows não é modelo
 const MENOS_UMA_DESDE = Date.UTC(2026, 10, 24, 20, 15); // 24/11: no banco, a 1ª palavra da busca nunca fica de fora (print "placa maquina de lavar roupa")
 const CONSOLES_DESDE = Date.UTC(2026, 10, 16, 20, 35); // 16/11: regra da outra geração também nos acessórios (print "ps5")
