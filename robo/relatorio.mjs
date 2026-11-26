@@ -6,6 +6,8 @@
 // Uso (só no GitHub Actions): node robo/relatorio.mjs
 //   (precisa de NEEDS, ENTRADAS, GITHUB_TOKEN, CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e D1_DATABASE_ID)
 
+import { pathToFileURL } from "node:url";
+
 // [job, chave da saída, título no painel], na ordem em que aparecem
 export const PARTES = [
   ["awin", "awin", "Preços das lojas (Awin)"],
@@ -98,6 +100,11 @@ async function main() {
     modoDa(evento, entradas), inicio, Date.now(), situacao, JSON.stringify(dados)];
   console.log(JSON.stringify({ situacao, modo: linha[3], partes: partes.map((p) => `${p.titulo}: ${p.situacao}`) }, null, 1));
 
+  await gravarExecucao(env, linha);
+}
+
+// Grava a linha da execução na tabela robo_execucoes (usado aqui e pelo robô da máquina local, robo/local.mjs)
+export async function gravarExecucao(env, linha) {
   const { CLOUDFLARE_API_TOKEN: token, CLOUDFLARE_ACCOUNT_ID: conta, D1_DATABASE_ID: banco } = env;
   if (!token || !conta || !banco) {
     console.log("Faltam os segredos do Cloudflare: resumo não gravado");
@@ -119,7 +126,8 @@ async function main() {
   console.log("Resumo gravado no banco (aparece no painel, aba Robô)");
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL: no Windows o endereço do arquivo não é "file://" + caminho
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((e) => {
     console.error(`ERRO: ${e.message}`);
     process.exit(1);

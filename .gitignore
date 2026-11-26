@@ -2,3 +2,6 @@
 node_modules/
 .dev.vars
 .cache/
+
+# Chaves do robô da máquina local (robo/local.mjs): NUNCA vão para o repositório
+.chaves-robo
