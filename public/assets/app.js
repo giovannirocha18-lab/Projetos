@@ -5128,7 +5128,7 @@ async function carregarEmAlta() {
   const guardada = faixaMLGuardada();
   if (guardada) desenharBuscadosML(guardada);
   try {
-    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=29")).json();
+    const { itens = [], categorias = [], ml = [] } = await (await fetch("/api/em-alta?v=30")).json();
     const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     // As categorias primeiro (print do Giovanni, 18/11/2026: o atalho "Eletroportáteis" do topo abria a busca comum pela palavra,
     // 17 kits, em vez da categoria): o atalho só sabe que é categoria depois que a lista das 40 chegou

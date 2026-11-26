@@ -992,6 +992,8 @@ for (const [q, buscaEsperada, itens, esperado] of [
   ["Eletroportáteis", [["Mixer de Áudio FIFINE SC8 com Iluminação RGB e Modificador de Voz", false], ["Mesa de Som Profissional de 4 Canais com Bluetooth, Mixer de Áudio 48V USB", false],
     ["Mixer Philips Walita Daily 400W 3 em 1 Preto", true], ["Liquidificador Mondial Turbo 550W", true]]],
   ["Cabelo", [["Escova de Limpeza para Máquina de Lavar, Escova de Limpeza para Tubulação de Secadora", false], ["Escova Secadora Britânia Bivolt 1300w Soft Bec07r", true], ["Secador de Cabelo Taiff 2000W", true]]],
+  ["Segurança", [["Jansite DVR para Motocicleta com Carplay de 5/7 polegadas, Navegação GPS", false], ["DVR Hilook DVR-104G-M1/T, 4 Canais, 1080p Lite, 1 Baia SATA", true],
+    ["Dvr Gravador Digital de Vídeo Intelbras MHDX 3108-C 8 Canais 5MP Lite com Detecção de Veículos", true], ["Câmera de Segurança Inteligente Intelbras iM3 C Branca", true]]],
   ["Limpeza", [["Vassoura de Bruxa Dançante Animada e Luminosa com Sons", false], ["Livro - A Vassoura Mágica", false], ["Vassoura Mágica de Silicone, Mop de Borracha", true]]],
   ["Moda íntima", [["360 ° Cabide Giratório Durável para Cintos, Organizador de Cintos, Lenços, Sutiãs e Gravatas", false], ["Sutiã Esportivo Feminino de Alta Sustentação para Yoga", true]]],
   ["Bonés e chapéus", [["Touca de Peruca de Malha de Nylon Ventilada, Cor Nude", false], ["Touca de banho impermeável de dupla camada", false], ["Boné Trucker Preto Aba Curva", true]]],

@@ -50,7 +50,9 @@ const CARRO_2111 = Date.UTC(2026, 10, 25, 15, 40); // 25/11 15:40: esporte fora 
 const LIVRO_2611 = Date.UTC(2026, 10, 26, 12, 30);
 // 26/11: aparelho de streaming em Informática (e a Smart TV Roku de volta a Eletrodomésticos)
 const STREAMING_2611 = Date.UTC(2026, 10, 26, 13, 20);
-const VITRINES_DESDE = new Proxy({}, { get: (_, nome) => (nome === "Bebês" || nome === "Livros" ? LIVRO_2611 : nome === "Informática" || nome === "Eletrodomésticos" ? STREAMING_2611 : CARRO_2111) });
+// 26/11: categoria Segurança sem DVR de moto/carro
+const SEGURANCA_2611 = Date.UTC(2026, 10, 26, 14, 50);
+const VITRINES_DESDE = new Proxy({}, { get: (_, nome) => (nome === "Bebês" || nome === "Livros" ? LIVRO_2611 : nome === "Informática" || nome === "Eletrodomésticos" ? STREAMING_2611 : nome === "Segurança" ? SEGURANCA_2611 : CARRO_2111) });
 const NUMERO_DESDE = Date.UTC(2026, 10, 22, 15, 4); // 22/11: número depois de iOS/Android/Windows não é modelo
 const MENOS_UMA_DESDE = Date.UTC(2026, 10, 24, 20, 15); // 24/11: no banco, a 1ª palavra da busca nunca fica de fora (print "placa maquina de lavar roupa")
 const CONSOLES_DESDE = Date.UTC(2026, 10, 16, 20, 35); // 16/11: regra da outra geração também nos acessórios (print "ps5")
