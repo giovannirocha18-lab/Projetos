@@ -58,9 +58,9 @@ valor de volta. Então:
 - `CLOUDFLARE_API_TOKEN`: criar um novo no Cloudflare (My Profile → API Tokens → Create Token → Custom token, com a
   permissão **Account → D1 → Edit**, só na conta do site). O antigo continua valendo no GitHub.
 - `CHAVE_ROBO`: tem de ser a mesma do Cloudflare Pages. Se o Giovanni não tem o valor guardado, é preciso criar uma
-  nova (texto comprido e aleatório, 40+ caracteres) e trocar **nos três lugares ao mesmo tempo**: Secret `CHAVE_ROBO`
-  do projeto no Cloudflare Pages (e publicar de novo), a chave usada pelo Worker `relogio-vaiprocarrinho`, e o arquivo
-  `.chaves-robo`. Trocar só num lugar para o robô da noite do Cloudflare.
+  nova (texto comprido e aleatório, 40+ caracteres) e trocar **nos dois lugares ao mesmo tempo**: Secret `CHAVE_ROBO`
+  do projeto no Cloudflare Pages (e publicar de novo, senão o site segue com a antiga) e o arquivo `.chaves-robo`.
+  O Worker `relogio-vaiprocarrinho` não usa essa chave (não precisa mexer nele).
 - `AWIN_FEED_KEY_PJ`: na Awin (conta PJ), em Ferramentas → Create-a-Feed: é a "apikey" que aparece no link do feed.
 - `SHOPEE_FEED_OFICIAL`: o link do feed "Shopee Oficial BR" da área de afiliados da Shopee (Feed de produto).
 - `ANTHROPIC_API_KEY`: em console.anthropic.com → API keys, criar uma chave nova só para a máquina local.
