@@ -1032,6 +1032,10 @@ for (const [q, buscaEsperada, itens, esperado] of [
     const s2 = comSecaoCerta({ titulo, secao: "Bebês" }).secao;
     if (s1 !== depois || s2 !== depois) { falhas++; console.log(`✗ livro: "${titulo}" ficou em ${s1} / ${s2}, esperado ${depois}`); }
   }
+  for (const [titulo, depois] of [["Haylou Solar Neo 2 Smartwatch Relogio Esporte Correndo Ritmo AMOLED", "Smartwatches"], ["Relógio Casio Masculino Digital F-91W", "Relógios"]]) {
+    const s = comSecaoCerta({ titulo, secao: "Relógios" }).secao;
+    if (s !== depois) { falhas++; console.log(`✗ seção Relógios: "${titulo}" ficou em ${s}, esperado ${depois}`); }
+  }
   // 25/11/2026 (print do Giovanni: Quedas de preço > Calçados com cesto de golfe, raquete de tênis de mesa e máquina de
   // pickleball; a categoria da AliExpress mistura esporte com tênis). Calçado de verdade fica, inclusive sem a palavra "tênis"
   for (const [titulo, antes, depois] of [["Cesto de metal para bolas de golfe com alça, balde de armazenamento", "Calçados", undefined],
