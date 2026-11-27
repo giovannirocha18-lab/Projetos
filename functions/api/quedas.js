@@ -18,7 +18,7 @@ export async function onRequestGet({ request, env }) {
   if (new URL(request.url).searchParams.has("q")) return daBusca(request, env, filtroDeBusca(new URL(request.url).searchParams.get("q")));
   const pagina = Math.min(Math.max(parseInt(new URL(request.url).searchParams.get("pagina"), 10) || 1, 1), MAX_PAGINA);
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/quedas?v=14&pagina=${pagina}`, request.url));
+  const chave = new Request(new URL(`/api/quedas?v=15&pagina=${pagina}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
   const dados = await listarQuedas(env.DB, pagina, POR_PAGINA);
@@ -37,7 +37,7 @@ async function daBusca(request, env, filtro) {
   const cabecalhos = (segundos) => ({ "Cache-Control": segundos ? `public, max-age=120, s-maxage=${segundos}` : "no-store", "X-Robots-Tag": "noindex" });
   if (!filtro) return Response.json({ ofertas: [], busca: null, completo: false, temMais: false }, { headers: cabecalhos(0) });
   const cache = typeof caches !== "undefined" ? caches.default : null;
-  const chave = new Request(new URL(`/api/quedas?v=14&r=3&q=${encodeURIComponent(filtro.n)}`, request.url));
+  const chave = new Request(new URL(`/api/quedas?v=15&r=3&q=${encodeURIComponent(filtro.n)}`, request.url));
   const guardada = cache && (await cache.match(chave));
   if (guardada) return guardada;
   const dados = await listarQuedasDaBusca(env.DB, filtro, MAX_DA_BUSCA);
